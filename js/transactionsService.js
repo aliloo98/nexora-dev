@@ -194,6 +194,16 @@ const toSupabaseTransactionPayload = (transaction) => ({
   updated_at: transaction.updated_at
 })
 
+const getSupabaseSession = async () => {
+  const authResponse = await supabase.auth.getSession()
+  return {
+    session: authResponse.data?.session || null,
+    error: authResponse.error || null
+  }
+}
+
+const getFallbackOwner = (transaction) => transaction.user_id || getCurrentUser()?.id || null
+
 // ─────────────────────────────────────────────
 // LECTURE DEPUIS SUPABASE
 // ─────────────────────────────────────────────
@@ -351,9 +361,9 @@ const create = async (transaction) => {
   let session = null
   let sessionError = null
   try {
-    const authResponse = await supabase.auth.getSession()
-    session = authResponse.data?.session || null
-    sessionError = authResponse.error || null
+    const authState = await getSupabaseSession()
+    session = authState.session
+    sessionError = authState.error
   } catch (err) {
     sessionError = err
     console.warn('[Phase2B][TransactionsService] Supabase getSession threw:', err)
@@ -422,6 +432,139 @@ const create = async (transaction) => {
   return normalized
 }
 
+const update = async (transaction) => {
+  const normalized = normalizeTransaction({ ...transaction, updated_at: new Date().toISOString() })
+  const localId = normalized.metadata?.local_id
+
+  let session = null
+  let sessionError = null
+  try {
+    const authState = await getSupabaseSession()
+    session = authState.session
+    sessionError = authState.error
+  } catch (err) {
+    sessionError = err
+    console.warn('[Phase2C][TransactionsService] fallback activated: session unavailable for update', err)
+  }
+
+  if (session?.user?.id) {
+    normalized.user_id = session.user.id
+  }
+
+  if (normalized.user_id && session?.user?.id && isOnline()) {
+    try {
+      const supabasePayload = toSupabaseTransactionPayload(normalized)
+      const existing = await findSupabaseTransactionByLocalId(normalized.user_id, localId)
+
+      if (!existing) {
+        return create(normalized)
+      }
+
+      const { id, created_at, ...updatePayload } = supabasePayload
+      const { data, error } = await supabase
+        .from('transactions')
+        .update(updatePayload)
+        .eq('id', existing.id)
+        .eq('user_id', normalized.user_id)
+        .select()
+        .single()
+
+      if (error) throw error
+      console.info('[Phase2C] update synced', { local_id: localId })
+      return data
+    } catch (err) {
+      console.warn('[Phase2C] fallback activated: update sync error', err)
+    }
+  } else {
+    console.warn('[Phase2C] fallback activated: update skipped', {
+      reason: !isOnline()
+        ? 'offline'
+        : !session?.user?.id
+          ? 'missing-real-supabase-session'
+          : 'missing-user-id',
+      local_id: localId,
+      sessionError
+    })
+  }
+
+  const fallback = readTransactionFallback()
+  const ownerId = getFallbackOwner(normalized)
+  const existingIndex = localId
+    ? fallback.findIndex(item => item.metadata?.local_id === localId && item.user_id === ownerId)
+    : -1
+
+  normalized.user_id = ownerId
+  if (existingIndex !== -1) {
+    fallback[existingIndex] = normalized
+  } else {
+    fallback.push(normalized)
+  }
+
+  writeTransactionFallback(fallback)
+  return normalized
+}
+
+const remove = async ({ user_id, local_id, month, category } = {}) => {
+  if (!local_id && !month) {
+    console.warn('[Phase2C] delete skipped: missing local_id or month')
+    return false
+  }
+
+  let session = null
+  let sessionError = null
+  try {
+    const authState = await getSupabaseSession()
+    session = authState.session
+    sessionError = authState.error
+  } catch (err) {
+    sessionError = err
+    console.warn('[Phase2C][TransactionsService] fallback activated: session unavailable for delete', err)
+  }
+
+  const userId = session?.user?.id || user_id || getCurrentUser()?.id || null
+
+  if (userId && session?.user?.id && isOnline()) {
+    try {
+      let query = supabase.from('transactions').delete().eq('user_id', userId)
+      if (local_id) {
+        query = query.eq('local_id', local_id)
+      } else {
+        query = query.eq('month', month)
+        if (category) query = query.eq('category', category)
+      }
+
+      const { error } = await query
+      if (error) throw error
+      console.info('[Phase2C] delete synced', { local_id, month, category })
+    } catch (err) {
+      console.warn('[Phase2C] fallback activated: delete sync error', err)
+    }
+  } else {
+    console.warn('[Phase2C] fallback activated: delete skipped', {
+      reason: !isOnline()
+        ? 'offline'
+        : !session?.user?.id
+          ? 'missing-real-supabase-session'
+          : 'missing-user-id',
+      local_id,
+      month,
+      sessionError
+    })
+  }
+
+  const fallback = readTransactionFallback()
+  const updated = fallback.filter((item) => {
+    if (userId && item.user_id && item.user_id !== userId) return true
+    if (local_id) return item.metadata?.local_id !== local_id
+    if (month && item.metadata?.month !== month) return true
+    if (category && item.metadata?.category !== category) return true
+    return false
+  })
+
+  writeTransactionFallback(updated)
+  return true
+}
+
 // ─────────────────────────────────────────────
 // TODO Phase 2B - Ecriture
 // ─────────────────────────────────────────────
@@ -447,6 +590,8 @@ export const TransactionsService = {
   getAvailableMonths,
   getSyncState,
   create,
+  update,
+  delete: remove,
   // Expose pour debug
   _readFromLocal: readFromLocal,
   _readFromSupabase: readFromSupabase

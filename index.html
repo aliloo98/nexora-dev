@@ -1118,9 +1118,22 @@ async function syncMonthTransactionsToSupabase(month, data) {
   
   for (const category of categories) {
     const amount = parseFloat(data[category]) || 0;
-    if (amount <= 0) continue;
 
     const localId = `${month}_${category}`;
+    if (amount <= 0) {
+      try {
+        await window.TransactionsService.delete({
+          user_id: userId,
+          local_id: localId,
+          month,
+          category
+        });
+      } catch (err) {
+        console.warn(`[Phase2C] sync error deleting ${localId}:`, err);
+      }
+      continue;
+    }
+
     const categoryLabel = category
       .replace(/_/g, ' ')
       .replace(/\b\w/g, c => c.toUpperCase())
@@ -1143,9 +1156,9 @@ async function syncMonthTransactionsToSupabase(month, data) {
     };
 
     try {
-      await window.TransactionsService.create(transaction);
+      await window.TransactionsService.update(transaction);
     } catch (err) {
-      console.warn(`[Phase2B] failed to sync ${localId}:`, err);
+      console.warn(`[Phase2C] sync error updating ${localId}:`, err);
       // Non-blocking: continue with other categories
     }
   }
@@ -1735,7 +1748,13 @@ function resetMonth(){
     'Réinitialiser le mois',
     'Voulez-vous vraiment effacer toutes les valeurs du mois de '+getMonth()+' ? Cette action est irréversible.',
     () => {
-      SafeStorage.removeItem(storageKey(getMonth()));
+      const month = getMonth();
+      if (window.TransactionsService) {
+        window.TransactionsService.delete({ month }).catch(err => {
+          console.warn(`[Phase2C] sync error deleting month ${month}:`, err);
+        });
+      }
+      SafeStorage.removeItem(storageKey(month));
       loadMonth();
       showToast('🗑️ Mois réinitialisé');
     }
