@@ -45,6 +45,30 @@
   </div>
 </div>
 
+<!-- NEXORA ACTION MODAL -->
+<div class="modal-overlay" id="nexora-action-modal" aria-hidden="true">
+  <div class="modal-card nexora-action-modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title" id="nexora-action-modal-title">Action</h3>
+      <button class="modal-close" type="button" onclick="closeNexoraActionModal(null)">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="nexora-action-modal-message"></div>
+      <input
+        id="nexora-action-modal-input"
+        class="budget-input nexora-action-modal-input"
+        type="text"
+        autocomplete="off"
+      >
+      <div id="nexora-action-modal-error" class="nexora-action-modal-error" aria-live="polite"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="nexora-action-modal-cancel" type="button">Annuler</button>
+      <button class="btn btn-gold" id="nexora-action-modal-confirm" type="button">Confirmer</button>
+    </div>
+  </div>
+</div>
+
 <!-- MAIN CONTENT -->
 <main class="main">
 
@@ -1212,6 +1236,97 @@ function restoreBudgetInputs(values) {
   });
 }
 
+let nexoraActionModalResolver = null;
+
+function closeNexoraActionModal(result = null) {
+  const modal = document.getElementById('nexora-action-modal');
+  if (modal) {
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+
+  if (nexoraActionModalResolver) {
+    nexoraActionModalResolver(result);
+    nexoraActionModalResolver = null;
+  }
+}
+
+function openNexoraActionModal({ title, message, input = false, defaultValue = '', confirmLabel = 'Confirmer', required = false, validateValue = null, showCancel = true }) {
+  const modal = document.getElementById('nexora-action-modal');
+  const titleEl = document.getElementById('nexora-action-modal-title');
+  const messageEl = document.getElementById('nexora-action-modal-message');
+  const inputEl = document.getElementById('nexora-action-modal-input');
+  const errorEl = document.getElementById('nexora-action-modal-error');
+  const cancelBtn = document.getElementById('nexora-action-modal-cancel');
+  const confirmBtn = document.getElementById('nexora-action-modal-confirm');
+
+  if (!modal || !titleEl || !messageEl || !inputEl || !errorEl || !cancelBtn || !confirmBtn) {
+    return Promise.resolve(null);
+  }
+
+  if (nexoraActionModalResolver) closeNexoraActionModal(null);
+
+  titleEl.textContent = title || 'Action';
+  messageEl.textContent = message || '';
+  inputEl.value = defaultValue || '';
+  inputEl.style.display = input ? 'block' : 'none';
+  inputEl.classList.remove('input-error');
+  errorEl.textContent = '';
+  errorEl.classList.remove('show');
+  confirmBtn.textContent = confirmLabel;
+  cancelBtn.style.display = showCancel ? '' : 'none';
+
+  return new Promise(resolve => {
+    nexoraActionModalResolver = resolve;
+
+    cancelBtn.onclick = () => closeNexoraActionModal(null);
+    const submitModal = () => {
+      if (input && required && inputEl.value.trim() === '') {
+        inputEl.classList.add('input-error');
+        errorEl.textContent = 'Le nom est requis';
+        errorEl.classList.add('show');
+        inputEl.focus();
+        return;
+      }
+
+      if (input && typeof validateValue === 'function') {
+        const validationMessage = validateValue(inputEl.value);
+        if (validationMessage) {
+          inputEl.classList.add('input-error');
+          errorEl.textContent = validationMessage;
+          errorEl.classList.add('show');
+          inputEl.focus();
+          return;
+        }
+      }
+
+      closeNexoraActionModal(input ? inputEl.value : true);
+    };
+
+    confirmBtn.onclick = () => {
+      submitModal();
+    };
+    inputEl.oninput = () => {
+      if (inputEl.value.trim() !== '') {
+        inputEl.classList.remove('input-error');
+        errorEl.textContent = '';
+        errorEl.classList.remove('show');
+      }
+    };
+    inputEl.onkeydown = (event) => {
+      if (event.key === 'Enter') submitModal();
+      if (event.key === 'Escape') closeNexoraActionModal(null);
+    };
+
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(() => {
+      if (input) inputEl.focus();
+      else confirmBtn.focus();
+    });
+  });
+}
+
 // Inline mathematical formula evaluation
 function setupFormulaEvaluation() {
   document.querySelectorAll('input.budget-input').forEach(input => {
@@ -1349,6 +1464,32 @@ function getBudgetRowLabelText(label) {
   return (textNode?.nodeValue || '').trim();
 }
 
+function normalizeCategoryNameForCompare(name) {
+  return String(name || '')
+    .trim()
+    .toLocaleLowerCase('fr-FR')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function getCategoryById(categoryId) {
+  return budgetCategoriesCache.find(category => category.id === categoryId) || null;
+}
+
+function getDuplicateCategoryNameMessage(type, name, ignoredCategoryId = null) {
+  const normalizedName = normalizeCategoryNameForCompare(name);
+  if (!normalizedName) return null;
+
+  const hasDuplicate = budgetCategoriesCache.some(category => (
+    category.type === type
+    && category.is_active !== false
+    && category.id !== ignoredCategoryId
+    && normalizeCategoryNameForCompare(category.name) === normalizedName
+  ));
+
+  return hasDuplicate ? 'Ce nom existe déjà' : null;
+}
+
 function setBudgetRowLabelText(label, text) {
   if (!label || !text) return;
 
@@ -1421,6 +1562,42 @@ function createCustomBudgetRow(category) {
   return row;
 }
 
+function createHiddenBudgetRowsPanel(type, categories) {
+  const hiddenCategories = categories
+    .filter(category => category.type === type && category.is_active === false && !category.is_default)
+    .sort((a, b) => a.position - b.position || a.name.localeCompare(b.name));
+
+  if (hiddenCategories.length === 0) return null;
+
+  const panel = document.createElement('div');
+  panel.className = 'hidden-budget-lines';
+
+  const title = document.createElement('div');
+  title.className = 'hidden-budget-lines-title';
+  title.textContent = 'Lignes masquées';
+  panel.appendChild(title);
+
+  hiddenCategories.forEach(category => {
+    const item = document.createElement('div');
+    item.className = 'hidden-budget-line-item';
+
+    const name = document.createElement('span');
+    name.textContent = category.name;
+
+    const restoreBtn = document.createElement('button');
+    restoreBtn.type = 'button';
+    restoreBtn.className = 'restore-category-btn';
+    restoreBtn.textContent = 'Restaurer';
+    restoreBtn.onclick = () => restoreCustomBudgetLine(category.id);
+
+    item.appendChild(name);
+    item.appendChild(restoreBtn);
+    panel.appendChild(item);
+  });
+
+  return panel;
+}
+
 async function renderCustomBudgetRows() {
   if (!window.BudgetCategoriesService?.getBudgetCategories) return;
 
@@ -1439,6 +1616,9 @@ async function renderCustomBudgetRows() {
       .forEach(category => {
         container.appendChild(createCustomBudgetRow(category));
       });
+
+    const hiddenPanel = createHiddenBudgetRowsPanel(type, categories);
+    if (hiddenPanel) container.appendChild(hiddenPanel);
   });
 
   convertCheckboxesToPaidInputs();
@@ -1451,8 +1631,14 @@ async function addCustomBudgetLine(type) {
   try {
     if (!window.BudgetCategoriesService?.createBudgetCategory) return;
 
-    // TODO Phase 3F: remplacer prompt() par une modale Nexora.
-    const name = window.prompt('Nom de la nouvelle ligne');
+    const name = await openNexoraActionModal({
+      title: 'Ajouter une ligne',
+      message: 'Nom de la nouvelle ligne',
+      input: true,
+      required: true,
+      validateValue: (value) => getDuplicateCategoryNameMessage(type, value),
+      confirmLabel: 'Ajouter'
+    });
     if (name === null) return;
 
     const cleanName = name.trim();
@@ -1471,7 +1657,11 @@ async function hideCustomBudgetLine(categoryId, categoryName) {
   try {
     if (!categoryId || !window.BudgetCategoriesService?.disableBudgetCategory) return;
 
-    const confirmed = window.confirm(`Masquer "${categoryName}" ? Les montants déjà enregistrés ne seront pas supprimés.`);
+    const confirmed = await openNexoraActionModal({
+      title: 'Masquer la ligne',
+      message: `Masquer "${categoryName}" ? Les montants déjà enregistrés ne seront pas supprimés.`,
+      confirmLabel: 'Masquer'
+    });
     if (!confirmed) return;
 
     await window.BudgetCategoriesService.disableBudgetCategory(categoryId);
@@ -1483,7 +1673,31 @@ async function hideCustomBudgetLine(categoryId, categoryName) {
   }
 }
 
-// TODO Phase 3F: ajouter une corbeille/restauration pour les lignes masquees.
+async function restoreCustomBudgetLine(categoryId) {
+  try {
+    if (!categoryId || !window.BudgetCategoriesService?.restoreBudgetCategory) return;
+
+    const category = getCategoryById(categoryId);
+    if (category && getDuplicateCategoryNameMessage(category.type, category.name, category.id)) {
+      await openNexoraActionModal({
+        title: 'Restauration impossible',
+        message: 'Une ligne active porte déjà ce nom',
+        confirmLabel: 'OK',
+        showCancel: false
+      });
+      return;
+    }
+
+    await window.BudgetCategoriesService.restoreBudgetCategory(categoryId);
+    await renderCustomBudgetRows();
+    await refreshCategoryLabels();
+    updateAll();
+  } catch (err) {
+    console.warn('[Phase4D] Restauration de ligne impossible', err);
+  }
+}
+
+// TODO Phase 4E: ajouter une vue corbeille globale avec date de masquage et filtres.
 
 async function renameBudgetCategoryLabel(categoryId) {
   try {
@@ -1492,9 +1706,22 @@ async function renameBudgetCategoryLabel(categoryId) {
     const label = document.querySelector(`[data-row-key="${categoryId}"] .budget-row-label`)
       || document.querySelector(`input.budget-input[data-key="${categoryId}"]`)?.closest('.budget-row')?.querySelector('.budget-row-label');
     const currentName = getBudgetRowLabelText(label);
+    const currentCategory = getCategoryById(categoryId);
+    const categoryType = currentCategory?.type;
 
-    // TODO Phase 3D: remplacer prompt() par une modale Nexora dediee, avec validation inline.
-    const newName = window.prompt('Nouveau nom de la ligne', currentName);
+    const newName = await openNexoraActionModal({
+      title: 'Renommer la ligne',
+      message: 'Nouveau nom de la ligne',
+      input: true,
+      defaultValue: currentName,
+      required: true,
+      validateValue: (value) => {
+        const normalizedValue = normalizeCategoryNameForCompare(value);
+        if (normalizedValue === normalizeCategoryNameForCompare(currentName)) return null;
+        return categoryType ? getDuplicateCategoryNameMessage(categoryType, value, categoryId) : null;
+      },
+      confirmLabel: 'Renommer'
+    });
     if (newName === null) return;
 
     const cleanName = newName.trim();

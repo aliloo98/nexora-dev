@@ -329,10 +329,34 @@ const disableBudgetCategory = async (id, { userId } = {}) => {
   return updated
 }
 
+const restoreBudgetCategory = async (id, { userId } = {}) => {
+  if (!id) throw new Error('id categorie requis')
+
+  const ownerId = getOwnerId(userId)
+  const categories = readLocalCategories(ownerId)
+  const category = categories.find(item => item.id === id)
+  if (!category) throw new Error(`Categorie introuvable: ${id}`)
+
+  const updated = { ...category, is_active: true, updated_at: nowIso() }
+  writeLocalCategories(ownerId, categories.map(item => item.id === id ? updated : item))
+
+  try {
+    const { session } = await getSupabaseSession()
+    if (session?.user?.id && isOnline()) {
+      return normalizeCategory(await upsertSupabaseCategory({ ...updated, user_id: session.user.id }), session.user.id)
+    }
+  } catch (err) {
+    console.warn('[BudgetCategoriesService] Supabase restore fallback:', err)
+  }
+
+  return updated
+}
+
 export const BudgetCategoriesService = {
   DEFAULT_BUDGET_CATEGORIES,
   getBudgetCategories,
   renameBudgetCategory,
   createBudgetCategory,
-  disableBudgetCategory
+  disableBudgetCategory,
+  restoreBudgetCategory
 }
