@@ -1098,7 +1098,26 @@ async function syncMonthTransactionsToSupabase(month, data) {
     return;
   }
 
-  const userId = window.AuthContext.getCurrentUser()?.id;
+  const authContextUser = window.AuthContext.getCurrentUser();
+  let session = null;
+  let sessionError = null;
+  try {
+    const response = await window.supabase?.auth?.getSession();
+    session = response?.data?.session || null;
+    sessionError = response?.error || null;
+  } catch (err) {
+    sessionError = err;
+  }
+
+  console.debug('[Phase2B] sync auth state:', {
+    authContextUser,
+    authContextUserId: authContextUser?.id || null,
+    hasSupabaseSession: Boolean(session),
+    supabaseUserId: session?.user?.id || null,
+    sessionError
+  });
+
+  const userId = session?.user?.id || authContextUser?.id;
   if (!userId) {
     console.debug('[Phase2B] sync skipped: user not authenticated');
     return;
@@ -1133,9 +1152,14 @@ async function syncMonthTransactionsToSupabase(month, data) {
     };
 
     try {
+      console.debug('[Phase2B] create payload:', {
+        localId,
+        userId,
+        transaction
+      });
       const result = await window.TransactionsService.create(transaction);
       if (result) {
-        console.debug(`[Phase2B] transaction synced: ${localId}`);
+        console.debug(`[Phase2B] transaction synced: ${localId}`, result);
       }
     } catch (err) {
       console.warn(`[Phase2B] failed to sync ${localId}:`, err);

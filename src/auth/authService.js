@@ -9,6 +9,11 @@
 
 import { supabase } from '../supabase.js'
 
+const isSupabaseConfigured = Boolean(
+  import.meta.env.VITE_SUPABASE_URL &&
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+)
+
 /**
  * Authentication Service
  * All functions designed to work with real Supabase once credentials are configured
@@ -28,6 +33,20 @@ export const AuthService = {
    */
   async signUp(email, password, username) {
     try {
+      if (isSupabaseConfigured) {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { username }
+          }
+        })
+
+        if (error) throw error
+        console.debug('[Phase2B][Auth] Supabase signUp response:', { user: data.user, session: data.session })
+        return { user: data.user, session: data.session, error: null }
+      }
+
       // TODO: Real Supabase implementation (uncomment when ready)
       // const { data, error } = await supabase.auth.signUp({
       //   email,
@@ -101,6 +120,21 @@ export const AuthService = {
    */
   async signIn(email, password) {
     try {
+      if (isSupabaseConfigured) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        })
+
+        if (error) throw error
+        console.debug('[Phase2B][Auth] Supabase signIn response:', { user: data.user, session: data.session })
+        return {
+          user: data.user,
+          session: data.session,
+          error: null
+        }
+      }
+
       // TODO: Real Supabase implementation (uncomment when ready)
       // const { data, error } = await supabase.auth.signInWithPassword({
       //   email,
@@ -166,6 +200,13 @@ export const AuthService = {
    */
   async signOut() {
     try {
+      if (isSupabaseConfigured) {
+        const { error } = await supabase.auth.signOut()
+        if (error) throw error
+        this.clearSessionPlaceholder()
+        return { error: null }
+      }
+
       // TODO: Real Supabase implementation (uncomment when ready)
       // const { error } = await supabase.auth.signOut()
       // if (error) throw error
@@ -196,6 +237,13 @@ export const AuthService = {
    */
   async getCurrentUser() {
     try {
+      if (isSupabaseConfigured) {
+        const { data: { user }, error } = await supabase.auth.getUser()
+        if (error) throw error
+        console.debug('[Phase2B][Auth] Supabase getCurrentUser:', { user })
+        return { user, error: null }
+      }
+
       // TODO: Real Supabase implementation (uncomment when ready)
       // const { data: { user }, error } = await supabase.auth.getUser()
       // if (error) throw error
@@ -231,6 +279,13 @@ export const AuthService = {
    */
   async getSession() {
     try {
+      if (isSupabaseConfigured) {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        if (error) throw error
+        console.debug('[Phase2B][Auth] Supabase getSession:', { session, userId: session?.user?.id })
+        return { session, error: null }
+      }
+
       // TODO: Real Supabase implementation (uncomment when ready)
       // const { data: { session }, error } = await supabase.auth.getSession()
       // if (error) throw error

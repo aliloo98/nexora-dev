@@ -163,6 +163,7 @@ const normalizeTransaction = (transaction = {}) => {
 const findSupabaseTransactionByLocalId = async (userId, localId) => {
   if (!userId || !localId) return null
 
+  console.debug('[Phase2B][TransactionsService] duplicate lookup:', { userId, localId })
   const { data, error } = await supabase
     .from('transactions')
     .select('*')
@@ -328,26 +329,71 @@ const create = async (transaction) => {
   const normalized = normalizeTransaction(transaction)
   const localId = normalized.metadata?.local_id
 
-  if (normalized.user_id && isOnline()) {
+  console.debug('[Phase2B][TransactionsService] create() received payload:', transaction)
+
+  let session = null
+  let sessionError = null
+  try {
+    const authResponse = await supabase.auth.getSession()
+    session = authResponse.data?.session || null
+    sessionError = authResponse.error || null
+    console.debug('[Phase2B][TransactionsService] Supabase auth session:', {
+      hasSession: Boolean(session),
+      sessionUserId: session?.user?.id || null,
+      authContextUserId: getCurrentUser()?.id || null,
+      sessionError
+    })
+  } catch (err) {
+    sessionError = err
+    console.warn('[Phase2B][TransactionsService] Supabase getSession threw:', err)
+  }
+
+  if (session?.user?.id) {
+    normalized.user_id = session.user.id
+  }
+
+  console.debug('[Phase2B][TransactionsService] normalized insert payload:', normalized)
+
+  if (normalized.user_id && session?.user?.id && isOnline()) {
     try {
       const existing = await findSupabaseTransactionByLocalId(normalized.user_id, localId)
       if (existing) {
         log('sync', `Doublon Supabase evite pour ${localId}`, { id: existing.id })
+        console.debug('[Phase2B][TransactionsService] duplicate response:', existing)
         return existing
       }
 
+      console.debug('[Phase2B][TransactionsService] Supabase insert request:', {
+        table: 'transactions',
+        userId: normalized.user_id,
+        localId,
+        payload: normalized
+      })
       const { data, error } = await supabase
         .from('transactions')
         .insert(normalized)
         .select()
         .single()
 
+      console.debug('[Phase2B][TransactionsService] Supabase insert response:', { data, error })
       if (error) throw error
       log('success', `Transaction creee dans Supabase: ${localId}`, { id: data.id })
       return data
     } catch (err) {
+      console.error('[Phase2B][TransactionsService] Supabase create full error:', err)
       log('warn', `Create Supabase indisponible, fallback local: ${localId}`, err.message)
     }
+  } else {
+    console.warn('[Phase2B][TransactionsService] Supabase insert skipped:', {
+      reason: !isOnline()
+        ? 'offline'
+        : !session?.user?.id
+          ? 'missing-real-supabase-session'
+          : 'missing-user-id',
+      normalizedUserId: normalized.user_id,
+      sessionUserId: session?.user?.id || null,
+      sessionError
+    })
   }
 
   const fallback = readTransactionFallback()

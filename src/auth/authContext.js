@@ -144,7 +144,7 @@ export const AuthContext = {
     try {
       console.log('🔐 AuthContext.signUp called')
       
-      const { user, error } = await AuthService.signUp(email, password, username)
+      const { user, session, error } = await AuthService.signUp(email, password, username)
       
       if (error) {
         this._setError(error)
@@ -153,8 +153,8 @@ export const AuthContext = {
       }
 
       console.log('✅ SignUp successful')
-      this._setUser(user)
-      return { user, error: null }
+      this._setUser(user, session)
+      return { user, session, error: null }
     } catch (error) {
       console.error('❌ SignUp exception:', error)
       this._setError(error)
