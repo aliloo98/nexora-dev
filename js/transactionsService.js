@@ -168,12 +168,32 @@ const findSupabaseTransactionByLocalId = async (userId, localId) => {
     .from('transactions')
     .select('*')
     .eq('user_id', userId)
-    .eq('metadata->>local_id', localId)
+    .eq('local_id', localId)
     .maybeSingle()
 
   if (error) throw error
   return data || null
 }
+
+const toSupabaseTransactionPayload = (transaction) => ({
+  id: transaction.id,
+  user_id: transaction.user_id,
+  label: transaction.label,
+  amount: transaction.amount,
+  type: transaction.transaction_type,
+  category: transaction.metadata?.category || null,
+  month: transaction.metadata?.month || null,
+  paid: false,
+  source_origin: transaction.source_origin || 'manual',
+  sync_status: transaction.sync_status || 'pending',
+  synced_at: new Date().toISOString(),
+  is_internal_transfer: Boolean(transaction.internal_transfer),
+  linked_transaction_id: transaction.linked_transaction_id,
+  exclude_from_analytics: Boolean(transaction.analytics_ignore),
+  local_id: transaction.metadata?.local_id || null,
+  created_at: transaction.created_at,
+  updated_at: transaction.updated_at
+})
 
 // ─────────────────────────────────────────────
 // LECTURE DEPUIS SUPABASE
@@ -363,15 +383,17 @@ const create = async (transaction) => {
         return existing
       }
 
+      const supabasePayload = toSupabaseTransactionPayload(normalized)
+
       console.debug('[Phase2B][TransactionsService] Supabase insert request:', {
         table: 'transactions',
         userId: normalized.user_id,
         localId,
-        payload: normalized
+        payload: supabasePayload
       })
       const { data, error } = await supabase
         .from('transactions')
-        .insert(normalized)
+        .insert(supabasePayload)
         .select()
         .single()
 
