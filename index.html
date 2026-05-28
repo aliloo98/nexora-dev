@@ -1079,8 +1079,69 @@ function saveData(){
     data[el.dataset.key] = el.value;
   });
   SafeStorage.setItem(storageKey(m), JSON.stringify(data));
+  
+  // Phase 2B: Sync to Supabase (async, non-blocking)
+  if (typeof window.TransactionsService !== 'undefined') {
+    syncMonthTransactionsToSupabase(m, data).catch(err => {
+      console.error('[Phase2B] sync error:', err);
+    });
+  }
+  
   showToast('✅ Sauvegardé avec succès !');
   buildHistory();
+}
+
+// Phase 2B: Sync monthly budget data to Supabase as transactions
+async function syncMonthTransactionsToSupabase(month, data) {
+  if (!window.TransactionsService || !window.AuthContext) {
+    console.debug('[Phase2B] TransactionsService or AuthContext unavailable');
+    return;
+  }
+
+  const userId = window.AuthContext.getCurrentUser()?.id;
+  if (!userId) {
+    console.debug('[Phase2B] sync skipped: user not authenticated');
+    return;
+  }
+
+  const categories = Object.keys(data).filter(k => k !== 'target_epargne' && !k.endsWith('_paye') && !k.startsWith('note_'));
+  
+  for (const category of categories) {
+    const amount = parseFloat(data[category]) || 0;
+    if (amount <= 0) continue;
+
+    const localId = `${month}_${category}`;
+    const categoryLabel = category
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, c => c.toUpperCase())
+      .trim();
+
+    const transaction = {
+      user_id: userId,
+      local_id: localId,
+      amount: amount,
+      label: categoryLabel,
+      transaction_type: category.startsWith('rev_') ? 'income' : 'expense',
+      transaction_date: new Date(`${month}-01`).toISOString().split('T')[0],
+      source_origin: 'manual',
+      sync_status: 'pending',
+      metadata: {
+        month,
+        category,
+        from_budget_app: true
+      }
+    };
+
+    try {
+      const result = await window.TransactionsService.create(transaction);
+      if (result) {
+        console.debug(`[Phase2B] transaction synced: ${localId}`);
+      }
+    } catch (err) {
+      console.warn(`[Phase2B] failed to sync ${localId}:`, err);
+      // Non-blocking: continue with other categories
+    }
+  }
 }
 
 function getVal(key){

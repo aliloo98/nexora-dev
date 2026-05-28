@@ -26,6 +26,7 @@ import AuthContext from './auth/authContext.js'
 import { initAuthRouting } from './auth/authRouting.js'
 import AuthPages from './pages/AuthPages.js'
 import { authStyles } from './styles/authStyles.js'
+import { TransactionsService } from '../js/transactionsService.js'
 
 // Expose modules globally for HTML event handlers and old code
 window.StorageManager = StorageManager
@@ -39,6 +40,7 @@ window.supabase = supabase
 
 // Expose Auth context globally
 window.AuthContext = AuthContext
+window.TransactionsService = TransactionsService
 
 // Expose helper functions globally (for HTML onclick handlers)
 window.showToast = (msg) => Utils.showToast(msg)

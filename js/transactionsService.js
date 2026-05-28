@@ -49,6 +49,7 @@ const getCurrentUser = () => {
 }
 
 const storageKey = (month) => `budget_${month}`
+const transactionFallbackKey = 'nexora_transactions_fallback_v2'
 
 // ─────────────────────────────────────────────
 // LECTURE DEPUIS LOCALSTORAGE (SafeStorage)
@@ -85,6 +86,92 @@ const readAllMonthsFromLocal = () => {
     log('error', 'Erreur lecture mois locaux', err.message)
     return []
   }
+}
+
+const getStorageClient = () => {
+  if (typeof SafeStorage !== 'undefined') return SafeStorage
+  if (typeof localStorage !== 'undefined') return localStorage
+  return null
+}
+
+const readTransactionFallback = () => {
+  try {
+    const storage = getStorageClient()
+    if (!storage) return []
+    const raw = storage.getItem(transactionFallbackKey)
+    const parsed = raw ? JSON.parse(raw) : null
+    return Array.isArray(parsed?.transactions) ? parsed.transactions : []
+  } catch (err) {
+    log('error', 'Erreur lecture fallback transactions', err.message)
+    return []
+  }
+}
+
+const writeTransactionFallback = (transactions) => {
+  try {
+    const storage = getStorageClient()
+    if (!storage) return false
+    storage.setItem(transactionFallbackKey, JSON.stringify({
+      version: 2,
+      updated_at: new Date().toISOString(),
+      transactions
+    }))
+    return true
+  } catch (err) {
+    log('error', 'Erreur ecriture fallback transactions', err.message)
+    return false
+  }
+}
+
+const generateId = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `fallback_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+}
+
+const normalizeTransaction = (transaction = {}) => {
+  const now = new Date().toISOString()
+  const metadata = { ...(transaction.metadata || {}) }
+  if (transaction.local_id) metadata.local_id = transaction.local_id
+
+  return {
+    id: transaction.id || generateId(),
+    user_id: transaction.user_id || null,
+    account_id: transaction.account_id || null,
+    counterparty_account_id: transaction.counterparty_account_id || null,
+    category_id: transaction.category_id || null,
+    amount: transaction.amount != null ? Number(transaction.amount) : 0,
+    currency: transaction.currency || 'EUR',
+    transaction_type: transaction.transaction_type || 'expense',
+    label: transaction.label || 'Transaction',
+    note: transaction.note || null,
+    transaction_date: transaction.transaction_date || now.split('T')[0],
+    internal_transfer: Boolean(transaction.internal_transfer),
+    linked_transaction_id: transaction.linked_transaction_id || null,
+    analytics_ignore: Boolean(transaction.analytics_ignore),
+    metadata,
+    source: transaction.source || 'local',
+    source_origin: transaction.source_origin || 'local',
+    sync_status: transaction.sync_status || 'pending',
+    synced_at: transaction.synced_at || null,
+    created_at: transaction.created_at || now,
+    updated_at: transaction.updated_at || now
+  }
+}
+
+const findSupabaseTransactionByLocalId = async (userId, localId) => {
+  if (!userId || !localId) return null
+
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('metadata->>local_id', localId)
+    .maybeSingle()
+
+  if (error) throw error
+  return data || null
 }
 
 // ─────────────────────────────────────────────
@@ -237,6 +324,48 @@ const getSyncState = () => ({
   userId: getCurrentUser()?.id || null
 })
 
+const create = async (transaction) => {
+  const normalized = normalizeTransaction(transaction)
+  const localId = normalized.metadata?.local_id
+
+  if (normalized.user_id && isOnline()) {
+    try {
+      const existing = await findSupabaseTransactionByLocalId(normalized.user_id, localId)
+      if (existing) {
+        log('sync', `Doublon Supabase evite pour ${localId}`, { id: existing.id })
+        return existing
+      }
+
+      const { data, error } = await supabase
+        .from('transactions')
+        .insert(normalized)
+        .select()
+        .single()
+
+      if (error) throw error
+      log('success', `Transaction creee dans Supabase: ${localId}`, { id: data.id })
+      return data
+    } catch (err) {
+      log('warn', `Create Supabase indisponible, fallback local: ${localId}`, err.message)
+    }
+  }
+
+  const fallback = readTransactionFallback()
+  const existingIndex = localId
+    ? fallback.findIndex(item => item.metadata?.local_id === localId && item.user_id === normalized.user_id)
+    : -1
+
+  if (existingIndex !== -1) {
+    fallback[existingIndex] = normalized
+  } else {
+    fallback.push(normalized)
+  }
+
+  writeTransactionFallback(fallback)
+  log('local', `Transaction stockee en fallback local: ${localId}`, { id: normalized.id })
+  return normalized
+}
+
 // ─────────────────────────────────────────────
 // TODO Phase 2B - Ecriture
 // ─────────────────────────────────────────────
@@ -261,6 +390,7 @@ export const TransactionsService = {
   getBudgetMonthSync,
   getAvailableMonths,
   getSyncState,
+  create,
   // Expose pour debug
   _readFromLocal: readFromLocal,
   _readFromSupabase: readFromSupabase
