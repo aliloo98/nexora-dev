@@ -1,26 +1,17 @@
-const CACHE_NAME = 'nexora-v12';
+const CACHE_NAME = 'nexora-v14';
 const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './favicon.png',
-  './icon-192.png',
-  './icon-512.png',
-  './icon-gold-192.png',
-  './icon-gold-512.png',
-  './icon-emerald-192.png',
-  './icon-emerald-512.png',
-  './icon-amethyst-192.png',
-  './icon-amethyst-512.png',
-  './icon-ruby-192.png',
-  './icon-ruby-512.png',
-  './icon-ocean-192.png',
-  './icon-ocean-512.png',
-  './styles.css',
-  './js/storage.js',
-  './js/utils.js',
-  './js/theme-manager.js',
-  './js/logo-manager.js'
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/favicon.png',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/apple-touch-icon.png',
+  '/styles.css',
+  '/js/storage.js',
+  '/js/utils.js',
+  '/js/theme-manager.js',
+  '/js/logo-manager.js'
 ];
 
 self.addEventListener('install', e => {
@@ -54,10 +45,9 @@ self.addEventListener('fetch', e => {
       fetch(e.request)
         .then(response => response.json())
         .then(data => {
-          const iconTheme = url.searchParams.get('icon') || 'gold';
           data.icons = [
-            { "src": `icon-${iconTheme}-192.png`, "sizes": "192x192", "type": "image/png" },
-            { "src": `icon-${iconTheme}-512.png`, "sizes": "512x512", "type": "image/png" }
+            { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+            { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
           ];
           return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } });
         })
@@ -65,29 +55,27 @@ self.addEventListener('fetch', e => {
           return caches.match(e.request, { ignoreSearch: true }).then(cachedResponse => {
             if (cachedResponse) {
               return cachedResponse.json().then(data => {
-                const iconTheme = url.searchParams.get('icon') || 'gold';
                 data.icons = [
-                  { "src": `icon-${iconTheme}-192.png`, "sizes": "192x192", "type": "image/png" },
-                  { "src": `icon-${iconTheme}-512.png`, "sizes": "512x512", "type": "image/png" }
+                  { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+                  { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
                 ];
                 return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } });
               });
             }
             // Absolute fallback manifest if cache is empty
-            const iconTheme = url.searchParams.get('icon') || 'gold';
             const fallback = {
               "name": "NEXORA",
               "short_name": "NEXORA",
               "description": "Application de gestion de budget NEXORA.",
-              "start_url": "./index.html",
+              "start_url": "/",
               "display": "standalone",
-              "scope": "./",
+              "scope": "/",
               "background_color": "#07070a",
               "theme_color": "#07070a",
               "orientation": "portrait-primary",
               "icons": [
-                { "src": `icon-${iconTheme}-192.png`, "sizes": "192x192", "type": "image/png" },
-                { "src": `icon-${iconTheme}-512.png`, "sizes": "512x512", "type": "image/png" }
+                { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+                { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
               ]
             };
             return new Response(JSON.stringify(fallback), { headers: { 'Content-Type': 'application/json' } });
