@@ -51,22 +51,25 @@
   <!-- HEADER -->
   <div class="header">
     <h1>Budget <span>Ali & Megane</span></h1>
-    <div class="month-selector">
-      <span style="color:var(--text2);font-size:13px">Mois</span>
-      <select id="monthSelect" onchange="loadMonth()">
-        <option value="2026-01">Janvier 2026</option>
-        <option value="2026-02">Février 2026</option>
-        <option value="2026-03">Mars 2026</option>
-        <option value="2026-04">Avril 2026</option>
-        <option value="2026-05" selected>Mai 2026</option>
-        <option value="2026-06">Juin 2026</option>
-        <option value="2026-07">Juillet 2026</option>
-        <option value="2026-08">Août 2026</option>
-        <option value="2026-09">Septembre 2026</option>
-        <option value="2026-10">Octobre 2026</option>
-        <option value="2026-11">Novembre 2026</option>
-        <option value="2026-12">Décembre 2026</option>
-      </select>
+    <div class="header-actions">
+      <div class="month-selector">
+        <span style="color:var(--text2);font-size:13px">Mois</span>
+        <select id="monthSelect" onchange="loadMonth()">
+          <option value="2026-01">Janvier 2026</option>
+          <option value="2026-02">Février 2026</option>
+          <option value="2026-03">Mars 2026</option>
+          <option value="2026-04">Avril 2026</option>
+          <option value="2026-05" selected>Mai 2026</option>
+          <option value="2026-06">Juin 2026</option>
+          <option value="2026-07">Juillet 2026</option>
+          <option value="2026-08">Août 2026</option>
+          <option value="2026-09">Septembre 2026</option>
+          <option value="2026-10">Octobre 2026</option>
+          <option value="2026-11">Novembre 2026</option>
+          <option value="2026-12">Décembre 2026</option>
+        </select>
+      </div>
+      <div id="userMenuContainer"></div>
     </div>
   </div>
 
@@ -1223,6 +1226,19 @@ function initDynamicElements() {
       
       const label = row.querySelector('.budget-row-label');
       if (label && !label.querySelector('.note-toggle-btn')) {
+        if (!label.querySelector('.rename-category-btn')) {
+          const renameBtn = document.createElement('button');
+          renameBtn.className = 'rename-category-btn';
+          renameBtn.innerHTML = '✎';
+          renameBtn.type = 'button';
+          renameBtn.title = 'Renommer cette ligne';
+          renameBtn.onclick = (e) => {
+            e.preventDefault();
+            renameBudgetCategoryLabel(baseKey);
+          };
+          label.appendChild(renameBtn);
+        }
+
         const noteBtn = document.createElement('button');
         noteBtn.className = 'note-toggle-btn';
         noteBtn.innerHTML = '💬';
@@ -1283,6 +1299,69 @@ function updateNoteIconState(baseKey) {
         }
       }
     }
+  }
+}
+
+function getBudgetRowLabelText(label) {
+  if (!label) return '';
+  const textNode = Array.from(label.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
+  return (textNode?.nodeValue || '').trim();
+}
+
+function setBudgetRowLabelText(label, text) {
+  if (!label || !text) return;
+
+  const textNode = Array.from(label.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
+  if (textNode) {
+    textNode.nodeValue = text + ' ';
+    return;
+  }
+
+  label.insertBefore(document.createTextNode(text + ' '), label.firstChild);
+}
+
+async function renameBudgetCategoryLabel(categoryId) {
+  try {
+    if (!categoryId || !window.BudgetCategoriesService?.renameBudgetCategory) return;
+
+    const label = document.querySelector(`[data-row-key="${categoryId}"] .budget-row-label`)
+      || document.querySelector(`input.budget-input[data-key="${categoryId}"]`)?.closest('.budget-row')?.querySelector('.budget-row-label');
+    const currentName = getBudgetRowLabelText(label);
+
+    // TODO Phase 3D: remplacer prompt() par une modale Nexora dediee, avec validation inline.
+    const newName = window.prompt('Nouveau nom de la ligne', currentName);
+    if (newName === null) return;
+
+    const cleanName = newName.trim();
+    if (!cleanName) return;
+    if (cleanName === currentName) return;
+
+    await window.BudgetCategoriesService.renameBudgetCategory(categoryId, cleanName);
+    await refreshCategoryLabels();
+  } catch (err) {
+    console.warn('[Phase3C] Renommage du libellé impossible', err);
+  }
+}
+
+async function refreshCategoryLabels() {
+  try {
+    if (!window.BudgetCategoriesService?.getBudgetCategories) return;
+
+    const categories = await window.BudgetCategoriesService.getBudgetCategories({ includeInactive: true });
+    const categoriesById = new Map(categories.map(category => [category.id, category]));
+
+    document.querySelectorAll('.budget-row').forEach(row => {
+      const amountInput = row.querySelector('input.budget-input[data-key]:not(.paid-input):not(.note-input)');
+      const label = row.querySelector('.budget-row-label');
+      if (!amountInput || !label) return;
+
+      const category = categoriesById.get(amountInput.dataset.key);
+      if (!category?.name) return;
+
+      setBudgetRowLabelText(label, category.name);
+    });
+  } catch (err) {
+    console.warn('[Phase3B] Libellés catégories indisponibles, libellés HTML conservés', err);
   }
 }
 
@@ -2485,6 +2564,7 @@ window.onload=async ()=>{
   convertCheckboxesToPaidInputs();
   initDynamicElements();
   setupFormulaEvaluation();
+  await refreshCategoryLabels();
   loadMonth();
   buildHistory();
   const initialHash = window.location.hash.replace('#section-', '') || 'dashboard';

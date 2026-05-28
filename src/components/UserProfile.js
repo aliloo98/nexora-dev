@@ -11,6 +11,16 @@
 import AuthContext from '../auth/authContext.js'
 import AuthPages from '../pages/AuthPages.js'
 
+let hasDocumentClickListener = false
+
+const escapeHTML = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;'
+})[char])
+
 /**
  * Update Header with User Info
  * Called after login or on app initialization
@@ -24,7 +34,7 @@ export const updateUserHeader = () => {
 
   if (user) {
     // User is logged in - show greeting with username
-    headerTitle.innerHTML = `Bonjour <span style="color: var(--accent); font-weight: 700;">${displayName}</span> 👋`
+    headerTitle.innerHTML = `Bonjour <span style="color: var(--accent); font-weight: 700;">${escapeHTML(displayName)}</span> 👋`
     console.log('✅ Header updated with username:', displayName)
   } else {
     // No user - show default
@@ -39,25 +49,29 @@ export const updateUserHeader = () => {
  */
 export const createUserMenu = () => {
   const user = AuthContext.getCurrentUser()
-  const displayName = AuthContext.getUserDisplayName()
 
   if (!user) {
     return ''
   }
 
+  const displayName = AuthContext.getUserDisplayName()
+  const safeDisplayName = escapeHTML(displayName)
+  const safeEmail = escapeHTML(user.email)
+  const avatarInitial = safeDisplayName.charAt(0).toUpperCase()
+
   return `
     <div class="user-menu" id="userMenu">
       <button class="user-menu-btn" id="userMenuBtn" title="Menu utilisateur">
-        <span class="user-avatar">${displayName.charAt(0).toUpperCase()}</span>
-        <span class="user-name">${displayName}</span>
+        <span class="user-avatar">${avatarInitial}</span>
+        <span class="user-name">${safeDisplayName}</span>
         <span class="user-menu-dropdown">▾</span>
       </button>
       <div class="user-menu-dropdown-content" id="userMenuDropdown" style="display: none;">
         <div class="user-menu-profile">
-          <div class="user-avatar-large">${displayName.charAt(0).toUpperCase()}</div>
+          <div class="user-avatar-large">${avatarInitial}</div>
           <div class="user-profile-info">
-            <div class="user-profile-name">${displayName}</div>
-            <div class="user-profile-email">${user.email}</div>
+            <div class="user-profile-name">${safeDisplayName}</div>
+            <div class="user-profile-email">${safeEmail}</div>
           </div>
         </div>
         <div class="user-menu-separator"></div>
@@ -67,6 +81,17 @@ export const createUserMenu = () => {
       </div>
     </div>
   `
+}
+
+/**
+ * Render User Menu into the dashboard header
+ */
+export const renderUserMenu = () => {
+  const userMenuContainer = document.getElementById('userMenuContainer')
+  if (!userMenuContainer) return
+
+  userMenuContainer.innerHTML = createUserMenu()
+  attachUserMenuListeners()
 }
 
 /**
@@ -87,11 +112,16 @@ export const attachUserMenuListeners = () => {
   })
 
   // Close dropdown when clicking outside
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.user-menu')) {
-      userMenuDropdown.style.display = 'none'
-    }
-  })
+  if (!hasDocumentClickListener) {
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.user-menu')) {
+        document.querySelectorAll('.user-menu-dropdown-content').forEach((dropdown) => {
+          dropdown.style.display = 'none'
+        })
+      }
+    })
+    hasDocumentClickListener = true
+  }
 
   // Logout
   if (logoutBtn) {
@@ -149,15 +179,12 @@ export const setupAuthStateListener = () => {
       updateUserHeader()
       
       // Update user menu if it exists
-      const userMenu = document.getElementById('userMenu')
-      if (userMenu) {
-        userMenu.innerHTML = createUserMenu()
-        attachUserMenuListeners()
-      }
+      renderUserMenu()
     } else {
       // User logged out
       console.log('❌ User not authenticated')
       updateUserHeader()
+      renderUserMenu()
     }
   })
 
@@ -167,6 +194,7 @@ export const setupAuthStateListener = () => {
 export default {
   updateUserHeader,
   createUserMenu,
+  renderUserMenu,
   attachUserMenuListeners,
   setupAuthStateListener
 }

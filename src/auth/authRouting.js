@@ -10,7 +10,7 @@
 
 import AuthContext from '../auth/authContext.js'
 import AuthPages from '../pages/AuthPages.js'
-import { updateUserHeader } from '../components/UserProfile.js'
+import { renderUserMenu, updateUserHeader } from '../components/UserProfile.js'
 
 /**
  * Route Protection System
@@ -187,6 +187,7 @@ export const AuthStateSync = {
       
       // Update header with username
       updateUserHeader()
+      renderUserMenu()
       
       // Hide auth pages
       AuthPages.hideAuthPages()
@@ -199,6 +200,7 @@ export const AuthStateSync = {
       
       // Update header to default
       updateUserHeader()
+      renderUserMenu()
       
       // Show auth pages
       AuthPages.showAuthPages()
@@ -232,6 +234,7 @@ export const initAuthRouting = async () => {
 
     // Setup auth state sync
     AuthStateSync.init()
+    AuthStateSync._onAuthStateChange(AuthContext.getState())
     console.log('✅ Auth state sync initialized')
 
     console.log('✅ Authentication routing system ready')

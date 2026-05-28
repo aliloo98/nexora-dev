@@ -79,6 +79,28 @@ export const AuthContext = {
   },
 
   /**
+   * Sync cloud transactions back to local storage after login/session restore.
+   * Non-blocking: the app keeps using local data if cloud sync is unavailable.
+   * @private
+   */
+  _syncSupabaseToLocalAfterLogin() {
+    setTimeout(async () => {
+      try {
+        if (!window.TransactionsService?.syncSupabaseToLocal) return
+
+        const result = await window.TransactionsService.syncSupabaseToLocal()
+        if (result?.fallback) return
+
+        if (typeof window.loadMonth === 'function') window.loadMonth()
+        if (typeof window.buildHistory === 'function') window.buildHistory()
+        if (typeof window.updateAll === 'function') window.updateAll()
+      } catch (error) {
+        console.error('[Phase2D] sync error:', error)
+      }
+    }, 0)
+  },
+
+  /**
    * Set error
    * @private
    */
@@ -118,6 +140,7 @@ export const AuthContext = {
         this._state.user = user
         this._state.isAuthenticated = true
         this._state.error = null
+        this._syncSupabaseToLocalAfterLogin()
       } else {
         console.log('ℹ️  No user session to restore')
         this._state.user = null
@@ -185,7 +208,8 @@ export const AuthContext = {
       }
 
       console.log('✅ SignIn successful')
-      this._setUser(user, session)
+      await this._setUser(user, session)
+      this._syncSupabaseToLocalAfterLogin()
       return { user, session, error: null }
     } catch (error) {
       console.error('❌ SignIn exception:', error)

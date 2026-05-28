@@ -50,6 +50,7 @@ const getCurrentUser = () => {
 
 const storageKey = (month) => `budget_${month}`
 const transactionFallbackKey = 'nexora_transactions_fallback_v2'
+const supabaseToLocalMetaKey = 'nexora_supabase_to_local_meta_v1'
 
 // ─────────────────────────────────────────────
 // LECTURE DEPUIS LOCALSTORAGE (SafeStorage)
@@ -119,6 +120,31 @@ const writeTransactionFallback = (transactions) => {
     return true
   } catch (err) {
     log('error', 'Erreur ecriture fallback transactions', err.message)
+    return false
+  }
+}
+
+const readSupabaseToLocalMeta = () => {
+  try {
+    const storage = getStorageClient()
+    if (!storage) return {}
+    const raw = storage.getItem(supabaseToLocalMetaKey)
+    const parsed = raw ? JSON.parse(raw) : {}
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}
+  } catch (err) {
+    log('error', 'Erreur lecture meta sync Supabase vers local', err.message)
+    return {}
+  }
+}
+
+const writeSupabaseToLocalMeta = (meta) => {
+  try {
+    const storage = getStorageClient()
+    if (!storage) return false
+    storage.setItem(supabaseToLocalMetaKey, JSON.stringify(meta))
+    return true
+  } catch (err) {
+    log('error', 'Erreur ecriture meta sync Supabase vers local', err.message)
     return false
   }
 }
@@ -203,6 +229,37 @@ const getSupabaseSession = async () => {
 }
 
 const getFallbackOwner = (transaction) => transaction.user_id || getCurrentUser()?.id || null
+
+const parseTransactionLocalId = (localId = '') => {
+  const match = String(localId).match(/^(\d{4}-\d{2})_(.+)$/)
+  if (!match) return { month: null, category: null }
+  return { month: match[1], category: match[2] }
+}
+
+const getTransactionMonthAndCategory = (transaction) => {
+  const parsed = parseTransactionLocalId(transaction.local_id)
+  return {
+    month: transaction.month || parsed.month,
+    category: transaction.category || parsed.category
+  }
+}
+
+const normalizeLocalAmount = (value) => {
+  if (value === '' || value === null || typeof value === 'undefined') return null
+  const amount = Number(value)
+  return Number.isFinite(amount) ? amount : null
+}
+
+const readBudgetMonthObject = (storage, month) => {
+  try {
+    const raw = storage.getItem(storageKey(month))
+    const parsed = raw ? JSON.parse(raw) : {}
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}
+  } catch (err) {
+    log('error', `Erreur lecture budget local ${month}`, err.message)
+    return {}
+  }
+}
 
 // ─────────────────────────────────────────────
 // LECTURE DEPUIS SUPABASE
@@ -565,6 +622,109 @@ const remove = async ({ user_id, local_id, month, category } = {}) => {
   return true
 }
 
+const syncSupabaseToLocal = async () => {
+  console.info('[Phase2D] sync started')
+
+  if (!isOnline()) {
+    console.warn('[Phase2D] fallback local: offline')
+    return { synced: 0, skipped: 0, fallback: true, reason: 'offline' }
+  }
+
+  const storage = getStorageClient()
+  if (!storage) {
+    console.warn('[Phase2D] fallback local: storage unavailable')
+    return { synced: 0, skipped: 0, fallback: true, reason: 'storage-unavailable' }
+  }
+
+  let session = null
+  try {
+    const authState = await getSupabaseSession()
+    session = authState.session
+    if (authState.error) throw authState.error
+  } catch (err) {
+    console.warn('[Phase2D] fallback local: session unavailable', err)
+    return { synced: 0, skipped: 0, fallback: true, reason: 'session-unavailable' }
+  }
+
+  const userId = session?.user?.id
+  if (!userId) {
+    console.warn('[Phase2D] fallback local: session expired')
+    return { synced: 0, skipped: 0, fallback: true, reason: 'session-expired' }
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('id,user_id,label,amount,type,category,month,paid,local_id,updated_at,synced_at')
+      .order('updated_at', { ascending: true })
+
+    if (error) throw error
+
+    const transactions = Array.isArray(data)
+      ? data.filter(transaction => !transaction.user_id || transaction.user_id === userId)
+      : []
+    const latestByLocalId = new Map()
+    transactions.forEach((transaction) => {
+      const { month, category } = getTransactionMonthAndCategory(transaction)
+      if (!month || !category) return
+
+      const localId = transaction.local_id || `${month}_${category}`
+      const existing = latestByLocalId.get(localId)
+      const existingUpdatedAt = existing?.updated_at || existing?.synced_at || ''
+      const transactionUpdatedAt = transaction.updated_at || transaction.synced_at || ''
+
+      if (!existing || transactionUpdatedAt >= existingUpdatedAt) {
+        latestByLocalId.set(localId, transaction)
+      }
+    })
+
+    const meta = readSupabaseToLocalMeta()
+    const monthsToWrite = new Map()
+    let synced = 0
+    let skipped = 0
+
+    latestByLocalId.forEach((transaction) => {
+      const { month, category } = getTransactionMonthAndCategory(transaction)
+      if (!month || !category) return
+
+      const amount = normalizeLocalAmount(transaction.amount)
+      if (amount === null) return
+
+      const localId = transaction.local_id || `${month}_${category}`
+      const remoteUpdatedAt = transaction.updated_at || transaction.synced_at || null
+      const monthData = monthsToWrite.get(month) || readBudgetMonthObject(storage, month)
+      const localAmount = normalizeLocalAmount(monthData[category])
+
+      if (localAmount !== null && localAmount !== amount) {
+        skipped += 1
+        meta[localId] = meta[localId] || { remote_updated_at: remoteUpdatedAt }
+        console.info('[Phase2D] skipped local newer', { local_id: localId, month, category })
+        monthsToWrite.set(month, monthData)
+        return
+      }
+
+      monthData[category] = amount
+      if (typeof transaction.paid === 'boolean') {
+        monthData[`${category}_paye`] = transaction.paid ? amount : 0
+      }
+      meta[localId] = { remote_updated_at: remoteUpdatedAt }
+      synced += 1
+      monthsToWrite.set(month, monthData)
+    })
+
+    monthsToWrite.forEach((monthData, month) => {
+      storage.setItem(storageKey(month), JSON.stringify(monthData))
+    })
+    writeSupabaseToLocalMeta(meta)
+
+    console.info('[Phase2D] sync completed', { synced, skipped, months: monthsToWrite.size })
+    return { synced, skipped, fallback: false, months: monthsToWrite.size }
+  } catch (err) {
+    console.warn('[Phase2D] fallback local: sync error', err)
+    return { synced: 0, skipped: 0, fallback: true, reason: 'sync-error', error: err }
+  }
+}
+
 // ─────────────────────────────────────────────
 // TODO Phase 2B - Ecriture
 // ─────────────────────────────────────────────
@@ -592,6 +752,7 @@ export const TransactionsService = {
   create,
   update,
   delete: remove,
+  syncSupabaseToLocal,
   // Expose pour debug
   _readFromLocal: readFromLocal,
   _readFromSupabase: readFromSupabase
