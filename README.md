@@ -135,3 +135,5 @@ Créée pour Ali & Mégane ❤️
 ---
 
 **Amusez-vous et gérez bien votre budget ! 💰**
+
+Auto deploy verification
