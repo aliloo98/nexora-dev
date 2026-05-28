@@ -1,4 +1,4 @@
-/* Budget Ali & Megane - Global Styles */
+/* NEXORA - Global Styles */
 * {
   margin: 0;
   padding: 0;
@@ -171,13 +171,6 @@ body {
   -webkit-text-fill-color: transparent;
   position: relative;
   font-weight: 800;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-left: auto;
 }
 
 .month-selector {
@@ -905,49 +898,10 @@ body {
   margin-bottom: 28px;
 }
 
-.nexora-action-modal-card {
-  animation: modalSoftIn 0.22s ease-out;
-}
-
-.nexora-action-modal-input {
-  display: none;
-  margin-top: 16px;
-  width: 100%;
-  text-align: left;
-}
-
-.nexora-action-modal-input.input-error {
-  border-color: rgba(244, 63, 94, 0.65);
-  box-shadow: 0 0 10px rgba(244, 63, 94, 0.12);
-}
-
-.nexora-action-modal-error {
-  color: var(--red);
-  display: none;
-  font-size: 12px;
-  font-weight: 600;
-  margin-top: 8px;
-}
-
-.nexora-action-modal-error.show {
-  display: block;
-}
-
 .modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-}
-
-@keyframes modalSoftIn {
-  from {
-    opacity: 0;
-    transform: translateY(18px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
 }
 
 /* SCROLL */
@@ -1179,125 +1133,6 @@ body {
   opacity: 1;
   text-shadow: 0 0 8px var(--gold-glow);
   filter: sepia(100%) saturate(300%) hue-rotate(5deg);
-}
-
-.rename-category-btn {
-  background: transparent;
-  border: none;
-  color: var(--text2);
-  cursor: pointer;
-  font-size: 12px;
-  margin-left: 8px;
-  opacity: 0;
-  outline: none;
-  transition: all 0.2s ease;
-  vertical-align: middle;
-}
-
-.budget-row:hover .rename-category-btn,
-.rename-category-btn:focus {
-  opacity: 0.45;
-}
-
-.rename-category-btn:hover {
-  color: var(--gold);
-  opacity: 0.9;
-  transform: scale(1.1);
-}
-
-.hide-category-btn {
-  background: transparent;
-  border: none;
-  color: var(--text2);
-  cursor: pointer;
-  font-size: 15px;
-  line-height: 1;
-  margin-left: 8px;
-  opacity: 0;
-  outline: none;
-  transition: all 0.2s ease;
-  vertical-align: middle;
-}
-
-.custom-budget-row:hover .hide-category-btn,
-.hide-category-btn:focus {
-  opacity: 0.45;
-}
-
-.hide-category-btn:hover {
-  color: var(--red);
-  opacity: 0.95;
-  transform: scale(1.12);
-}
-
-.add-budget-line-btn {
-  width: 100%;
-  background: transparent;
-  border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.02);
-  color: var(--text2);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  opacity: 0.55;
-  padding: 12px 24px;
-  text-align: left;
-  transition: all 0.2s ease;
-}
-
-.add-budget-line-btn:hover,
-.add-budget-line-btn:focus {
-  background: rgba(229, 192, 96, 0.03);
-  color: var(--gold);
-  opacity: 1;
-  outline: none;
-}
-
-.hidden-budget-lines {
-  border-top: 1px solid rgba(255, 255, 255, 0.02);
-  padding: 10px 24px 12px;
-}
-
-.hidden-budget-lines-title {
-  color: var(--text2);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  margin-bottom: 8px;
-  opacity: 0.65;
-  text-transform: uppercase;
-}
-
-.hidden-budget-line-item {
-  align-items: center;
-  color: var(--text2);
-  display: flex;
-  font-size: 13px;
-  gap: 12px;
-  justify-content: space-between;
-  padding: 5px 0;
-}
-
-.restore-category-btn {
-  background: rgba(229, 192, 96, 0.04);
-  border: 1px solid rgba(229, 192, 96, 0.14);
-  border-radius: 8px;
-  color: var(--gold);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 5px 10px;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.restore-category-btn:hover,
-.restore-category-btn:focus {
-  background: rgba(229, 192, 96, 0.1);
-  border-color: rgba(229, 192, 96, 0.35);
-  outline: none;
 }
 
 .note-container {
@@ -1982,16 +1817,6 @@ body {
 }
 
 @media (max-width: 576px) {
-  .header-actions {
-    width: 100%;
-    align-items: stretch;
-    justify-content: space-between;
-  }
-
-  .month-selector {
-    flex: 1;
-  }
-
   .user-menu-btn {
     padding: 0.5rem 0.75rem;
   }

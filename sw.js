@@ -1,4 +1,4 @@
-const CACHE_NAME = 'budget-ali-megane-v12';
+const CACHE_NAME = 'nexora-v12';
 const ASSETS = [
   './',
   './index.html',
@@ -76,11 +76,12 @@ self.addEventListener('fetch', e => {
             // Absolute fallback manifest if cache is empty
             const iconTheme = url.searchParams.get('icon') || 'gold';
             const fallback = {
-              "name": "Budget Ali & Megane",
-              "short_name": "Budget",
-              "description": "Application de gestion de budget de couple pour Ali & Megane.",
+              "name": "NEXORA",
+              "short_name": "NEXORA",
+              "description": "Application de gestion de budget NEXORA.",
               "start_url": "./index.html",
               "display": "standalone",
+              "scope": "./",
               "background_color": "#07070a",
               "theme_color": "#07070a",
               "orientation": "portrait-primary",
