@@ -1,0 +1,17 @@
+{
+  "name": "nexora",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "PWA de gestion de budget - Version SaaS multi-utilisateurs",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
