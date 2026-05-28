@@ -163,7 +163,6 @@ const normalizeTransaction = (transaction = {}) => {
 const findSupabaseTransactionByLocalId = async (userId, localId) => {
   if (!userId || !localId) return null
 
-  console.debug('[Phase2B][TransactionsService] duplicate lookup:', { userId, localId })
   const { data, error } = await supabase
     .from('transactions')
     .select('*')
@@ -349,20 +348,12 @@ const create = async (transaction) => {
   const normalized = normalizeTransaction(transaction)
   const localId = normalized.metadata?.local_id
 
-  console.debug('[Phase2B][TransactionsService] create() received payload:', transaction)
-
   let session = null
   let sessionError = null
   try {
     const authResponse = await supabase.auth.getSession()
     session = authResponse.data?.session || null
     sessionError = authResponse.error || null
-    console.debug('[Phase2B][TransactionsService] Supabase auth session:', {
-      hasSession: Boolean(session),
-      sessionUserId: session?.user?.id || null,
-      authContextUserId: getCurrentUser()?.id || null,
-      sessionError
-    })
   } catch (err) {
     sessionError = err
     console.warn('[Phase2B][TransactionsService] Supabase getSession threw:', err)
@@ -372,15 +363,11 @@ const create = async (transaction) => {
     normalized.user_id = session.user.id
   }
 
-  console.debug('[Phase2B][TransactionsService] normalized insert payload:', normalized)
-
   if (normalized.user_id && session?.user?.id && isOnline()) {
     try {
       const supabasePayload = toSupabaseTransactionPayload(normalized)
       const existing = await findSupabaseTransactionByLocalId(normalized.user_id, localId)
       if (existing) {
-        log('sync', `Doublon Supabase evite pour ${localId}`, { id: existing.id })
-        console.debug('[Phase2B][TransactionsService] duplicate response:', existing)
         const { id, created_at, ...updatePayload } = supabasePayload
         const { data, error } = await supabase
           .from('transactions')
@@ -390,26 +377,17 @@ const create = async (transaction) => {
           .select()
           .single()
 
-        console.debug('[Phase2B][TransactionsService] Supabase duplicate update response:', { data, error })
         if (error) throw error
         return data
       }
 
-      console.debug('[Phase2B][TransactionsService] Supabase insert request:', {
-        table: 'transactions',
-        userId: normalized.user_id,
-        localId,
-        payload: supabasePayload
-      })
       const { data, error } = await supabase
         .from('transactions')
         .insert(supabasePayload)
         .select()
         .single()
 
-      console.debug('[Phase2B][TransactionsService] Supabase insert response:', { data, error })
       if (error) throw error
-      log('success', `Transaction creee dans Supabase: ${localId}`, { id: data.id })
       return data
     } catch (err) {
       console.error('[Phase2B][TransactionsService] Supabase create full error:', err)

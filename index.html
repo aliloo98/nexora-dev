@@ -1094,7 +1094,6 @@ function saveData(){
 // Phase 2B: Sync monthly budget data to Supabase as transactions
 async function syncMonthTransactionsToSupabase(month, data) {
   if (!window.TransactionsService || !window.AuthContext) {
-    console.debug('[Phase2B] TransactionsService or AuthContext unavailable');
     return;
   }
 
@@ -1109,17 +1108,9 @@ async function syncMonthTransactionsToSupabase(month, data) {
     sessionError = err;
   }
 
-  console.debug('[Phase2B] sync auth state:', {
-    authContextUser,
-    authContextUserId: authContextUser?.id || null,
-    hasSupabaseSession: Boolean(session),
-    supabaseUserId: session?.user?.id || null,
-    sessionError
-  });
-
   const userId = session?.user?.id || authContextUser?.id;
   if (!userId) {
-    console.debug('[Phase2B] sync skipped: user not authenticated');
+    console.warn('[Phase2B] sync skipped: user not authenticated', { sessionError });
     return;
   }
 
@@ -1152,15 +1143,7 @@ async function syncMonthTransactionsToSupabase(month, data) {
     };
 
     try {
-      console.debug('[Phase2B] create payload:', {
-        localId,
-        userId,
-        transaction
-      });
-      const result = await window.TransactionsService.create(transaction);
-      if (result) {
-        console.debug(`[Phase2B] transaction synced: ${localId}`, result);
-      }
+      await window.TransactionsService.create(transaction);
     } catch (err) {
       console.warn(`[Phase2B] failed to sync ${localId}:`, err);
       // Non-blocking: continue with other categories

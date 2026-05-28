@@ -43,7 +43,6 @@ export const AuthService = {
         })
 
         if (error) throw error
-        console.debug('[Phase2B][Auth] Supabase signUp response:', { user: data.user, session: data.session })
         return { user: data.user, session: data.session, error: null }
       }
 
@@ -127,7 +126,6 @@ export const AuthService = {
         })
 
         if (error) throw error
-        console.debug('[Phase2B][Auth] Supabase signIn response:', { user: data.user, session: data.session })
         return {
           user: data.user,
           session: data.session,
@@ -240,7 +238,6 @@ export const AuthService = {
       if (isSupabaseConfigured) {
         const { data: { user }, error } = await supabase.auth.getUser()
         if (error) throw error
-        console.debug('[Phase2B][Auth] Supabase getCurrentUser:', { user })
         return { user, error: null }
       }
 
@@ -282,7 +279,6 @@ export const AuthService = {
       if (isSupabaseConfigured) {
         const { data: { session }, error } = await supabase.auth.getSession()
         if (error) throw error
-        console.debug('[Phase2B][Auth] Supabase getSession:', { session, userId: session?.user?.id })
         return { session, error: null }
       }
 
