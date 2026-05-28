@@ -1166,6 +1166,55 @@ body {
   transform: scale(1.1);
 }
 
+.hide-category-btn {
+  background: transparent;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  margin-left: 8px;
+  opacity: 0;
+  outline: none;
+  transition: all 0.2s ease;
+  vertical-align: middle;
+}
+
+.custom-budget-row:hover .hide-category-btn,
+.hide-category-btn:focus {
+  opacity: 0.45;
+}
+
+.hide-category-btn:hover {
+  color: var(--red);
+  opacity: 0.95;
+  transform: scale(1.12);
+}
+
+.add-budget-line-btn {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.02);
+  color: var(--text2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.55;
+  padding: 12px 24px;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.add-budget-line-btn:hover,
+.add-budget-line-btn:focus {
+  background: rgba(229, 192, 96, 0.03);
+  color: var(--gold);
+  opacity: 1;
+  outline: none;
+}
+
 .note-container {
   grid-column: span 3;
   padding: 8px 24px;
