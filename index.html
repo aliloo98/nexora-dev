@@ -3,16 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="NEXORA, application de gestion de budget personnelle et collaborative. Suivi en temps réel des charges fixes, dépenses variables, et taux d'épargne.">
+<meta name="description" content="Application de gestion de budget personnelle et collaborative pour Ali & Megane. Suivi en temps réel des charges fixes, dépenses variables, et taux d'épargne.">
 <title>NEXORA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="/manifest.json" id="manifest-link">
-<link rel="icon" type="image/png" href="/favicon.png" id="favicon-link">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" id="apple-icon-link">
+<meta name="description" content="NEXORA, application de gestion de budget personnelle et collaborative.">
 <meta name="apple-mobile-web-app-title" content="NEXORA">
-<link rel="stylesheet" href="/styles.css">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="favicon.png" id="favicon-link">
+<link rel="apple-touch-icon" href="icon-192.png" id="apple-icon-link">
+<link rel="stylesheet" href="styles.css">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#07070a">
@@ -46,28 +48,55 @@
   </div>
 </div>
 
+<!-- NEXORA ACTION MODAL -->
+<div class="modal-overlay" id="nexora-action-modal" aria-hidden="true">
+  <div class="modal-card nexora-action-modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title" id="nexora-action-modal-title">Action</h3>
+      <button class="modal-close" type="button" onclick="closeNexoraActionModal(null)">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="nexora-action-modal-message"></div>
+      <input
+        id="nexora-action-modal-input"
+        class="budget-input nexora-action-modal-input"
+        type="text"
+        autocomplete="off"
+      >
+      <div id="nexora-action-modal-error" class="nexora-action-modal-error" aria-live="polite"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="nexora-action-modal-cancel" type="button">Annuler</button>
+      <button class="btn btn-gold" id="nexora-action-modal-confirm" type="button">Confirmer</button>
+    </div>
+  </div>
+</div>
+
 <!-- MAIN CONTENT -->
 <main class="main">
 
   <!-- HEADER -->
   <div class="header">
-    <h1>Bienvenue sur <span>NEXORA</span></h1>
-    <div class="month-selector">
-      <span style="color:var(--text2);font-size:13px">Mois</span>
-      <select id="monthSelect" onchange="loadMonth()">
-        <option value="2026-01">Janvier 2026</option>
-        <option value="2026-02">Février 2026</option>
-        <option value="2026-03">Mars 2026</option>
-        <option value="2026-04">Avril 2026</option>
-        <option value="2026-05" selected>Mai 2026</option>
-        <option value="2026-06">Juin 2026</option>
-        <option value="2026-07">Juillet 2026</option>
-        <option value="2026-08">Août 2026</option>
-        <option value="2026-09">Septembre 2026</option>
-        <option value="2026-10">Octobre 2026</option>
-        <option value="2026-11">Novembre 2026</option>
-        <option value="2026-12">Décembre 2026</option>
-      </select>
+    <h1>Budget <span>Ali & Megane</span></h1>
+    <div class="header-actions">
+      <div class="month-selector">
+        <span style="color:var(--text2);font-size:13px">Mois</span>
+        <select id="monthSelect" onchange="loadMonth()">
+          <option value="2026-01">Janvier 2026</option>
+          <option value="2026-02">Février 2026</option>
+          <option value="2026-03">Mars 2026</option>
+          <option value="2026-04">Avril 2026</option>
+          <option value="2026-05" selected>Mai 2026</option>
+          <option value="2026-06">Juin 2026</option>
+          <option value="2026-07">Juillet 2026</option>
+          <option value="2026-08">Août 2026</option>
+          <option value="2026-09">Septembre 2026</option>
+          <option value="2026-10">Octobre 2026</option>
+          <option value="2026-11">Novembre 2026</option>
+          <option value="2026-12">Décembre 2026</option>
+        </select>
+      </div>
+      <div id="userMenuContainer"></div>
     </div>
   </div>
 
@@ -396,6 +425,8 @@
         <input class="budget-input" type="number" placeholder="Montant" data-key="rev_excep" oninput="updateAll()">
         <div></div>
       </div>
+      <div id="custom-income-rows"></div>
+      <button type="button" class="add-budget-line-btn" onclick="addCustomBudgetLine('income')">+ Ajouter une ligne</button>
     </div>
 
     <!-- CHARGES FIXES -->
@@ -543,6 +574,8 @@
           <input type="checkbox" class="payee-checkbox" data-key="impfix_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
       </div>
+      <div id="custom-fixed-expense-rows"></div>
+      <button type="button" class="add-budget-line-btn" onclick="addCustomBudgetLine('fixed_expense')">+ Ajouter une ligne</button>
     </div>
 
     <!-- DEPENSES VARIABLES -->
@@ -603,6 +636,8 @@
           <input type="checkbox" class="payee-checkbox" data-key="impvar_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
       </div>
+      <div id="custom-variable-expense-rows"></div>
+      <button type="button" class="add-budget-line-btn" onclick="addCustomBudgetLine('variable_expense')">+ Ajouter une ligne</button>
     </div>
   </div>
 
@@ -1040,8 +1075,8 @@ function loadMonth(){
   }
   
   // Convert boolean _paye values to numeric
-  const fixKeys = ['loyer','credit','assauto','gasoil','elec','eau','psy','diete','itou','sante','impots','box','tel_ali','tel_meg','stream','ps','cb','impfix'];
-  const varKeys = ['courses','tabac','sport','ongles','cadeaux','impvar'];
+  const fixKeys = getBudgetKeysByType('fixed_expense');
+  const varKeys = getBudgetKeysByType('variable_expense');
   const allDepKeys = [...fixKeys, ...varKeys];
   
   allDepKeys.forEach(k => {
@@ -1075,7 +1110,10 @@ function loadMonth(){
 
 function saveData(){
   const m=getMonth();
-  const data={};
+  // Load existing month data and merge current DOM values into it so
+  // hiding inputs doesn't remove stored keys for hidden custom rows.
+  const data = {};
+  try { Object.assign(data, JSON.parse(SafeStorage.getItem(storageKey(m)) || '{}')); } catch (err) { console.warn('Donnée mois invalide lors du saveData', err); }
   document.querySelectorAll('[data-key]').forEach(el=>{
     data[el.dataset.key] = el.value;
   });
@@ -1095,13 +1133,23 @@ function saveData(){
 // Phase 2B: Sync monthly budget data to Supabase as transactions
 async function syncMonthTransactionsToSupabase(month, data) {
   if (!window.TransactionsService || !window.AuthContext) {
-    console.debug('[Phase2B] TransactionsService or AuthContext unavailable');
     return;
   }
 
-  const userId = window.AuthContext.getCurrentUser()?.id;
+  const authContextUser = window.AuthContext.getCurrentUser();
+  let session = null;
+  let sessionError = null;
+  try {
+    const response = await window.supabase?.auth?.getSession();
+    session = response?.data?.session || null;
+    sessionError = response?.error || null;
+  } catch (err) {
+    sessionError = err;
+  }
+
+  const userId = session?.user?.id || authContextUser?.id;
   if (!userId) {
-    console.debug('[Phase2B] sync skipped: user not authenticated');
+    console.warn('[Phase2B] sync skipped: user not authenticated', { sessionError });
     return;
   }
 
@@ -1109,9 +1157,22 @@ async function syncMonthTransactionsToSupabase(month, data) {
   
   for (const category of categories) {
     const amount = parseFloat(data[category]) || 0;
-    if (amount <= 0) continue;
 
     const localId = `${month}_${category}`;
+    if (amount <= 0) {
+      try {
+        await window.TransactionsService.delete({
+          user_id: userId,
+          local_id: localId,
+          month,
+          category
+        });
+      } catch (err) {
+        console.warn(`[Phase2C] sync error deleting ${localId}:`, err);
+      }
+      continue;
+    }
+
     const categoryLabel = category
       .replace(/_/g, ' ')
       .replace(/\b\w/g, c => c.toUpperCase())
@@ -1134,12 +1195,9 @@ async function syncMonthTransactionsToSupabase(month, data) {
     };
 
     try {
-      const result = await window.TransactionsService.create(transaction);
-      if (result) {
-        console.debug(`[Phase2B] transaction synced: ${localId}`);
-      }
+      await window.TransactionsService.update(transaction);
     } catch (err) {
-      console.warn(`[Phase2B] failed to sync ${localId}:`, err);
+      console.warn(`[Phase2C] sync error updating ${localId}:`, err);
       // Non-blocking: continue with other categories
     }
   }
@@ -1152,9 +1210,135 @@ function getVal(key){
 
 function fmt(n){return n.toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:0})+' €'}
 
+const BUDGET_KEYS_BY_TYPE = {
+  income: ['rev_ali','rev_megane','rev_excep'],
+  fixed_expense: ['loyer','credit','assauto','gasoil','elec','eau','psy','diete','itou','sante','impots','box','tel_ali','tel_meg','stream','ps','cb','impfix'],
+  variable_expense: ['courses','tabac','sport','ongles','cadeaux','impvar']
+};
+
+let budgetCategoriesCache = [];
+
+function getBudgetKeysByType(type) {
+  const historicalKeys = BUDGET_KEYS_BY_TYPE[type] || [];
+  const customKeys = budgetCategoriesCache
+    .filter(category => category.type === type && category.is_active !== false && !category.is_default)
+    .map(category => category.id);
+  return [...new Set([...historicalKeys, ...customKeys])];
+}
+
+function snapshotBudgetInputs() {
+  const values = {};
+  document.querySelectorAll('[data-key]').forEach(el => {
+    values[el.dataset.key] = el.value;
+  });
+  return values;
+}
+
+function restoreBudgetInputs(values) {
+  document.querySelectorAll('[data-key]').forEach(el => {
+    if (Object.prototype.hasOwnProperty.call(values, el.dataset.key)) {
+      el.value = values[el.dataset.key];
+    }
+  });
+}
+
+let nexoraActionModalResolver = null;
+
+function closeNexoraActionModal(result = null) {
+  const modal = document.getElementById('nexora-action-modal');
+  if (modal) {
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+
+  if (nexoraActionModalResolver) {
+    nexoraActionModalResolver(result);
+    nexoraActionModalResolver = null;
+  }
+}
+
+function openNexoraActionModal({ title, message, input = false, defaultValue = '', confirmLabel = 'Confirmer', required = false, validateValue = null, showCancel = true }) {
+  const modal = document.getElementById('nexora-action-modal');
+  const titleEl = document.getElementById('nexora-action-modal-title');
+  const messageEl = document.getElementById('nexora-action-modal-message');
+  const inputEl = document.getElementById('nexora-action-modal-input');
+  const errorEl = document.getElementById('nexora-action-modal-error');
+  const cancelBtn = document.getElementById('nexora-action-modal-cancel');
+  const confirmBtn = document.getElementById('nexora-action-modal-confirm');
+
+  if (!modal || !titleEl || !messageEl || !inputEl || !errorEl || !cancelBtn || !confirmBtn) {
+    return Promise.resolve(null);
+  }
+
+  if (nexoraActionModalResolver) closeNexoraActionModal(null);
+
+  titleEl.textContent = title || 'Action';
+  messageEl.textContent = message || '';
+  inputEl.value = defaultValue || '';
+  inputEl.style.display = input ? 'block' : 'none';
+  inputEl.classList.remove('input-error');
+  errorEl.textContent = '';
+  errorEl.classList.remove('show');
+  confirmBtn.textContent = confirmLabel;
+  cancelBtn.style.display = showCancel ? '' : 'none';
+
+  return new Promise(resolve => {
+    nexoraActionModalResolver = resolve;
+
+    cancelBtn.onclick = () => closeNexoraActionModal(null);
+    const submitModal = () => {
+      if (input && required && inputEl.value.trim() === '') {
+        inputEl.classList.add('input-error');
+        errorEl.textContent = 'Le nom est requis';
+        errorEl.classList.add('show');
+        inputEl.focus();
+        return;
+      }
+
+      if (input && typeof validateValue === 'function') {
+        const validationMessage = validateValue(inputEl.value);
+        if (validationMessage) {
+          inputEl.classList.add('input-error');
+          errorEl.textContent = validationMessage;
+          errorEl.classList.add('show');
+          inputEl.focus();
+          return;
+        }
+      }
+
+      closeNexoraActionModal(input ? inputEl.value : true);
+    };
+
+    confirmBtn.onclick = () => {
+      submitModal();
+    };
+    inputEl.oninput = () => {
+      if (inputEl.value.trim() !== '') {
+        inputEl.classList.remove('input-error');
+        errorEl.textContent = '';
+        errorEl.classList.remove('show');
+      }
+    };
+    inputEl.onkeydown = (event) => {
+      if (event.key === 'Enter') submitModal();
+      if (event.key === 'Escape') closeNexoraActionModal(null);
+    };
+
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(() => {
+      if (input) inputEl.focus();
+      else confirmBtn.focus();
+    });
+  });
+}
+
 // Inline mathematical formula evaluation
 function setupFormulaEvaluation() {
   document.querySelectorAll('input.budget-input').forEach(input => {
+    if (input.dataset.formulaReady === 'true') return;
+    input.dataset.formulaReady = 'true';
+
     // Change to text to allow mathematical input
     input.type = 'text';
     
@@ -1204,6 +1388,19 @@ function initDynamicElements() {
       
       const label = row.querySelector('.budget-row-label');
       if (label && !label.querySelector('.note-toggle-btn')) {
+        if (!label.querySelector('.rename-category-btn')) {
+          const renameBtn = document.createElement('button');
+          renameBtn.className = 'rename-category-btn';
+          renameBtn.innerHTML = '✎';
+          renameBtn.type = 'button';
+          renameBtn.title = 'Renommer cette ligne';
+          renameBtn.onclick = (e) => {
+            e.preventDefault();
+            renameBudgetCategoryLabel(baseKey);
+          };
+          label.appendChild(renameBtn);
+        }
+
         const noteBtn = document.createElement('button');
         noteBtn.className = 'note-toggle-btn';
         noteBtn.innerHTML = '💬';
@@ -1267,10 +1464,313 @@ function updateNoteIconState(baseKey) {
   }
 }
 
+function getBudgetRowLabelText(label) {
+  if (!label) return '';
+  const textNode = Array.from(label.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
+  return (textNode?.nodeValue || '').trim();
+}
+
+function normalizeCategoryNameForCompare(name) {
+  return String(name || '')
+    .trim()
+    .toLocaleLowerCase('fr-FR')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function getCategoryById(categoryId) {
+  return budgetCategoriesCache.find(category => category.id === categoryId) || null;
+}
+
+function getDuplicateCategoryNameMessage(type, name, ignoredCategoryId = null) {
+  const normalizedName = normalizeCategoryNameForCompare(name);
+  if (!normalizedName) return null;
+
+  const hasDuplicate = budgetCategoriesCache.some(category => (
+    category.type === type
+    && category.is_active !== false
+    && category.id !== ignoredCategoryId
+    && normalizeCategoryNameForCompare(category.name) === normalizedName
+  ));
+
+  return hasDuplicate ? 'Ce nom existe déjà' : null;
+}
+
+function setBudgetRowLabelText(label, text) {
+  if (!label || !text) return;
+
+  const textNode = Array.from(label.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
+  if (textNode) {
+    textNode.nodeValue = text + ' ';
+    return;
+  }
+
+  label.insertBefore(document.createTextNode(text + ' '), label.firstChild);
+}
+
+function getCustomRowsContainerId(type) {
+  return {
+    income: 'custom-income-rows',
+    fixed_expense: 'custom-fixed-expense-rows',
+    variable_expense: 'custom-variable-expense-rows'
+  }[type];
+}
+
+function createCustomBudgetRow(category) {
+  const row = document.createElement('div');
+  row.className = 'budget-row custom-budget-row';
+
+  const label = document.createElement('div');
+  label.className = 'budget-row-label';
+  label.textContent = category.name;
+
+  const hideBtn = document.createElement('button');
+  hideBtn.className = 'hide-category-btn';
+  hideBtn.innerHTML = '×';
+  hideBtn.type = 'button';
+  hideBtn.title = 'Masquer cette ligne';
+  hideBtn.onclick = (e) => {
+    e.preventDefault();
+    hideCustomBudgetLine(category.id, category.name);
+  };
+  label.appendChild(hideBtn);
+
+  const input = document.createElement('input');
+  input.className = 'budget-input';
+  input.type = 'number';
+  input.placeholder = 'Montant';
+  input.dataset.key = category.id;
+  input.oninput = () => updateAll();
+
+  row.appendChild(label);
+  row.appendChild(input);
+
+  if (category.type === 'income') {
+    row.style.gridTemplateColumns = '1fr 160px 120px';
+    row.appendChild(document.createElement('div'));
+    return row;
+  }
+
+  const checkboxContainer = document.createElement('div');
+  checkboxContainer.className = 'checkbox-container';
+
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.className = 'payee-checkbox';
+  checkbox.dataset.key = category.id + '_paye';
+  checkbox.onchange = () => {
+    updateRowPayedStyle(checkbox);
+    updateAll();
+  };
+
+  checkboxContainer.appendChild(checkbox);
+  row.appendChild(checkboxContainer);
+  return row;
+}
+
+function createHiddenBudgetRowsPanel(type, categories) {
+  const hiddenCategories = categories
+    .filter(category => category.type === type && category.is_active === false && !category.is_default)
+    .sort((a, b) => a.position - b.position || a.name.localeCompare(b.name));
+
+  if (hiddenCategories.length === 0) return null;
+
+  const panel = document.createElement('div');
+  panel.className = 'hidden-budget-lines';
+
+  const title = document.createElement('div');
+  title.className = 'hidden-budget-lines-title';
+  title.textContent = 'Lignes masquées';
+  panel.appendChild(title);
+
+  hiddenCategories.forEach(category => {
+    const item = document.createElement('div');
+    item.className = 'hidden-budget-line-item';
+
+    const name = document.createElement('span');
+    name.textContent = category.name;
+
+    const restoreBtn = document.createElement('button');
+    restoreBtn.type = 'button';
+    restoreBtn.className = 'restore-category-btn';
+    restoreBtn.textContent = 'Restaurer';
+    restoreBtn.onclick = () => restoreCustomBudgetLine(category.id);
+
+    item.appendChild(name);
+    item.appendChild(restoreBtn);
+    panel.appendChild(item);
+  });
+
+  return panel;
+}
+
+async function renderCustomBudgetRows() {
+  if (!window.BudgetCategoriesService?.getBudgetCategories) return;
+
+  const currentValues = snapshotBudgetInputs();
+  const categories = await window.BudgetCategoriesService.getBudgetCategories({ includeInactive: true });
+  budgetCategoriesCache = categories;
+
+  ['income', 'fixed_expense', 'variable_expense'].forEach(type => {
+    const container = document.getElementById(getCustomRowsContainerId(type));
+    if (!container) return;
+
+    container.innerHTML = '';
+    categories
+      .filter(category => category.type === type && category.is_active !== false && !category.is_default)
+      .sort((a, b) => a.position - b.position || a.name.localeCompare(b.name))
+      .forEach(category => {
+        container.appendChild(createCustomBudgetRow(category));
+      });
+
+    const hiddenPanel = createHiddenBudgetRowsPanel(type, categories);
+    if (hiddenPanel) container.appendChild(hiddenPanel);
+  });
+
+  convertCheckboxesToPaidInputs();
+  initDynamicElements();
+  setupFormulaEvaluation();
+  restoreBudgetInputs(currentValues);
+}
+
+async function addCustomBudgetLine(type) {
+  try {
+    if (!window.BudgetCategoriesService?.createBudgetCategory) return;
+
+    const name = await openNexoraActionModal({
+      title: 'Ajouter une ligne',
+      message: 'Nom de la nouvelle ligne',
+      input: true,
+      required: true,
+      validateValue: (value) => getDuplicateCategoryNameMessage(type, value),
+      confirmLabel: 'Ajouter'
+    });
+    if (name === null) return;
+
+    const cleanName = name.trim();
+    if (!cleanName) return;
+
+    await window.BudgetCategoriesService.createBudgetCategory({ name: cleanName, type });
+    await renderCustomBudgetRows();
+    await refreshCategoryLabels();
+    updateAll();
+  } catch (err) {
+    console.warn('[Phase3D] Ajout de ligne impossible', err);
+  }
+}
+
+async function hideCustomBudgetLine(categoryId, categoryName) {
+  try {
+    if (!categoryId || !window.BudgetCategoriesService?.disableBudgetCategory) return;
+
+    const confirmed = await openNexoraActionModal({
+      title: 'Masquer la ligne',
+      message: `Masquer "${categoryName}" ? Les montants déjà enregistrés ne seront pas supprimés.`,
+      confirmLabel: 'Masquer'
+    });
+    if (!confirmed) return;
+
+    await window.BudgetCategoriesService.disableBudgetCategory(categoryId);
+    await renderCustomBudgetRows();
+    await refreshCategoryLabels();
+    updateAll();
+  } catch (err) {
+    console.warn('[Phase3E] Masquage de ligne impossible', err);
+  }
+}
+
+async function restoreCustomBudgetLine(categoryId) {
+  try {
+    if (!categoryId || !window.BudgetCategoriesService?.restoreBudgetCategory) return;
+
+    const category = getCategoryById(categoryId);
+    if (category && getDuplicateCategoryNameMessage(category.type, category.name, category.id)) {
+      await openNexoraActionModal({
+        title: 'Restauration impossible',
+        message: 'Une ligne active porte déjà ce nom',
+        confirmLabel: 'OK',
+        showCancel: false
+      });
+      return;
+    }
+
+    await window.BudgetCategoriesService.restoreBudgetCategory(categoryId);
+    await renderCustomBudgetRows();
+    await refreshCategoryLabels();
+    // After restoring the DOM rows, reload month data to repopulate any values
+    // that belonged to previously hidden custom rows (ensures amounts are restored)
+    try { loadMonth(); } catch (e) { console.warn('loadMonth after restore failed', e); }
+    updateAll();
+  } catch (err) {
+    console.warn('[Phase4D] Restauration de ligne impossible', err);
+  }
+}
+
+// TODO Phase 4E: ajouter une vue corbeille globale avec date de masquage et filtres.
+
+async function renameBudgetCategoryLabel(categoryId) {
+  try {
+    if (!categoryId || !window.BudgetCategoriesService?.renameBudgetCategory) return;
+
+    const label = document.querySelector(`[data-row-key="${categoryId}"] .budget-row-label`)
+      || document.querySelector(`input.budget-input[data-key="${categoryId}"]`)?.closest('.budget-row')?.querySelector('.budget-row-label');
+    const currentName = getBudgetRowLabelText(label);
+    const currentCategory = getCategoryById(categoryId);
+    const categoryType = currentCategory?.type;
+
+    const newName = await openNexoraActionModal({
+      title: 'Renommer la ligne',
+      message: 'Nouveau nom de la ligne',
+      input: true,
+      defaultValue: currentName,
+      required: true,
+      validateValue: (value) => {
+        const normalizedValue = normalizeCategoryNameForCompare(value);
+        if (normalizedValue === normalizeCategoryNameForCompare(currentName)) return null;
+        return categoryType ? getDuplicateCategoryNameMessage(categoryType, value, categoryId) : null;
+      },
+      confirmLabel: 'Renommer'
+    });
+    if (newName === null) return;
+
+    const cleanName = newName.trim();
+    if (!cleanName) return;
+    if (cleanName === currentName) return;
+
+    await window.BudgetCategoriesService.renameBudgetCategory(categoryId, cleanName);
+    await refreshCategoryLabels();
+  } catch (err) {
+    console.warn('[Phase3C] Renommage du libellé impossible', err);
+  }
+}
+
+async function refreshCategoryLabels() {
+  try {
+    if (!window.BudgetCategoriesService?.getBudgetCategories) return;
+
+    const categories = await window.BudgetCategoriesService.getBudgetCategories({ includeInactive: true });
+    budgetCategoriesCache = categories;
+    const categoriesById = new Map(categories.map(category => [category.id, category]));
+
+    document.querySelectorAll('.budget-row').forEach(row => {
+      const amountInput = row.querySelector('input.budget-input[data-key]:not(.paid-input):not(.note-input)');
+      const label = row.querySelector('.budget-row-label');
+      if (!amountInput || !label) return;
+
+      const category = categoriesById.get(amountInput.dataset.key);
+      if (!category?.name) return;
+
+      setBudgetRowLabelText(label, category.name);
+    });
+  } catch (err) {
+    console.warn('[Phase3B] Libellés catégories indisponibles, libellés HTML conservés', err);
+  }
+}
+
 function updateAll(){
-  const revReel = getVal('rev_ali') + getVal('rev_megane') + getVal('rev_excep');
+  const revReel = getBudgetKeysByType('income').reduce((total, key) => total + getVal(key), 0);
   
-  const fixKeys = ['loyer','credit','assauto','gasoil','elec','eau','psy','diete','itou','sante','impots','box','tel_ali','tel_meg','stream','ps','cb','impfix'];
+  const fixKeys = getBudgetKeysByType('fixed_expense');
   let fixReel = 0;
   let fixPaye = 0;
   fixKeys.forEach(k => {
@@ -1281,7 +1781,7 @@ function updateAll(){
     updateRowVisuals(k);
   });
   
-  const varKeys = ['courses','tabac','sport','ongles','cadeaux','impvar'];
+  const varKeys = getBudgetKeysByType('variable_expense');
   let varReel = 0;
   let varPaye = 0;
   varKeys.forEach(k => {
@@ -1640,7 +2140,7 @@ async function exportData(){
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'nexora.json';
+    a.download = 'budget-ali-megane.json';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1729,7 +2229,13 @@ function resetMonth(){
     'Réinitialiser le mois',
     'Voulez-vous vraiment effacer toutes les valeurs du mois de '+getMonth()+' ? Cette action est irréversible.',
     () => {
-      SafeStorage.removeItem(storageKey(getMonth()));
+      const month = getMonth();
+      if (window.TransactionsService) {
+        window.TransactionsService.delete({ month }).catch(err => {
+          console.warn(`[Phase2C] sync error deleting month ${month}:`, err);
+        });
+      }
+      SafeStorage.removeItem(storageKey(month));
       loadMonth();
       showToast('🗑️ Mois réinitialisé');
     }
@@ -1922,11 +2428,11 @@ function updateSimulation() {
   document.getElementById('sim-val-fix').textContent = (fixRed >= 0 ? '-' : '+') + Math.abs(fixRed) + ' €';
   document.getElementById('sim-val-var').textContent = (varRed >= 0 ? '-' : '+') + Math.abs(varRed) + ' €';
 
-  const revReel = getVal('rev_ali') + getVal('rev_megane') + getVal('rev_excep');
-  const fixKeys = ['loyer','credit','assauto','gasoil','elec','eau','psy','diete','itou','sante','impots','box','tel_ali','tel_meg','stream','ps','cb','impfix'];
+  const revReel = getBudgetKeysByType('income').reduce((total, key) => total + getVal(key), 0);
+  const fixKeys = getBudgetKeysByType('fixed_expense');
   let fixReel = 0;
   fixKeys.forEach(k => fixReel += getVal(k));
-  const varKeys = ['courses','tabac','sport','ongles','cadeaux','impvar'];
+  const varKeys = getBudgetKeysByType('variable_expense');
   let varReel = 0;
   varKeys.forEach(k => varReel += getVal(k));
 
@@ -2457,9 +2963,11 @@ window.onload=async ()=>{
   
   // Initialize app
   loadPersonalization();
+  await renderCustomBudgetRows();
   convertCheckboxesToPaidInputs();
   initDynamicElements();
   setupFormulaEvaluation();
+  await refreshCategoryLabels();
   loadMonth();
   buildHistory();
   const initialHash = window.location.hash.replace('#section-', '') || 'dashboard';
@@ -2481,7 +2989,7 @@ if ('serviceWorker' in navigator) {
       console.warn('Impossible de désenregistrer les anciens service workers', err);
     }
 
-    navigator.serviceWorker.register('/sw.js')
+    navigator.serviceWorker.register('./sw.js')
       .then(reg => {
         console.log('Service Worker enregistré !', reg);
         if (reg.update) reg.update();
