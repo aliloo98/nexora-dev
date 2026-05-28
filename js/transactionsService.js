@@ -376,14 +376,24 @@ const create = async (transaction) => {
 
   if (normalized.user_id && session?.user?.id && isOnline()) {
     try {
+      const supabasePayload = toSupabaseTransactionPayload(normalized)
       const existing = await findSupabaseTransactionByLocalId(normalized.user_id, localId)
       if (existing) {
         log('sync', `Doublon Supabase evite pour ${localId}`, { id: existing.id })
         console.debug('[Phase2B][TransactionsService] duplicate response:', existing)
-        return existing
-      }
+        const { id, created_at, ...updatePayload } = supabasePayload
+        const { data, error } = await supabase
+          .from('transactions')
+          .update(updatePayload)
+          .eq('id', existing.id)
+          .eq('user_id', normalized.user_id)
+          .select()
+          .single()
 
-      const supabasePayload = toSupabaseTransactionPayload(normalized)
+        console.debug('[Phase2B][TransactionsService] Supabase duplicate update response:', { data, error })
+        if (error) throw error
+        return data
+      }
 
       console.debug('[Phase2B][TransactionsService] Supabase insert request:', {
         table: 'transactions',
