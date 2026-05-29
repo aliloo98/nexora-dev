@@ -77,7 +77,7 @@
 
   <!-- HEADER -->
   <div class="header">
-    <h1>Budget <span>Ali & Megane</span></h1>
+    <h1>NEXORA</h1>
     <div class="header-actions">
       <div class="month-selector">
         <span style="color:var(--text2);font-size:13px">Mois</span>
@@ -2095,8 +2095,9 @@ function showSection(id){
   const activeButton = document.querySelector(`.sidebar .nav-btn[data-section="${id}"]`);
   if (activeButton) activeButton.classList.add('active');
 
-  if (window.location.hash !== '#section-' + id) {
-    window.location.hash = '#section-' + id;
+  const nextHash = '#section-' + id;
+  if (window.location.hash !== nextHash) {
+    history.replaceState(null, '', nextHash);
   }
 
   if (id === 'historique' && typeof buildHistory === 'function') {

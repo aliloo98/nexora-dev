@@ -977,13 +977,17 @@ body {
     position: fixed;
     width: 100%;
     height: calc(64px + env(safe-area-inset-bottom, 0px));
+    min-height: calc(64px + env(safe-area-inset-bottom, 0px));
+    max-height: calc(64px + env(safe-area-inset-bottom, 0px));
     padding: 0 16px env(safe-area-inset-bottom, 0px) 16px;
     z-index: 999;
     flex-direction: row;
     justify-content: space-around;
+    align-items: center;
     top: auto;
     bottom: 0;
     left: 0;
+    right: 0;
     border-right: none;
     border-top: 1px solid var(--border);
     box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
@@ -991,6 +995,9 @@ body {
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     box-sizing: border-box;
+    overflow: hidden;
+    transform: translateZ(0);
+    will-change: auto;
   }
   .sidebar-logo {
     display: none;
@@ -1001,13 +1008,21 @@ body {
     width: 100%;
   }
   .nav-btn {
+    box-sizing: border-box;
+    flex: 0 0 50px;
     width: 50px;
     height: 50px;
     font-size: 20px;
+    line-height: 1;
+    margin: 0;
+    padding: 0;
+    transform: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
   .nav-btn.active::before {
     left: 50%;
-    top: -1px;
+    top: 0;
     transform: translateX(-50%);
     width: 24px;
     height: 4px;

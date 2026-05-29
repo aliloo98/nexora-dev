@@ -38,7 +38,7 @@ export const updateUserHeader = () => {
     console.log('✅ Header updated with username:', displayName)
   } else {
     // No user - show default
-    headerTitle.innerHTML = 'Budget <span>Ali & Megane</span>'
+    headerTitle.textContent = 'NEXORA'
     console.log('ℹ️  Header showing default title')
   }
 }

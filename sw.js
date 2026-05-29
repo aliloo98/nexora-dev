@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nexora-v14';
+const CACHE_NAME = 'nexora-v15';
 const ASSETS = [
   '/',
   '/index.html',
@@ -93,7 +93,12 @@ self.addEventListener('fetch', e => {
             caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
             return response;
           })
-          .catch(() => caches.match(request))
+          .catch(() => {
+            if (request.destination === 'document') {
+              return caches.match('/index.html');
+            }
+            return caches.match(request);
+          })
       );
     } else {
       e.respondWith(
