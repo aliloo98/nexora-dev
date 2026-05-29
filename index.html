@@ -2887,13 +2887,104 @@ async function exportData(){
   }
 }
 
-function importData(e){
+function isBudgetMonthStorageKey(key) {
+  return /^budget_\d{4}-\d{2}$/.test(key);
+}
+
+function normalizeImportedStorageValue(value) {
+  if (typeof value === 'undefined' || value === null) return null;
+  return typeof value === 'object' ? JSON.stringify(value) : String(value);
+}
+
+function readImportedMonthData(value) {
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return readImportedMonthData(parsed);
+    } catch {
+      return {};
+    }
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return { ...value };
+}
+
+function getImportedBudgetMonths(parsed) {
+  return Object.keys(parsed)
+    .filter(isBudgetMonthStorageKey)
+    .map(key => key.replace('budget_', ''))
+    .sort((a, b) => a.localeCompare(b));
+}
+
+function hasExistingBudgetData(month) {
+  try {
+    const data = JSON.parse(SafeStorage.getItem(storageKey(month)) || '{}');
+    return data && typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length > 0;
+  } catch {
+    return false;
+  }
+}
+
+async function chooseImportMode(months) {
+  const monthsWithData = months.filter(hasExistingBudgetData);
+  if (monthsWithData.length === 0) return 'replace';
+
+  const label = monthsWithData.length === 1
+    ? `Le mois ${monthsWithData[0]} contient déjà des données.`
+    : `${monthsWithData.length} mois importés contiennent déjà des données.`;
+
+  const replace = await openNexoraActionModal({
+    title: 'Importer une sauvegarde',
+    message: `${label} Remplacer écrase le mois importé avec le fichier JSON. Choisis Annuler pour voir l'option Fusionner.`,
+    confirmLabel: 'Remplacer'
+  });
+  if (replace) return 'replace';
+
+  const merge = await openNexoraActionModal({
+    title: 'Fusionner la sauvegarde',
+    message: 'Fusionner conserve les clés existantes absentes du fichier, mais les valeurs du JSON importé restent prioritaires.',
+    confirmLabel: 'Fusionner'
+  });
+  return merge ? 'merge' : null;
+}
+
+async function writeImportedBudgetMonth(month, importedData, mode) {
+  let currentData = {};
+  if (mode === 'merge') {
+    try {
+      currentData = JSON.parse(SafeStorage.getItem(storageKey(month)) || '{}');
+    } catch {
+      currentData = {};
+    }
+  }
+  const snapshot = {
+    ...(currentData && typeof currentData === 'object' && !Array.isArray(currentData) ? currentData : {}),
+    ...importedData
+  };
+
+  SafeStorage.setItem(storageKey(month), JSON.stringify(snapshot));
+  if (typeof StorageManager !== 'undefined') {
+    await StorageManager.setItem(storageKey(month), JSON.stringify(snapshot));
+  }
+  await persistMonthSnapshot(month, snapshot);
+  return snapshot;
+}
+
+function selectImportedMonth(months) {
+  if (!months.length) return;
+  const current = getMonth();
+  const month = months.includes(current) ? current : months[0];
+  ensureMonthOption(month);
+  document.getElementById('monthSelect').value = month;
+}
+
+async function importData(e){
   const input = e.target;
   const file = input.files && input.files[0];
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = ev => {
+  reader.onload = async ev => {
     let parsed;
     try {
       parsed = JSON.parse(ev.target.result);
@@ -2910,51 +3001,59 @@ function importData(e){
       return;
     }
 
-    customConfirm(
-      'Importer une sauvegarde',
-      'Voulez-vous vraiment importer cette sauvegarde ? Les données existantes de tous les mois seront définitivement écrasées.',
-      async () => {
-        try {
-          let importedCount = 0;
-          const promises = [];
+    try {
+      const importedMonths = getImportedBudgetMonths(parsed);
+      const importMode = await chooseImportMode(importedMonths);
+      if (!importMode) {
+        input.value = '';
+        return;
+      }
 
-          Object.keys(parsed).forEach(k => {
-            const value = parsed[k];
-            if (typeof value === 'undefined' || value === null) return;
-            if (!k.startsWith('budget_')) return;
+      let importedCount = 0;
+      const storagePromises = [];
 
-            const storeValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+      for (const key of Object.keys(parsed)) {
+        const value = parsed[key];
+        if (typeof value === 'undefined' || value === null) continue;
+        if (!key.startsWith('budget_')) continue;
 
-            // Toujours écrire dans SafeStorage (localStorage)
-            SafeStorage.setItem(k, storeValue);
-            importedCount++;
+        if (isBudgetMonthStorageKey(key)) {
+          const month = key.replace('budget_', '');
+          await writeImportedBudgetMonth(month, readImportedMonthData(value), importMode);
+          importedCount++;
+          continue;
+        }
 
-            // Toujours écrire aussi dans IndexedDB via StorageManager
-            if (typeof StorageManager !== 'undefined') {
-              promises.push(StorageManager.setItem(k, storeValue));
-            }
-          });
+        const storeValue = normalizeImportedStorageValue(value);
+        if (storeValue === null) continue;
+        SafeStorage.setItem(key, storeValue);
+        importedCount++;
 
-          await Promise.all(promises);
-
-          if (importedCount === 0) {
-            showToast('❌ Aucune donnée valide trouvée dans le fichier');
-          } else {
-            loadMonth();
-            buildHistory();
-            if (typeof ThemeManager !== 'undefined') await ThemeManager.init();
-            if (typeof LogoManager !== 'undefined') await LogoManager.init();
-            loadPersonalization();
-            showToast('✅ Importation réussie ! (' + importedCount + ' entrées)');
-          }
-        } catch (err) {
-          showToast('❌ Erreur lors de l\'importation');
-          console.error(err);
-        } finally {
-          input.value = '';
+        if (typeof StorageManager !== 'undefined') {
+          storagePromises.push(StorageManager.setItem(key, storeValue));
         }
       }
-    );
+
+      await Promise.all(storagePromises);
+
+      if (importedCount === 0) {
+        showToast('❌ Aucune donnée valide trouvée dans le fichier');
+      } else {
+        selectImportedMonth(importedMonths);
+        await loadMonth();
+        await saveData();
+        buildHistory();
+        if (typeof ThemeManager !== 'undefined') await ThemeManager.init();
+        if (typeof LogoManager !== 'undefined') await LogoManager.init();
+        loadPersonalization();
+        showToast('✅ Importation réussie ! (' + importedCount + ' entrées)');
+      }
+    } catch (err) {
+      showToast('❌ Erreur lors de l\'importation');
+      console.error(err);
+    } finally {
+      input.value = '';
+    }
   };
   reader.readAsText(file);
 }
