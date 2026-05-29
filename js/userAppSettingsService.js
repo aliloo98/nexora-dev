@@ -21,6 +21,11 @@ const parseJson = (raw) => {
 
 const isEmptyArray = (value) => Array.isArray(value) && value.length === 0
 const isNonEmptyArray = (value) => Array.isArray(value) && value.length > 0
+const traceGoalsStartup = (event, patch = {}) => {
+  if (typeof window !== 'undefined' && window.nexoraTraceGoalsStartup) {
+    window.nexoraTraceGoalsStartup(event, patch)
+  }
+}
 
 const getLocalItem = async (key) => {
   const storageRaw = await StorageManager.getItem(key)
@@ -66,11 +71,18 @@ const setLocalItem = async (key, value) => {
 
 const forceWriteLocalSetting = async (key, value, updatedAt) => {
   const serialized = JSON.stringify(value)
+  if (key === 'nexora_goals_v1') {
+    traceGoalsStartup('settings:forceWriteLocalSetting:start', { localGoalsCount: Array.isArray(value) ? value.length : null })
+  }
   await setLocalItem(key, serialized)
   if (updatedAt) {
     await setLocalItem(key + META_SUFFIX, JSON.stringify({ updated_at: updatedAt }))
   }
-  return UserAppSettingsService.getSetting(key)
+  const setting = await UserAppSettingsService.getSetting(key)
+  if (key === 'nexora_goals_v1') {
+    traceGoalsStartup('settings:forceWriteLocalSetting:finish', { localGoalsCount: Array.isArray(setting.value) ? setting.value.length : null })
+  }
+  return setting
 }
 
 const refreshGoalsUiAfterCloudMerge = async () => {
@@ -105,6 +117,9 @@ const UserAppSettingsService = {
     const metaRaw = await getLocalItem(key + META_SUFFIX)
     const value = parseJson(raw)
     const meta = parseJson(metaRaw)
+    if (key === 'nexora_goals_v1') {
+      traceGoalsStartup('settings:getSetting:goals', { localGoalsCount: Array.isArray(value) ? value.length : null })
+    }
     return { value, meta }
   },
 
@@ -155,8 +170,14 @@ const UserAppSettingsService = {
 
   // Pull cloud row and merge to local using last-write-wins on updated_at
   syncCloudSettingToLocal: async (key) => {
+    if (key === 'nexora_goals_v1') {
+      traceGoalsStartup('settings:syncCloudSettingToLocal:start', { syncStarted: true, syncFinished: false })
+    }
     if (!window.supabase || !window.supabase.auth) {
       UserAppSettingsService.log('Supabase not available, skipping cloud pull for', key)
+      if (key === 'nexora_goals_v1') {
+        traceGoalsStartup('settings:syncCloudSettingToLocal:no-supabase', { syncFinished: true })
+      }
       return { ok: false, reason: 'no-supabase' }
     }
     const sessionResp = await window.supabase.auth.getSession().catch((err) => {
@@ -164,7 +185,15 @@ const UserAppSettingsService = {
       return null
     })
     const userId = sessionResp?.data?.session?.user?.id
-    if (!userId) return { ok: false, reason: 'no-user' }
+    if (!userId) {
+      if (key === 'nexora_goals_v1') {
+        traceGoalsStartup('settings:syncCloudSettingToLocal:no-user', { syncFinished: true })
+      }
+      return { ok: false, reason: 'no-user' }
+    }
+    if (key === 'nexora_goals_v1') {
+      traceGoalsStartup('settings:cloudRead:user', { userId })
+    }
 
     const { data: row, error } = await window.supabase.from('user_app_settings').select('*').eq('user_id', userId).eq('key', key).single().catch((err) => {
       UserAppSettingsService.log('Supabase select failed', { key, err })
@@ -177,10 +206,16 @@ const UserAppSettingsService = {
       } else {
         UserAppSettingsService.warn('Cloud query error for key', { key, error })
       }
+      if (key === 'nexora_goals_v1') {
+        traceGoalsStartup('settings:cloudRead:error', { syncFinished: true, error: error?.message || String(error) })
+      }
       return { ok: false, reason, error }
     }
     if (!row) {
       UserAppSettingsService.log('No cloud row found for key', key)
+      if (key === 'nexora_goals_v1') {
+        traceGoalsStartup('settings:cloudRead:no-row', { syncFinished: true, cloudGoalsCount: null })
+      }
       return { ok: false, reason: 'no-cloud' }
     }
 
@@ -188,11 +223,18 @@ const UserAppSettingsService = {
     const { value: localValue, meta: localMeta } = await UserAppSettingsService.getSetting(key)
     const localUpdated = localMeta && localMeta.updated_at ? new Date(localMeta.updated_at).getTime() : 0
     const cloudValue = row.data
+    if (key === 'nexora_goals_v1') {
+      traceGoalsStartup('settings:cloudRead:success', {
+        cloudGoalsCount: Array.isArray(cloudValue) ? cloudValue.length : null,
+        localGoalsCount: Array.isArray(localValue) ? localValue.length : null
+      })
+    }
 
     if (key === 'nexora_goals_v1' && isNonEmptyArray(cloudValue) && !isNonEmptyArray(localValue)) {
       await forceWriteLocalSetting(key, cloudValue, row.updated_at)
       await refreshGoalsUiAfterCloudMerge()
       UserAppSettingsService.log('Injected non-empty cloud goals into local storage', key)
+      traceGoalsStartup('settings:syncCloudSettingToLocal:finish', { syncFinished: true, localGoalsCount: cloudValue.length })
       return { ok: true, action: 'cloud-to-local-goals-forced' }
     }
 
@@ -203,6 +245,9 @@ const UserAppSettingsService = {
         return { ok: false, error: pushResult.error, reason: pushResult.reason }
       }
       UserAppSettingsService.log('Local non-empty setting kept over empty cloud', key)
+      if (key === 'nexora_goals_v1') {
+        traceGoalsStartup('settings:syncCloudSettingToLocal:finish', { syncFinished: true })
+      }
       return { ok: true, action: 'local-to-cloud-empty-cloud-protected' }
     }
 
@@ -213,6 +258,9 @@ const UserAppSettingsService = {
         await refreshGoalsUiAfterCloudMerge()
       }
       UserAppSettingsService.log('Pulled cloud setting to local', key)
+      if (key === 'nexora_goals_v1') {
+        traceGoalsStartup('settings:syncCloudSettingToLocal:finish', { syncFinished: true, localGoalsCount: Array.isArray(cloudValue) ? cloudValue.length : null })
+      }
       return { ok: true, action: 'cloud-to-local' }
     }
 
@@ -223,6 +271,9 @@ const UserAppSettingsService = {
         await refreshGoalsUiAfterCloudMerge()
       }
       UserAppSettingsService.log('Cloud setting is newer; updated local value', key)
+      if (key === 'nexora_goals_v1') {
+        traceGoalsStartup('settings:syncCloudSettingToLocal:finish', { syncFinished: true, localGoalsCount: Array.isArray(cloudValue) ? cloudValue.length : null })
+      }
       return { ok: true, action: 'cloud-to-local' }
     }
 
@@ -234,14 +285,21 @@ const UserAppSettingsService = {
         return { ok: false, error: pushResult.error }
       }
       UserAppSettingsService.log('Local setting is newer; pushed to cloud', key)
+      if (key === 'nexora_goals_v1') {
+        traceGoalsStartup('settings:syncCloudSettingToLocal:finish', { syncFinished: true })
+      }
       return { ok: true, action: 'local-to-cloud' }
     }
 
     UserAppSettingsService.log('No sync action needed; local and cloud timestamps equal', key)
+    if (key === 'nexora_goals_v1') {
+      traceGoalsStartup('settings:syncCloudSettingToLocal:finish', { syncFinished: true })
+    }
     return { ok: true, action: 'noop' }
   },
 
   syncAllAppSettings: async (keys = DEFAULT_KEYS) => {
+    traceGoalsStartup('settings:syncAllAppSettings:start', { syncStarted: true, syncFinished: false })
     await UserAppSettingsService.init()
     const results = {}
     for (const key of keys) {
@@ -265,6 +323,7 @@ const UserAppSettingsService = {
         results[key] = { ok: false, error: e }
       }
     }
+    traceGoalsStartup('settings:syncAllAppSettings:finish', { syncFinished: true })
     return results
   }
 }

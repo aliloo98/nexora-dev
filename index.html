@@ -494,6 +494,10 @@
         </div>
 
         <div id="goals-list" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px"></div>
+        <div id="goals-startup-debug-panel" style="margin-top:16px;padding:12px;background:rgba(255,255,255,0.03);border:1px dashed rgba(229,192,96,0.25);border-radius:12px;">
+          <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:8px;">Debug démarrage objectifs</div>
+          <pre id="goals-startup-debug-json" style="margin:0;white-space:pre-wrap;font-size:11px;line-height:1.4;color:var(--text2);max-height:280px;overflow:auto;">{}</pre>
+        </div>
         <div style="margin-top:16px;padding:12px;background:rgba(255,255,255,0.02);border-radius:12px;border:1px dashed rgba(229,192,96,0.2);">
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
             <input type="text" id="goal-new-name" class="budget-input" placeholder="Nom (ex: Voyage de noces)" style="flex:2;min-width:180px">

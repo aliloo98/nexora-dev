@@ -2,21 +2,31 @@ import { StorageManager } from '../../js/storage.js'
 import { UserAppSettingsService } from '../../js/userAppSettingsService.js'
 
 const STORAGE_KEY = 'nexora_goals_v1'
+const traceGoalsStartup = (event, patch = {}) => {
+  if (typeof window !== 'undefined' && window.nexoraTraceGoalsStartup) {
+    window.nexoraTraceGoalsStartup(event, patch)
+  }
+}
 
 const getGoals = async () => {
+  traceGoalsStartup('goalsService:getGoals:start')
   const { value } = await UserAppSettingsService.getSetting(STORAGE_KEY)
   if (Array.isArray(value)) {
+    traceGoalsStartup('goalsService:getGoals:return-settings', { goalsServiceCount: value.length })
     return value
   }
 
   const raw = await StorageManager.getItem(STORAGE_KEY)
   if (!raw) {
+    traceGoalsStartup('goalsService:getGoals:return-empty', { goalsServiceCount: 0 })
     return []
   }
   try {
     const parsed = JSON.parse(raw)
+    traceGoalsStartup('goalsService:getGoals:return-storage', { goalsServiceCount: Array.isArray(parsed) ? parsed.length : 0 })
     return Array.isArray(parsed) ? parsed : []
   } catch (err) {
+    traceGoalsStartup('goalsService:getGoals:parse-error', { goalsServiceCount: 0, error: err?.message || String(err) })
     return []
   }
 }
