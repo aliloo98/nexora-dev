@@ -26,7 +26,7 @@
   <div class="sidebar-logo" id="app-sidebar-logo">💰</div>
   <a href="#section-dashboard" class="nav-btn active" data-section="dashboard" onclick="showSection('dashboard'); return false;" title="Tableau de bord">🏠</a>
   <a href="#section-saisie" class="nav-btn" data-section="saisie" onclick="showSection('saisie'); return false;" title="Saisie du mois">✏️</a>
-  <a href="#section-historique" class="nav-btn" data-section="historique" onclick="showSection('historique'); return false;" title="Historique">📊</a>
+  <a href="#section-historique" class="nav-btn" data-section="historique" onclick="showSection('historique'); return false;" title="Historique">📚</a>
   <a href="#section-parametres" class="nav-btn" data-section="parametres" onclick="showSection('parametres'); return false;" title="Paramètres">⚙️</a>
 </nav>
 
@@ -734,13 +734,18 @@
     <div class="budget-block" id="history-chart-block" style="margin-bottom:32px;display:none;">
       <div class="budget-block-header">
         <span class="budget-block-title">📈 Évolution Mensuelle</span>
-        <span style="font-size:12px;color:var(--text2)">Revenus vs Dépenses vs Épargne</span>
+        <div class="history-period-toggle" aria-label="Période de l'historique">
+          <button type="button" class="history-period-btn active" data-history-period="3" onclick="setHistoryPeriod(3)">3 mois</button>
+          <button type="button" class="history-period-btn" data-history-period="6" onclick="setHistoryPeriod(6)">6 mois</button>
+          <button type="button" class="history-period-btn" data-history-period="12" onclick="setHistoryPeriod(12)">12 mois</button>
+        </div>
       </div>
       <div id="history-chart-container" style="padding: 24px 16px; display: flex; justify-content: center; overflow-x: auto;">
         <!-- Le graphique SVG sera généré ici -->
       </div>
     </div>
 
+    <div class="history-comparison-panel" id="history-comparison-panel" style="display:none;"></div>
     <div class="history-grid" id="history-grid"></div>
   </div>
 
@@ -3080,143 +3085,246 @@ function resetMonth(){
   );
 }
 
-function buildHistory(){
-  const grid=document.getElementById('history-grid');
-  const months=[];
-  for(let i=0;i<SafeStorage.length;i++){
-    const k=SafeStorage.key(i);
-    if(k && k.startsWith('budget_'))months.push(k.replace('budget_',''));
+const MONTHLY_HISTORY_SNAPSHOTS_KEY = 'nexora_monthly_history_snapshots_v1';
+let historyPeriod = 6;
+
+function readMonthlyHistoryStore() {
+  try {
+    const parsed = JSON.parse(SafeStorage.getItem(MONTHLY_HISTORY_SNAPSHOTS_KEY) || '{}');
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+      ? { version: 1, snapshots: {}, ...parsed }
+      : { version: 1, snapshots: {} };
+  } catch {
+    return { version: 1, snapshots: {} };
   }
-  
+}
+
+function writeMonthlyHistoryStore(store) {
+  SafeStorage.setItem(MONTHLY_HISTORY_SNAPSHOTS_KEY, JSON.stringify({
+    version: 1,
+    updated_at: new Date().toISOString(),
+    snapshots: store.snapshots || {}
+  }));
+}
+
+function getHistoryMonthsFromStorage() {
+  const months = new Set(Object.keys(readMonthlyHistoryStore().snapshots || {}));
+  for (let i = 0; i < SafeStorage.length; i++) {
+    const key = SafeStorage.key(i);
+    if (/^budget_\d{4}-\d{2}$/.test(key)) months.add(key.replace('budget_', ''));
+  }
+  return [...months].sort((a, b) => a.localeCompare(b));
+}
+
+function getHistoryDataValue(data, key) {
+  if (data && Object.prototype.hasOwnProperty.call(data, key)) return parseFloat(String(data[key]).replace(',', '.')) || 0;
+  if (data && Object.prototype.hasOwnProperty.call(data, key + '_reel')) return parseFloat(String(data[key + '_reel']).replace(',', '.')) || 0;
+  return 0;
+}
+
+function getHistoryMonthMetrics(month, data = readStoredMonthData(month)) {
+  const incomeKeys = getBudgetKeysByType('income');
+  const fixedKeys = getBudgetKeysByType('fixed_expense');
+  const variableKeys = getBudgetKeysByType('variable_expense');
+  const income = incomeKeys.reduce((sum, key) => sum + getHistoryDataValue(data, key), 0);
+  const fixed = fixedKeys.reduce((sum, key) => sum + getHistoryDataValue(data, key), 0);
+  const variable = variableKeys.reduce((sum, key) => sum + getHistoryDataValue(data, key), 0);
+  const expenses = fixed + variable;
+  const savings = income - expenses;
+  const savingsRate = income > 0 ? Math.round(savings / income * 100) : 0;
+  const chargeRate = income > 0 ? Math.round(expenses / income * 100) : 0;
+  const score = getFinancialScore({ income, expenses, savings }).score;
+  return { month, income, fixed, variable, expenses, savings, savingsRate, chargeRate, score };
+}
+
+function isBudgetMonthEnded(month) {
+  const range = getBudgetCycleRange(month);
+  const today = new Date();
+  const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const endDate = new Date(range.end.getFullYear(), range.end.getMonth(), range.end.getDate());
+  return todayDate > endDate;
+}
+
+function createMonthlyHistorySnapshot(month) {
+  if (!isBudgetMonthEnded(month)) return null;
+  const store = readMonthlyHistoryStore();
+  if (store.snapshots?.[month]) return store.snapshots[month];
+  const data = readStoredMonthData(month);
+  if (Object.keys(data).length === 0) return null;
+  const metrics = getHistoryMonthMetrics(month, data);
+  const range = getBudgetCycleRange(month);
+  const snapshot = {
+    id: `snapshot_${month}`,
+    month,
+    label: range.fullLabel,
+    range: {
+      start: range.start.toISOString(),
+      end: range.end.toISOString()
+    },
+    metrics,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_synced: false
+  };
+  store.snapshots = { ...(store.snapshots || {}), [month]: snapshot };
+  writeMonthlyHistoryStore(store);
+  return snapshot;
+}
+
+function installMonthlyHistorySnapshotHook() {
+  if (window.__nexoraHistorySnapshotHookInstalled || typeof saveData !== 'function') return;
+  const originalSaveData = saveData;
+  saveData = async function saveDataWithMonthlySnapshot(...args) {
+    const month = getMonth();
+    const result = await originalSaveData.apply(this, args);
+    createMonthlyHistorySnapshot(month);
+    buildHistory();
+    return result;
+  };
+  window.__nexoraHistorySnapshotHookInstalled = true;
+}
+
+function getHistoryEntries() {
+  const store = readMonthlyHistoryStore();
+  return getHistoryMonthsFromStorage().map(month => {
+    const snapshot = store.snapshots?.[month] || null;
+    const metrics = snapshot?.metrics || getHistoryMonthMetrics(month);
+    return {
+      month,
+      label: snapshot?.label || getBudgetCycleRange(month).fullLabel,
+      shortLabel: monthShortLabel(month),
+      metrics,
+      frozen: Boolean(snapshot),
+      created_at: snapshot?.created_at || null
+    };
+  });
+}
+
+function renderHistoryChart(entries) {
   const chartBlock = document.getElementById('history-chart-block');
   const chartContainer = document.getElementById('history-chart-container');
-  
-  if(months.length===0){
-    grid.innerHTML='<p style="color:var(--text2);padding:12px">Aucun mois sauvegardé pour le moment.</p>';
-    if (chartBlock) chartBlock.style.display = 'none';
+  if (!chartBlock || !chartContainer) return;
+  const data = entries.slice(-historyPeriod);
+  if (data.length === 0) {
+    chartBlock.style.display = 'none';
     return;
   }
-  
-  // Helper to extract values from data block, accommodating older formats
-  const getHistoryVal = (dataObj, baseKey) => {
-    if (dataObj.hasOwnProperty(baseKey)) return parseFloat(dataObj[baseKey]) || 0;
-    return parseFloat(dataObj[baseKey + '_reel']) || 0;
-  };
-  
-  months.sort((a,b)=>a.localeCompare(b)); // oldest to newest for chronological chart representation
-  
-  const historyData = months.map(m => {
-    const d=JSON.parse(SafeStorage.getItem('budget_'+m)||'{}');
-    const rev=getHistoryVal(d, 'rev_ali') + getHistoryVal(d, 'rev_megane') + getHistoryVal(d, 'rev_excep');
-    const fix=['loyer','credit','assauto','gasoil','elec','eau','psy','diete','itou','sante','impots','box','tel_ali','tel_meg','stream','ps','cb','impfix'].reduce((s,k)=>s+getHistoryVal(d, k),0);
-    const mockVar=['courses','tabac','sport','ongles','cadeaux','impvar'].reduce((s,k)=>s+getHistoryVal(d, k),0);
-    const dep = fix + mockVar;
-    const solde = rev - dep;
-    
-    const [y,mo]=m.split('-');
-    const label=new Date(y,mo-1).toLocaleDateString('fr-FR',{month:'short',year:'2-digit'});
-    
-    return { month: m, label, rev, dep, solde };
-  });
 
-  // Render SVG Historical Chart
-  if (chartBlock && chartContainer && historyData.length > 0) {
-    chartBlock.style.display = 'block';
-    
-    const svgWidth = Math.max(550, historyData.length * 90);
-    const svgHeight = 260;
-    const padding = { top: 30, right: 30, bottom: 40, left: 60 };
-    
-    let maxVal = 1000;
-    historyData.forEach(d => {
-      maxVal = Math.max(maxVal, d.rev, d.dep, Math.max(0, d.solde));
-    });
-    maxVal = maxVal * 1.15; // 15% padding
-    
-    let svgHtml = `<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" style="background:transparent; font-family:inherit;">`;
-    
-    // Draw horizontal grid lines
-    const gridCount = 4;
-    for (let i = 0; i <= gridCount; i++) {
-      const y = padding.top + (svgHeight - padding.top - padding.bottom) * (1 - i / gridCount);
-      const val = Math.round((maxVal * i) / gridCount);
-      
-      svgHtml += `<line x1="${padding.left}" y1="${y}" x2="${svgWidth - padding.right}" y2="${y}" stroke="rgba(255,255,255,0.04)" stroke-dasharray="4" />`;
-      svgHtml += `<text x="${padding.left - 10}" y="${y + 4}" fill="var(--text2)" font-size="11" font-weight="600" text-anchor="end">${val} €</text>`;
-    }
-    
-    const graphWidth = svgWidth - padding.left - padding.right;
-    const graphHeight = svgHeight - padding.top - padding.bottom;
-    const colWidth = graphWidth / historyData.length;
-    const groupWidth = colWidth * 0.7;
-    
-    historyData.forEach((d, idx) => {
-      const colX = padding.left + idx * colWidth;
-      const centerX = colX + colWidth / 2;
-      
-      const hRev = (d.rev / maxVal) * graphHeight;
-      const hDep = (d.dep / maxVal) * graphHeight;
-      const hSol = (Math.max(0, d.solde) / maxVal) * graphHeight;
-      
-      const barW = groupWidth / 3.3;
-      const startX = centerX - groupWidth / 2;
-      
-      const xRev = startX;
-      const xDep = startX + barW * 1.15;
-      const xSol = startX + barW * 2.3;
-      
-      const yBaseline = padding.top + graphHeight;
-      
-      // Draw bars
-      if (d.rev > 0) {
-        svgHtml += `<rect x="${xRev}" y="${yBaseline - hRev}" width="${barW}" height="${hRev}" fill="var(--green)" rx="2" opacity="0.85" class="chart-bar" style="transition:all 0.3s;">
-          <title>Revenus - ${d.label}: ${fmt(d.rev)}</title>
-        </rect>`;
-      }
-      if (d.dep > 0) {
-        svgHtml += `<rect x="${xDep}" y="${yBaseline - hDep}" width="${barW}" height="${hDep}" fill="var(--red)" rx="2" opacity="0.85" class="chart-bar" style="transition:all 0.3s;">
-          <title>Dépenses - ${d.label}: ${fmt(d.dep)}</title>
-        </rect>`;
-      }
-      if (d.solde > 0) {
-        svgHtml += `<rect x="${xSol}" y="${yBaseline - hSol}" width="${barW}" height="${hSol}" fill="var(--gold)" rx="2" opacity="0.85" class="chart-bar" style="transition:all 0.3s;">
-          <title>Épargne - ${d.label}: ${fmt(d.solde)}</title>
-        </rect>`;
-      }
-      
-      // Month labels
-      svgHtml += `<text x="${centerX}" y="${yBaseline + 20}" fill="var(--text)" font-size="11" font-weight="600" text-anchor="middle" text-transform="capitalize">${d.label}</text>`;
-      
-      // Interactive overlay
-      svgHtml += `<rect x="${colX}" y="${padding.top}" width="${colWidth}" height="${graphHeight}" fill="transparent" style="cursor:pointer;">
-        <title>Mois : ${d.label}
-Revenus : ${fmt(d.rev)}
-Dépenses : ${fmt(d.dep)}
-Solde/Épargne : ${fmt(d.solde)}</title>
-      </rect>`;
-    });
-    
-    // Draw X-axis
-    svgHtml += `<line x1="${padding.left}" y1="${padding.top + graphHeight}" x2="${svgWidth - padding.right}" y2="${padding.top + graphHeight}" stroke="var(--border)" stroke-width="1.5" />`;
-    svgHtml += `</svg>`;
-    chartContainer.innerHTML = svgHtml;
+  chartBlock.style.display = 'block';
+  const width = Math.max(560, data.length * 100);
+  const height = 260;
+  const pad = { top: 26, right: 28, bottom: 38, left: 58 };
+  const plotW = width - pad.left - pad.right;
+  const plotH = height - pad.top - pad.bottom;
+  const maxVal = Math.max(1, ...data.flatMap(item => [item.metrics.income, item.metrics.expenses, Math.max(0, item.metrics.savings)])) * 1.12;
+  const xFor = index => pad.left + (data.length === 1 ? plotW / 2 : plotW / (data.length - 1) * index);
+  const yFor = value => pad.top + (maxVal - Math.max(0, value)) / maxVal * plotH;
+  const pathFor = field => data.map((item, index) => `${index === 0 ? 'M' : 'L'} ${xFor(index).toFixed(1)} ${yFor(item.metrics[field]).toFixed(1)}`).join(' ');
+
+  chartContainer.innerHTML = `
+    <svg class="history-line-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Évolution historique">
+      ${[0, 1, 2, 3, 4].map(i => {
+        const y = pad.top + plotH * (1 - i / 4);
+        const value = Math.round(maxVal * i / 4);
+        return `<line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" class="history-axis"></line><text x="${pad.left - 10}" y="${y + 4}" text-anchor="end" class="history-axis-label">${value} €</text>`;
+      }).join('')}
+      <path d="${pathFor('income')}" class="history-line income"></path>
+      <path d="${pathFor('expenses')}" class="history-line expense"></path>
+      <path d="${pathFor('savings')}" class="history-line savings"></path>
+      ${data.map((item, index) => `
+        <g>
+          <circle cx="${xFor(index)}" cy="${yFor(item.metrics.income)}" r="3.5" class="history-dot income"><title>${item.label} revenus : ${fmt(item.metrics.income)}</title></circle>
+          <circle cx="${xFor(index)}" cy="${yFor(item.metrics.expenses)}" r="3.5" class="history-dot expense"><title>${item.label} dépenses : ${fmt(item.metrics.expenses)}</title></circle>
+          <circle cx="${xFor(index)}" cy="${yFor(item.metrics.savings)}" r="3.5" class="history-dot savings"><title>${item.label} épargne : ${fmt(item.metrics.savings)}</title></circle>
+          <text x="${xFor(index)}" y="${height - 14}" text-anchor="middle" class="history-axis-label">${item.shortLabel}</text>
+        </g>
+      `).join('')}
+    </svg>
+  `;
+}
+
+function formatHistoryDelta(current, previous, field) {
+  const diff = current.metrics[field] - previous.metrics[field];
+  const pct = previous.metrics[field] !== 0 ? Math.round(diff / Math.abs(previous.metrics[field]) * 100) : (diff !== 0 ? 100 : 0);
+  const positive = diff >= 0;
+  return `<div class="history-comparison-item ${positive ? 'positive' : 'negative'}"><span>${field === 'income' ? 'Revenus' : field === 'expenses' ? 'Dépenses' : 'Épargne'}</span><strong>${positive ? '+' : ''}${pct}%</strong><em>${positive ? '+' : ''}${fmt(diff)}</em></div>`;
+}
+
+function compareHistoryMonth(month) {
+  const entries = getHistoryEntries();
+  const current = entries.find(item => item.month === month);
+  const previous = entries.find(item => item.month === monthShift(month, -1));
+  const panel = document.getElementById('history-comparison-panel');
+  if (!panel || !current) return;
+  if (!previous) {
+    panel.style.display = 'block';
+    panel.innerHTML = `<div class="history-comparison-title">Comparaison ${current.label}</div><p>Aucun mois précédent disponible.</p>`;
+    return;
   }
-  
-  // Populate the list grid cards (sorted newest to oldest)
-  months.sort((a,b)=>b.localeCompare(a));
-  grid.innerHTML=months.map(m=>{
-    const d=JSON.parse(SafeStorage.getItem('budget_'+m)||'{}');
-    const rev=getHistoryVal(d, 'rev_ali') + getHistoryVal(d, 'rev_megane') + getHistoryVal(d, 'rev_excep');
-    const fix=['loyer','credit','assauto','gasoil','elec','eau','psy','diete','itou','sante','impots','box','tel_ali','tel_meg','stream','ps','cb','impfix'].reduce((s,k)=>s+getHistoryVal(d, k),0);
-    const mockVar=['courses','tabac','sport','ongles','cadeaux','impvar'].reduce((s,k)=>s+getHistoryVal(d, k),0);
-    const solde=rev-fix-mockVar;
-    const label=getBudgetCycleRange(m).fullLabel;
-    return `<div class="history-card" onclick="ensureMonthOption('${m}');document.getElementById('monthSelect').value='${m}';loadMonth();showSection('saisie')">
-      <div class="history-month">${label}</div>
-      <div class="history-stat"><span>Revenus</span><span style="color:var(--green)">${fmt(rev)}</span></div>
-      <div class="history-stat"><span>Dépenses</span><span style="color:var(--red)">${fmt(fix+mockVar)}</span></div>
-      <div class="history-stat"><span>Solde</span><span style="color:${solde>=0?'var(--green)':'var(--red)'};font-weight:700">${fmt(solde)}</span></div>
-    </div>`;
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div class="history-comparison-title">${current.label} vs ${previous.label}</div>
+    <div class="history-comparison-grid">
+      ${formatHistoryDelta(current, previous, 'income')}
+      ${formatHistoryDelta(current, previous, 'expenses')}
+      ${formatHistoryDelta(current, previous, 'savings')}
+    </div>
+  `;
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function openHistoryMonth(month) {
+  ensureMonthOption(month);
+  document.getElementById('monthSelect').value = month;
+  loadMonth();
+  showSection('saisie');
+}
+
+function setHistoryPeriod(period) {
+  historyPeriod = period;
+  document.querySelectorAll('.history-period-btn').forEach(btn => {
+    btn.classList.toggle('active', Number(btn.dataset.historyPeriod) === period);
+  });
+  buildHistory();
+}
+
+function buildHistory(){
+  const grid = document.getElementById('history-grid');
+  const comparison = document.getElementById('history-comparison-panel');
+  if (!grid) return;
+  const entries = getHistoryEntries();
+
+  if (entries.length === 0) {
+    grid.innerHTML = '<p style="color:var(--text2);padding:12px">Aucun mois sauvegardé pour le moment.</p>';
+    const chartBlock = document.getElementById('history-chart-block');
+    if (chartBlock) chartBlock.style.display = 'none';
+    if (comparison) comparison.style.display = 'none';
+    return;
+  }
+
+  renderHistoryChart(entries);
+
+  grid.innerHTML = entries.slice().reverse().map(item => {
+    const m = item.metrics;
+    const scoreState = m.score >= 75 ? 'good' : m.score >= 50 ? 'ok' : m.score >= 30 ? 'fragile' : 'critical';
+    return `
+      <div class="history-card">
+        <div class="history-card-top">
+          <div class="history-month">${item.label}</div>
+          <span class="history-status ${item.frozen ? 'frozen' : 'live'}">${item.frozen ? 'Figé' : 'Actuel'}</span>
+        </div>
+        <div class="history-stat"><span>Revenus</span><span style="color:var(--green)">${fmt(m.income)}</span></div>
+        <div class="history-stat"><span>Dépenses</span><span style="color:var(--red)">${fmt(m.expenses)}</span></div>
+        <div class="history-stat"><span>Solde</span><span style="color:${m.savings >= 0 ? 'var(--green)' : 'var(--red)'};font-weight:700">${fmt(m.savings)}</span></div>
+        <div class="history-stat"><span>Score santé</span><span class="history-score ${scoreState}">${m.score}/100</span></div>
+        <div class="history-stat"><span>Taux épargne</span><span>${m.savingsRate}%</span></div>
+        <div class="history-stat"><span>Taux charges</span><span>${m.chargeRate}%</span></div>
+        <div class="history-card-actions">
+          <button type="button" class="btn btn-outline" onclick="event.stopPropagation(); compareHistoryMonth('${item.month}')">Comparer avec le mois précédent</button>
+          <button type="button" class="btn btn-gold" onclick="event.stopPropagation(); openHistoryMonth('${item.month}')">Ouvrir</button>
+        </div>
+      </div>
+    `;
   }).join('');
 }
 
@@ -3983,6 +4091,7 @@ window.onload=async ()=>{
   // Initialize app
   loadPersonalization();
   initBudgetCycleSettings();
+  installMonthlyHistorySnapshotHook();
   await renderCustomBudgetRows();
   convertCheckboxesToPaidInputs();
   initDynamicElements();
