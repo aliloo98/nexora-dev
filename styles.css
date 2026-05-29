@@ -1540,6 +1540,35 @@ body {
   color: var(--red);
 }
 
+.nexora-debug-sync-panel {
+  background: rgba(8, 12, 20, 0.92);
+  border: 1px solid rgba(229, 192, 96, 0.35);
+  border-radius: 14px;
+  margin-top: 16px;
+  padding: 14px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+}
+
+.nexora-debug-sync-title {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.nexora-debug-sync-panel pre {
+  color: #d7e2f2;
+  font-size: 11px;
+  line-height: 1.45;
+  margin: 0;
+  max-height: 420px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 @media(max-width: 760px) {
   .history-card-actions,
   .history-comparison-grid {

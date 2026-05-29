@@ -48,6 +48,7 @@ const GoalsPage = {
     GoalsPage.form.current.value = '0'
     await GoalsPage.render()
     await GoalsPage.renderAnalytics()
+    if (typeof window.refreshNexoraDebugSync === 'function') await window.refreshNexoraDebugSync()
   },
 
   handleEdit: async (goal) => {
@@ -58,6 +59,7 @@ const GoalsPage = {
     await GoalsService.updateGoal(goal.id, { name: newName, target: newTarget, current: newCurrent })
     await GoalsPage.render()
     await GoalsPage.renderAnalytics()
+    if (typeof window.refreshNexoraDebugSync === 'function') await window.refreshNexoraDebugSync()
   },
 
   handleDelete: async (goal) => {
@@ -66,6 +68,7 @@ const GoalsPage = {
     await GoalsService.deleteGoal(goal.id)
     await GoalsPage.render()
     await GoalsPage.renderAnalytics()
+    if (typeof window.refreshNexoraDebugSync === 'function') await window.refreshNexoraDebugSync()
   },
 
   render: async () => {

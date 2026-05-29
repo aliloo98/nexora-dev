@@ -60,6 +60,96 @@ window.closeModal = () => Utils.closeModal()
 window.customConfirm = (title, message, onConfirm) => Utils.customConfirm(title, message, onConfirm)
 window.triggerConfetti = () => ConfettiEngine.trigger()
 
+const isDebugSyncEnabled = () => {
+  try {
+    return window.localStorage?.getItem('nexora_debug_sync') === '1'
+  } catch {
+    return false
+  }
+}
+
+const readDebugLocalValue = async (key) => {
+  const storageRaw = await StorageManager.getItem(key).catch(() => null)
+  let safeRaw = null
+  try {
+    safeRaw = window.localStorage?.getItem(key) || null
+  } catch {
+    safeRaw = null
+  }
+  return { storageRaw, safeRaw }
+}
+
+const refreshNexoraDebugSync = async () => {
+  const panel = document.getElementById('nexora-debug-sync-panel')
+  const output = document.getElementById('nexora-debug-sync-output')
+  if (!isDebugSyncEnabled()) {
+    if (panel) panel.style.display = 'none'
+    window.nexoraDebugSync = { enabled: false, refreshed_at: new Date().toISOString() }
+    return window.nexoraDebugSync
+  }
+
+  if (panel) panel.style.display = 'block'
+  const state = {
+    enabled: true,
+    refreshed_at: new Date().toISOString(),
+    auth: {
+      isAuthenticated: Boolean(window.AuthContext?.isAuthenticated?.()),
+      userId: window.AuthContext?.getUser?.()?.id || null
+    },
+    supabase: {
+      userId: null,
+      userAppSettingsRaw: null,
+      goalsPayload: null,
+      error: null
+    },
+    goals: {
+      afterMergeCount: null,
+      finalGoals: null
+    },
+    local: {
+      finalRaw: null
+    }
+  }
+
+  try {
+    const sessionResp = await supabase.auth.getSession()
+    const userId = sessionResp?.data?.session?.user?.id || null
+    state.supabase.userId = userId
+    if (userId) {
+      const { data, error } = await supabase
+        .from('user_app_settings')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('key', 'nexora_goals_v1')
+        .single()
+      state.supabase.userAppSettingsRaw = data || null
+      state.supabase.goalsPayload = data?.data ?? null
+      state.supabase.error = error || null
+    }
+  } catch (error) {
+    state.supabase.error = {
+      message: error?.message || String(error),
+      code: error?.code || null
+    }
+  }
+
+  try {
+    const goals = await GoalsService.getGoals()
+    state.goals.finalGoals = goals
+    state.goals.afterMergeCount = Array.isArray(goals) ? goals.length : null
+  } catch (error) {
+    state.goals.error = error?.message || String(error)
+  }
+
+  state.local.finalRaw = await readDebugLocalValue('nexora_goals_v1')
+  window.nexoraDebugSync = state
+  if (output) output.textContent = JSON.stringify(state, null, 2)
+  return state
+}
+
+window.refreshNexoraDebugSync = refreshNexoraDebugSync
+window.nexoraDebugSync = { enabled: false }
+
 /**
  * Inject Authentication Styles
  * Called during app initialization
@@ -120,11 +210,13 @@ const initApp = async () => {
         console.log('[MAIN SETTINGS SYNC USER]', sessionResp?.data?.session?.user?.id)
         await UserAppSettingsService.syncAllAppSettings()
         console.log('🔁 User app settings sync attempted')
+        await refreshNexoraDebugSync()
       } catch (e) {
         console.warn('⚠️ User app settings sync failed', e)
       }
     }
 
+    await refreshNexoraDebugSync()
     console.log('✅ Nexora initialized successfully')
   } catch (err) {
     console.error('❌ App initialization error:', err)
