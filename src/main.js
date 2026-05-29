@@ -32,6 +32,7 @@ import { BudgetCategoriesService } from '../js/budgetCategoriesService.js'
 import { MonthlyBudgetStateService } from '../js/monthlyBudgetStateService.js'
 import GoalsPage from './pages/GoalsPage.js'
 import { GoalsService } from './goals/goalsService.js'
+import { UserAppSettingsService } from '../js/userAppSettingsService.js'
 
 // Expose modules globally for HTML event handlers and old code
 window.StorageManager = StorageManager
@@ -51,6 +52,7 @@ window.BudgetCategoriesService = BudgetCategoriesService
 window.MonthlyBudgetStateService = MonthlyBudgetStateService
 window.GoalsService = GoalsService
 window.GoalsPage = GoalsPage
+window.UserAppSettingsService = UserAppSettingsService
 
 // Expose helper functions globally (for HTML onclick handlers)
 window.showToast = (msg) => Utils.showToast(msg)
@@ -110,7 +112,17 @@ const initApp = async () => {
       await GoalsPage.init()
       console.log('🎯 Goals module initialized')
     }
-    
+
+    // Sync user app settings from cloud/local where applicable
+    if (typeof UserAppSettingsService !== 'undefined' && UserAppSettingsService && typeof UserAppSettingsService.syncAllAppSettings === 'function') {
+      try {
+        await UserAppSettingsService.syncAllAppSettings()
+        console.log('🔁 User app settings sync attempted')
+      } catch (e) {
+        console.warn('⚠️ User app settings sync failed', e)
+      }
+    }
+
     console.log('✅ Nexora initialized successfully')
   } catch (err) {
     console.error('❌ App initialization error:', err)
