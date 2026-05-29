@@ -293,8 +293,23 @@ export const authStyles = `
 
 /* Responsive */
 @media (max-width: 480px) {
+  .auth-container {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: calc(1rem + env(safe-area-inset-top, 0px)) 0.875rem calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .auth-form-container {
+    min-height: 100%;
+  }
+
   .auth-form-card {
+    max-height: none;
     padding: 1.75rem 1.25rem;
+  }
+
+  .auth-form-header {
+    margin-bottom: 1.5rem;
   }
 
   .auth-form-title {
@@ -308,6 +323,10 @@ export const authStyles = `
 
   .form-group {
     gap: 0.4rem;
+  }
+
+  .auth-form {
+    gap: 1rem;
   }
 
   .btn {
