@@ -195,10 +195,21 @@ const UserAppSettingsService = {
       traceGoalsStartup('settings:cloudRead:user', { userId })
     }
 
-    const { data: row, error } = await window.supabase.from('user_app_settings').select('*').eq('user_id', userId).eq('key', key).single().catch((err) => {
+    let row = null
+    let error = null
+    try {
+      const result = await window.supabase
+        .from('user_app_settings')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('key', key)
+        .maybeSingle()
+      row = result.data
+      error = result.error
+    } catch (err) {
       UserAppSettingsService.log('Supabase select failed', { key, err })
-      return { data: null, error: err }
-    })
+      error = err
+    }
     if (error) {
       const reason = error?.code === 'PGRST102' || error?.message?.includes('No rows') ? 'no-cloud' : 'cloud-error'
       if (reason === 'no-cloud') {
