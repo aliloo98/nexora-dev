@@ -1370,8 +1370,10 @@ function toggleQuickPay(k) {
   const paidInput = document.querySelector(`[data-key="${k}_paye"]`);
   if (!totalInput || !paidInput) return;
   
-  const total = parseFloat(totalInput.value) || 0;
-  const paid = parseFloat(paidInput.value) || 0;
+  evaluateFormula(totalInput);
+  evaluateFormula(paidInput);
+  const total = parseBudgetNumber(totalInput.value);
+  const paid = parseBudgetNumber(paidInput.value);
   
   if (paid < total) {
     paidInput.value = total;
@@ -1534,6 +1536,7 @@ async function loadMonth(){
 
 async function saveData(){
   const m=getMonth();
+  normalizeFormulaInputs();
   // Load existing month data and merge current DOM values into it so
   // hiding inputs doesn't remove stored keys for hidden custom rows.
   const data = {};
@@ -1582,7 +1585,7 @@ async function syncMonthTransactionsToSupabase(month, data) {
   const categories = Object.keys(data).filter(k => k !== 'target_epargne' && !k.endsWith('_paye') && !k.startsWith('note_'));
   
   for (const category of categories) {
-    const amount = parseFloat(data[category]) || 0;
+    const amount = parseBudgetNumber(data[category]);
 
     const localId = `${month}_${category}`;
     if (amount <= 0) {
@@ -1631,7 +1634,7 @@ async function syncMonthTransactionsToSupabase(month, data) {
 
 function getVal(key){
   const el=document.querySelector('[data-key="'+key+'"]');
-  return el?parseFloat(el.value)||0:0;
+  return el?parseBudgetNumber(el.value):0;
 }
 
 function fmt(n){return n.toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:0})+' €'}
@@ -1690,8 +1693,8 @@ function readStoredMonthData(month) {
 }
 
 function getAmountFromData(data, key) {
-  if (data && Object.prototype.hasOwnProperty.call(data, key)) return parseFloat(data[key]) || 0;
-  if (data && Object.prototype.hasOwnProperty.call(data, key + '_reel')) return parseFloat(data[key + '_reel']) || 0;
+  if (data && Object.prototype.hasOwnProperty.call(data, key)) return parseBudgetNumber(data[key]);
+  if (data && Object.prototype.hasOwnProperty.call(data, key + '_reel')) return parseBudgetNumber(data[key + '_reel']);
   return 0;
 }
 
@@ -2113,12 +2116,36 @@ function openNexoraActionModal({ title, message, input = false, defaultValue = '
 }
 
 // Inline mathematical formula evaluation
+function parseBudgetNumber(value) {
+  if (value === null || value === undefined) return 0;
+  const normalized = String(value)
+    .trim()
+    .replace(/\u202F/g, ' ')
+    .replace(/\u00A0/g, ' ')
+    .replace(/\s+/g, '')
+    .replace(',', '.');
+  return parseFloat(normalized) || 0;
+}
+
+function formatFormulaResult(value) {
+  const rounded = Math.round(value * 100) / 100;
+  if (Number.isInteger(rounded)) return String(rounded);
+  return rounded.toFixed(2).replace(/\.?0+$/, '').replace('.', ',');
+}
+
+function shouldEnableFormulaInput(input) {
+  return input.matches('input.budget-input[data-key]')
+    && !input.classList.contains('note-input')
+    && input.type !== 'date'
+    && input.type !== 'color';
+}
+
 function setupFormulaEvaluation() {
   document.querySelectorAll('input.budget-input').forEach(input => {
+    if (!shouldEnableFormulaInput(input)) return;
     if (input.dataset.formulaReady === 'true') return;
     input.dataset.formulaReady = 'true';
 
-    // Change to text to allow mathematical input
     input.type = 'text';
     
     const originalPlaceholder = input.placeholder || '';
@@ -2142,20 +2169,34 @@ function setupFormulaEvaluation() {
 function evaluateFormula(input) {
   const val = input.value.trim();
   if (val === '') return;
-  
-  // Safe validation regex: only allow digits, spaces, decimal points, and +, -, *, /, (, )
-  if (/^[0-9+\-*/().\s]+$/.test(val)) {
-    try {
-      const result = Function(`"use strict"; return (${val})`)();
-      if (typeof result === 'number' && !isNaN(result) && isFinite(result)) {
-        const rounded = Math.round(result * 100) / 100;
-        input.value = rounded;
-      }
-    } catch (e) {
-      // Keep input untouched if mathematical syntax was invalid
-    }
+
+  const normalized = val.replace(/\u202F/g, ' ').replace(/\u00A0/g, ' ');
+  const hasOperator = /[0-9]\s*[+-]\s*[0-9]/.test(normalized);
+  if (!hasOperator) return;
+
+  const expressionPattern = /^\s*[+-]?\s*\d+(?:[,.]\d+)?(?:\s*[+-]\s*\d+(?:[,.]\d+)?)*\s*$/;
+  if (!expressionPattern.test(normalized)) {
+    console.warn('[Formula] Expression invalide ignorée', val);
+    return;
   }
+
+  const compact = normalized.replace(/\s+/g, '').replace(/,/g, '.');
+  const tokens = compact.match(/[+-]?\d+(?:\.\d+)?/g);
+  if (!tokens || tokens.join('') !== compact) {
+    console.warn('[Formula] Expression invalide ignorée', val);
+    return;
+  }
+
+  const result = tokens.reduce((sum, token) => sum + Number(token), 0);
+  if (!Number.isFinite(result)) return;
+  input.value = formatFormulaResult(result);
   updateAll();
+}
+
+function normalizeFormulaInputs() {
+  document.querySelectorAll('input.budget-input[data-key]').forEach(input => {
+    if (shouldEnableFormulaInput(input)) evaluateFormula(input);
+  });
 }
 
 // Dynamic notes container creation
@@ -4171,7 +4212,7 @@ function updateTrendIndicators() {
       if (!baseKey) return;
       
       const valCurrent = getVal(baseKey);
-      const valPrev = parseFloat(prevData[baseKey]) || parseFloat(prevData[baseKey + '_reel']) || 0;
+      const valPrev = parseBudgetNumber(prevData[baseKey]) || parseBudgetNumber(prevData[baseKey + '_reel']);
       
       if (valPrev > 0 && valCurrent !== valPrev) {
         const diffPct = Math.round(((valCurrent - valPrev) / valPrev) * 100);
