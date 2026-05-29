@@ -1031,6 +1031,7 @@ body {
   .btn {
     padding: 10px 16px;
     flex: 1;
+    max-width: 300px;
   }
   .budget-row {
     grid-template-columns: 1fr 110px 140px;

@@ -18,8 +18,8 @@ export const createRegisterForm = () => {
     <div class="auth-form-container">
       <div class="auth-form-card">
         <div class="auth-form-header">
-          <div class="auth-form-logo">💰</div>
-          <h1 class="auth-form-title">Nexora</h1>
+          <img src="/icon-192.png" alt="NEXORA logo" class="auth-form-logo-img" />
+          <h1 class="auth-form-title">NEXORA</h1>
           <p class="auth-form-subtitle">Créez votre compte</p>
         </div>
 

@@ -62,16 +62,20 @@ export const authStyles = `
   margin-bottom: 2rem;
 }
 
-.auth-form-logo {
-  font-size: 3rem;
+.auth-form-logo-img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 20px;
   margin-bottom: 1rem;
   display: inline-block;
   animation: bounce 0.6s ease-out;
+  box-shadow: 0 8px 20px rgba(212, 175, 55, 0.25), 0 0 1px rgba(212, 175, 55, 0.1);
 }
 
 @keyframes bounce {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  50% { transform: scale(1.05); }
 }
 
 .auth-form-title {
@@ -297,8 +301,9 @@ export const authStyles = `
     font-size: 1.5rem;
   }
 
-  .auth-form-logo {
-    font-size: 2.5rem;
+  .auth-form-logo-img {
+    width: 72px;
+    height: 72px;
   }
 
   .form-group {
