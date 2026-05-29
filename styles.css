@@ -193,6 +193,34 @@ body {
   transition: all 0.3s;
 }
 
+.month-nav-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  color: var(--gold);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.month-nav-btn:hover {
+  border-color: var(--gold);
+  background: rgba(229, 192, 96, 0.1);
+}
+
+.budget-cycle-caption {
+  color: var(--text2);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 .month-selector:hover {
   border-color: var(--border-hover);
   box-shadow: 0 0 15px var(--gold-glow);
@@ -1339,6 +1367,58 @@ body {
   font-size: 15px;
   font-weight: 600;
   color: var(--text);
+}
+
+.budget-cycle-row {
+  gap: 18px;
+}
+
+.budget-cycle-select {
+  min-width: 190px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  padding: 10px 12px;
+  font-family: inherit;
+  font-weight: 600;
+  outline: none;
+}
+
+.budget-cycle-select option {
+  background: #111118;
+  color: var(--text);
+}
+
+.budget-cycle-fields {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.budget-cycle-fields label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.budget-cycle-input {
+  width: 72px;
+  text-align: center;
+}
+
+.budget-cycle-summary {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(229, 192, 96, 0.07);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 /* CUSTOM MODAL */
@@ -2771,6 +2851,49 @@ body {
   .month-selector {
     flex: 1;
     min-height: 42px;
+    gap: 8px;
+    padding: 8px 10px;
+    flex-wrap: wrap;
+  }
+
+  .month-selector select {
+    min-width: 0;
+    flex: 1;
+    font-size: 13px;
+  }
+
+  .month-nav-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .budget-cycle-caption {
+    flex-basis: 100%;
+    padding-left: 40px;
+    font-size: 11px;
+    white-space: normal;
+  }
+
+  .budget-cycle-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .budget-cycle-select,
+  .budget-cycle-fields {
+    width: 100%;
+  }
+
+  .budget-cycle-fields {
+    justify-content: space-between;
+  }
+
+  .budget-cycle-fields label {
+    flex: 1;
+  }
+
+  .budget-cycle-input {
+    width: 100%;
   }
 
   .user-menu-btn {

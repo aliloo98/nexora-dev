@@ -81,6 +81,7 @@
     <div class="header-actions">
       <div class="month-selector">
         <span style="color:var(--text2);font-size:13px">Mois</span>
+        <button type="button" class="month-nav-btn" onclick="navigateBudgetMonth(-1)" title="Mois précédent" aria-label="Mois précédent">‹</button>
         <select id="monthSelect" onchange="loadMonth()">
           <option value="2026-01">Janvier 2026</option>
           <option value="2026-02">Février 2026</option>
@@ -95,6 +96,8 @@
           <option value="2026-11">Novembre 2026</option>
           <option value="2026-12">Décembre 2026</option>
         </select>
+        <button type="button" class="month-nav-btn" onclick="navigateBudgetMonth(1)" title="Mois suivant" aria-label="Mois suivant">›</button>
+        <span class="budget-cycle-caption" id="budget-cycle-caption"></span>
       </div>
       <div id="userMenuContainer"></div>
     </div>
@@ -759,6 +762,36 @@
       </div>
     </div>
 
+    <div class="param-block">
+      <div class="param-title">Cycle budgétaire</div>
+      <div class="param-row budget-cycle-row">
+        <div>
+          <div class="param-label">Mode du budget</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Choisis si le mois suit le calendrier ou une période réelle de revenus</div>
+        </div>
+        <select id="budget-cycle-mode" class="budget-cycle-select" onchange="handleBudgetCycleModeChange()">
+          <option value="calendar">Calendaire classique</option>
+          <option value="custom">Personnalisé</option>
+        </select>
+      </div>
+      <div class="param-row budget-cycle-row" id="budget-cycle-custom-row">
+        <div>
+          <div class="param-label">Période personnalisée</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Exemples : 28 → 27, 5 → 4, 15 → 14</div>
+        </div>
+        <div class="budget-cycle-fields">
+          <label>Début
+            <input id="budget-cycle-start-day" class="budget-input budget-cycle-input" type="number" min="1" max="31" value="28" onchange="saveBudgetCycleSettingsFromUI()">
+          </label>
+          <span>→</span>
+          <label>Fin
+            <input id="budget-cycle-end-day" class="budget-input budget-cycle-input" type="number" min="1" max="31" value="27" onchange="saveBudgetCycleSettingsFromUI()">
+          </label>
+        </div>
+      </div>
+      <div class="budget-cycle-summary" id="budget-cycle-summary">Mai 2026</div>
+    </div>
+
     <!-- PERSONNALISATION -->
     <div class="param-block">
       <div class="param-title">Personnalisation de l'application</div>
@@ -1033,6 +1066,204 @@ const SafeStorage = (() => {
 function getMonth(){return document.getElementById('monthSelect').value}
 function storageKey(m){return'budget_'+m}
 
+const BUDGET_CYCLE_SETTINGS_KEY = 'nexora_budget_cycle_settings_v1';
+
+function clampBudgetCycleDay(value, fallback) {
+  const parsed = parseInt(value, 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(1, Math.min(31, parsed));
+}
+
+function getDefaultBudgetCycleSettings() {
+  return {
+    mode: 'calendar',
+    startDay: 1,
+    endDay: 31,
+    updatedAt: null
+  };
+}
+
+function readBudgetCycleSettings() {
+  try {
+    const parsed = JSON.parse(SafeStorage.getItem(BUDGET_CYCLE_SETTINGS_KEY) || 'null');
+    if (!parsed || typeof parsed !== 'object') return getDefaultBudgetCycleSettings();
+    const mode = parsed.mode === 'custom' ? 'custom' : 'calendar';
+    return {
+      mode,
+      startDay: clampBudgetCycleDay(parsed.startDay, mode === 'custom' ? 28 : 1),
+      endDay: clampBudgetCycleDay(parsed.endDay, mode === 'custom' ? 27 : 31),
+      updatedAt: parsed.updatedAt || null
+    };
+  } catch {
+    return getDefaultBudgetCycleSettings();
+  }
+}
+
+function writeBudgetCycleSettings(settings) {
+  const mode = settings?.mode === 'custom' ? 'custom' : 'calendar';
+  const next = {
+    mode,
+    startDay: clampBudgetCycleDay(settings?.startDay, mode === 'custom' ? 28 : 1),
+    endDay: clampBudgetCycleDay(settings?.endDay, mode === 'custom' ? 27 : 31),
+    updatedAt: new Date().toISOString()
+  };
+  SafeStorage.setItem(BUDGET_CYCLE_SETTINGS_KEY, JSON.stringify(next));
+  return next;
+}
+
+function daysInCalendarMonth(year, monthIndexZeroBased) {
+  return new Date(year, monthIndexZeroBased + 1, 0).getDate();
+}
+
+function makeClampedDate(year, monthIndexZeroBased, day) {
+  return new Date(year, monthIndexZeroBased, Math.min(day, daysInCalendarMonth(year, monthIndexZeroBased)));
+}
+
+function capitalizeFirst(text) {
+  return text ? text.charAt(0).toUpperCase() + text.slice(1) : text;
+}
+
+function getClassicMonthLabel(month) {
+  const [year, monthIndex] = month.split('-').map(Number);
+  return capitalizeFirst(new Date(year, monthIndex - 1, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }));
+}
+
+function formatCycleDate(date, includeYear = false) {
+  return date.toLocaleDateString('fr-FR', includeYear ? { day: 'numeric', month: 'long', year: 'numeric' } : { day: 'numeric', month: 'long' });
+}
+
+function getBudgetCycleRange(month) {
+  const settings = readBudgetCycleSettings();
+  const [year, monthIndex] = month.split('-').map(Number);
+  const endMonthIndex = monthIndex - 1;
+
+  if (settings.mode !== 'custom') {
+    const start = new Date(year, endMonthIndex, 1);
+    const end = new Date(year, endMonthIndex, daysInCalendarMonth(year, endMonthIndex));
+    return {
+      mode: 'calendar',
+      start,
+      end,
+      monthLabel: getClassicMonthLabel(month),
+      fullLabel: getClassicMonthLabel(month),
+      rangeLabel: `${formatCycleDate(start)} → ${formatCycleDate(end)}`
+    };
+  }
+
+  const end = makeClampedDate(year, endMonthIndex, settings.endDay);
+  let start = makeClampedDate(year, endMonthIndex, settings.startDay);
+  if (start > end || settings.startDay > settings.endDay) {
+    start = makeClampedDate(year, endMonthIndex - 1, settings.startDay);
+  }
+  const includeYear = start.getFullYear() !== end.getFullYear();
+  const monthLabel = `Budget ${getClassicMonthLabel(month)}`;
+  const rangeLabel = `${formatCycleDate(start, includeYear)} → ${formatCycleDate(end, includeYear)}`;
+  return {
+    mode: 'custom',
+    start,
+    end,
+    monthLabel,
+    fullLabel: `${monthLabel} (${rangeLabel})`,
+    rangeLabel
+  };
+}
+
+function ensureMonthOption(month) {
+  const select = document.getElementById('monthSelect');
+  if (!select || select.querySelector(`option[value="${month}"]`)) return;
+  const option = document.createElement('option');
+  option.value = month;
+  option.textContent = getBudgetCycleRange(month).fullLabel;
+  select.appendChild(option);
+  Array.from(select.options)
+    .sort((a, b) => a.value.localeCompare(b.value))
+    .forEach(item => select.appendChild(item));
+}
+
+function applyBudgetCycleLabels() {
+  const select = document.getElementById('monthSelect');
+  if (select) {
+    Array.from(select.options).forEach(option => {
+      option.textContent = getBudgetCycleRange(option.value).fullLabel;
+    });
+  }
+
+  const currentMonth = getMonth();
+  const range = getBudgetCycleRange(currentMonth);
+  const caption = document.getElementById('budget-cycle-caption');
+  if (caption) caption.textContent = range.mode === 'custom' ? range.rangeLabel : '';
+
+  const summary = document.getElementById('budget-cycle-summary');
+  if (summary) summary.textContent = range.mode === 'custom' ? range.fullLabel : `${range.fullLabel} (${range.rangeLabel})`;
+}
+
+function refreshBudgetCycleSettingsUI() {
+  const settings = readBudgetCycleSettings();
+  const modeEl = document.getElementById('budget-cycle-mode');
+  const startEl = document.getElementById('budget-cycle-start-day');
+  const endEl = document.getElementById('budget-cycle-end-day');
+  const customRow = document.getElementById('budget-cycle-custom-row');
+
+  if (modeEl) modeEl.value = settings.mode;
+  if (startEl) startEl.value = settings.startDay;
+  if (endEl) endEl.value = settings.endDay;
+  if (customRow) customRow.style.display = settings.mode === 'custom' ? 'flex' : 'none';
+  applyBudgetCycleLabels();
+}
+
+function initBudgetCycleSettings() {
+  if (!SafeStorage.getItem(BUDGET_CYCLE_SETTINGS_KEY)) {
+    SafeStorage.setItem(BUDGET_CYCLE_SETTINGS_KEY, JSON.stringify(getDefaultBudgetCycleSettings()));
+  }
+  refreshBudgetCycleSettingsUI();
+}
+
+function saveBudgetCycleSettingsFromUI() {
+  const mode = document.getElementById('budget-cycle-mode')?.value === 'custom' ? 'custom' : 'calendar';
+  const fallback = readBudgetCycleSettings();
+  const settings = writeBudgetCycleSettings({
+    mode,
+    startDay: document.getElementById('budget-cycle-start-day')?.value || fallback.startDay,
+    endDay: document.getElementById('budget-cycle-end-day')?.value || fallback.endDay
+  });
+  refreshBudgetCycleSettingsUI();
+  if (typeof updateAll === 'function') updateAll();
+  return settings;
+}
+
+function handleBudgetCycleModeChange() {
+  const previous = readBudgetCycleSettings();
+  const mode = document.getElementById('budget-cycle-mode')?.value === 'custom' ? 'custom' : 'calendar';
+  const startDay = mode === 'custom' && previous.mode !== 'custom' ? 28 : previous.startDay;
+  const endDay = mode === 'custom' && previous.mode !== 'custom' ? 27 : previous.endDay;
+  writeBudgetCycleSettings({ mode, startDay, endDay });
+  refreshBudgetCycleSettingsUI();
+  if (typeof updateAll === 'function') updateAll();
+}
+
+function navigateBudgetMonth(offset) {
+  const nextMonth = monthShift(getMonth(), offset);
+  ensureMonthOption(nextMonth);
+  document.getElementById('monthSelect').value = nextMonth;
+  applyBudgetCycleLabels();
+  loadMonth();
+}
+
+function getBudgetCycleProgress(month) {
+  const { start, end } = getBudgetCycleRange(month);
+  const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  const today = new Date();
+  const currentDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const dayMs = 24 * 60 * 60 * 1000;
+  const totalDays = Math.max(1, Math.round((endDay - startDay) / dayMs) + 1);
+  let elapsedDays = totalDays;
+  if (currentDay >= startDay && currentDay <= endDay) {
+    elapsedDays = Math.round((currentDay - startDay) / dayMs) + 1;
+  }
+  return { totalDays, elapsedDays: clamp(elapsedDays, 1, totalDays) };
+}
+
 function convertCheckboxesToPaidInputs() {
   document.querySelectorAll('.budget-row').forEach(row => {
     const checkbox = row.querySelector('.payee-checkbox');
@@ -1181,6 +1412,7 @@ async function persistMonthSnapshot(m, data) {
 
 async function loadMonth(){
   const m=getMonth();
+  applyBudgetCycleLabels();
   const requestId = ++loadMonthRequestId;
   let data={};
   try { data = await readMonthData(m); } catch (err) { console.warn('Donnée mois indisponible', err); data = {}; }
@@ -1646,13 +1878,8 @@ function renderAnalyticsGoals() {
 }
 
 function updateForecast(metrics) {
-  const now = new Date();
-  const selectedMonth = getMonth();
-  const [year, monthIndex] = selectedMonth.split('-').map(Number);
-  const daysInMonth = new Date(year, monthIndex, 0).getDate();
-  const isCurrentCalendarMonth = now.getFullYear() === year && now.getMonth() + 1 === monthIndex;
-  const elapsed = isCurrentCalendarMonth ? clamp(now.getDate(), 1, daysInMonth) : daysInMonth;
-  const ratio = daysInMonth / elapsed;
+  const progress = getBudgetCycleProgress(getMonth());
+  const ratio = progress.totalDays / progress.elapsedDays;
   const projectedExpenses = metrics.expenses * ratio;
   const projectedSavings = metrics.income - projectedExpenses;
 
@@ -2436,9 +2663,7 @@ function updateAll(){
   s2.textContent=fmt(soldeEstime);
   s2.style.color=soldeEstime>=0?'var(--green)':'var(--red)';
   
-  const [year, monthNum] = getMonth().split('-');
-  const monthName = new Date(year, monthNum-1).toLocaleDateString('fr-FR', {month: 'long', year: 'numeric'});
-  document.getElementById('dash-mois').textContent = monthName;
+  document.getElementById('dash-mois').textContent = getBudgetCycleRange(getMonth()).fullLabel;
 
   // Donut Chart updates
   updateDonutChart(fixReel, varReel, solde, revReel);
@@ -2886,9 +3111,8 @@ Solde/Épargne : ${fmt(d.solde)}</title>
     const fix=['loyer','credit','assauto','gasoil','elec','eau','psy','diete','itou','sante','impots','box','tel_ali','tel_meg','stream','ps','cb','impfix'].reduce((s,k)=>s+getHistoryVal(d, k),0);
     const mockVar=['courses','tabac','sport','ongles','cadeaux','impvar'].reduce((s,k)=>s+getHistoryVal(d, k),0);
     const solde=rev-fix-mockVar;
-    const [y,mo]=m.split('-');
-    const label=new Date(y,mo-1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
-    return `<div class="history-card" onclick="document.getElementById('monthSelect').value='${m}';loadMonth();showSection('saisie')">
+    const label=getBudgetCycleRange(m).fullLabel;
+    return `<div class="history-card" onclick="ensureMonthOption('${m}');document.getElementById('monthSelect').value='${m}';loadMonth();showSection('saisie')">
       <div class="history-month">${label}</div>
       <div class="history-stat"><span>Revenus</span><span style="color:var(--green)">${fmt(rev)}</span></div>
       <div class="history-stat"><span>Dépenses</span><span style="color:var(--red)">${fmt(fix+mockVar)}</span></div>
@@ -3595,15 +3819,7 @@ function deleteCagnotte(index) {
 
 function updateTrendIndicators() {
   const currentMonth = getMonth();
-  const [yearStr, monthStr] = currentMonth.split('-');
-  let year = parseInt(yearStr);
-  let month = parseInt(monthStr);
-  month--;
-  if (month === 0) {
-    month = 12;
-    year--;
-  }
-  const prevMonthKey = `${year}-${String(month).padStart(2, '0')}`;
+  const prevMonthKey = monthShift(currentMonth, -1);
   const prevData = JSON.parse(SafeStorage.getItem('budget_' + prevMonthKey) || 'null');
   
   document.querySelectorAll('.budget-row').forEach(row => {
@@ -3667,6 +3883,7 @@ window.onload=async ()=>{
   
   // Initialize app
   loadPersonalization();
+  initBudgetCycleSettings();
   await renderCustomBudgetRows();
   convertCheckboxesToPaidInputs();
   initDynamicElements();
