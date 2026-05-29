@@ -50,6 +50,19 @@ const setLocalItem = async (key, value) => {
   }
 }
 
+const debugLocalRaw = async (key) => {
+  const storageRaw = await StorageManager.getItem(key)
+  let safeRaw = null
+  if (typeof SafeStorage !== 'undefined') {
+    try {
+      safeRaw = SafeStorage.getItem(key)
+    } catch {
+      safeRaw = null
+    }
+  }
+  return { storageRaw, safeRaw }
+}
+
 const UserAppSettingsService = {
   log: (message, data) => {
     if (typeof console !== 'undefined' && console.debug) {
@@ -95,6 +108,9 @@ const UserAppSettingsService = {
       return null
     })
     const userId = sessionResp?.data?.session?.user?.id
+    if (key === 'nexora_goals_v1') {
+      console.log('[GOALS CLOUD WRITE USER]', userId)
+    }
     if (!userId) return { ok: false, reason: 'no-user' }
 
     const { value, meta } = await UserAppSettingsService.getSetting(key)
@@ -134,12 +150,18 @@ const UserAppSettingsService = {
       return null
     })
     const userId = sessionResp?.data?.session?.user?.id
+    if (key === 'nexora_goals_v1') {
+      console.log('[GOALS CLOUD READ USER]', userId)
+    }
     if (!userId) return { ok: false, reason: 'no-user' }
 
     const { data: row, error } = await window.supabase.from('user_app_settings').select('*').eq('user_id', userId).eq('key', key).single().catch((err) => {
       UserAppSettingsService.log('Supabase select failed', { key, err })
       return { data: null, error: err }
     })
+    if (key === 'nexora_goals_v1') {
+      console.log('[GOALS CLOUD SELECT RESULT]', { row, error })
+    }
     if (error) {
       const reason = error?.code === 'PGRST102' || error?.message?.includes('No rows') ? 'no-cloud' : 'cloud-error'
       if (reason === 'no-cloud') {
@@ -177,6 +199,10 @@ const UserAppSettingsService = {
       // no local, cloud present -> write cloud to local
       await setLocalItem(key, JSON.stringify(cloudValue))
       await setLocalItem(key + META_SUFFIX, JSON.stringify({ updated_at: row.updated_at }))
+      if (key === 'nexora_goals_v1') {
+        console.log('[GOALS LOCAL AFTER CLOUD MERGE]', await UserAppSettingsService.getSetting(key))
+        console.log('[GOALS LOCAL RAW FINAL]', await debugLocalRaw(key))
+      }
       UserAppSettingsService.log('Pulled cloud setting to local', key)
       return { ok: true, action: 'cloud-to-local' }
     }
@@ -185,6 +211,10 @@ const UserAppSettingsService = {
       // cloud newer -> replace local
       await setLocalItem(key, JSON.stringify(cloudValue))
       await setLocalItem(key + META_SUFFIX, JSON.stringify({ updated_at: row.updated_at }))
+      if (key === 'nexora_goals_v1') {
+        console.log('[GOALS LOCAL AFTER CLOUD MERGE]', await UserAppSettingsService.getSetting(key))
+        console.log('[GOALS LOCAL RAW FINAL]', await debugLocalRaw(key))
+      }
       UserAppSettingsService.log('Cloud setting is newer; updated local value', key)
       return { ok: true, action: 'cloud-to-local' }
     }
@@ -201,6 +231,10 @@ const UserAppSettingsService = {
     }
 
     UserAppSettingsService.log('No sync action needed; local and cloud timestamps equal', key)
+    if (key === 'nexora_goals_v1') {
+      console.log('[GOALS LOCAL AFTER CLOUD MERGE]', await UserAppSettingsService.getSetting(key))
+      console.log('[GOALS LOCAL RAW FINAL]', await debugLocalRaw(key))
+    }
     return { ok: true, action: 'noop' }
   },
 

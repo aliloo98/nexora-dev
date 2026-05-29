@@ -91,6 +91,7 @@ export const AuthContext = {
         if (typeof window.updateAll === 'function') window.updateAll()
 
         if (window.UserAppSettingsService && typeof window.UserAppSettingsService.syncAllAppSettings === 'function') {
+          console.log('[AUTH SETTINGS SYNC USER]', this._state.user?.id)
           await window.UserAppSettingsService.syncAllAppSettings()
         }
       } catch (error) {

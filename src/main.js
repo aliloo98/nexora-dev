@@ -116,6 +116,8 @@ const initApp = async () => {
     // Sync user app settings from cloud/local where applicable
     if (typeof UserAppSettingsService !== 'undefined' && UserAppSettingsService && typeof UserAppSettingsService.syncAllAppSettings === 'function') {
       try {
+        const sessionResp = await supabase.auth.getSession().catch(() => null)
+        console.log('[MAIN SETTINGS SYNC USER]', sessionResp?.data?.session?.user?.id)
         await UserAppSettingsService.syncAllAppSettings()
         console.log('🔁 User app settings sync attempted')
       } catch (e) {

@@ -7,21 +7,25 @@ const getGoals = async () => {
   const { value } = await UserAppSettingsService.getSetting(STORAGE_KEY)
   if (Array.isArray(value)) {
     console.log('[GOALS GET]', value)
+    console.log('[GOALS SERVICE AFTER MERGE]', value)
     return value
   }
 
   const raw = await StorageManager.getItem(STORAGE_KEY)
   if (!raw) {
     console.log('[GOALS GET]', [])
+    console.log('[GOALS SERVICE AFTER MERGE]', [])
     return []
   }
   try {
     const parsed = JSON.parse(raw)
     const goals = Array.isArray(parsed) ? parsed : []
     console.log('[GOALS GET]', goals)
+    console.log('[GOALS SERVICE AFTER MERGE]', goals)
     return goals
   } catch (err) {
     console.log('[GOALS GET]', [])
+    console.log('[GOALS SERVICE AFTER MERGE]', [])
     return []
   }
 }
