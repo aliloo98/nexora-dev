@@ -464,6 +464,528 @@ body {
   color: var(--text);
 }
 
+/* PREMIUM ANALYTICS */
+.analytics-premium {
+  margin-top: 32px;
+}
+
+.analytics-header {
+  align-items: end;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.analytics-eyebrow {
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.analytics-header h2 {
+  color: var(--text);
+  font-size: 22px;
+  letter-spacing: 0;
+  line-height: 1.1;
+}
+
+.analytics-period-toggle {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  padding: 4px;
+}
+
+.analytics-period-btn {
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--text2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 10px;
+  transition: all 0.2s ease;
+}
+
+.analytics-period-btn.active {
+  background: rgba(229, 192, 96, 0.1);
+  color: var(--gold);
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 18px;
+}
+
+.analytics-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+  min-width: 0;
+  overflow: hidden;
+  padding: 18px;
+  transition: border-color 0.25s ease, transform 0.25s ease;
+}
+
+.analytics-card:hover {
+  border-color: rgba(229, 192, 96, 0.16);
+  transform: translateY(-2px);
+}
+
+.analytics-health-card {
+  grid-column: span 4;
+}
+
+.analytics-trend-card {
+  grid-column: span 8;
+}
+
+.analytics-grid .analytics-card:nth-child(n + 3) {
+  grid-column: span 4;
+}
+
+.analytics-card-title {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+.health-score-wrap {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: 142px;
+  position: relative;
+}
+
+.health-score-ring {
+  height: 132px;
+  transform: rotate(-90deg);
+  width: 132px;
+}
+
+.health-score-bg,
+.health-score-fill {
+  fill: none;
+  stroke-width: 10;
+}
+
+.health-score-bg {
+  stroke: rgba(255, 255, 255, 0.06);
+}
+
+.health-score-fill {
+  stroke: var(--gold);
+  stroke-dasharray: 314;
+  stroke-dashoffset: 314;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.7s ease;
+}
+
+.health-score-value {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.health-score-value strong {
+  color: var(--text);
+  font-size: 34px;
+  line-height: 1;
+}
+
+.health-score-value span {
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 800;
+  margin-top: 6px;
+}
+
+.health-score-value span.excellent,
+.health-score-value span.good {
+  color: var(--green);
+}
+
+.health-score-value span.ok {
+  color: var(--gold);
+}
+
+.health-score-value span.fragile {
+  color: var(--orange);
+}
+
+.health-score-value span.critical {
+  color: var(--red);
+}
+
+.health-metrics {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, 1fr);
+  margin-top: 8px;
+}
+
+.health-metrics div,
+.forecast-list div {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.health-metrics span,
+.forecast-list span {
+  color: var(--text2);
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.health-metrics strong,
+.forecast-list strong {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.analytics-chart-shell {
+  min-height: 230px;
+  overflow-x: auto;
+}
+
+.analytics-line-chart {
+  display: block;
+  min-width: 560px;
+  width: 100%;
+}
+
+.analytics-axis {
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 1;
+}
+
+.analytics-axis-label {
+  fill: var(--text2);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.analytics-line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.analytics-line.income,
+.analytics-dot.income {
+  stroke: var(--green);
+  fill: var(--green);
+}
+
+.analytics-line.expense,
+.analytics-dot.expense {
+  stroke: var(--red);
+  fill: var(--red);
+}
+
+.analytics-line.balance,
+.analytics-dot.balance {
+  stroke: var(--gold);
+  fill: var(--gold);
+}
+
+.analytics-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.analytics-legend span {
+  align-items: center;
+  color: var(--text2);
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 700;
+  gap: 7px;
+}
+
+.analytics-legend i,
+.expense-list-row i {
+  border-radius: 999px;
+  display: inline-block;
+  height: 9px;
+  width: 9px;
+}
+
+.legend-income { background: var(--green); }
+.legend-expense { background: var(--red); }
+.legend-balance { background: var(--gold); }
+
+.expense-split {
+  align-items: center;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 160px 1fr;
+}
+
+.analytics-donut-svg {
+  display: block;
+  height: 160px;
+  transform: rotate(-90deg);
+  width: 160px;
+}
+
+.analytics-donut-bg,
+.analytics-donut-segment {
+  fill: none;
+  stroke-width: 14;
+}
+
+.analytics-donut-bg {
+  stroke: rgba(255, 255, 255, 0.05);
+}
+
+.analytics-donut-segment {
+  transition: stroke-dashoffset 0.45s ease;
+}
+
+.analytics-donut-label,
+.analytics-donut-value {
+  fill: var(--text);
+  transform: rotate(90deg);
+  transform-origin: center;
+}
+
+.analytics-donut-label {
+  fill: var(--text2);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.analytics-donut-value {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.expense-list,
+.top-expenses-list,
+.comparison-list,
+.goals-list,
+.forecast-list {
+  display: grid;
+  gap: 10px;
+}
+
+.expense-list-row,
+.comparison-row {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.expense-list-row span {
+  align-items: center;
+  color: var(--text2);
+  display: flex;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 8px;
+}
+
+.expense-list-row strong {
+  color: var(--text);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.expense-list-row em {
+  color: var(--text2);
+  font-style: normal;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.top-expense-row {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.top-expense-rank {
+  align-items: center;
+  background: rgba(229, 192, 96, 0.1);
+  border: 1px solid rgba(229, 192, 96, 0.18);
+  border-radius: 10px;
+  color: var(--gold);
+  display: flex;
+  flex: 0 0 32px;
+  font-size: 13px;
+  font-weight: 800;
+  height: 32px;
+  justify-content: center;
+}
+
+.top-expense-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.top-expense-main > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 7px;
+}
+
+.top-expense-main span,
+.goal-row span {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  min-width: 0;
+}
+
+.top-expense-main strong,
+.goal-row strong {
+  color: var(--text2);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.top-expense-track,
+.goal-progress {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
+  height: 6px;
+  overflow: hidden;
+}
+
+.top-expense-track i,
+.goal-progress i {
+  background: var(--gold-gradient);
+  display: block;
+  height: 100%;
+}
+
+.comparison-row {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.comparison-row span {
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.comparison-row strong {
+  font-size: 16px;
+}
+
+.comparison-row.positive strong {
+  color: var(--green);
+}
+
+.comparison-row.negative strong {
+  color: var(--red);
+}
+
+.goal-row {
+  display: grid;
+  gap: 8px;
+}
+
+.goal-row > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.goal-row em {
+  color: var(--gold);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+  justify-self: end;
+}
+
+.analytics-empty {
+  align-items: center;
+  color: var(--text2);
+  display: flex;
+  font-size: 13px;
+  font-weight: 700;
+  justify-content: center;
+  min-height: 160px;
+  text-align: center;
+}
+
+.analytics-empty.compact {
+  min-height: 80px;
+}
+
+@media(max-width: 1100px) {
+  .analytics-health-card,
+  .analytics-trend-card,
+  .analytics-grid .analytics-card:nth-child(n + 3) {
+    grid-column: span 6;
+  }
+}
+
+@media(max-width: 760px) {
+  .analytics-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .analytics-period-toggle {
+    width: 100%;
+  }
+
+  .analytics-period-btn {
+    flex: 1;
+  }
+
+  .analytics-health-card,
+  .analytics-trend-card,
+  .analytics-grid .analytics-card:nth-child(n + 3) {
+    grid-column: 1 / -1;
+  }
+
+  .expense-split {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .expense-list {
+    width: 100%;
+  }
+}
+
 /* BUDGET TABLE */
 .budget-block {
   background: var(--bg2);
@@ -1720,12 +2242,52 @@ body {
 }
 
 .csv-preview-table-container {
-  max-height: 250px;
+  max-height: 420px;
   overflow-y: auto;
   border: 1px solid var(--border);
   border-radius: 12px;
   margin-bottom: 24px;
   display: none;
+}
+
+.csv-preview-summary {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.csv-summary-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 10px;
+  min-width: 0;
+}
+
+.csv-summary-card span {
+  color: var(--text2);
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.csv-summary-card strong {
+  color: var(--text);
+  display: block;
+  font-size: 15px;
+}
+
+.csv-summary-card.income strong {
+  color: var(--green);
+}
+
+.csv-summary-card.expense strong {
+  color: var(--red);
 }
 
 .csv-preview-table {
@@ -1751,6 +2313,51 @@ body {
 
 .csv-preview-table tr:hover {
   background: rgba(255, 255, 255, 0.01);
+}
+
+.csv-row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.csv-badge {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  color: var(--text2);
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 4px 7px;
+  text-transform: uppercase;
+}
+
+.csv-badge.income {
+  color: var(--green);
+  border-color: rgba(16, 185, 129, 0.24);
+}
+
+.csv-badge.expense,
+.csv-badge.duplicate {
+  color: var(--red);
+  border-color: rgba(244, 63, 94, 0.24);
+}
+
+.csv-row-duplicate {
+  opacity: 0.72;
+}
+
+@media(max-width: 760px) {
+  .csv-preview-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .csv-preview-table {
+    min-width: 720px;
+  }
 }
 
 .cagnotte-card {

@@ -231,6 +231,85 @@
       </div>
     </div>
 
+    <!-- ANALYTICS PREMIUM -->
+    <div class="analytics-premium">
+      <div class="analytics-header">
+        <div>
+          <div class="analytics-eyebrow">Analytics Premium</div>
+          <h2>Santé financière</h2>
+        </div>
+        <div class="analytics-period-toggle" aria-label="Période du graphique">
+          <button type="button" class="analytics-period-btn active" data-period="3" onclick="setAnalyticsPeriod(3)">3 mois</button>
+          <button type="button" class="analytics-period-btn" data-period="6" onclick="setAnalyticsPeriod(6)">6 mois</button>
+          <button type="button" class="analytics-period-btn" data-period="12" onclick="setAnalyticsPeriod(12)">12 mois</button>
+        </div>
+      </div>
+
+      <div class="analytics-grid">
+        <section class="analytics-card analytics-health-card">
+          <div class="analytics-card-title">Santé financière</div>
+          <div class="health-score-wrap">
+            <svg class="health-score-ring" viewBox="0 0 120 120" aria-hidden="true">
+              <circle cx="60" cy="60" r="50" class="health-score-bg"></circle>
+              <circle cx="60" cy="60" r="50" class="health-score-fill" id="analytics-score-ring"></circle>
+            </svg>
+            <div class="health-score-value">
+              <strong id="analytics-score">0</strong>
+              <span id="analytics-score-label">Aucune donnée</span>
+            </div>
+          </div>
+          <div class="health-metrics">
+            <div><span>Revenus</span><strong id="analytics-health-income">0 €</strong></div>
+            <div><span>Dépenses</span><strong id="analytics-health-expenses">0 €</strong></div>
+            <div><span>Épargne</span><strong id="analytics-health-savings">0 €</strong></div>
+            <div><span>Taux</span><strong id="analytics-health-rate">0%</strong></div>
+          </div>
+        </section>
+
+        <section class="analytics-card analytics-trend-card">
+          <div class="analytics-card-title">Évolution mensuelle</div>
+          <div class="analytics-chart-shell" id="analytics-trend-chart"></div>
+          <div class="analytics-legend">
+            <span><i class="legend-income"></i>Revenus</span>
+            <span><i class="legend-expense"></i>Dépenses</span>
+            <span><i class="legend-balance"></i>Solde</span>
+          </div>
+        </section>
+
+        <section class="analytics-card">
+          <div class="analytics-card-title">Répartition des dépenses</div>
+          <div class="expense-split">
+            <div class="expense-donut" id="analytics-expense-donut"></div>
+            <div class="expense-list" id="analytics-expense-list"></div>
+          </div>
+        </section>
+
+        <section class="analytics-card">
+          <div class="analytics-card-title">Top dépenses</div>
+          <div class="top-expenses-list" id="analytics-top-expenses"></div>
+        </section>
+
+        <section class="analytics-card">
+          <div class="analytics-card-title">Comparaison mois précédent</div>
+          <div class="comparison-list" id="analytics-comparisons"></div>
+        </section>
+
+        <section class="analytics-card">
+          <div class="analytics-card-title">Objectifs financiers</div>
+          <div class="goals-list" id="analytics-goals"></div>
+        </section>
+
+        <section class="analytics-card analytics-forecast-card">
+          <div class="analytics-card-title">Prévisions simples</div>
+          <div class="forecast-list">
+            <div><span>Solde estimé fin de mois</span><strong id="analytics-forecast-balance">0 €</strong></div>
+            <div><span>Dépenses estimées</span><strong id="analytics-forecast-expenses">0 €</strong></div>
+            <div><span>Épargne estimée</span><strong id="analytics-forecast-savings">0 €</strong></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
     <!-- ANALYSE 50/30/20 -->
     <div class="budget-block" style="margin-top: 32px;">
       <div class="budget-block-header">
@@ -789,12 +868,19 @@
           <label class="btn btn-outline" for="json-import-input" style="cursor:pointer; margin:0;">Importer</label>
         </div>
       </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Importer un relevé bancaire</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Prépare un brouillon CSV sans modifier le budget</div>
+        </div>
+        <button class="btn btn-outline" onclick="document.getElementById('csv-importer-block')?.scrollIntoView({behavior:'smooth', block:'start'})">Ouvrir</button>
+      </div>
     </div>
 
     <div class="param-block" id="csv-importer-block">
-      <div class="param-title">Importation de relevés bancaires (CSV)</div>
+      <div class="param-title">Importer un relevé bancaire</div>
       <div style="font-size: 13px; color: var(--text2); margin-bottom: 20px; line-height: 1.6;">
-        Importez directement vos opérations bancaires au format CSV (séparateur point-virgule ou virgule) pour remplir automatiquement vos dépenses réelles. L'outil effectue un matching automatique intelligent basé sur les libellés de vos transactions.
+        Analyse un fichier CSV, propose des catégories et prépare un brouillon. Aucun montant n'est injecté automatiquement dans le budget à cette étape.
       </div>
       
       <!-- Drag & Drop Zone -->
@@ -843,13 +929,14 @@
 
       <!-- Operations list preview -->
       <div class="csv-preview-table-container" id="csv-preview-panel">
+        <div class="csv-preview-summary" id="csv-preview-summary"></div>
         <table class="csv-preview-table" id="csv-operations-table">
           <thead>
             <tr>
               <th width="40"><input type="checkbox" id="csv-select-all" checked onchange="toggleAllCSVCheckboxes(this)"></th>
               <th>Date</th>
               <th>Opération détectée</th>
-              <th>Catégorie de Budget matchée</th>
+              <th>Catégorie proposée</th>
               <th style="text-align: right;">Montant</th>
             </tr>
           </thead>
@@ -861,9 +948,9 @@
       
       <!-- Import Execution actions -->
       <div style="display: none; justify-content: flex-end; gap: 12px;" id="csv-actions-panel">
-        <span id="csv-match-summary" style="font-size: 12px; color: var(--text2); align-self: center; margin-right: auto;">0 lignes prêtes à être importées</span>
+        <span id="csv-match-summary" style="font-size: 12px; color: var(--text2); align-self: center; margin-right: auto;">0 lignes sélectionnées pour le brouillon</span>
         <button class="btn btn-outline" onclick="resetCSVImporter()">Annuler</button>
-        <button class="btn btn-gold" onclick="applyCSVTransactions()">Valider l'importation</button>
+        <button class="btn btn-gold" onclick="applyCSVTransactions()">Enregistrer le brouillon</button>
       </div>
     </div>
     
@@ -1265,6 +1352,364 @@ function getBudgetKeysByType(type) {
     .filter(category => category.type === type && category.is_active !== false && !category.is_default)
     .map(category => category.id);
   return [...new Set([...historicalKeys, ...customKeys])];
+}
+
+let analyticsPeriod = 6;
+
+const EXPENSE_GROUPS = [
+  { name: 'Courses', keys: ['courses'], color: 'var(--green)' },
+  { name: 'Logement', keys: ['loyer','credit','elec','eau','impots','impfix'], color: 'var(--gold)' },
+  { name: 'Transport', keys: ['gasoil','assauto'], color: 'var(--orange)' },
+  { name: 'Santé', keys: ['psy','diete','itou','sante'], color: '#38bdf8' },
+  { name: 'Loisirs', keys: ['sport','ongles','cadeaux','ps'], color: '#a78bfa' },
+  { name: 'Streaming', keys: ['stream'], color: '#f472b6' },
+  { name: 'Téléphone', keys: ['box','tel_ali','tel_meg'], color: '#2dd4bf' },
+  { name: 'Divers', keys: ['tabac','cb','impvar'], color: 'var(--text2)' }
+];
+
+function clamp(n, min, max) {
+  return Math.max(min, Math.min(max, n));
+}
+
+function monthShift(month, offset) {
+  const [year, monthIndex] = month.split('-').map(Number);
+  const date = new Date(year, monthIndex - 1 + offset, 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function monthShortLabel(month) {
+  const [year, monthIndex] = month.split('-').map(Number);
+  return new Date(year, monthIndex - 1).toLocaleDateString('fr-FR', { month: 'short' }).replace('.', '');
+}
+
+function readStoredMonthData(month) {
+  try {
+    const parsed = JSON.parse(SafeStorage.getItem(storageKey(month)) || '{}');
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function getAmountFromData(data, key) {
+  if (data && Object.prototype.hasOwnProperty.call(data, key)) return parseFloat(data[key]) || 0;
+  if (data && Object.prototype.hasOwnProperty.call(data, key + '_reel')) return parseFloat(data[key + '_reel']) || 0;
+  return 0;
+}
+
+function getBudgetLabel(key) {
+  const input = document.querySelector(`input.budget-input[data-key="${key}"]:not(.paid-input):not(.note-input)`);
+  const label = input?.closest('.budget-row')?.querySelector('.budget-row-label');
+  if (label) {
+    const textNode = Array.from(label.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
+    return (textNode?.nodeValue || label.textContent || key).replace(/[✎×💬✓]/g, '').trim();
+  }
+
+  const category = budgetCategoriesCache.find(item => item.id === key);
+  return category?.name || key.replace(/_/g, ' ');
+}
+
+function getAllExpenseKeys() {
+  return [...new Set([
+    ...getBudgetKeysByType('fixed_expense'),
+    ...getBudgetKeysByType('variable_expense')
+  ])];
+}
+
+function getMonthMetrics(month, { fromDom = false } = {}) {
+  const data = fromDom ? null : readStoredMonthData(month);
+  const read = (key) => fromDom ? getVal(key) : getAmountFromData(data, key);
+  const incomeKeys = getBudgetKeysByType('income');
+  const fixedKeys = getBudgetKeysByType('fixed_expense');
+  const variableKeys = getBudgetKeysByType('variable_expense');
+  const income = incomeKeys.reduce((sum, key) => sum + read(key), 0);
+  const fixed = fixedKeys.reduce((sum, key) => sum + read(key), 0);
+  const variable = variableKeys.reduce((sum, key) => sum + read(key), 0);
+  const expenses = fixed + variable;
+  const savings = income - expenses;
+  return {
+    month,
+    income,
+    fixed,
+    variable,
+    expenses,
+    savings,
+    savingsRate: income > 0 ? Math.round((savings / income) * 100) : 0
+  };
+}
+
+function getFinancialScore(metrics) {
+  if (metrics.income <= 0) return { score: 0, label: 'Aucune donnée', className: 'neutral' };
+  const savingsRate = (metrics.savings / metrics.income) * 100;
+  const expenseRate = (metrics.expenses / metrics.income) * 100;
+  const score = Math.round(clamp(
+    48 + savingsRate * 1.55 - Math.max(0, expenseRate - 85) * 0.75 + (metrics.savings >= 0 ? 12 : -22),
+    0,
+    100
+  ));
+  if (score >= 90) return { score, label: 'Excellent', className: 'excellent' };
+  if (score >= 75) return { score, label: 'Très bon', className: 'good' };
+  if (score >= 50) return { score, label: 'Correct', className: 'ok' };
+  if (score >= 30) return { score, label: 'Fragile', className: 'fragile' };
+  return { score, label: 'Critique', className: 'critical' };
+}
+
+function getExpenseBreakdown() {
+  const expenseKeys = getAllExpenseKeys();
+  const usedKeys = new Set();
+  const groups = EXPENSE_GROUPS.map(group => {
+    const total = group.keys.reduce((sum, key) => {
+      usedKeys.add(key);
+      return sum + getVal(key);
+    }, 0);
+    return { ...group, total };
+  });
+
+  const diverse = expenseKeys
+    .filter(key => !usedKeys.has(key))
+    .reduce((sum, key) => sum + getVal(key), 0);
+  const divers = groups.find(group => group.name === 'Divers');
+  if (divers) divers.total += diverse;
+
+  return groups;
+}
+
+function renderAnalyticsTrend(months) {
+  const container = document.getElementById('analytics-trend-chart');
+  if (!container) return;
+
+  if (months.length === 0 || months.every(item => item.income === 0 && item.expenses === 0 && item.savings === 0)) {
+    container.innerHTML = '<div class="analytics-empty">Aucune donnée historique pour cette période.</div>';
+    return;
+  }
+
+  const width = 620;
+  const height = 230;
+  const pad = { top: 20, right: 24, bottom: 36, left: 54 };
+  const maxVal = Math.max(1, ...months.flatMap(item => [item.income, item.expenses, Math.max(0, item.savings)]));
+  const minVal = Math.min(0, ...months.map(item => item.savings));
+  const range = maxVal - minVal || 1;
+  const plotW = width - pad.left - pad.right;
+  const plotH = height - pad.top - pad.bottom;
+  const xFor = (index) => pad.left + (months.length === 1 ? plotW / 2 : (plotW / (months.length - 1)) * index);
+  const yFor = (value) => pad.top + (maxVal - value) / range * plotH;
+  const linePath = (field) => months.map((item, index) => `${index === 0 ? 'M' : 'L'} ${xFor(index).toFixed(1)} ${yFor(item[field]).toFixed(1)}`).join(' ');
+  const zeroY = yFor(0);
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" class="analytics-line-chart" role="img" aria-label="Évolution mensuelle">
+      <line x1="${pad.left}" y1="${zeroY}" x2="${width - pad.right}" y2="${zeroY}" class="analytics-axis"></line>
+      <path d="${linePath('income')}" class="analytics-line income"></path>
+      <path d="${linePath('expenses')}" class="analytics-line expense"></path>
+      <path d="${linePath('savings')}" class="analytics-line balance"></path>
+      ${months.map((item, index) => `
+        <g>
+          <circle cx="${xFor(index)}" cy="${yFor(item.income)}" r="3" class="analytics-dot income"><title>${monthShortLabel(item.month)} revenus: ${fmt(item.income)}</title></circle>
+          <circle cx="${xFor(index)}" cy="${yFor(item.expenses)}" r="3" class="analytics-dot expense"><title>${monthShortLabel(item.month)} dépenses: ${fmt(item.expenses)}</title></circle>
+          <circle cx="${xFor(index)}" cy="${yFor(item.savings)}" r="3" class="analytics-dot balance"><title>${monthShortLabel(item.month)} solde: ${fmt(item.savings)}</title></circle>
+          <text x="${xFor(index)}" y="${height - 12}" text-anchor="middle" class="analytics-axis-label">${monthShortLabel(item.month)}</text>
+        </g>
+      `).join('')}
+    </svg>
+  `;
+}
+
+function renderExpenseDonut(groups) {
+  const total = groups.reduce((sum, group) => sum + group.total, 0);
+  const donut = document.getElementById('analytics-expense-donut');
+  const list = document.getElementById('analytics-expense-list');
+  if (!donut || !list) return;
+
+  if (total <= 0) {
+    donut.innerHTML = '<div class="analytics-empty compact">Aucune dépense</div>';
+    list.innerHTML = '';
+    return;
+  }
+
+  let offset = 25;
+  const radius = 46;
+  const circumference = 2 * Math.PI * radius;
+  donut.innerHTML = `
+    <svg viewBox="0 0 120 120" class="analytics-donut-svg" aria-label="Répartition des dépenses">
+      <circle cx="60" cy="60" r="${radius}" class="analytics-donut-bg"></circle>
+      ${groups.filter(group => group.total > 0).map(group => {
+        const pct = group.total / total;
+        const dash = `${(pct * circumference).toFixed(2)} ${circumference.toFixed(2)}`;
+        const segment = `<circle cx="60" cy="60" r="${radius}" class="analytics-donut-segment" stroke="${group.color}" stroke-dasharray="${dash}" stroke-dashoffset="${offset.toFixed(2)}"><title>${group.name}: ${fmt(group.total)}</title></circle>`;
+        offset -= pct * circumference;
+        return segment;
+      }).join('')}
+      <text x="60" y="58" text-anchor="middle" class="analytics-donut-label">Total</text>
+      <text x="60" y="74" text-anchor="middle" class="analytics-donut-value">${fmt(total)}</text>
+    </svg>
+  `;
+
+  list.innerHTML = groups.map(group => {
+    const pct = total > 0 ? Math.round(group.total / total * 100) : 0;
+    return `
+      <div class="expense-list-row">
+        <span><i style="background:${group.color}"></i>${group.name}</span>
+        <strong>${fmt(group.total)} <em>${pct}%</em></strong>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderTopExpenses() {
+  const container = document.getElementById('analytics-top-expenses');
+  if (!container) return;
+  const rows = getAllExpenseKeys()
+    .map(key => ({ key, name: getBudgetLabel(key), value: getVal(key) }))
+    .filter(item => item.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 5);
+
+  if (rows.length === 0) {
+    container.innerHTML = '<div class="analytics-empty compact">Aucune dépense ce mois.</div>';
+    return;
+  }
+
+  const max = Math.max(...rows.map(item => item.value), 1);
+  container.innerHTML = rows.map((item, index) => `
+    <div class="top-expense-row">
+      <div class="top-expense-rank">${index + 1}</div>
+      <div class="top-expense-main">
+        <div><span>${item.name}</span><strong>${fmt(item.value)}</strong></div>
+        <div class="top-expense-track"><i style="width:${Math.round(item.value / max * 100)}%"></i></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderComparisons(current, previous) {
+  const container = document.getElementById('analytics-comparisons');
+  if (!container) return;
+
+  const comparisonItems = [
+    { label: 'Dépenses', current: current.expenses, previous: previous.expenses, goodWhenDown: true },
+    { label: 'Carburant', current: getVal('gasoil'), previous: getAmountFromData(readStoredMonthData(previous.month), 'gasoil'), goodWhenDown: true },
+    { label: 'Épargne', current: current.savings, previous: previous.savings, goodWhenDown: false }
+  ];
+
+  if (previous.income === 0 && previous.expenses === 0) {
+    container.innerHTML = '<div class="analytics-empty compact">Aucun mois précédent enregistré.</div>';
+    return;
+  }
+
+  container.innerHTML = comparisonItems.map(item => {
+    const diff = item.current - item.previous;
+    const pct = item.previous !== 0 ? Math.round(diff / Math.abs(item.previous) * 100) : (item.current !== 0 ? 100 : 0);
+    const positive = item.goodWhenDown ? diff <= 0 : diff >= 0;
+    const sign = pct > 0 ? '+' : '';
+    return `
+      <div class="comparison-row ${positive ? 'positive' : 'negative'}">
+        <span>${item.label}</span>
+        <strong>${sign}${pct}%</strong>
+      </div>
+    `;
+  }).join('');
+}
+
+function getAnalyticsGoals() {
+  const defaults = [
+    { name: 'Voyage de noces', target: 5000, current: 0 },
+    { name: "Fonds d'urgence", target: 3000, current: 0 },
+    { name: 'Voiture', target: 8000, current: 0 },
+    { name: 'Maison', target: 20000, current: 0 }
+  ];
+  try {
+    const parsed = JSON.parse(SafeStorage.getItem('budget_cagnottes') || '[]');
+    const cagnottes = Array.isArray(parsed) ? parsed : [];
+    return cagnottes.length > 0 ? cagnottes : defaults;
+  } catch {
+    return defaults;
+  }
+}
+
+function renderAnalyticsGoals() {
+  const container = document.getElementById('analytics-goals');
+  if (!container) return;
+  const goals = getAnalyticsGoals().slice(0, 4);
+  container.innerHTML = goals.map(goal => {
+    const pct = goal.target > 0 ? clamp(Math.round((Number(goal.current || 0) / Number(goal.target || 0)) * 100), 0, 100) : 0;
+    return `
+      <div class="goal-row">
+        <div>
+          <span>${goal.name}</span>
+          <strong>${fmt(goal.current || 0)} / ${fmt(goal.target || 0)}</strong>
+        </div>
+        <div class="goal-progress"><i style="width:${pct}%"></i></div>
+        <em>${pct}%</em>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateForecast(metrics) {
+  const now = new Date();
+  const selectedMonth = getMonth();
+  const [year, monthIndex] = selectedMonth.split('-').map(Number);
+  const daysInMonth = new Date(year, monthIndex, 0).getDate();
+  const isCurrentCalendarMonth = now.getFullYear() === year && now.getMonth() + 1 === monthIndex;
+  const elapsed = isCurrentCalendarMonth ? clamp(now.getDate(), 1, daysInMonth) : daysInMonth;
+  const ratio = daysInMonth / elapsed;
+  const projectedExpenses = metrics.expenses * ratio;
+  const projectedSavings = metrics.income - projectedExpenses;
+
+  const balanceEl = document.getElementById('analytics-forecast-balance');
+  const expensesEl = document.getElementById('analytics-forecast-expenses');
+  const savingsEl = document.getElementById('analytics-forecast-savings');
+  if (balanceEl) balanceEl.textContent = fmt(projectedSavings);
+  if (expensesEl) expensesEl.textContent = fmt(projectedExpenses);
+  if (savingsEl) savingsEl.textContent = fmt(projectedSavings);
+}
+
+function setAnalyticsPeriod(period) {
+  analyticsPeriod = period;
+  document.querySelectorAll('.analytics-period-btn').forEach(btn => {
+    btn.classList.toggle('active', Number(btn.dataset.period) === period);
+  });
+  updatePremiumAnalytics();
+}
+
+function updatePremiumAnalytics() {
+  const currentMonth = getMonth();
+  const current = getMonthMetrics(currentMonth, { fromDom: true });
+  const previousMonth = monthShift(currentMonth, -1);
+  const previous = getMonthMetrics(previousMonth);
+  const score = getFinancialScore(current);
+  const months = Array.from({ length: analyticsPeriod }, (_, index) => {
+    const month = monthShift(currentMonth, index - analyticsPeriod + 1);
+    return getMonthMetrics(month, { fromDom: month === currentMonth });
+  });
+
+  const scoreEl = document.getElementById('analytics-score');
+  const scoreLabel = document.getElementById('analytics-score-label');
+  const scoreRing = document.getElementById('analytics-score-ring');
+  if (scoreEl) scoreEl.textContent = score.score;
+  if (scoreLabel) {
+    scoreLabel.textContent = score.label;
+    scoreLabel.className = score.className;
+  }
+  if (scoreRing) {
+    scoreRing.style.strokeDashoffset = String(314 - (314 * score.score / 100));
+  }
+
+  const setText = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+  setText('analytics-health-income', fmt(current.income));
+  setText('analytics-health-expenses', fmt(current.expenses));
+  setText('analytics-health-savings', fmt(current.savings));
+  setText('analytics-health-rate', `${current.savingsRate}%`);
+
+  renderAnalyticsTrend(months);
+  renderExpenseDonut(getExpenseBreakdown());
+  renderTopExpenses();
+  renderComparisons(current, previous);
+  renderAnalyticsGoals();
+  updateForecast(current);
 }
 
 function snapshotBudgetInputs() {
@@ -2073,6 +2518,7 @@ function updateAll(){
     }
   }
 
+  if (typeof updatePremiumAnalytics === 'function') updatePremiumAnalytics();
   if (typeof renderCagnottes === 'function') renderCagnottes();
   if (typeof updateTrendIndicators === 'function') updateTrendIndicators();
 }
@@ -2543,14 +2989,255 @@ function resetSimulation() {
   updateSimulation();
 }
 
-// CSV Native parsing utilities
-let csvLines = [];
+// CSV intelligent V1: preview + brouillon local uniquement.
+const CSV_LEARNING_KEY = 'nexora_csv_learning_v1';
+const CSV_DRAFTS_KEY = 'nexora_csv_import_drafts_v1';
+let csvRows = [];
 let csvHeaders = [];
 let analyzedTransactions = [];
+let csvDetectedSeparator = ';';
+
+const CSV_CATEGORY_OPTIONS = {
+  courses: 'Courses',
+  gasoil: 'Carburant',
+  stream: 'Streaming',
+  box: 'Téléphone / Internet',
+  elec: 'Électricité',
+  impvar: 'Achats divers',
+  sante: 'Santé',
+  rev_excep: 'Revenus'
+};
+
+const CSV_CATEGORY_RULES = [
+  { key: 'courses', name: 'Courses', confidence: 94, keywords: ['carrefour', 'leclerc', 'auchan', 'lidl', 'intermarche', 'intermarché'] },
+  { key: 'gasoil', name: 'Carburant', confidence: 93, keywords: ['total', 'shell', 'esso', 'station'] },
+  { key: 'stream', name: 'Streaming', confidence: 92, keywords: ['netflix', 'spotify', 'disney', 'prime'] },
+  { key: 'box', name: 'Téléphone / Internet', confidence: 88, keywords: ['orange', 'sfr', 'bouygues', 'free'] },
+  { key: 'elec', name: 'Électricité', confidence: 93, keywords: ['edf', 'engie', 'totalenergies', 'total energies'] },
+  { key: 'impvar', name: 'Achats divers', confidence: 78, keywords: ['amazon', 'fnac', 'boulanger'] },
+  { key: 'sante', name: 'Santé', confidence: 90, keywords: ['pharmacie', 'doctolib', 'medecin', 'médecin'] },
+  { key: 'rev_excep', name: 'Revenus', confidence: 92, keywords: ['salaire', 'paie', 'virement salaire'] }
+];
+
+function normalizeCSVText(value) {
+  return String(value || '')
+    .trim()
+    .toLocaleLowerCase('fr-FR')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ');
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function readCSVJson(key, fallback) {
+  try {
+    const raw = SafeStorage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : fallback;
+    return parsed && typeof parsed === 'object' ? parsed : fallback;
+  } catch (err) {
+    console.warn('[CSV] Lecture locale impossible', err);
+    return fallback;
+  }
+}
+
+function writeCSVJson(key, value) {
+  SafeStorage.setItem(key, JSON.stringify(value));
+}
+
+function getCSVLearning() {
+  const learning = readCSVJson(CSV_LEARNING_KEY, {});
+  return learning && !Array.isArray(learning) ? learning : {};
+}
+
+function saveCSVLearningForLabel(label, categoryKey) {
+  const normalized = normalizeCSVText(label);
+  if (!normalized || !categoryKey) return;
+  const learning = getCSVLearning();
+  learning[normalized] = {
+    categoryKey,
+    categoryName: CSV_CATEGORY_OPTIONS[categoryKey] || categoryKey,
+    updated_at: new Date().toISOString()
+  };
+  writeCSVJson(CSV_LEARNING_KEY, learning);
+}
+
+function detectCSVSeparator(text) {
+  const firstLine = String(text || '').split(/\r?\n/).find(line => line.trim() !== '') || '';
+  const countOutsideQuotes = (separator) => {
+    let count = 0;
+    let quoted = false;
+    for (const char of firstLine) {
+      if (char === '"') quoted = !quoted;
+      else if (char === separator && !quoted) count++;
+    }
+    return count;
+  };
+  return countOutsideQuotes(';') >= countOutsideQuotes(',') ? ';' : ',';
+}
+
+function parseCSVLine(line, separator) {
+  const row = [];
+  let entry = '';
+  let quoted = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const next = line[i + 1];
+    if (char === '"' && quoted && next === '"') {
+      entry += '"';
+      i++;
+    } else if (char === '"') {
+      quoted = !quoted;
+    } else if (char === separator && !quoted) {
+      row.push(entry.trim());
+      entry = '';
+    } else {
+      entry += char;
+    }
+  }
+  row.push(entry.trim());
+  return row.map(value => value.replace(/^["']|["']$/g, '').trim());
+}
+
+function parseCSVAmount(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return 0;
+  const negativeByParentheses = /^\(.*\)$/.test(raw);
+  let cleaned = raw
+    .replace(/\s/g, '')
+    .replace(/\u202F/g, '')
+    .replace(/\u00A0/g, '')
+    .replace(/[€$]/g, '')
+    .replace(/[()]/g, '');
+
+  const comma = cleaned.lastIndexOf(',');
+  const dot = cleaned.lastIndexOf('.');
+  if (comma > -1 && dot > -1) {
+    cleaned = comma > dot ? cleaned.replace(/\./g, '').replace(',', '.') : cleaned.replace(/,/g, '');
+  } else if (comma > -1) {
+    cleaned = cleaned.replace(',', '.');
+  }
+
+  const amount = parseFloat(cleaned.replace(/[^\d.-]/g, '')) || 0;
+  return negativeByParentheses ? -Math.abs(amount) : amount;
+}
+
+function detectCSVColumn(headers, type) {
+  const candidates = {
+    date: ['date', 'operation date', 'transaction date'],
+    label: ['libelle', 'label', 'description', 'transaction', 'operation'],
+    amount: ['montant', 'amount', 'debit', 'credit']
+  }[type];
+
+  let bestIndex = -1;
+  let bestScore = 0;
+  headers.forEach((header, index) => {
+    const normalized = normalizeCSVText(header);
+    candidates.forEach((candidate) => {
+      if (normalized === candidate) {
+        bestIndex = index;
+        bestScore = Math.max(bestScore, 3);
+      } else if (normalized.includes(candidate) && bestScore < 2) {
+        bestIndex = index;
+        bestScore = 2;
+      }
+    });
+  });
+  return bestIndex;
+}
+
+function findSiblingAmountColumn(amountIdx, preferredName) {
+  const preferred = normalizeCSVText(preferredName);
+  return csvHeaders.findIndex((header, index) => index !== amountIdx && normalizeCSVText(header).includes(preferred));
+}
+
+function getCSVAmountFromRow(row, amountIdx) {
+  const amountHeader = normalizeCSVText(csvHeaders[amountIdx]);
+  const selectedAmount = parseCSVAmount(row[amountIdx]);
+
+  if (amountHeader.includes('debit')) {
+    const creditIdx = findSiblingAmountColumn(amountIdx, 'credit');
+    const credit = creditIdx >= 0 ? parseCSVAmount(row[creditIdx]) : 0;
+    const debit = Math.abs(selectedAmount);
+    return credit > 0 ? credit : -debit;
+  }
+
+  if (amountHeader.includes('credit')) {
+    const debitIdx = findSiblingAmountColumn(amountIdx, 'debit');
+    const debit = debitIdx >= 0 ? parseCSVAmount(row[debitIdx]) : 0;
+    return selectedAmount > 0 ? selectedAmount : -Math.abs(debit);
+  }
+
+  return selectedAmount;
+}
+
+function getExistingCSVDuplicateSignatures() {
+  const store = readCSVJson(CSV_DRAFTS_KEY, { version: 1, drafts: [] });
+  const signatures = new Set();
+  (Array.isArray(store.drafts) ? store.drafts : []).forEach(draft => {
+    (draft.operations || []).forEach(operation => {
+      if (operation.signature) signatures.add(operation.signature);
+    });
+  });
+  return signatures;
+}
+
+function buildCSVSignature(date, label, amount) {
+  return [
+    String(date || '').trim(),
+    normalizeCSVText(label),
+    Number(amount || 0).toFixed(2)
+  ].join('|');
+}
+
+function suggestCSVCategory(label, amount) {
+  const normalized = normalizeCSVText(label);
+  const learning = getCSVLearning();
+
+  if (learning[normalized]?.categoryKey) {
+    const categoryKey = learning[normalized].categoryKey;
+    return {
+      categoryKey,
+      suggestedCategory: CSV_CATEGORY_OPTIONS[categoryKey] || learning[normalized].categoryName || categoryKey,
+      confidence: 100,
+      source: 'learning'
+    };
+  }
+
+  for (const rule of CSV_CATEGORY_RULES) {
+    if (rule.keywords.some(keyword => normalized.includes(normalizeCSVText(keyword)))) {
+      return {
+        categoryKey: rule.key,
+        suggestedCategory: rule.name,
+        confidence: rule.confidence,
+        source: 'rules'
+      };
+    }
+  }
+
+  if (amount > 0 && /salaire|paie|virement salaire/.test(normalized)) {
+    return { categoryKey: 'rev_excep', suggestedCategory: 'Revenus', confidence: 88, source: 'rules' };
+  }
+
+  return { categoryKey: '', suggestedCategory: 'Inconnue', confidence: 0, source: 'unknown' };
+}
 
 function handleCSVSelect(event) {
   const file = event.target.files[0];
   if (!file) return;
+
+  if (!file.name.toLowerCase().endsWith('.csv')) {
+    showToast('❌ Merci de sélectionner un fichier CSV');
+    return;
+  }
 
   const reader = new FileReader();
   reader.onload = function(e) {
@@ -2560,51 +3247,19 @@ function handleCSVSelect(event) {
 }
 
 function parseCSV(text) {
-  let separator = ';';
-  if (text.includes(';') && !text.includes(',')) separator = ';';
-  else if (text.includes(',') && !text.includes(';')) separator = ',';
-  else {
-    const firstLine = text.split('\n')[0];
-    const commas = (firstLine.match(/,/g) || []).length;
-    const semicolons = (firstLine.match(/;/g) || []).length;
-    separator = semicolons >= commas ? ';' : ',';
-  }
-
-  const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
-  if (lines.length === 0) {
-    showToast('❌ Fichier CSV vide');
+  csvDetectedSeparator = detectCSVSeparator(text);
+  const lines = String(text || '').replace(/^\uFEFF/, '').split(/\r?\n/).filter(line => line.trim() !== '');
+  if (lines.length < 2) {
+    showToast('❌ Fichier CSV vide ou sans opérations');
     return;
   }
 
-  csvHeaders = lines[0].split(separator).map(h => h.trim().replace(/^["']|["']$/g, ''));
-  csvLines = [];
+  csvHeaders = parseCSVLine(lines[0], csvDetectedSeparator);
+  csvRows = lines.slice(1)
+    .map(line => parseCSVLine(line, csvDetectedSeparator))
+    .filter(row => row.some(value => value !== ''));
 
-  for (let i = 1; i < lines.length; i++) {
-    let row = [];
-    let insideQuote = false;
-    let entry = '';
-    const chars = lines[i];
-    
-    for (let c = 0; c < chars.length; c++) {
-      const char = chars[c];
-      if (char === '"' || char === "'") {
-        insideQuote = !insideQuote;
-      } else if (char === separator && !insideQuote) {
-        row.push(entry.trim());
-        entry = '';
-      } else {
-        entry += char;
-      }
-    }
-    row.push(entry.trim());
-    
-    row = row.map(r => r.replace(/^["']|["']$/g, ''));
-    if (row.length === csvHeaders.length) {
-      csvLines.push(row);
-    }
-  }
-
-  if (csvLines.length === 0) {
+  if (csvRows.length === 0) {
     showToast('❌ Aucune ligne de données trouvée');
     return;
   }
@@ -2615,91 +3270,55 @@ function parseCSV(text) {
 
   [selectDate, selectDesc, selectAmount].forEach(select => {
     select.innerHTML = '<option value="">-- Choisir --</option>';
-    csvHeaders.forEach((h, index) => {
-      select.innerHTML += `<option value="${index}">${h}</option>`;
+    csvHeaders.forEach((header, index) => {
+      select.innerHTML += `<option value="${index}">${escapeHtml(header)}</option>`;
     });
   });
 
-  csvHeaders.forEach((h, index) => {
-    const norm = h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    if (norm.includes('date')) selectDate.value = index;
-    if (norm.includes('libelle') || norm.includes('desc') || norm.includes('text') || norm.includes('motif') || norm.includes('operation')) selectDesc.value = index;
-    if (norm.includes('montant') || norm.includes('valeur') || norm.includes('debit') || norm.includes('credit') || norm.includes('somme') || norm.includes('euro')) selectAmount.value = index;
-  });
+  const dateIdx = detectCSVColumn(csvHeaders, 'date');
+  const labelIdx = detectCSVColumn(csvHeaders, 'label');
+  const amountIdx = detectCSVColumn(csvHeaders, 'amount');
+  if (dateIdx >= 0) selectDate.value = String(dateIdx);
+  if (labelIdx >= 0) selectDesc.value = String(labelIdx);
+  if (amountIdx >= 0) selectAmount.value = String(amountIdx);
 
   document.getElementById('csv-dropzone').style.display = 'none';
   document.getElementById('csv-mapping-panel').style.display = 'block';
+  document.getElementById('csv-preview-panel').style.display = 'none';
+  document.getElementById('csv-actions-panel').style.display = 'none';
+  showToast(`✅ CSV lu (${csvRows.length} opérations, séparateur "${csvDetectedSeparator}")`);
 }
 
 function resetCSVImporter() {
-  csvLines = [];
+  csvRows = [];
   csvHeaders = [];
+  analyzedTransactions = [];
   document.getElementById('csv-file-input').value = '';
   document.getElementById('csv-dropzone').style.display = 'block';
   document.getElementById('csv-mapping-panel').style.display = 'none';
   document.getElementById('csv-preview-panel').style.display = 'none';
   document.getElementById('csv-actions-panel').style.display = 'none';
+  document.getElementById('csv-operations-body').innerHTML = '';
+  document.getElementById('csv-preview-summary').innerHTML = '';
 }
 
-const CATEGORY_RULES = [
-  { key: 'rev_ali', keywords: [/salaire ali/i, /ali salaire/i, /paye ali/i, /vrt ali/i] },
-  { key: 'rev_megane', keywords: [/salaire meg/i, /megane salaire/i, /paye meg/i, /vrt meg/i] },
-  { key: 'rev_excep', keywords: [/rembourse/i, /caf/i, /impots gouv/i, /exceptionnel/i, /cadeau/i] },
-  { key: 'loyer', keywords: [/loyer/i, /proprietaire/i, /bail/i, /immob/i] },
-  { key: 'credit', keywords: [/credit/i, /emprunt/i, /pret/i, /banque/i, /amortissement/i] },
-  { key: 'assauto', keywords: [/assur.*auto/i, /macif/i, /allianz/i, /axa/i, /mma/i, /direct assurance/i, /maaf/i] },
-  { key: 'gasoil', keywords: [/total/i, /essence/i, /gasoil/i, /station/i, /carburant/i, /elf/i, /esso/i, /autoroute/i, /peage/i, /vinci/i] },
-  { key: 'elec', keywords: [/edf/i, /engie/i, /totalenergies/i, /eni/i, /electricite/i, /direct energie/i] },
-  { key: 'eau', keywords: [/veolia/i, /suez/i, /saur/i, /eau/i, /distribution.*eau/i] },
-  { key: 'psy', keywords: [/psy/i, /psychologue/i, /therapie/i] },
-  { key: 'diete', keywords: [/diete/i, /dieteticien/i, /nutrition/i] },
-  { key: 'itou', keywords: [/itou/i, /garderie/i, /creche/i, /nounou/i, /baby/i] },
-  { key: 'sante', keywords: [/pharmacie/i, /dentiste/i, /medecin/i, /doctolib/i, /mutuelle/i, /securite sociale/i, /cpam/i, /optique/i, /labo/i] },
-  { key: 'impots', keywords: [/impot/i, /tresor public/i, /dgi/i, /taxes/i, /foncier/i, /habitation/i] },
-  { key: 'box', keywords: [/freebox/i, /sfr box/i, /orange internet/i, /bouygues telecom/i, /fibre/i] },
-  { key: 'tel_ali', keywords: [/sfr/i, /red/i, /free mobile/i, /orange mobile/i] },
-  { key: 'tel_meg', keywords: [/sosh/i, /bouygues/i, /b&you/i] },
-  { key: 'stream', keywords: [/netflix/i, /spotify/i, /deezer/i, /disney/i, /prime video/i, /canal/i, /youtube/i, /apple/i] },
-  { key: 'ps', keywords: [/playstation/i, /sony/i, /nintendo/i, /xbox/i, /steam/i] },
-  { key: 'cb', keywords: [/cotisation/i, /frais.*bancaire/i, /commission/i] },
-  { key: 'impfix', keywords: [/copropriete/i, /syndic/i, /charges.*fixes/i] },
-  { key: 'courses', keywords: [/carrefour/i, /leclerc/i, /auchan/i, /lidl/i, /intermarche/i, /monoprix/i, /super u/i, /aldi/i, /biocoop/i, /boulanger/i, /epicerie/i, /supermarche/i] },
-  { key: 'tabac', keywords: [/tabac/i, /presse/i, /civette/i, /cigarette/i] },
-  { key: 'sport', keywords: [/basic fit/i, /neoness/i, /fitness/i, /decathlon/i, /go sport/i, /salle.*sport/i, /sport/i] },
-  { key: 'ongles', keywords: [/ongles/i, /beaute/i, /esthetique/i, /coiffeur/i, /manucure/i, /salon/i, /spa/i] },
-  { key: 'cadeaux', keywords: [/cadeau/i, /anniversaire/i, /noel/i, /fleurs/i, /interflora/i] },
-  { key: 'impvar', keywords: [/impvar/i, /amende/i, /impot.*variable/i] }
-];
+function renderCSVSummary() {
+  const selected = analyzedTransactions.filter(t => !t.excluded);
+  const recognized = analyzedTransactions.filter(t => t.categoryKey && !t.duplicate).length;
+  const unknown = analyzedTransactions.filter(t => !t.categoryKey).length;
+  const duplicateCount = analyzedTransactions.filter(t => t.duplicate).length;
+  const incomeTotal = selected.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+  const expenseTotal = selected.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
 
-const CATEGORY_NAMES = {
-  rev_ali: "💵 Revenus Ali",
-  rev_megane: "💵 Revenus Mégane",
-  rev_excep: "💵 Revenus Exceptionnels",
-  loyer: "📌 Loyer",
-  credit: "📌 Crédit",
-  assauto: "📌 Assurance Auto",
-  gasoil: "📌 Gasoil / Transports",
-  elec: "📌 Électricité",
-  eau: "📌 Eau",
-  psy: "📌 Psy",
-  diete: "📌 Diététicienne",
-  itou: "📌 Itou (Garde)",
-  sante: "📌 Santé & Mutuelle",
-  impots: "📌 Impôts",
-  box: "📌 Box Internet",
-  tel_ali: "📌 Tél Ali",
-  tel_meg: "📌 Tél Mégane",
-  stream: "📌 Streaming",
-  ps: "📌 PS Plus / Gaming",
-  cb: "📌 Frais CB",
-  impfix: "📌 Impôts Fixes",
-  courses: "🛒 Courses / Alimentation",
-  tabac: "🛒 Tabac",
-  sport: "🛒 Sport / Bien-être",
-  ongles: "🛒 Ongles / Beauté",
-  cadeaux: "🛒 Cadeaux",
-  impvar: "🛒 Dépenses Imprévues"
-};
+  document.getElementById('csv-preview-summary').innerHTML = `
+    <div class="csv-summary-card"><span>Total détecté</span><strong>${analyzedTransactions.length}</strong></div>
+    <div class="csv-summary-card"><span>Reconnues</span><strong>${recognized}</strong></div>
+    <div class="csv-summary-card"><span>Inconnues</span><strong>${unknown}</strong></div>
+    <div class="csv-summary-card"><span>Doublons</span><strong>${duplicateCount}</strong></div>
+    <div class="csv-summary-card income"><span>Revenus</span><strong>${fmt(incomeTotal)}</strong></div>
+    <div class="csv-summary-card expense"><span>Dépenses</span><strong>${fmt(expenseTotal)}</strong></div>
+  `;
+}
 
 function analyzeCSVData() {
   const dateIdx = parseInt(document.getElementById('csv-map-date').value);
@@ -2711,138 +3330,155 @@ function analyzeCSVData() {
     return;
   }
 
-  analyzedTransactions = [];
-  
-  csvLines.forEach((row, rowIndex) => {
-    const rawDate = row[dateIdx] || '';
-    const rawDesc = row[descIdx] || '';
-    let rawAmount = row[amountIdx] || '0';
-    
-    rawAmount = rawAmount.replace(/[^\d.,-]/g, '').replace(',', '.');
-    let amount = parseFloat(rawAmount) || 0;
-    
-    let matchedCategory = '';
-    
-    for (const rule of CATEGORY_RULES) {
-      const match = rule.keywords.some(regex => regex.test(rawDesc));
-      if (match) {
-        matchedCategory = rule.key;
-        break;
-      }
-    }
+  const seen = new Set();
+  const existingSignatures = getExistingCSVDuplicateSignatures();
 
-    if (!matchedCategory) {
-      if (amount > 0) {
-        matchedCategory = 'rev_excep';
-      } else {
-        matchedCategory = 'courses';
-      }
-    }
+  analyzedTransactions = csvRows.map((row, rowIndex) => {
+    const date = row[dateIdx] || '';
+    const label = row[descIdx] || '';
+    const signedAmount = getCSVAmountFromRow(row, amountIdx);
+    const type = signedAmount >= 0 ? 'income' : 'expense';
+    const amount = Math.abs(signedAmount);
+    const suggestion = suggestCSVCategory(label, signedAmount);
+    const signature = buildCSVSignature(date, label, signedAmount);
+    const duplicate = seen.has(signature) || existingSignatures.has(signature);
+    seen.add(signature);
 
-    analyzedTransactions.push({
+    return {
       id: rowIndex,
-      date: rawDate,
-      desc: rawDesc,
-      amount: Math.abs(amount),
-      isExpense: amount < 0 || (amount === 0 && !matchedCategory.startsWith('rev')),
-      matchedCategory: matchedCategory
-    });
+      date,
+      label,
+      amount,
+      signedAmount,
+      type,
+      suggestedCategory: suggestion.suggestedCategory,
+      categoryKey: suggestion.categoryKey,
+      confidence: suggestion.confidence,
+      duplicate,
+      signature,
+      excluded: duplicate
+    };
   });
 
   const tbody = document.getElementById('csv-operations-body');
   tbody.innerHTML = '';
 
-  analyzedTransactions.forEach(t => {
-    let selectOptions = '<option value="">-- Ignorer --</option>';
-    Object.keys(CATEGORY_NAMES).forEach(key => {
-      const selected = t.matchedCategory === key ? 'selected' : '';
-      selectOptions += `<option value="${key}" ${selected}>${CATEGORY_NAMES[key]}</option>`;
+  analyzedTransactions.forEach(transaction => {
+    let selectOptions = '<option value="">Inconnue / à traiter plus tard</option>';
+    Object.keys(CSV_CATEGORY_OPTIONS).forEach(key => {
+      const selected = transaction.categoryKey === key ? 'selected' : '';
+      selectOptions += `<option value="${key}" ${selected}>${CSV_CATEGORY_OPTIONS[key]}</option>`;
     });
 
+    const confidenceLabel = transaction.confidence > 0 ? `${transaction.confidence}%` : 'À vérifier';
+    const duplicateBadge = transaction.duplicate ? '<span class="csv-badge duplicate">doublon</span>' : '';
+    const typeBadge = transaction.type === 'income'
+      ? '<span class="csv-badge income">revenu</span>'
+      : '<span class="csv-badge expense">dépense</span>';
+
     tbody.innerHTML += `
-      <tr>
-        <td><input type="checkbox" class="csv-row-checkbox" data-id="${t.id}" checked onchange="updateCSVMatchSummary()"></td>
-        <td>${t.date}</td>
-        <td style="font-weight: 500;">${t.desc}</td>
+      <tr class="${transaction.duplicate ? 'csv-row-duplicate' : ''}">
+        <td><input type="checkbox" class="csv-row-checkbox" data-id="${transaction.id}" ${transaction.excluded ? '' : 'checked'} onchange="toggleCSVTransaction(${transaction.id}, this.checked)"></td>
+        <td>${escapeHtml(transaction.date)}</td>
+        <td style="font-weight: 500;">
+          ${escapeHtml(transaction.label)}
+          <div class="csv-row-meta">${typeBadge}${duplicateBadge}<span class="csv-badge">${confidenceLabel}</span></div>
+        </td>
         <td>
-          <select class="budget-input csv-row-category" data-id="${t.id}" style="width: 100%; font-size: 12px; padding: 4px 8px;" onchange="updateCSVMatchSummary()">
+          <select class="budget-input csv-row-category" data-id="${transaction.id}" style="width: 100%; font-size: 12px; padding: 4px 8px;" onchange="changeCSVCategory(${transaction.id}, this.value)">
             ${selectOptions}
           </select>
         </td>
-        <td style="text-align: right; font-weight: 700; color: ${t.isExpense ? 'var(--red)' : 'var(--green)'};">
-          ${t.amount.toFixed(2)} €
+        <td style="text-align: right; font-weight: 700; color: ${transaction.type === 'expense' ? 'var(--red)' : 'var(--green)'};">
+          ${transaction.type === 'expense' ? '-' : '+'}${fmt(transaction.amount)}
         </td>
       </tr>
     `;
   });
 
+  renderCSVSummary();
   document.getElementById('csv-mapping-panel').style.display = 'none';
   document.getElementById('csv-preview-panel').style.display = 'block';
   document.getElementById('csv-actions-panel').style.display = 'flex';
-  
+  updateCSVMatchSummary();
+}
+
+function toggleCSVTransaction(id, checked) {
+  const transaction = analyzedTransactions.find(t => t.id === id);
+  if (transaction) transaction.excluded = !checked;
+  renderCSVSummary();
+  updateCSVMatchSummary();
+}
+
+function changeCSVCategory(id, categoryKey) {
+  const transaction = analyzedTransactions.find(t => t.id === id);
+  if (!transaction) return;
+
+  transaction.categoryKey = categoryKey;
+  transaction.suggestedCategory = CSV_CATEGORY_OPTIONS[categoryKey] || 'Inconnue';
+  transaction.confidence = categoryKey ? 100 : 0;
+  if (categoryKey) saveCSVLearningForLabel(transaction.label, categoryKey);
+  renderCSVSummary();
   updateCSVMatchSummary();
 }
 
 function toggleAllCSVCheckboxes(selectAllEl) {
-  const checkboxes = document.querySelectorAll('.csv-row-checkbox');
-  checkboxes.forEach(cb => cb.checked = selectAllEl.checked);
+  document.querySelectorAll('.csv-row-checkbox').forEach(cb => {
+    cb.checked = selectAllEl.checked;
+    const transaction = analyzedTransactions.find(t => t.id === parseInt(cb.dataset.id));
+    if (transaction) transaction.excluded = !selectAllEl.checked;
+  });
+  renderCSVSummary();
   updateCSVMatchSummary();
 }
 
 function updateCSVMatchSummary() {
-  let count = 0;
-  const checkboxes = document.querySelectorAll('.csv-row-checkbox');
-  checkboxes.forEach(cb => {
-    if (cb.checked) {
-      const select = document.querySelector(`.csv-row-category[data-id="${cb.dataset.id}"]`);
-      if (select && select.value !== '') {
-        count++;
-      }
-    }
-  });
-  document.getElementById('csv-match-summary').textContent = `${count} transaction(s) prête(s) à être importée(s)`;
+  const selected = analyzedTransactions.filter(t => !t.excluded);
+  const recognized = selected.filter(t => t.categoryKey).length;
+  document.getElementById('csv-match-summary').textContent =
+    `${selected.length} ligne(s) sélectionnée(s), ${recognized} catégorisée(s) - brouillon uniquement`;
 }
 
 function applyCSVTransactions() {
-  const checkboxes = document.querySelectorAll('.csv-row-checkbox');
-  let importedCount = 0;
-  const categorySums = {};
+  const selected = analyzedTransactions
+    .filter(t => !t.excluded)
+    .map(t => ({
+      date: t.date,
+      label: t.label,
+      amount: t.amount,
+      signedAmount: t.signedAmount,
+      type: t.type,
+      suggestedCategory: t.suggestedCategory,
+      categoryKey: t.categoryKey,
+      confidence: t.confidence,
+      signature: t.signature,
+      duplicate: t.duplicate
+    }));
 
-  checkboxes.forEach(cb => {
-    if (cb.checked) {
-      const transId = parseInt(cb.dataset.id);
-      const select = document.querySelector(`.csv-row-category[data-id="${transId}"]`);
-      
-      if (select && select.value !== '') {
-        const catKey = select.value;
-        const trans = analyzedTransactions.find(t => t.id === transId);
-        
-        if (trans) {
-          if (!categorySums[catKey]) categorySums[catKey] = 0;
-          categorySums[catKey] += trans.amount;
-          importedCount++;
-        }
-      }
-    }
-  });
-
-  if (importedCount === 0) {
-    showToast('⚠️ Aucune transaction sélectionnée pour l\'import');
+  if (selected.length === 0) {
+    showToast('⚠️ Aucune opération sélectionnée pour le brouillon');
     return;
   }
 
-  Object.keys(categorySums).forEach(catKey => {
-    const input = document.querySelector(`[data-key="${catKey}"]`);
-    if (input) {
-      const currentVal = parseFloat(input.value) || 0;
-      const newVal = Math.round((currentVal + categorySums[catKey]) * 100) / 100;
-      input.value = newVal;
-    }
+  const store = readCSVJson(CSV_DRAFTS_KEY, { version: 1, drafts: [] });
+  const drafts = Array.isArray(store.drafts) ? store.drafts : [];
+  drafts.push({
+    id: `csv_draft_${Date.now()}`,
+    month: getMonth(),
+    created_at: new Date().toISOString(),
+    separator: csvDetectedSeparator,
+    headers: csvHeaders,
+    operations: selected
   });
 
-  saveData();
+  writeCSVJson(CSV_DRAFTS_KEY, {
+    version: 1,
+    updated_at: new Date().toISOString(),
+    drafts
+  });
+
   resetCSVImporter();
-  showToast(`✅ ${importedCount} opérations importées avec succès !`);
+  showToast(`✅ Brouillon CSV enregistré (${selected.length} opération(s))`);
 }
 
 // Seed demo cagnottes if empty

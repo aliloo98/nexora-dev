@@ -10,6 +10,7 @@ const TEXT = [30, 41, 59];
 const MUTED = [100, 116, 139];
 const GREEN = [22, 163, 74];
 const RED = [220, 38, 38];
+const PDF_LOGO_SIZE = 128;
 
 const euroFormatter = new Intl.NumberFormat('fr-FR', {
   style: 'currency',
@@ -104,65 +105,58 @@ const truncate = (value, maxLength = 58) => {
   return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
 };
 
-const readUInt32 = (bytes, offset) => (
-  ((bytes[offset] << 24) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3]) >>> 0
-);
-
-const asciiFromBytes = (bytes, start, length) => (
-  String.fromCharCode(...bytes.slice(start, start + length))
-);
-
 const toHex = (bytes) => Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
 
-const parsePngForPdf = (arrayBuffer) => {
-  const bytes = new Uint8Array(arrayBuffer);
-  const signature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
-  if (!signature.every((byte, index) => bytes[index] === byte)) return null;
-
-  let offset = 8;
-  let width = 0;
-  let height = 0;
-  let bitDepth = 8;
-  let colorType = 2;
-  const idatParts = [];
-
-  while (offset < bytes.length) {
-    const length = readUInt32(bytes, offset);
-    const type = asciiFromBytes(bytes, offset + 4, 4);
-    const dataStart = offset + 8;
-    const dataEnd = dataStart + length;
-
-    if (type === 'IHDR') {
-      width = readUInt32(bytes, dataStart);
-      height = readUInt32(bytes, dataStart + 4);
-      bitDepth = bytes[dataStart + 8];
-      colorType = bytes[dataStart + 9];
-    } else if (type === 'IDAT') {
-      idatParts.push(bytes.slice(dataStart, dataEnd));
-    } else if (type === 'IEND') {
-      break;
-    }
-
-    offset = dataEnd + 4;
+const loadImageElement = (blob) => new Promise((resolve, reject) => {
+  if (typeof Image === 'undefined' || typeof URL === 'undefined') {
+    reject(new Error('Image decoding unavailable'));
+    return;
   }
 
-  const colors = colorType === 0 ? 1 : colorType === 2 ? 3 : null;
-  if (!width || !height || bitDepth !== 8 || !colors || idatParts.length === 0) return null;
+  const imageUrl = URL.createObjectURL(blob);
+  const image = new Image();
+  image.onload = () => {
+    URL.revokeObjectURL(imageUrl);
+    resolve(image);
+  };
+  image.onerror = () => {
+    URL.revokeObjectURL(imageUrl);
+    reject(new Error('Logo image decode failed'));
+  };
+  image.src = imageUrl;
+});
 
-  const idatLength = idatParts.reduce((sum, part) => sum + part.length, 0);
-  const idat = new Uint8Array(idatLength);
-  let cursor = 0;
-  idatParts.forEach(part => {
-    idat.set(part, cursor);
-    cursor += part.length;
-  });
+const imageElementToPdfRgb = (image) => {
+  if (typeof document === 'undefined') return null;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = PDF_LOGO_SIZE;
+  canvas.height = PDF_LOGO_SIZE;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  ctx.fillStyle = `rgb(${NAVY[0]}, ${NAVY[1]}, ${NAVY[2]})`;
+  ctx.fillRect(0, 0, PDF_LOGO_SIZE, PDF_LOGO_SIZE);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(image, 0, 0, PDF_LOGO_SIZE, PDF_LOGO_SIZE);
+
+  const rgba = ctx.getImageData(0, 0, PDF_LOGO_SIZE, PDF_LOGO_SIZE).data;
+  const rgb = new Uint8Array(PDF_LOGO_SIZE * PDF_LOGO_SIZE * 3);
+  for (let src = 0, dest = 0; src < rgba.length; src += 4) {
+    rgb[dest++] = rgba[src];
+    rgb[dest++] = rgba[src + 1];
+    rgb[dest++] = rgba[src + 2];
+  }
 
   return {
-    width,
-    height,
-    colors,
-    bitsPerComponent: bitDepth,
-    hexData: toHex(idat)
+    width: PDF_LOGO_SIZE,
+    height: PDF_LOGO_SIZE,
+    colors: 3,
+    bitsPerComponent: 8,
+    filter: '/ASCIIHexDecode',
+    hexData: toHex(rgb)
   };
 };
 
@@ -171,7 +165,7 @@ const loadLogoForPdf = async () => {
   try {
     const response = await fetch('/icon-192.png', { cache: 'force-cache' });
     if (!response.ok) return null;
-    return parsePngForPdf(await response.arrayBuffer());
+    return imageElementToPdfRgb(await loadImageElement(await response.blob()));
   } catch {
     return null;
   }
@@ -373,7 +367,9 @@ const buildPdf = (pageStreams, images = {}) => {
   const imageObjectIds = {};
   Object.entries(images).forEach(([name, image]) => {
     const stream = `${image.hexData}>`;
-    imageObjectIds[name] = addObject(`<< /Type /XObject /Subtype /Image /Width ${image.width} /Height ${image.height} /ColorSpace /DeviceRGB /BitsPerComponent ${image.bitsPerComponent} /Filter [/ASCIIHexDecode /FlateDecode] /DecodeParms << /Predictor 15 /Colors ${image.colors} /BitsPerComponent ${image.bitsPerComponent} /Columns ${image.width} >> /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
+    const filter = image.filter || '/ASCIIHexDecode';
+    const decodeParms = image.decodeParms ? ` /DecodeParms ${image.decodeParms}` : '';
+    imageObjectIds[name] = addObject(`<< /Type /XObject /Subtype /Image /Width ${image.width} /Height ${image.height} /ColorSpace /DeviceRGB /BitsPerComponent ${image.bitsPerComponent} /Filter ${filter}${decodeParms} /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
   });
   const pageIds = [];
   const xObjectResource = Object.keys(imageObjectIds).length
