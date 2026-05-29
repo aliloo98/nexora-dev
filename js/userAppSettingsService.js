@@ -83,6 +83,20 @@ const refreshGoalsUiAfterCloudMerge = async () => {
   }
 }
 
+const refreshBudgetCycleUiAfterCloudMerge = async () => {
+  if (typeof window === 'undefined') return
+  try {
+    if (typeof window.refreshBudgetCycleSettingsUI === 'function') {
+      window.refreshBudgetCycleSettingsUI()
+    }
+    if (typeof window.updateAll === 'function') {
+      window.updateAll()
+    }
+  } catch (err) {
+    UserAppSettingsService.warn('Failed to refresh budget cycle UI after cloud merge', err)
+  }
+}
+
 const UserAppSettingsService = {
   log: (message, data) => {
     if (typeof console !== 'undefined' && console.debug) {
@@ -225,6 +239,9 @@ const UserAppSettingsService = {
       if (key === 'nexora_goals_v1') {
         await refreshGoalsUiAfterCloudMerge()
       }
+      if (key === 'nexora_budget_cycle_settings_v1') {
+        await refreshBudgetCycleUiAfterCloudMerge()
+      }
       UserAppSettingsService.log('Pulled cloud setting to local', key)
       return { ok: true, action: 'cloud-to-local' }
     }
@@ -234,6 +251,9 @@ const UserAppSettingsService = {
       await forceWriteLocalSetting(key, cloudValue, row.updated_at)
       if (key === 'nexora_goals_v1') {
         await refreshGoalsUiAfterCloudMerge()
+      }
+      if (key === 'nexora_budget_cycle_settings_v1') {
+        await refreshBudgetCycleUiAfterCloudMerge()
       }
       UserAppSettingsService.log('Cloud setting is newer; updated local value', key)
       return { ok: true, action: 'cloud-to-local' }

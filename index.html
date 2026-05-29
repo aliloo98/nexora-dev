@@ -1263,6 +1263,24 @@ function initBudgetCycleSettings() {
   refreshBudgetCycleSettingsUI();
 }
 
+async function syncBudgetCycleSettingsFromCloud(options = {}) {
+  const shouldUpdate = options.update !== false;
+  if (!window.UserAppSettingsService || typeof window.UserAppSettingsService.syncCloudSettingToLocal !== 'function') {
+    refreshBudgetCycleSettingsUI();
+    return null;
+  }
+  try {
+    const result = await window.UserAppSettingsService.syncCloudSettingToLocal(BUDGET_CYCLE_SETTINGS_KEY);
+    refreshBudgetCycleSettingsUI();
+    if (shouldUpdate && typeof updateAll === 'function') updateAll();
+    return result;
+  } catch (err) {
+    console.warn('[UserAppSettingsService] budget cycle cloud hydration failed', err);
+    refreshBudgetCycleSettingsUI();
+    return null;
+  }
+}
+
 function saveBudgetCycleSettingsFromUI() {
   const mode = document.getElementById('budget-cycle-mode')?.value === 'custom' ? 'custom' : 'calendar';
   const fallback = readBudgetCycleSettings();
@@ -1285,6 +1303,9 @@ function handleBudgetCycleModeChange() {
   refreshBudgetCycleSettingsUI();
   if (typeof updateAll === 'function') updateAll();
 }
+
+window.refreshBudgetCycleSettingsUI = refreshBudgetCycleSettingsUI;
+window.syncBudgetCycleSettingsFromCloud = syncBudgetCycleSettingsFromCloud;
 
 function navigateBudgetMonth(offset) {
   const nextMonth = monthShift(getMonth(), offset);
@@ -2866,6 +2887,12 @@ function showSection(id){
       console.warn('[GoalsPage] Cloud refresh failed', err);
     });
   }
+
+  if (id === 'parametres' && typeof syncBudgetCycleSettingsFromCloud === 'function') {
+    syncBudgetCycleSettingsFromCloud().catch((err) => {
+      console.warn('[BudgetCycle] Cloud refresh failed', err);
+    });
+  }
 }
 
 window.showSection = showSection;
@@ -3483,6 +3510,7 @@ const CSV_DRAFTS_KEY = 'nexora_csv_import_drafts_v1';
 let csvRows = [];
 let csvHeaders = [];
 let analyzedTransactions = [];
+let csvIgnoredRows = [];
 let csvDetectedSeparator = ';';
 
 const CSV_CATEGORY_OPTIONS = {
@@ -3493,18 +3521,24 @@ const CSV_CATEGORY_OPTIONS = {
   elec: 'Électricité',
   impvar: 'Achats divers',
   sante: 'Santé',
+  restaurant: 'Restaurant',
+  assurance: 'Assurance',
+  administratif: 'Administratif',
   rev_excep: 'Revenus'
 };
 
 const CSV_CATEGORY_RULES = [
-  { key: 'courses', name: 'Courses', confidence: 94, keywords: ['carrefour', 'leclerc', 'auchan', 'lidl', 'intermarche', 'intermarché'] },
-  { key: 'gasoil', name: 'Carburant', confidence: 93, keywords: ['total', 'shell', 'esso', 'station'] },
+  { key: 'courses', name: 'Courses', confidence: 94, keywords: ['carrefour', 'leclerc', 'auchan', 'lidl', 'intermarche', 'intermarché', 'super u', 'monoprix', 'casino', 'aldi', 'grand frais'] },
+  { key: 'gasoil', name: 'Carburant', confidence: 93, keywords: ['total', 'shell', 'esso', 'station', 'carburant', 'station service', 'bp ', 'avia', 'eni'] },
   { key: 'stream', name: 'Streaming', confidence: 92, keywords: ['netflix', 'spotify', 'disney', 'prime'] },
   { key: 'box', name: 'Téléphone / Internet', confidence: 88, keywords: ['orange', 'sfr', 'bouygues', 'free'] },
   { key: 'elec', name: 'Électricité', confidence: 93, keywords: ['edf', 'engie', 'totalenergies', 'total energies'] },
   { key: 'impvar', name: 'Achats divers', confidence: 78, keywords: ['amazon', 'fnac', 'boulanger'] },
-  { key: 'sante', name: 'Santé', confidence: 90, keywords: ['pharmacie', 'doctolib', 'medecin', 'médecin'] },
-  { key: 'rev_excep', name: 'Revenus', confidence: 92, keywords: ['salaire', 'paie', 'virement salaire'] }
+  { key: 'sante', name: 'Santé', confidence: 90, keywords: ['pharmacie', 'doctolib', 'medecin', 'médecin', 'cpam', 'mutuelle', 'securite sociale', 'sécurité sociale'] },
+  { key: 'restaurant', name: 'Restaurant', confidence: 88, keywords: ['restaurant', 'resto', 'mcdonald', 'mcdo', 'burger king', 'kfc', 'ubereats', 'uber eats', 'deliveroo', 'pizzeria', 'boulangerie'] },
+  { key: 'assurance', name: 'Assurance', confidence: 88, keywords: ['assurance', 'maif', 'macif', 'axa', 'allianz', 'matmut', 'gmf'] },
+  { key: 'administratif', name: 'Administratif', confidence: 87, keywords: ['impot', 'impots', 'impôts', 'amende', 'tresor public', 'trésor public', 'dgfip'] },
+  { key: 'rev_excep', name: 'Revenus', confidence: 92, keywords: ['salaire', 'paie', 'virement salaire', 'employeur', 'caf', 'allocations'] }
 ];
 
 function normalizeCSVText(value) {
@@ -3610,11 +3644,13 @@ function parseCSVAmount(value) {
   const raw = String(value || '').trim();
   if (!raw) return 0;
   const negativeByParentheses = /^\(.*\)$/.test(raw);
+  const negativeByDebitMarker = /\b(d|debit|débit|db)\b/i.test(raw);
   let cleaned = raw
-    .replace(/\s/g, '')
     .replace(/\u202F/g, '')
     .replace(/\u00A0/g, '')
+    .replace(/\s/g, '')
     .replace(/[€$]/g, '')
+    .replace(/\b(cr|credit|crédit|debit|débit|db)\b/gi, '')
     .replace(/[()]/g, '');
 
   const comma = cleaned.lastIndexOf(',');
@@ -3626,14 +3662,14 @@ function parseCSVAmount(value) {
   }
 
   const amount = parseFloat(cleaned.replace(/[^\d.-]/g, '')) || 0;
-  return negativeByParentheses ? -Math.abs(amount) : amount;
+  return negativeByParentheses || negativeByDebitMarker ? -Math.abs(amount) : amount;
 }
 
 function detectCSVColumn(headers, type) {
   const candidates = {
-    date: ['date', 'operation date', 'transaction date'],
-    label: ['libelle', 'label', 'description', 'transaction', 'operation'],
-    amount: ['montant', 'amount', 'debit', 'credit']
+    date: ['date operation', 'date d operation', 'date opération', 'date valeur', 'operation date', 'transaction date', 'date'],
+    label: ['libelle operation', 'libelle d operation', 'libellé opération', 'libelle', 'label', 'description', 'transaction', 'operation'],
+    amount: ['montant', 'amount', 'debit', 'débit', 'credit', 'crédit', 'montant operation', 'montant opération', 'solde']
   }[type];
 
   let bestIndex = -1;
@@ -3641,12 +3677,18 @@ function detectCSVColumn(headers, type) {
   headers.forEach((header, index) => {
     const normalized = normalizeCSVText(header);
     candidates.forEach((candidate) => {
-      if (normalized === candidate) {
+      const normalizedCandidate = normalizeCSVText(candidate);
+      let score = 0;
+      if (normalized === normalizedCandidate) {
+        score = normalizedCandidate === 'solde' && type === 'amount' ? 1 : 4;
+      } else if (normalized.includes(normalizedCandidate)) {
+        score = normalizedCandidate === 'solde' && type === 'amount' ? 1 : 3;
+      } else if (normalizedCandidate.includes(normalized)) {
+        score = 2;
+      }
+      if (score > bestScore) {
         bestIndex = index;
-        bestScore = Math.max(bestScore, 3);
-      } else if (normalized.includes(candidate) && bestScore < 2) {
-        bestIndex = index;
-        bestScore = 2;
+        bestScore = score;
       }
     });
   });
@@ -3676,6 +3718,13 @@ function getCSVAmountFromRow(row, amountIdx) {
   }
 
   return selectedAmount;
+}
+
+function hasCSVAmountValue(row, amountIdx) {
+  if (row[amountIdx] && String(row[amountIdx]).trim()) return true;
+  const debitIdx = findSiblingAmountColumn(amountIdx, 'debit');
+  const creditIdx = findSiblingAmountColumn(amountIdx, 'credit');
+  return (debitIdx >= 0 && String(row[debitIdx] || '').trim()) || (creditIdx >= 0 && String(row[creditIdx] || '').trim());
 }
 
 function getExistingCSVDuplicateSignatures() {
@@ -3711,6 +3760,14 @@ function suggestCSVCategory(label, amount) {
     };
   }
 
+  if (amount > 0 && /salaire|paie|virement salaire|employeur|caf|allocation/.test(normalized)) {
+    return { categoryKey: 'rev_excep', suggestedCategory: 'Revenus', confidence: 92, source: 'rules' };
+  }
+
+  if (/cpam|mutuelle|remboursement sante|remboursement santé|securite sociale|securité sociale/.test(normalized)) {
+    return { categoryKey: 'sante', suggestedCategory: 'Santé', confidence: 86, source: 'rules' };
+  }
+
   for (const rule of CSV_CATEGORY_RULES) {
     if (rule.keywords.some(keyword => normalized.includes(normalizeCSVText(keyword)))) {
       return {
@@ -3720,10 +3777,6 @@ function suggestCSVCategory(label, amount) {
         source: 'rules'
       };
     }
-  }
-
-  if (amount > 0 && /salaire|paie|virement salaire/.test(normalized)) {
-    return { categoryKey: 'rev_excep', suggestedCategory: 'Revenus', confidence: 88, source: 'rules' };
   }
 
   return { categoryKey: '', suggestedCategory: 'Inconnue', confidence: 0, source: 'unknown' };
@@ -3792,6 +3845,7 @@ function resetCSVImporter() {
   csvRows = [];
   csvHeaders = [];
   analyzedTransactions = [];
+  csvIgnoredRows = [];
   document.getElementById('csv-file-input').value = '';
   document.getElementById('csv-dropzone').style.display = 'block';
   document.getElementById('csv-mapping-panel').style.display = 'none';
@@ -3813,7 +3867,8 @@ function renderCSVSummary() {
     <div class="csv-summary-card"><span>Total détecté</span><strong>${analyzedTransactions.length}</strong></div>
     <div class="csv-summary-card"><span>Reconnues</span><strong>${recognized}</strong></div>
     <div class="csv-summary-card"><span>Inconnues</span><strong>${unknown}</strong></div>
-    <div class="csv-summary-card"><span>Doublons</span><strong>${duplicateCount}</strong></div>
+    <div class="csv-summary-card"><span>Ignorées</span><strong>${csvIgnoredRows.length}</strong></div>
+    <div class="csv-summary-card"><span>Doublons probables</span><strong>${duplicateCount}</strong></div>
     <div class="csv-summary-card income"><span>Revenus</span><strong>${fmt(incomeTotal)}</strong></div>
     <div class="csv-summary-card expense"><span>Dépenses</span><strong>${fmt(expenseTotal)}</strong></div>
   `;
@@ -3832,10 +3887,17 @@ function analyzeCSVData() {
   const seen = new Set();
   const existingSignatures = getExistingCSVDuplicateSignatures();
 
-  analyzedTransactions = csvRows.map((row, rowIndex) => {
+  csvIgnoredRows = [];
+  analyzedTransactions = [];
+
+  csvRows.forEach((row, rowIndex) => {
     const date = row[dateIdx] || '';
     const label = row[descIdx] || '';
     const signedAmount = getCSVAmountFromRow(row, amountIdx);
+    if (!label || !hasCSVAmountValue(row, amountIdx) || signedAmount === 0) {
+      csvIgnoredRows.push({ rowIndex, reason: 'missing-required-data', row });
+      return;
+    }
     const type = signedAmount >= 0 ? 'income' : 'expense';
     const amount = Math.abs(signedAmount);
     const suggestion = suggestCSVCategory(label, signedAmount);
@@ -3843,7 +3905,7 @@ function analyzeCSVData() {
     const duplicate = seen.has(signature) || existingSignatures.has(signature);
     seen.add(signature);
 
-    return {
+    analyzedTransactions.push({
       id: rowIndex,
       date,
       label,
@@ -3856,7 +3918,7 @@ function analyzeCSVData() {
       duplicate,
       signature,
       excluded: duplicate
-    };
+    });
   });
 
   const tbody = document.getElementById('csv-operations-body');
@@ -3870,7 +3932,7 @@ function analyzeCSVData() {
     });
 
     const confidenceLabel = transaction.confidence > 0 ? `${transaction.confidence}%` : 'À vérifier';
-    const duplicateBadge = transaction.duplicate ? '<span class="csv-badge duplicate">doublon</span>' : '';
+    const duplicateBadge = transaction.duplicate ? '<span class="csv-badge duplicate">doublon probable</span>' : '';
     const typeBadge = transaction.type === 'income'
       ? '<span class="csv-badge income">revenu</span>'
       : '<span class="csv-badge expense">dépense</span>';
@@ -4159,6 +4221,7 @@ window.onload=async ()=>{
   // Initialize app
   loadPersonalization();
   initBudgetCycleSettings();
+  await syncBudgetCycleSettingsFromCloud({ update: false });
   installMonthlyHistorySnapshotHook();
   await renderCustomBudgetRows();
   convertCheckboxesToPaidInputs();
