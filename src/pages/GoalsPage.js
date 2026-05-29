@@ -1,11 +1,15 @@
 import { GoalsService } from '../goals/goalsService.js'
+import { UserAppSettingsService } from '../../js/userAppSettingsService.js'
 import createGoalCard from '../components/GoalCard.js'
+
+const GOALS_STORAGE_KEY = 'nexora_goals_v1'
 
 const GoalsPage = {
   init: async () => {
     await GoalsService.init()
     GoalsPage.cache()
     GoalsPage.bind()
+    await GoalsPage.hydrateFromCloud()
     await GoalsPage.render()
     await GoalsPage.renderAnalytics()
   },
@@ -68,7 +72,22 @@ const GoalsPage = {
     await GoalsPage.renderAnalytics()
   },
 
+  hydrateFromCloud: async () => {
+    if (!window.supabase?.auth || !UserAppSettingsService?.syncCloudSettingToLocal) return
+    const sessionResp = await window.supabase.auth.getSession().catch(() => null)
+    if (!sessionResp?.data?.session?.user?.id) return
+    await UserAppSettingsService.syncCloudSettingToLocal(GOALS_STORAGE_KEY)
+  },
+
+  refreshFromCloud: async () => {
+    await GoalsPage.hydrateFromCloud()
+    await GoalsPage.render()
+    await GoalsPage.renderAnalytics()
+  },
+
   render: async () => {
+    if (!GoalsPage.listEl) GoalsPage.cache()
+    if (!GoalsPage.listEl) return
     const goals = await GoalsService.listGoals()
     GoalsPage.listEl.innerHTML = ''
     const monthlyInput = document.getElementById('goal-monthly-contrib')

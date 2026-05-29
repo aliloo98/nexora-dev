@@ -107,6 +107,16 @@ const initApp = async () => {
     
     // Initialize authentication routing (handles login/register/dashboard)
     await initAuthRouting()
+
+    // Hydrate goals before the first render so cloud-only goals appear on a fresh device.
+    if (typeof UserAppSettingsService !== 'undefined' && UserAppSettingsService?.syncCloudSettingToLocal) {
+      try {
+        await UserAppSettingsService.syncCloudSettingToLocal('nexora_goals_v1')
+      } catch (e) {
+        console.warn('⚠️ Goals cloud hydration failed', e)
+      }
+    }
+
     // Initialize Goals premium section (separate layer)
     if (typeof GoalsPage !== 'undefined' && GoalsPage && typeof GoalsPage.init === 'function') {
       await GoalsPage.init()

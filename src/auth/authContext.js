@@ -93,6 +93,15 @@ export const AuthContext = {
         if (window.UserAppSettingsService && typeof window.UserAppSettingsService.syncAllAppSettings === 'function') {
           await window.UserAppSettingsService.syncAllAppSettings()
         }
+        if (window.UserAppSettingsService && typeof window.UserAppSettingsService.syncCloudSettingToLocal === 'function') {
+          await window.UserAppSettingsService.syncCloudSettingToLocal('nexora_goals_v1')
+        }
+        if (window.GoalsPage && typeof window.GoalsPage.render === 'function') {
+          await window.GoalsPage.render()
+        }
+        if (window.GoalsPage && typeof window.GoalsPage.renderAnalytics === 'function') {
+          await window.GoalsPage.renderAnalytics()
+        }
       } catch (error) {
         console.error('[Phase2D] sync error:', error)
       }

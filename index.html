@@ -2860,6 +2860,12 @@ function showSection(id){
   if (id === 'historique' && typeof buildHistory === 'function') {
     buildHistory();
   }
+
+  if (id === 'objectifs' && window.GoalsPage?.refreshFromCloud) {
+    window.GoalsPage.refreshFromCloud().catch((err) => {
+      console.warn('[GoalsPage] Cloud refresh failed', err);
+    });
+  }
 }
 
 window.showSection = showSection;
