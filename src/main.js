@@ -102,6 +102,12 @@ const refreshNexoraDebugSync = async () => {
       goalsPayload: null,
       error: null
     },
+    hydration: {
+      attempted: false,
+      savedLocal: false,
+      renderTriggered: false,
+      error: null
+    },
     goals: {
       afterMergeCount: null,
       finalGoals: null
@@ -125,6 +131,16 @@ const refreshNexoraDebugSync = async () => {
       state.supabase.userAppSettingsRaw = data || null
       state.supabase.goalsPayload = data?.data ?? null
       state.supabase.error = error || null
+
+      if (Array.isArray(state.supabase.goalsPayload) && state.supabase.goalsPayload.length > 0) {
+        state.hydration.attempted = true
+        try {
+          await UserAppSettingsService.saveSetting('nexora_goals_v1', state.supabase.goalsPayload)
+          state.hydration.savedLocal = true
+        } catch (hydrationError) {
+          state.hydration.error = hydrationError?.message || String(hydrationError)
+        }
+      }
     }
   } catch (error) {
     state.supabase.error = {
@@ -137,6 +153,11 @@ const refreshNexoraDebugSync = async () => {
     const goals = await GoalsService.getGoals()
     state.goals.finalGoals = goals
     state.goals.afterMergeCount = Array.isArray(goals) ? goals.length : null
+    if (state.hydration.savedLocal && window.GoalsPage?.render) {
+      await window.GoalsPage.render()
+      if (window.GoalsPage?.renderAnalytics) await window.GoalsPage.renderAnalytics()
+      state.hydration.renderTriggered = true
+    }
   } catch (error) {
     state.goals.error = error?.message || String(error)
   }
