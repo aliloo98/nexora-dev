@@ -149,6 +149,18 @@ const refreshNexoraDebugSync = async () => {
 
 window.refreshNexoraDebugSync = refreshNexoraDebugSync
 window.nexoraDebugSync = { enabled: false }
+window.enableNexoraDebugSync = async () => {
+  try {
+    window.localStorage?.setItem('nexora_debug_sync', '1')
+  } catch {}
+  await refreshNexoraDebugSync()
+}
+window.disableNexoraDebugSync = async () => {
+  try {
+    window.localStorage?.removeItem('nexora_debug_sync')
+  } catch {}
+  await refreshNexoraDebugSync()
+}
 
 /**
  * Inject Authentication Styles

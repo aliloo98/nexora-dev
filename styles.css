@@ -1558,6 +1558,12 @@ body {
   text-transform: uppercase;
 }
 
+.nexora-debug-sync-toggle {
+  min-height: 32px;
+  padding: 6px 10px;
+  font-size: 11px;
+}
+
 .nexora-debug-sync-panel pre {
   color: #d7e2f2;
   font-size: 11px;
