@@ -48,6 +48,20 @@ const setLocalItem = async (key, value) => {
       // Keep going even if SafeStorage is unavailable
     }
   }
+  if (typeof window !== 'undefined' && window.SafeStorage) {
+    try {
+      window.SafeStorage.setItem(key, value)
+    } catch {
+      // Keep going even if window.SafeStorage is unavailable
+    }
+  }
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      window.localStorage.setItem(key, value)
+    } catch {
+      // Keep going even if localStorage is unavailable
+    }
+  }
 }
 
 const debugLocalRaw = async (key) => {
@@ -61,6 +75,26 @@ const debugLocalRaw = async (key) => {
     }
   }
   return { storageRaw, safeRaw }
+}
+
+const forceWriteLocalSetting = async (key, value, updatedAt) => {
+  const serialized = JSON.stringify(value)
+  await setLocalItem(key, serialized)
+  if (updatedAt) {
+    await setLocalItem(key + META_SUFFIX, JSON.stringify({ updated_at: updatedAt }))
+  }
+  return UserAppSettingsService.getSetting(key)
+}
+
+const refreshGoalsUiAfterCloudMerge = async () => {
+  if (typeof window === 'undefined') return
+  try {
+    if (window.GoalsPage?.render) await window.GoalsPage.render()
+    if (window.GoalsPage?.renderAnalytics) await window.GoalsPage.renderAnalytics()
+    if (window.refreshNexoraDebugSync) await window.refreshNexoraDebugSync()
+  } catch (err) {
+    UserAppSettingsService.warn('Failed to refresh goals UI after cloud merge', err)
+  }
 }
 
 const UserAppSettingsService = {
@@ -185,6 +219,15 @@ const UserAppSettingsService = {
       console.log('[GOALS LOCAL BEFORE CLOUD MERGE]', localValue)
     }
 
+    if (key === 'nexora_goals_v1' && isNonEmptyArray(cloudValue) && !isNonEmptyArray(localValue)) {
+      await forceWriteLocalSetting(key, cloudValue, row.updated_at)
+      console.log('[GOALS LOCAL AFTER CLOUD MERGE]', await UserAppSettingsService.getSetting(key))
+      console.log('[GOALS LOCAL RAW FINAL]', await debugLocalRaw(key))
+      await refreshGoalsUiAfterCloudMerge()
+      UserAppSettingsService.log('Injected non-empty cloud goals into local storage', key)
+      return { ok: true, action: 'cloud-to-local-goals-forced' }
+    }
+
     if (isEmptyArray(cloudValue) && isNonEmptyArray(localValue)) {
       const pushResult = await UserAppSettingsService.syncLocalSettingToCloud(key)
       if (!pushResult.ok) {
@@ -197,11 +240,11 @@ const UserAppSettingsService = {
 
     if (!localValue && cloudValue) {
       // no local, cloud present -> write cloud to local
-      await setLocalItem(key, JSON.stringify(cloudValue))
-      await setLocalItem(key + META_SUFFIX, JSON.stringify({ updated_at: row.updated_at }))
+      await forceWriteLocalSetting(key, cloudValue, row.updated_at)
       if (key === 'nexora_goals_v1') {
         console.log('[GOALS LOCAL AFTER CLOUD MERGE]', await UserAppSettingsService.getSetting(key))
         console.log('[GOALS LOCAL RAW FINAL]', await debugLocalRaw(key))
+        await refreshGoalsUiAfterCloudMerge()
       }
       UserAppSettingsService.log('Pulled cloud setting to local', key)
       return { ok: true, action: 'cloud-to-local' }
@@ -209,11 +252,11 @@ const UserAppSettingsService = {
 
     if (cloudUpdated > localUpdated) {
       // cloud newer -> replace local
-      await setLocalItem(key, JSON.stringify(cloudValue))
-      await setLocalItem(key + META_SUFFIX, JSON.stringify({ updated_at: row.updated_at }))
+      await forceWriteLocalSetting(key, cloudValue, row.updated_at)
       if (key === 'nexora_goals_v1') {
         console.log('[GOALS LOCAL AFTER CLOUD MERGE]', await UserAppSettingsService.getSetting(key))
         console.log('[GOALS LOCAL RAW FINAL]', await debugLocalRaw(key))
+        await refreshGoalsUiAfterCloudMerge()
       }
       UserAppSettingsService.log('Cloud setting is newer; updated local value', key)
       return { ok: true, action: 'cloud-to-local' }
