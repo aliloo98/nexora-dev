@@ -17,6 +17,7 @@ import { StorageManager } from '../js/storage.js'
 import { Utils, ConfettiEngine } from '../js/utils.js'
 import { ThemeManager } from '../js/theme-manager.js'
 import { LogoManager } from '../js/logo-manager.js'
+import { NexoraPdfExport } from '../js/pdf-export.js'
 
 // Import Supabase
 import { supabase, testSupabaseConnection } from './supabase.js'
@@ -35,6 +36,7 @@ window.Utils = Utils
 window.ConfettiEngine = ConfettiEngine
 window.ThemeManager = ThemeManager
 window.LogoManager = LogoManager
+window.NexoraPdfExport = NexoraPdfExport
 
 // Expose Supabase globally for future modules
 window.supabase = supabase

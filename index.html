@@ -387,7 +387,10 @@
     </div>
 
     <!-- OPTIONS RAPIDES (PRINT RAPPORT) -->
-    <div style="display: flex; justify-content: flex-end; margin-top: 24px;" class="print-actions-container">
+    <div style="display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap; margin-top: 24px;" class="print-actions-container">
+      <button type="button" class="btn btn-gold" onclick="exportMonthlyPdf()" style="display: flex; align-items: center; gap: 8px; font-weight: 700; padding: 12px 24px;">
+        Exporter PDF
+      </button>
       <button type="button" class="btn" onclick="window.print()" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 12px 24px; border: 1px solid var(--border); background: rgba(255,255,255,0.02);">
         📄 Imprimer le rapport mensuel
       </button>
@@ -762,6 +765,13 @@
 
     <div class="param-block">
       <div class="param-title">Sauvegarde & transfert</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Exporter le budget mensuel en PDF</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Génère un rapport propre du mois sélectionné</div>
+        </div>
+        <button class="btn btn-gold" onclick="exportMonthlyPdf()">Exporter PDF</button>
+      </div>
       <div class="param-row">
         <div>
           <div class="param-label">Exporter mes données</div>
@@ -2106,6 +2116,28 @@ function showSection(id){
 }
 
 window.showSection = showSection;
+
+async function exportMonthlyPdf(){
+  try {
+    if (typeof refreshCategoryLabels === 'function') {
+      await refreshCategoryLabels();
+    }
+    if (typeof updateAll === 'function') updateAll();
+
+    if (!window.NexoraPdfExport?.exportMonthlyBudgetPdf) {
+      showToast('❌ Export PDF indisponible');
+      return;
+    }
+
+    await window.NexoraPdfExport.exportMonthlyBudgetPdf();
+    showToast('✅ PDF généré et téléchargé');
+  } catch (err) {
+    console.error('[PDF] Export impossible', err);
+    showToast('❌ Erreur lors de l’export PDF');
+  }
+}
+
+window.exportMonthlyPdf = exportMonthlyPdf;
 
 async function exportData(){
   try {
