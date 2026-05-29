@@ -10,12 +10,33 @@ const DEFAULT_KEYS = [
   'nexora_csv_import_drafts_v1'
 ]
 
-const getLocalItem = async (key) => {
-  let raw = await StorageManager.getItem(key)
-  if ((raw === null || raw === undefined) && typeof SafeStorage !== 'undefined') {
-    raw = SafeStorage.getItem(key)
+const parseJson = (raw) => {
+  if (raw === null || raw === undefined) return null
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return null
   }
-  return raw
+}
+
+const isEmptyArray = (value) => Array.isArray(value) && value.length === 0
+const isNonEmptyArray = (value) => Array.isArray(value) && value.length > 0
+
+const getLocalItem = async (key) => {
+  const storageRaw = await StorageManager.getItem(key)
+  let safeRaw = null
+  if (typeof SafeStorage !== 'undefined') {
+    safeRaw = SafeStorage.getItem(key)
+  }
+
+  if (storageRaw === null || storageRaw === undefined) return safeRaw
+  if (safeRaw === null || safeRaw === undefined) return storageRaw
+
+  const storageValue = parseJson(storageRaw)
+  const safeValue = parseJson(safeRaw)
+  if (isEmptyArray(storageValue) && isNonEmptyArray(safeValue)) return safeRaw
+
+  return storageRaw
 }
 
 const setLocalItem = async (key, value) => {
@@ -49,10 +70,8 @@ const UserAppSettingsService = {
   getSetting: async (key) => {
     const raw = await getLocalItem(key)
     const metaRaw = await getLocalItem(key + META_SUFFIX)
-    let value = null
-    let meta = null
-    try { value = raw ? JSON.parse(raw) : null } catch (e) { value = null }
-    try { meta = metaRaw ? JSON.parse(metaRaw) : null } catch (e) { meta = null }
+    const value = parseJson(raw)
+    const meta = parseJson(metaRaw)
     return { value, meta }
   },
 
@@ -132,10 +151,21 @@ const UserAppSettingsService = {
     const cloudUpdated = row.updated_at ? new Date(row.updated_at).getTime() : 0
     const { value: localValue, meta: localMeta } = await UserAppSettingsService.getSetting(key)
     const localUpdated = localMeta && localMeta.updated_at ? new Date(localMeta.updated_at).getTime() : 0
+    const cloudValue = row.data
 
-    if (!localValue && row.data) {
+    if (isEmptyArray(cloudValue) && isNonEmptyArray(localValue)) {
+      const pushResult = await UserAppSettingsService.syncLocalSettingToCloud(key)
+      if (!pushResult.ok) {
+        UserAppSettingsService.warn('Failed to protect non-empty local setting from empty cloud', { key, pushResult })
+        return { ok: false, error: pushResult.error, reason: pushResult.reason }
+      }
+      UserAppSettingsService.log('Local non-empty setting kept over empty cloud', key)
+      return { ok: true, action: 'local-to-cloud-empty-cloud-protected' }
+    }
+
+    if (!localValue && cloudValue) {
       // no local, cloud present -> write cloud to local
-      await setLocalItem(key, JSON.stringify(row.data))
+      await setLocalItem(key, JSON.stringify(cloudValue))
       await setLocalItem(key + META_SUFFIX, JSON.stringify({ updated_at: row.updated_at }))
       UserAppSettingsService.log('Pulled cloud setting to local', key)
       return { ok: true, action: 'cloud-to-local' }
@@ -143,7 +173,7 @@ const UserAppSettingsService = {
 
     if (cloudUpdated > localUpdated) {
       // cloud newer -> replace local
-      await setLocalItem(key, JSON.stringify(row.data))
+      await setLocalItem(key, JSON.stringify(cloudValue))
       await setLocalItem(key + META_SUFFIX, JSON.stringify({ updated_at: row.updated_at }))
       UserAppSettingsService.log('Cloud setting is newer; updated local value', key)
       return { ok: true, action: 'cloud-to-local' }

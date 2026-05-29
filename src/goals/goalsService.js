@@ -9,6 +9,9 @@ const GoalsService = {
   },
 
   listGoals: async () => {
+    const { value } = await UserAppSettingsService.getSetting(STORAGE_KEY)
+    if (Array.isArray(value)) return value
+
     const raw = await StorageManager.getItem(STORAGE_KEY)
     if (!raw) return []
     try {
@@ -20,9 +23,10 @@ const GoalsService = {
   },
 
   saveGoals: async (goals) => {
-    await UserAppSettingsService.saveSetting(STORAGE_KEY, goals || [])
-    if (typeof window.UserAppSettingsService?.syncLocalSettingToCloud === 'function') {
-      window.UserAppSettingsService.syncLocalSettingToCloud(STORAGE_KEY).catch((err) => {
+    const goalsToSave = goals || []
+    await UserAppSettingsService.saveSetting(STORAGE_KEY, goalsToSave)
+    if (typeof UserAppSettingsService.syncLocalSettingToCloud === 'function') {
+      await UserAppSettingsService.syncLocalSettingToCloud(STORAGE_KEY).catch((err) => {
         console.warn('[UserAppSettingsService] failed to sync goals to cloud', err)
       })
     }
