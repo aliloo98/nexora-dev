@@ -29,6 +29,7 @@ import AuthPages from './pages/AuthPages.js'
 import { authStyles } from './styles/authStyles.js'
 import { TransactionsService } from '../js/transactionsService.js'
 import { BudgetCategoriesService } from '../js/budgetCategoriesService.js'
+import { MonthlyBudgetStateService } from '../js/monthlyBudgetStateService.js'
 
 // Expose modules globally for HTML event handlers and old code
 window.StorageManager = StorageManager
@@ -45,6 +46,7 @@ window.supabase = supabase
 window.AuthContext = AuthContext
 window.TransactionsService = TransactionsService
 window.BudgetCategoriesService = BudgetCategoriesService
+window.MonthlyBudgetStateService = MonthlyBudgetStateService
 
 // Expose helper functions globally (for HTML onclick handlers)
 window.showToast = (msg) => Utils.showToast(msg)

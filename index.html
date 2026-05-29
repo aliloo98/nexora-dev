@@ -1067,10 +1067,37 @@ function loadPersonalization() {
   }
 }
 
-function loadMonth(){
+let loadMonthRequestId = 0;
+
+async function readMonthData(m) {
+  if (window.MonthlyBudgetStateService?.getMonthlyBudgetState) {
+    const state = await window.MonthlyBudgetStateService.getMonthlyBudgetState(m);
+    return state?.data || {};
+  }
+
+  try {
+    return JSON.parse(SafeStorage.getItem(storageKey(m)) || '{}');
+  } catch (err) {
+    console.warn('Donnée mois invalide', err);
+    return {};
+  }
+}
+
+async function persistMonthSnapshot(m, data) {
+  if (window.MonthlyBudgetStateService?.saveMonthlyBudgetState) {
+    return window.MonthlyBudgetStateService.saveMonthlyBudgetState(m, data);
+  }
+
+  SafeStorage.setItem(storageKey(m), JSON.stringify(data));
+  return { data, source: 'local' };
+}
+
+async function loadMonth(){
   const m=getMonth();
+  const requestId = ++loadMonthRequestId;
   let data={};
-  try { data = JSON.parse(SafeStorage.getItem(storageKey(m)) || '{}'); } catch (err) { console.warn('Donnée mois invalide', err); data = {}; }
+  try { data = await readMonthData(m); } catch (err) { console.warn('Donnée mois indisponible', err); data = {}; }
+  if (requestId !== loadMonthRequestId) return;
   
   // Migration logic for old format keys
   let migrated = false;
@@ -1102,7 +1129,9 @@ function loadMonth(){
   });
   
   if (migrated) {
-    SafeStorage.setItem(storageKey(m), JSON.stringify(data));
+    persistMonthSnapshot(m, data).catch(err => {
+      console.warn('[MonthlyBudgetState] migration save failed:', err);
+    });
   }
 
   document.querySelectorAll('[data-key]').forEach(el=>{
@@ -1118,7 +1147,7 @@ function loadMonth(){
   updateAll();
 }
 
-function saveData(){
+async function saveData(){
   const m=getMonth();
   // Load existing month data and merge current DOM values into it so
   // hiding inputs doesn't remove stored keys for hidden custom rows.
@@ -1128,8 +1157,10 @@ function saveData(){
     data[el.dataset.key] = el.value;
   });
   SafeStorage.setItem(storageKey(m), JSON.stringify(data));
+  await persistMonthSnapshot(m, data);
   
-  // Phase 2B: Sync to Supabase (async, non-blocking)
+  // Legacy transaction sync kept for compatibility; the full month snapshot
+  // above is now the source used for multi-device budget state.
   if (typeof window.TransactionsService !== 'undefined') {
     syncMonthTransactionsToSupabase(m, data).catch(err => {
       console.error('[Phase2B] sync error:', err);
@@ -2261,15 +2292,19 @@ function resetMonth(){
   customConfirm(
     'Réinitialiser le mois',
     'Voulez-vous vraiment effacer toutes les valeurs du mois de '+getMonth()+' ? Cette action est irréversible.',
-    () => {
+    async () => {
       const month = getMonth();
       if (window.TransactionsService) {
         window.TransactionsService.delete({ month }).catch(err => {
           console.warn(`[Phase2C] sync error deleting month ${month}:`, err);
         });
       }
-      SafeStorage.removeItem(storageKey(month));
-      loadMonth();
+      if (window.MonthlyBudgetStateService?.deleteMonthlyBudgetState) {
+        await window.MonthlyBudgetStateService.deleteMonthlyBudgetState(month);
+      } else {
+        SafeStorage.removeItem(storageKey(month));
+      }
+      await loadMonth();
       showToast('🗑️ Mois réinitialisé');
     }
   );
@@ -3001,7 +3036,7 @@ window.onload=async ()=>{
   initDynamicElements();
   setupFormulaEvaluation();
   await refreshCategoryLabels();
-  loadMonth();
+  await loadMonth();
   buildHistory();
   const initialHash = window.location.hash.replace('#section-', '') || 'dashboard';
   showSection(initialHash);

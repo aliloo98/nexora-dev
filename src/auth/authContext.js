@@ -79,19 +79,14 @@ export const AuthContext = {
   },
 
   /**
-   * Sync cloud transactions back to local storage after login/session restore.
+   * Refresh cloud budget state after login/session restore.
    * Non-blocking: the app keeps using local data if cloud sync is unavailable.
    * @private
    */
   _syncSupabaseToLocalAfterLogin() {
     setTimeout(async () => {
       try {
-        if (!window.TransactionsService?.syncSupabaseToLocal) return
-
-        const result = await window.TransactionsService.syncSupabaseToLocal()
-        if (result?.fallback) return
-
-        if (typeof window.loadMonth === 'function') window.loadMonth()
+        if (typeof window.loadMonth === 'function') await window.loadMonth()
         if (typeof window.buildHistory === 'function') window.buildHistory()
         if (typeof window.updateAll === 'function') window.updateAll()
       } catch (error) {
