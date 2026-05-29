@@ -27,6 +27,7 @@
   <a href="#section-dashboard" class="nav-btn active" data-section="dashboard" onclick="showSection('dashboard'); return false;" title="Tableau de bord">🏠</a>
   <a href="#section-saisie" class="nav-btn" data-section="saisie" onclick="showSection('saisie'); return false;" title="Saisie du mois">✏️</a>
   <a href="#section-historique" class="nav-btn" data-section="historique" onclick="showSection('historique'); return false;" title="Historique">📚</a>
+  <a href="#section-objectifs" class="nav-btn" data-section="objectifs" onclick="showSection('objectifs'); return false;" title="Objectifs">🎯</a>
   <a href="#section-parametres" class="nav-btn" data-section="parametres" onclick="showSection('parametres'); return false;" title="Paramètres">⚙️</a>
 </nav>
 
@@ -476,6 +477,36 @@
       <button type="button" class="btn" onclick="window.print()" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 12px 24px; border: 1px solid var(--border); background: rgba(255,255,255,0.02);">
         📄 Imprimer le rapport mensuel
       </button>
+    </div>
+  </div>
+
+  <!-- OBJECTIFS -->
+  <div id="section-objectifs" class="section">
+    <div class="budget-block">
+      <div class="budget-block-header">
+        <span class="budget-block-title">🎯 Objectifs</span>
+        <span style="font-size:12px;color:var(--text2)">Gestion des objectifs financiers (Premium)</span>
+      </div>
+      <div style="padding:16px">
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+          <label style="font-size:12px;color:var(--text2);margin-right:8px">Mise mensuelle estimée</label>
+          <input id="goal-monthly-contrib" type="number" class="budget-input" style="width:140px" value="0" oninput="if(window.GoalsPage) GoalsPage.render()">
+        </div>
+
+        <div id="goals-list" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px"></div>
+
+        <div style="margin-top:16px;padding:12px;background:rgba(255,255,255,0.02);border-radius:12px;border:1px dashed rgba(229,192,96,0.2);">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <input type="text" id="goal-new-name" class="budget-input" placeholder="Nom (ex: Voyage de noces)" style="flex:2;min-width:180px">
+            <input type="number" id="goal-new-target" class="budget-input" placeholder="Montant cible (€)" style="width:160px">
+            <input type="number" id="goal-new-current" class="budget-input" placeholder="Montant déjà épargné (€)" value="0" style="width:140px">
+            <input type="date" id="goal-new-date" class="budget-input" style="width:160px">
+            <input type="color" id="goal-new-color" value="#e5c060" title="Couleur" style="width:48px;height:40px;border:none;padding:0">
+            <input type="text" id="goal-new-icon" class="budget-input" placeholder="Emoji" style="width:80px">
+            <button type="button" id="goal-create-btn" class="btn btn-gold">Créer</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

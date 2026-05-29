@@ -30,6 +30,8 @@ import { authStyles } from './styles/authStyles.js'
 import { TransactionsService } from '../js/transactionsService.js'
 import { BudgetCategoriesService } from '../js/budgetCategoriesService.js'
 import { MonthlyBudgetStateService } from '../js/monthlyBudgetStateService.js'
+import GoalsPage from './pages/GoalsPage.js'
+import { GoalsService } from './goals/goalsService.js'
 
 // Expose modules globally for HTML event handlers and old code
 window.StorageManager = StorageManager
@@ -47,6 +49,8 @@ window.AuthContext = AuthContext
 window.TransactionsService = TransactionsService
 window.BudgetCategoriesService = BudgetCategoriesService
 window.MonthlyBudgetStateService = MonthlyBudgetStateService
+window.GoalsService = GoalsService
+window.GoalsPage = GoalsPage
 
 // Expose helper functions globally (for HTML onclick handlers)
 window.showToast = (msg) => Utils.showToast(msg)
@@ -101,6 +105,11 @@ const initApp = async () => {
     
     // Initialize authentication routing (handles login/register/dashboard)
     await initAuthRouting()
+    // Initialize Goals premium section (separate layer)
+    if (typeof GoalsPage !== 'undefined' && GoalsPage && typeof GoalsPage.init === 'function') {
+      await GoalsPage.init()
+      console.log('🎯 Goals module initialized')
+    }
     
     console.log('✅ Nexora initialized successfully')
   } catch (err) {

@@ -398,6 +398,29 @@ body {
 }
 
 /* SVG DONUT CHART */
+
+/* Goals cards */
+.goal-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.goal-card-title { font-weight: 700; font-size: 15px; }
+.goal-card-meta { display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;color:var(--text2) }
+.goal-progress-wrap { height:10px;background:rgba(255,255,255,0.03);border-radius:6px;overflow:hidden }
+.goal-progress-fill { height:100%; background:var(--gold); width:0% }
+.goal-card-footer { display:flex;justify-content:space-between;font-size:13px;color:var(--text2) }
+.goal-actions { display:flex; gap:8px; justify-content:flex-end }
+
+@media(max-width:600px) {
+  #goals-list { grid-template-columns: 1fr !important }
+  .goal-card-meta, .goal-card-footer { font-size:12px }
+}
+
 .chart-container {
   display: flex;
   align-items: center;
