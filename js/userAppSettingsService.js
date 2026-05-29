@@ -10,6 +10,25 @@ const DEFAULT_KEYS = [
   'nexora_csv_import_drafts_v1'
 ]
 
+const getLocalItem = async (key) => {
+  let raw = await StorageManager.getItem(key)
+  if ((raw === null || raw === undefined) && typeof SafeStorage !== 'undefined') {
+    raw = SafeStorage.getItem(key)
+  }
+  return raw
+}
+
+const setLocalItem = async (key, value) => {
+  await StorageManager.setItem(key, value)
+  if (typeof SafeStorage !== 'undefined') {
+    try {
+      SafeStorage.setItem(key, value)
+    } catch (err) {
+      // Keep going even if SafeStorage is unavailable
+    }
+  }
+}
+
 const UserAppSettingsService = {
   log: (message, data) => {
     if (typeof console !== 'undefined' && console.debug) {
@@ -28,8 +47,8 @@ const UserAppSettingsService = {
   },
 
   getSetting: async (key) => {
-    const raw = await StorageManager.getItem(key)
-    const metaRaw = await StorageManager.getItem(key + META_SUFFIX)
+    const raw = await getLocalItem(key)
+    const metaRaw = await getLocalItem(key + META_SUFFIX)
     let value = null
     let meta = null
     try { value = raw ? JSON.parse(raw) : null } catch (e) { value = null }
@@ -38,9 +57,10 @@ const UserAppSettingsService = {
   },
 
   saveSetting: async (key, value) => {
-    await StorageManager.setItem(key, JSON.stringify(value))
+    const serialized = JSON.stringify(value)
+    await setLocalItem(key, serialized)
     const updated_at = new Date().toISOString()
-    await StorageManager.setItem(key + META_SUFFIX, JSON.stringify({ updated_at }))
+    await setLocalItem(key + META_SUFFIX, JSON.stringify({ updated_at }))
     return { updated_at }
   },
 
@@ -115,16 +135,16 @@ const UserAppSettingsService = {
 
     if (!localValue && row.data) {
       // no local, cloud present -> write cloud to local
-      await StorageManager.setItem(key, JSON.stringify(row.data))
-      await StorageManager.setItem(key + META_SUFFIX, JSON.stringify({ updated_at: row.updated_at }))
+      await setLocalItem(key, JSON.stringify(row.data))
+      await setLocalItem(key + META_SUFFIX, JSON.stringify({ updated_at: row.updated_at }))
       UserAppSettingsService.log('Pulled cloud setting to local', key)
       return { ok: true, action: 'cloud-to-local' }
     }
 
     if (cloudUpdated > localUpdated) {
       // cloud newer -> replace local
-      await StorageManager.setItem(key, JSON.stringify(row.data))
-      await StorageManager.setItem(key + META_SUFFIX, JSON.stringify({ updated_at: row.updated_at }))
+      await setLocalItem(key, JSON.stringify(row.data))
+      await setLocalItem(key + META_SUFFIX, JSON.stringify({ updated_at: row.updated_at }))
       UserAppSettingsService.log('Cloud setting is newer; updated local value', key)
       return { ok: true, action: 'cloud-to-local' }
     }

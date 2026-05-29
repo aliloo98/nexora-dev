@@ -1,4 +1,5 @@
 import { StorageManager } from '../../js/storage.js'
+import { UserAppSettingsService } from '../../js/userAppSettingsService.js'
 
 const STORAGE_KEY = 'nexora_goals_v1'
 
@@ -19,7 +20,12 @@ const GoalsService = {
   },
 
   saveGoals: async (goals) => {
-    await StorageManager.setItem(STORAGE_KEY, JSON.stringify(goals || []))
+    await UserAppSettingsService.saveSetting(STORAGE_KEY, goals || [])
+    if (typeof window.UserAppSettingsService?.syncLocalSettingToCloud === 'function') {
+      window.UserAppSettingsService.syncLocalSettingToCloud(STORAGE_KEY).catch((err) => {
+        console.warn('[UserAppSettingsService] failed to sync goals to cloud', err)
+      })
+    }
     return true
   },
 

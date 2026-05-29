@@ -89,6 +89,10 @@ export const AuthContext = {
         if (typeof window.loadMonth === 'function') await window.loadMonth()
         if (typeof window.buildHistory === 'function') window.buildHistory()
         if (typeof window.updateAll === 'function') window.updateAll()
+
+        if (window.UserAppSettingsService && typeof window.UserAppSettingsService.syncAllAppSettings === 'function') {
+          await window.UserAppSettingsService.syncAllAppSettings()
+        }
       } catch (error) {
         console.error('[Phase2D] sync error:', error)
       }

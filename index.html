@@ -1144,6 +1144,16 @@ function writeBudgetCycleSettings(settings) {
     updatedAt: new Date().toISOString()
   };
   SafeStorage.setItem(BUDGET_CYCLE_SETTINGS_KEY, JSON.stringify(next));
+  if (typeof StorageManager !== 'undefined') {
+    StorageManager.setItem(BUDGET_CYCLE_SETTINGS_KEY, JSON.stringify(next)).catch(() => {})
+  }
+  if (window.UserAppSettingsService && typeof window.UserAppSettingsService.syncLocalSettingToCloud === 'function') {
+    window.UserAppSettingsService.saveSetting(BUDGET_CYCLE_SETTINGS_KEY, next)
+      .then(() => window.UserAppSettingsService.syncLocalSettingToCloud(BUDGET_CYCLE_SETTINGS_KEY))
+      .catch((err) => {
+        console.warn('[UserAppSettingsService] budget cycle sync failed', err)
+      })
+  }
   return next;
 }
 
@@ -3131,11 +3141,22 @@ function readMonthlyHistoryStore() {
 }
 
 function writeMonthlyHistoryStore(store) {
-  SafeStorage.setItem(MONTHLY_HISTORY_SNAPSHOTS_KEY, JSON.stringify({
+  const payload = {
     version: 1,
     updated_at: new Date().toISOString(),
     snapshots: store.snapshots || {}
-  }));
+  }
+  SafeStorage.setItem(MONTHLY_HISTORY_SNAPSHOTS_KEY, JSON.stringify(payload));
+  if (typeof StorageManager !== 'undefined') {
+    StorageManager.setItem(MONTHLY_HISTORY_SNAPSHOTS_KEY, JSON.stringify(payload)).catch(() => {})
+  }
+  if (window.UserAppSettingsService && typeof window.UserAppSettingsService.syncLocalSettingToCloud === 'function') {
+    window.UserAppSettingsService.saveSetting(MONTHLY_HISTORY_SNAPSHOTS_KEY, payload)
+      .then(() => window.UserAppSettingsService.syncLocalSettingToCloud(MONTHLY_HISTORY_SNAPSHOTS_KEY))
+      .catch((err) => {
+        console.warn('[UserAppSettingsService] monthly history sync failed', err)
+      })
+  }
 }
 
 function getHistoryMonthsFromStorage() {
@@ -3512,6 +3533,17 @@ function readCSVJson(key, fallback) {
 
 function writeCSVJson(key, value) {
   SafeStorage.setItem(key, JSON.stringify(value));
+  if (typeof StorageManager !== 'undefined') {
+    StorageManager.setItem(key, JSON.stringify(value)).catch(() => {})
+  }
+  if (window.UserAppSettingsService && typeof window.UserAppSettingsService.syncLocalSettingToCloud === 'function' &&
+      (key === CSV_LEARNING_KEY || key === CSV_DRAFTS_KEY)) {
+    window.UserAppSettingsService.saveSetting(key, value)
+      .then(() => window.UserAppSettingsService.syncLocalSettingToCloud(key))
+      .catch((err) => {
+        console.warn('[UserAppSettingsService] csv setting sync failed', key, err)
+      })
+  }
 }
 
 function getCSVLearning() {
