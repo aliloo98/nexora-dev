@@ -3,28 +3,43 @@ import { UserAppSettingsService } from '../../js/userAppSettingsService.js'
 
 const STORAGE_KEY = 'nexora_goals_v1'
 
+const getGoals = async () => {
+  const { value } = await UserAppSettingsService.getSetting(STORAGE_KEY)
+  if (Array.isArray(value)) {
+    console.log('[GOALS GET]', value)
+    return value
+  }
+
+  const raw = await StorageManager.getItem(STORAGE_KEY)
+  if (!raw) {
+    console.log('[GOALS GET]', [])
+    return []
+  }
+  try {
+    const parsed = JSON.parse(raw)
+    const goals = Array.isArray(parsed) ? parsed : []
+    console.log('[GOALS GET]', goals)
+    return goals
+  } catch (err) {
+    console.log('[GOALS GET]', [])
+    return []
+  }
+}
+
 const GoalsService = {
   init: async () => {
     await StorageManager.initIndexedDB()
   },
 
-  listGoals: async () => {
-    const { value } = await UserAppSettingsService.getSetting(STORAGE_KEY)
-    if (Array.isArray(value)) return value
+  getGoals,
 
-    const raw = await StorageManager.getItem(STORAGE_KEY)
-    if (!raw) return []
-    try {
-      const parsed = JSON.parse(raw)
-      return Array.isArray(parsed) ? parsed : []
-    } catch (err) {
-      return []
-    }
-  },
+  listGoals: getGoals,
 
   saveGoals: async (goals) => {
     const goalsToSave = goals || []
+    console.log('[GOALS BEFORE SAVE]', goalsToSave)
     await UserAppSettingsService.saveSetting(STORAGE_KEY, goalsToSave)
+    console.log('[GOALS AFTER LOCAL SAVE]', await getGoals())
     if (typeof UserAppSettingsService.syncLocalSettingToCloud === 'function') {
       await UserAppSettingsService.syncLocalSettingToCloud(STORAGE_KEY).catch((err) => {
         console.warn('[UserAppSettingsService] failed to sync goals to cloud', err)
@@ -34,6 +49,7 @@ const GoalsService = {
   },
 
   createGoal: async (goal) => {
+    console.log('[GOALS CREATE INPUT]', goal)
     const goals = await GoalsService.listGoals()
     const now = Date.now()
     const entry = Object.assign({ id: String(now), name: '', target: 0, current: 0, color: '#e5c060', icon: '🎯', targetDate: null }, goal)

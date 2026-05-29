@@ -76,6 +76,7 @@ const UserAppSettingsService = {
   },
 
   saveSetting: async (key, value) => {
+    console.log('[SETTINGS SAVE]', key, value)
     const serialized = JSON.stringify(value)
     await setLocalItem(key, serialized)
     const updated_at = new Date().toISOString()
@@ -104,8 +105,13 @@ const UserAppSettingsService = {
     const payload = { user_id: userId, key, data: value }
     if (meta && meta.updated_at) payload.updated_at = meta.updated_at
 
+    console.log('[SETTINGS CLOUD PAYLOAD]', payload)
     try {
-      const { error } = await window.supabase.from('user_app_settings').upsert([payload], { returning: 'minimal' })
+      const result = await window.supabase
+        .from('user_app_settings')
+        .upsert(payload, { onConflict: 'user_id,key', returning: 'minimal' })
+      const { error } = result
+      console.log('[SETTINGS CLOUD UPSERT RESULT]', error || result)
       if (error) {
         UserAppSettingsService.warn('Failed to upsert cloud setting', { key, error })
         return { ok: false, error }
@@ -152,6 +158,10 @@ const UserAppSettingsService = {
     const { value: localValue, meta: localMeta } = await UserAppSettingsService.getSetting(key)
     const localUpdated = localMeta && localMeta.updated_at ? new Date(localMeta.updated_at).getTime() : 0
     const cloudValue = row.data
+    if (key === 'nexora_goals_v1') {
+      console.log('[GOALS RECEIVED FROM CLOUD]', cloudValue)
+      console.log('[GOALS LOCAL BEFORE CLOUD MERGE]', localValue)
+    }
 
     if (isEmptyArray(cloudValue) && isNonEmptyArray(localValue)) {
       const pushResult = await UserAppSettingsService.syncLocalSettingToCloud(key)
