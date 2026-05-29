@@ -54,35 +54,6 @@ window.GoalsService = GoalsService
 window.GoalsPage = GoalsPage
 window.UserAppSettingsService = UserAppSettingsService
 
-const initGoalsStartupDebug = () => {
-  if (window.nexoraGoalsStartupDebug) return
-  window.nexoraGoalsStartupDebug = {
-    authReady: false,
-    syncStarted: false,
-    syncFinished: false,
-    cloudGoalsCount: null,
-    localGoalsCount: null,
-    goalsServiceCount: null,
-    renderCount: 0,
-    lastRenderAt: null,
-    timeline: []
-  }
-  window.nexoraTraceGoalsStartup = (event, patch = {}) => {
-    const state = window.nexoraGoalsStartupDebug
-    const at = new Date().toISOString()
-    Object.assign(state, patch)
-    state.timeline.push({ at, event, patch })
-    if (state.timeline.length > 80) state.timeline.shift()
-    console.log('[GOALS STARTUP DEBUG]', event, patch, state)
-    const target = document.getElementById('goals-startup-debug-json')
-    if (target) {
-      target.textContent = JSON.stringify(state, null, 2)
-    }
-  }
-}
-
-initGoalsStartupDebug()
-
 // Expose helper functions globally (for HTML onclick handlers)
 window.showToast = (msg) => Utils.showToast(msg)
 window.closeModal = () => Utils.closeModal()
@@ -107,7 +78,6 @@ const injectAuthStyles = () => {
  */
 const initApp = async () => {
   try {
-    window.nexoraTraceGoalsStartup?.('initApp:start')
     // Initialize storage
     await StorageManager.initIndexedDB()
     console.log('📊 Storage initialized')
@@ -141,11 +111,8 @@ const initApp = async () => {
     // Hydrate goals before the first render so cloud-only goals appear on a fresh device.
     if (typeof UserAppSettingsService !== 'undefined' && UserAppSettingsService?.syncCloudSettingToLocal) {
       try {
-        window.nexoraTraceGoalsStartup?.('main:goalsHydration:start')
         await UserAppSettingsService.syncCloudSettingToLocal('nexora_goals_v1')
-        window.nexoraTraceGoalsStartup?.('main:goalsHydration:finish')
       } catch (e) {
-        window.nexoraTraceGoalsStartup?.('main:goalsHydration:error', { error: e?.message || String(e) })
         console.warn('⚠️ Goals cloud hydration failed', e)
       }
     }
@@ -159,17 +126,13 @@ const initApp = async () => {
     // Sync user app settings from cloud/local where applicable
     if (typeof UserAppSettingsService !== 'undefined' && UserAppSettingsService && typeof UserAppSettingsService.syncAllAppSettings === 'function') {
       try {
-        window.nexoraTraceGoalsStartup?.('main:syncAllAppSettings:start', { syncStarted: true, syncFinished: false })
         await UserAppSettingsService.syncAllAppSettings()
-        window.nexoraTraceGoalsStartup?.('main:syncAllAppSettings:finish', { syncFinished: true })
         console.log('🔁 User app settings sync attempted')
       } catch (e) {
-        window.nexoraTraceGoalsStartup?.('main:syncAllAppSettings:error', { syncFinished: true, error: e?.message || String(e) })
         console.warn('⚠️ User app settings sync failed', e)
       }
     }
 
-    window.nexoraTraceGoalsStartup?.('initApp:finish')
     console.log('✅ Nexora initialized successfully')
   } catch (err) {
     console.error('❌ App initialization error:', err)

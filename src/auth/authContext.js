@@ -69,7 +69,6 @@ export const AuthContext = {
     this._state.user = user
     this._state.session = session
     this._state.isAuthenticated = !!user
-    window.nexoraTraceGoalsStartup?.('auth:setUser', { authReady: !!user, userId: user?.id || null })
     
     // Also store in placeholder session storage
     if (user && session) {
@@ -87,34 +86,23 @@ export const AuthContext = {
   _syncSupabaseToLocalAfterLogin() {
     setTimeout(async () => {
       try {
-        window.nexoraTraceGoalsStartup?.('auth:postLoginSync:start')
         if (typeof window.loadMonth === 'function') await window.loadMonth()
         if (typeof window.buildHistory === 'function') window.buildHistory()
         if (typeof window.updateAll === 'function') window.updateAll()
 
         if (window.UserAppSettingsService && typeof window.UserAppSettingsService.syncAllAppSettings === 'function') {
-          window.nexoraTraceGoalsStartup?.('auth:syncAllAppSettings:start', { syncStarted: true, syncFinished: false })
           await window.UserAppSettingsService.syncAllAppSettings()
-          window.nexoraTraceGoalsStartup?.('auth:syncAllAppSettings:finish', { syncFinished: true })
         }
         if (window.UserAppSettingsService && typeof window.UserAppSettingsService.syncCloudSettingToLocal === 'function') {
-          window.nexoraTraceGoalsStartup?.('auth:goalsHydration:start')
           await window.UserAppSettingsService.syncCloudSettingToLocal('nexora_goals_v1')
-          window.nexoraTraceGoalsStartup?.('auth:goalsHydration:finish')
         }
         if (window.GoalsPage && typeof window.GoalsPage.render === 'function') {
-          window.nexoraTraceGoalsStartup?.('auth:GoalsPage.render:start')
           await window.GoalsPage.render()
-          window.nexoraTraceGoalsStartup?.('auth:GoalsPage.render:finish')
         }
         if (window.GoalsPage && typeof window.GoalsPage.renderAnalytics === 'function') {
-          window.nexoraTraceGoalsStartup?.('auth:GoalsPage.renderAnalytics:start')
           await window.GoalsPage.renderAnalytics()
-          window.nexoraTraceGoalsStartup?.('auth:GoalsPage.renderAnalytics:finish')
         }
-        window.nexoraTraceGoalsStartup?.('auth:postLoginSync:finish')
       } catch (error) {
-        window.nexoraTraceGoalsStartup?.('auth:postLoginSync:error', { error: error?.message || String(error) })
         console.error('[Phase2D] sync error:', error)
       }
     }, 0)
@@ -160,13 +148,11 @@ export const AuthContext = {
         this._state.user = user
         this._state.isAuthenticated = true
         this._state.error = null
-        window.nexoraTraceGoalsStartup?.('auth:init:restored', { authReady: true, userId: user?.id || null })
         this._syncSupabaseToLocalAfterLogin()
       } else {
         console.log('ℹ️  No user session to restore')
         this._state.user = null
         this._state.isAuthenticated = false
-        window.nexoraTraceGoalsStartup?.('auth:init:no-session', { authReady: false })
       }
     } catch (error) {
       console.error('❌ AuthContext init error:', error)
