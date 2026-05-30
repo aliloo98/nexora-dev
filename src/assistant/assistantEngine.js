@@ -37,6 +37,7 @@ async function analyzeBudget(monthKey) {
   const G = (typeof window !== 'undefined' && window.GoalsService) ? window.GoalsService : (typeof globalThis !== 'undefined' ? globalThis.GoalsService : null)
   const primaryGoal = G && typeof G.getPrimaryGoal === 'function' ? await G.getPrimaryGoal() : null
   const goalsSummary = G && typeof G.getSummary === 'function' ? await G.getSummary() : null
+  const goals = Array.isArray(goalsSummary?.goals) ? goalsSummary.goals : []
 
   // Score — reuse existing logic if available
   let scoreObj = { score: 0, label: 'Aucune donnée' }
@@ -61,7 +62,51 @@ async function analyzeBudget(monthKey) {
     return result
   }
 
-  // Status from score
+  const normalizeLabel = (text) => String(text || '').toLowerCase()
+  const subscriptionKeywords = ['abonnement', 'stream', 'box', 'téléphone', 'internet', 'netflix', 'spotify', 'prime', 'canal', 'sfr', 'orange', 'free', 'bouygues', 'deezer', 'spotify', 'disney']
+  const detectSubscriptions = () => {
+    try {
+      if (typeof getBudgetKeysByType !== 'function' || typeof getBudgetLabel !== 'function' || typeof getVal !== 'function') return []
+      const fixedKeys = getBudgetKeysByType('fixed_expense') || []
+      return fixedKeys
+        .map(key => ({ key, label: getBudgetLabel(key), amount: Number(getVal(key) || 0) }))
+        .filter(item => item.amount > 0 && subscriptionKeywords.some(keyword => normalizeLabel(item.label).includes(keyword)))
+    } catch {
+      return []
+    }
+  }
+
+  const sampleMonths = [addMonths(new Date(), -1), addMonths(new Date(), -2), addMonths(new Date(), -3)]
+  const sampledHistorical = []
+  let previousMonthMetrics = null
+  try {
+    for (const d of sampleMonths) {
+      if (typeof getMonthMetrics === 'function') {
+        const m = getMonthMetrics(formatMonthYear(d), { fromDom: false })
+        if (m && typeof m.income === 'number') {
+          sampledHistorical.push(m)
+          if (!previousMonthMetrics) previousMonthMetrics = m
+        }
+      }
+    }
+  } catch (e) {
+    // ignore sampling errors
+  }
+
+  const histCount = sampledHistorical.length
+  const histAvgIncome = histCount > 0 ? sampledHistorical.reduce((acc, item) => acc + Number(item.income || 0), 0) / histCount : rev
+  const histAvgExpenses = histCount > 0 ? sampledHistorical.reduce((acc, item) => acc + Number(item.expenses || 0), 0) / histCount : totalCharges
+  const incomeTrendPct = histAvgIncome > 0 ? Math.round(((rev - histAvgIncome) / histAvgIncome) * 100) : 0
+  const expenseInflationRate = histAvgExpenses > 0 ? Math.round(((totalCharges - histAvgExpenses) / histAvgExpenses) * 100) : 0
+  const historicalSavings = histCount > 0 ? sampledHistorical.reduce((acc, item) => acc + Number(item.savings || 0), 0) / histCount : savings
+
+  const budgetInflection = expenseInflationRate >= 10
+
+  const subscriptionItems = detectSubscriptions()
+  const subscriptionCount = subscriptionItems.length
+  const subscriptionInsights = subscriptionItems.map(item => `${item.label || item.key} ${item.amount} €`).join(', ')
+  const subscriptionFlag = subscriptionCount > 0
+
   const status = scoreObj.score >= 90 ? 'excellent' : scoreObj.score >= 75 ? 'healthy' : scoreObj.score >= 60 ? 'attention' : 'critical'
   const trajectoryLabel = scoreObj.score >= 90
     ? '🟢 Excellente trajectoire'
@@ -132,7 +177,6 @@ async function analyzeBudget(monthKey) {
     }
 
   const goalInsights = []
-  const goals = Array.isArray(goalsSummary?.goals) ? goalsSummary.goals : []
   if (primaryGoal && Number(primaryGoal.current || 0) === 0) {
     goalInsights.push('L’objectif principal n’est pas encore alimenté.')
   }
@@ -211,10 +255,10 @@ async function analyzeBudget(monthKey) {
 
   // --- Phase 4 : Analyse avancée + score breakdown
   // Basic historical sampling (last 3 months) when available to detect instability
-  const sampleMonths = [addMonths(new Date(), -1), addMonths(new Date(), -2), addMonths(new Date(), -3)]
+  const historySampleMonths = [addMonths(new Date(), -1), addMonths(new Date(), -2), addMonths(new Date(), -3)]
   const incomes = []
   try {
-    for (const d of sampleMonths) {
+    for (const d of historySampleMonths) {
       if (typeof getMonthMetrics === 'function') {
         const m = getMonthMetrics(formatMonthYear(d), { fromDom: true })
         incomes.push(Number(m?.income || 0))
@@ -226,6 +270,10 @@ async function analyzeBudget(monthKey) {
 
   const avgIncome = incomes.length > 0 ? incomes.reduce((a, b) => a + b, 0) / incomes.length : rev
   const incomeVariancePct = avgIncome > 0 ? Math.round((Math.abs(rev - avgIncome) / avgIncome) * 100) : 0
+  const stabilityScore = clamp(100 - incomeVariancePct, 0, 100)
+  const expenseControlScore = clamp(100 - variableRate - Math.max(0, totalChargesRate - 70), 0, 100)
+  const totalRemainingGoals = goals.reduce((sum, goal) => sum + Math.max(0, Number(goal.target || 0) - Number(goal.current || 0)), 0)
+  const goalProgressScore = goals.length > 0 ? clamp(100 - Math.round((totalRemainingGoals / Math.max(1, rev)) * 10), 0, 100) : 100
 
   // monthsAtRisk: first horizon where projectedBalance < 0
   let monthsAtRisk = null
@@ -252,15 +300,57 @@ async function analyzeBudget(monthKey) {
   // Score breakdown (simple heuristics)
   const scoreBreakdown = {
     savingsComponent: clamp(savingsRate, 0, 100),
-    stabilityComponent: incomeVariancePct <= 5 ? 100 : Math.max(0, 100 - incomeVariancePct),
-    goalsComponent: goals.length > 0 ? clamp(100 - Math.round((goals.reduce((s, g) => s + Math.max(0, (Number(g.target||0) - Number(g.current||0))), 0) / Math.max(1, rev)) * 10), 0, 100) : 100
+    stabilityComponent: clamp(stabilityScore, 0, 100),
+    goalsComponent: clamp(goalProgressScore, 0, 100),
+    expenseControlComponent: clamp(expenseControlScore, 0, 100)
   }
+
+  const healthFactors = []
+  if (incomeTrendPct > 5) healthFactors.push('Revenus en hausse')
+  if (incomeTrendPct < -5) healthFactors.push('Revenus en baisse')
+  if (budgetInflection) healthFactors.push('Inflation du budget')
+  if (subscriptionFlag) healthFactors.push('Abonnements actifs')
+  if (irregularRevenue) healthFactors.push('Revenus instables')
+
+  const advancedFinancialInsights = [
+    `Comparaison historique : revenus ${incomeTrendPct >= 0 ? 'supérieurs' : 'inférieurs'} de ${Math.abs(incomeTrendPct)}% à la moyenne des 3 derniers mois.`,
+    `Inflation des charges : ${expenseInflationRate >= 0 ? '+' : ''}${expenseInflationRate}% par rapport aux charges moyennes historiques.`,
+    budgetInflection ? 'Le budget montre une inflation marquée des charges ce mois-ci.' : 'Le budget reste stable par rapport aux derniers mois.',
+    subscriptionFlag ? `Abonnements identifiés : ${subscriptionInsights}` : 'Aucun abonnement récurrent détecté dans les charges fixes.'
+  ].filter(Boolean).slice(0, 4)
+
+  const advancedRecommendations = []
+  if (subscriptionFlag) {
+    advancedRecommendations.push('Vérifiez vos abonnements récurrents et résiliez ceux qui ne sont plus utiles.')
+  }
+  if (budgetInflection) {
+    advancedRecommendations.push('Comparez vos charges actuelles aux 3 mois précédents et identifiez les hausses ponctuelles ou durables.')
+  }
+  if (irregularRevenue) {
+    advancedRecommendations.push('Stabilisez vos rentrées en priorisant des revenus plus réguliers ou en construisant une réserve de trésorerie.')
+  }
+  if (!subscriptionFlag && !budgetInflection && !irregularRevenue) {
+    advancedRecommendations.push('Continuez à surveiller votre budget : maintenez ce niveau de contrôle et testez des scénarios d’épargne.')
+  }
+
+  const riskAnalysis = {
+    incomeTrendPct,
+    expenseInflationRate,
+    subscriptionCount,
+    subscriptionItems: subscriptionItems.slice(0, 3),
+    riskScore: Math.round((100 - stabilityScore) * 0.4 + (100 - expenseControlScore) * 0.3 + (100 - goalProgressScore) * 0.3),
+    riskLevel: scoreObj.score >= 90 ? 'low' : scoreObj.score >= 75 ? 'medium' : scoreObj.score >= 60 ? 'high' : 'critical'
+  }
+
+  const financialHealthIndex = clamp(Math.round((scoreObj.score * 0.35) + (stabilityScore * 0.2) + (expenseControlScore * 0.2) + (goalProgressScore * 0.25)), 0, 100)
 
   // Add intelligent alerts based on advanced analysis
   const advancedAlerts = []
   if (monthsAtRisk !== null) advancedAlerts.push(`Risque de découvert dans environ ${monthsAtRisk} mois.`)
   if (abnormalExpenses.length) advancedAlerts.push(...abnormalExpenses)
   if (irregularRevenue) advancedAlerts.push('Revenus irréguliers détectés — veillez à stabiliser vos rentrées.')
+  if (budgetInflection) advancedAlerts.push('Augmentation rapide des charges détectée par rapport à la moyenne des derniers mois.')
+  if (subscriptionFlag) advancedAlerts.push(`Abonnements récurrents détectés : ${subscriptionCount}.`)
   unrealisticGoals.forEach(n => advancedAlerts.push(`Objectif probablement irréaliste : ${n}`))
   peaks.forEach(p => advancedAlerts.push(p))
 
@@ -430,6 +520,10 @@ async function analyzeBudget(monthKey) {
       peaks: peaks || []
     },
     scoreBreakdown: scoreBreakdown || null,
+    advancedFinancialInsights: advancedFinancialInsights || [],
+    advancedRecommendations: advancedRecommendations || [],
+    riskAnalysis: riskAnalysis || null,
+    financialHealthIndex: financialHealthIndex || 0,
     advancedAlerts: advancedAlerts || [],
     timeline: timelineEntries,
     kpis: kpis || null,

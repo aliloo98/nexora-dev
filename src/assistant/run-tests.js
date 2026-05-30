@@ -79,6 +79,32 @@ tests.push({
 })
 
 tests.push({
+  name: 'indice santé financière et risque exposés',
+  fn: async () => {
+    setMocks({ metrics: { income: 2500, fixed: 900, variable: 900, expenses: 1800, savings: 700 } })
+    const r = await analyzeBudget('2026-05')
+    assert(typeof r.financialHealthIndex === 'number', 'expected financialHealthIndex')
+    assert(r.financialHealthIndex >= 0 && r.financialHealthIndex <= 100, 'health index range 0-100')
+    assert(r.riskAnalysis && typeof r.riskAnalysis.riskScore === 'number', 'expected riskAnalysis.riskScore')
+    assert(Array.isArray(r.advancedFinancialInsights), 'expected advancedFinancialInsights array')
+    assert(Array.isArray(r.advancedRecommendations), 'expected advancedRecommendations array')
+  }
+})
+
+tests.push({
+  name: 'détection abonnements récurrents',
+  fn: async () => {
+    setMocks({ metrics: { income: 2500, fixed: 1100, variable: 700, expenses: 1800, savings: 700 } })
+    global.getBudgetKeysByType = () => ['box', 'stream', 'loyer']
+    global.getBudgetLabel = (key) => key === 'box' ? 'Box internet' : key === 'stream' ? 'Abonnement streaming' : 'Loyer'
+    global.getVal = (k) => ({ box: 40, stream: 15, loyer: 700 }[k] || 0)
+    const r = await analyzeBudget('2026-05')
+    assert(r.riskAnalysis?.subscriptionCount === 2, 'expected subscription count 2')
+    assert(r.advancedAlerts.some(alert => /Abonnements récurrents détectés/i.test(alert)), 'expected subscription alert')
+  }
+})
+
+tests.push({
   name: 'mois à risque détecté',
   fn: async () => {
     setMocks({ metrics: { income: 1000, fixed: 900, variable: 500, expenses: 1600, savings: -600 } })

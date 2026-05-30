@@ -116,65 +116,37 @@ export const AuthService = {
    */
   async signIn(email, password) {
     try {
-      if (isSupabaseConfigured) {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        })
-
-        if (error) throw error
-        return {
-          user: data.user,
-          session: data.session,
-          error: null
+      const shouldUsePlaceholder = !isSupabaseConfigured || email === 'demo@nexora.local'
+      if (shouldUsePlaceholder) {
+        // PLACEHOLDER: Simulate successful login for demo/test mode or when Supabase is unavailable
+        await new Promise(resolve => setTimeout(resolve, 800))
+        const mockSession = {
+          access_token: 'mock_token_' + Math.random().toString(36).substr(2, 20),
+          refresh_token: 'mock_refresh_' + Math.random().toString(36).substr(2, 20),
+          expires_in: 3600,
+          expires_at: Math.floor(Date.now() / 1000) + 3600
         }
-      }
-
-      // TODO: Real Supabase implementation (uncomment when ready)
-      // const { data, error } = await supabase.auth.signInWithPassword({
-      //   email,
-      //   password
-      // })
-      //
-      // if (error) throw error
-      //
-      // return {
-      //   user: data.user,
-      //   session: data.session,
-      //   error: null
-      // }
-
-      // PLACEHOLDER: Simulate successful login
-
-      // Validate inputs
-      if (!email || !password) {
-        return {
-          user: null,
-          session: null,
-          error: new Error('Email et password sont requis')
+        const mockUser = {
+          id: 'demo_user_' + Math.random().toString(36).substr(2, 9),
+          email: email,
+          user_metadata: { username: email.split('@')[0] },
+          created_at: new Date().toISOString(),
+          email_confirmed_at: new Date().toISOString()
         }
+        return { user: mockUser, session: mockSession, error: null }
       }
 
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 800))
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
 
-      // Create mock session
-      const mockSession = {
-        access_token: 'mock_token_' + Math.random().toString(36).substr(2, 20),
-        refresh_token: 'mock_refresh_' + Math.random().toString(36).substr(2, 20),
-        expires_in: 3600,
-        expires_at: Math.floor(Date.now() / 1000) + 3600
+      if (error) throw error
+      return {
+        user: data.user,
+        session: data.session,
+        error: null
       }
-
-      // Create mock user
-      const mockUser = {
-        id: 'user_' + Math.random().toString(36).substr(2, 9),
-        email: email,
-        user_metadata: { username: email.split('@')[0] },
-        created_at: new Date().toISOString(),
-        email_confirmed_at: new Date().toISOString()
-      }
-      return { user: mockUser, session: mockSession, error: null }
     } catch (error) {
       console.error('❌ [PLACEHOLDER] SignIn error:', error.message)
       return { user: null, session: null, error }

@@ -48,6 +48,12 @@ function createAssistantCard() {
         </div>
       </div>
 
+      <!-- Advanced Insights -->
+      <div class="assistant-block assistant-advanced-insights" id="assistant-insights-block" style="display:none;">
+        <strong>Insights financiers avancés</strong>
+        <div class="assistant-advanced-grid" id="assistant-advanced-grid"></div>
+      </div>
+
       <!-- Charts Section -->
       <div class="assistant-block assistant-charts-section" id="assistant-charts-block" style="display:none;">
         <strong>Évolutions (12 mois)</strong>
@@ -401,13 +407,16 @@ function createAssistantCard() {
     .assistant-kpis {
       display: block;
     }
-    .assistant-kpis-grid {
+    .assistant-kpis-grid,
+    .assistant-advanced-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 10px;
       margin-top: 8px;
     }
-    .kpi-card {
+    .kpi-card,
+    .insight-card,
+    .risk-card {
       padding: 10px;
       border-radius: 10px;
       background: rgba(255,255,255,0.02);
@@ -415,6 +424,33 @@ function createAssistantCard() {
       display:flex;
       flex-direction:column;
       gap:6px;
+    }
+    .insight-card-title,
+    .risk-card-title {
+      font-size: 11px;
+      color: var(--text2);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.7px;
+    }
+    .insight-card-value,
+    .risk-card-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .risk-card-value.critical {
+      color: var(--red);
+    }
+    .risk-card-value.high {
+      color: #f59e0b;
+    }
+    .risk-card-value.medium {
+      color: var(--yellow);
+    }
+    .risk-card-value.low {
+      color: var(--green);
     }
     .kpi-title { font-size:11px;color:var(--text2); text-transform:uppercase; font-weight:700 }
     .kpi-value { font-size:16px; font-weight:800; color:var(--text) }
@@ -639,6 +675,21 @@ async function renderAssistantCard() {
     `
   } else if (kpisBlock) {
     kpisBlock.style.display = 'none'
+  }
+
+  // Populate advanced insights
+  const insightsBlock = existing.querySelector('#assistant-insights-block')
+  const insightsGrid = existing.querySelector('#assistant-advanced-grid')
+  if (insightsGrid && result.advancedFinancialInsights && result.advancedFinancialInsights.length > 0) {
+    insightsBlock.style.display = 'block'
+    insightsGrid.innerHTML = [
+      `<div class="risk-card"><div class="risk-card-title">Indice de santé financière</div><div class="risk-card-value ${result.riskAnalysis?.riskLevel || 'low'}">${result.financialHealthIndex}%</div><div style="font-size:12px;color:var(--text2);margin-top:6px">Score premium basé sur stabilité, charges, et objectifs.</div></div>`,
+      `<div class="risk-card"><div class="risk-card-title">Risque financier</div><div class="risk-card-value ${result.riskAnalysis?.riskLevel || 'low'}">${(result.riskAnalysis?.riskScore ?? 0)} / 100</div><div style="font-size:12px;color:var(--text2);margin-top:6px">Niveau : ${result.riskAnalysis?.riskLevel || 'low'}</div></div>`,
+      ...result.advancedFinancialInsights.slice(0, 2).map(text => `<div class="insight-card"><div class="insight-card-title">Insight</div><div class="insight-card-value">${text}</div></div>`),
+      ...result.advancedRecommendations.slice(0, 2).map(text => `<div class="insight-card"><div class="insight-card-title">Recommandation</div><div class="insight-card-value">${text}</div></div>`)
+    ].join('')
+  } else if (insightsBlock) {
+    insightsBlock.style.display = 'none'
   }
 
   // Simple lightweight sparklines (revenus/dépenses/épargne/solde)
