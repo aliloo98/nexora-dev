@@ -532,7 +532,10 @@
       </div>
       <div style="padding:16px">
         <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
-          <label style="font-size:12px;color:var(--text2);margin-right:8px">Mise mensuelle estimée</label>
+          <div style="min-width:180px">
+            <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:3px">Contribution mensuelle aux objectifs</label>
+            <div style="font-size:11px;color:var(--text2);line-height:1.35">Utilisée uniquement pour estimer la date d’atteinte.</div>
+          </div>
           <input id="goal-monthly-contrib" type="number" class="budget-input" style="width:140px" value="0" oninput="if(window.GoalsPage) GoalsPage.render()">
         </div>
 
@@ -1385,6 +1388,10 @@ async function refreshNexoraNotificationSettingsUI() {
 
   const settings = await window.NotificationsService.getSettings();
   const provider = window.NotificationsService.getProviderStatus?.();
+  const testAt = settings.lastTestAt
+    ? new Date(settings.lastTestAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+    : null;
+  const testSuffix = testAt ? ` Dernier test : ${testAt}.` : '';
   if (thresholdEl) thresholdEl.value = Number(settings.remainingExpenseThreshold || 500);
   if (enableBtn) enableBtn.style.display = '';
   if (testBtn) testBtn.style.display = '';
@@ -1412,13 +1419,13 @@ async function refreshNexoraNotificationSettingsUI() {
   }
 
   if (settings.permission === 'granted' && settings.lastTestOk) {
-    statusEl.textContent = 'Notification test réussie. Nexora peut afficher les alertes locales.';
+    statusEl.textContent = `Notification test réussie. Nexora peut afficher les alertes locales.${testSuffix}`;
     if (enableBtn) enableBtn.style.display = 'none';
     return;
   }
 
   if (settings.permission === 'granted' && settings.lastTestOk === false && settings.lastTestAt) {
-    statusEl.textContent = 'Permission accordée, mais la notification test a échoué.';
+    statusEl.textContent = `Permission accordée, mais la notification test a échoué.${testSuffix}`;
     if (enableBtn) enableBtn.style.display = 'none';
     return;
   }
@@ -3162,11 +3169,11 @@ async function updateDashboardPrimaryGoal() {
     panel.classList.add('is-empty');
     setDashboardGuidanceText('dashboard-primary-goal-name', 'Aucun objectif');
     setDashboardGuidanceText('dashboard-primary-goal-pct', '0%');
-  setDashboardGuidanceText('dashboard-primary-goal-current', '0 €');
-  setDashboardGuidanceText('dashboard-primary-goal-target', '0 €');
-  setDashboardGuidanceText('dashboard-primary-goal-remaining', '0 €');
-  setDashboardGuidanceText('dashboard-primary-goal-date', 'Non définie');
-  setDashboardGuidanceText('dashboard-primary-goal-estimate', 'Non défini');
+    setDashboardGuidanceText('dashboard-primary-goal-current', '0 €');
+    setDashboardGuidanceText('dashboard-primary-goal-target', '0 €');
+    setDashboardGuidanceText('dashboard-primary-goal-remaining', '0 €');
+    setDashboardGuidanceText('dashboard-primary-goal-date', 'Non définie');
+    setDashboardGuidanceText('dashboard-primary-goal-estimate', 'Non défini');
     const bar = document.getElementById('dashboard-primary-goal-bar');
     if (bar) bar.style.width = '0%';
     return;

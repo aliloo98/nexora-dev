@@ -258,7 +258,7 @@ body,
 /* KPI CARDS */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
   margin-bottom: 32px;
 }
@@ -580,6 +580,7 @@ body,
 .goal-card-meta { display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13px;color:var(--text2) }
 .goal-status { display:block;color:var(--gold);font-size:11px;font-weight:700;letter-spacing:0;text-transform:uppercase;margin-bottom:4px }
 .goal-amount { color:var(--text);font-weight:700;font-size:15px }
+.goal-empty-contribution { color:var(--text2);font-size:11px;line-height:1.3;margin-top:4px }
 .goal-pct { flex:0 0 auto;min-width:54px;text-align:center;background:rgba(229,192,96,0.12);border:1px solid rgba(229,192,96,0.25);color:var(--gold);border-radius:999px;padding:7px 10px;font-weight:800 }
 .goal-progress-wrap { height:10px;background:rgba(255,255,255,0.04);border-radius:6px;overflow:hidden }
 .goal-progress-fill { height:100%; background:var(--gold); width:0%; transition:width 0.25s ease }
@@ -587,7 +588,8 @@ body,
 .goal-card-footer div { background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px;min-width:0 }
 .goal-card-footer span { display:block;font-size:10px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;font-weight:700;letter-spacing:0 }
 .goal-card-footer strong { display:block;color:var(--text);font-size:12px;line-height:1.2;overflow-wrap:anywhere }
-.goal-actions { display:flex; gap:8px; justify-content:flex-end }
+.goal-actions { display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end }
+.goal-actions .btn { flex:0 1 auto; min-width:0; white-space:normal }
 
 .notification-settings-row {
   gap: 16px;
@@ -614,12 +616,15 @@ body,
   .goal-card-footer div { padding:7px }
   .goal-actions,
   .notification-actions {
+    flex-direction: column;
     justify-content: stretch;
     width: 100%;
   }
   .goal-actions .btn,
   .notification-actions .btn {
+    flex: 1 1 auto;
     max-width: none;
+    width: 100%;
   }
 }
 
@@ -1202,6 +1207,10 @@ body,
 }
 
 @media(max-width: 1100px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .analytics-health-card,
   .analytics-trend-card,
   .analytics-grid .analytics-card:nth-child(n + 3) {
@@ -2051,10 +2060,13 @@ body,
     display: none;
   }
   .main {
-    padding: 24px 16px calc(132px + env(safe-area-inset-bottom, 0px)) 16px;
+    padding: 24px 16px calc(176px + env(safe-area-inset-bottom, 0px)) 16px;
     margin-left: 0;
     width: 100%;
     max-width: 100%;
+  }
+  .section.active {
+    padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
   }
   .nav-btn {
     box-sizing: border-box;

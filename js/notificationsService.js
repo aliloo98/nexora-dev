@@ -92,6 +92,7 @@ class LocalNotificationProvider extends NotificationProvider {
       return { ok: false, reason: 'permission-denied' }
     }
 
+    let serviceWorkerError = null
     try {
       const registration = await navigator.serviceWorker.ready.catch(() => null)
       if (registration?.showNotification) {
@@ -105,14 +106,19 @@ class LocalNotificationProvider extends NotificationProvider {
         return { ok: true, provider: 'service-worker' }
       }
     } catch (err) {
-      return { ok: false, reason: 'service-worker-notification-failed', error: err }
+      serviceWorkerError = err
     }
 
     try {
       new Notification(title, { body, tag, icon: './icon-192.png' })
       return { ok: true, provider: 'notification-api' }
     } catch (err) {
-      return { ok: false, reason: 'notification-api-failed', error: err }
+      return {
+        ok: false,
+        reason: serviceWorkerError ? 'service-worker-notification-failed' : 'notification-api-failed',
+        error: err,
+        serviceWorkerError
+      }
     }
   }
 }

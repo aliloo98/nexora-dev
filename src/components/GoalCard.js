@@ -25,6 +25,7 @@ export default function createGoalCard(goal, handlers = {}) {
     <div>
       <span class="goal-status">${status}</span>
       <div class="goal-amount">${current.toLocaleString()} € / ${target.toLocaleString()} €</div>
+      ${current === 0 ? '<div class="goal-empty-contribution">Aucune contribution enregistrée</div>' : ''}
     </div>
     <div class="goal-pct">${safePct}%</div>
   `
