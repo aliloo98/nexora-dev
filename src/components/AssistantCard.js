@@ -41,6 +41,19 @@ function createAssistantCard() {
         </div>
       </div>
 
+      <!-- KPI Quick View -->
+      <div class="assistant-block assistant-kpis" id="assistant-kpis-block">
+        <div class="assistant-kpis-grid" id="assistant-kpis-grid">
+          <!-- KPIs inserted here -->
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="assistant-block assistant-charts-section" id="assistant-charts-block" style="display:none;">
+        <strong>Évolutions (12 mois)</strong>
+        <div class="assistant-chart-grid" id="assistant-charts-grid"></div>
+      </div>
+
       <!-- Visual Projections Section -->
       <div class="assistant-block assistant-projections-section" id="assistant-projections-block" style="display:none;">
         <strong>Projections & Rythmes d'Épargne</strong>
@@ -384,6 +397,31 @@ function createAssistantCard() {
       gap: 6px;
     }
 
+    /* KPI grid */
+    .assistant-kpis {
+      display: block;
+    }
+    .assistant-kpis-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .kpi-card {
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.03);
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .kpi-title { font-size:11px;color:var(--text2); text-transform:uppercase; font-weight:700 }
+    .kpi-value { font-size:16px; font-weight:800; color:var(--text) }
+    .assistant-chart-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:10px; margin-top:10px }
+    .chart-card { padding:8px; border-radius:10px; background: rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.03) }
+    .sparkline { width:100%; height:48px; display:block }
+
     /* Skeleton loader for async states */
     .assistant-card.loading .skeleton-row {
       height: 12px;
@@ -586,6 +624,71 @@ async function renderAssistantCard() {
     }
   } else {
     if (projectionsBlock) projectionsBlock.style.display = 'none'
+  }
+
+  // Populate KPI quick view
+  const kpisBlock = existing.querySelector('#assistant-kpis-block')
+  const kpisGrid = existing.querySelector('#assistant-kpis-grid')
+  if (kpisGrid && result.kpis) {
+    kpisBlock.style.display = 'block'
+    kpisGrid.innerHTML = `
+      <div class="kpi-card"><div class="kpi-title">Taux d'épargne réel</div><div class="kpi-value">${result.kpis.realSavingsRate}%</div></div>
+      <div class="kpi-card"><div class="kpi-title">Reste à vivre / jour</div><div class="kpi-value">${result.kpis.dailyLeftover} €</div></div>
+      <div class="kpi-card"><div class="kpi-title">Projection fin d'année</div><div class="kpi-value">${result.kpis.projectionEndOfYear} €</div></div>
+      <div class="kpi-card"><div class="kpi-title">Projection épargne annuelle</div><div class="kpi-value">${result.kpis.annualSavingsProjection} €</div></div>
+    `
+  } else if (kpisBlock) {
+    kpisBlock.style.display = 'none'
+  }
+
+  // Simple lightweight sparklines (revenus/dépenses/épargne/solde)
+  const chartsWrap = existing.querySelector('#assistant-charts-grid')
+  const renderSparklines = (series) => {
+    if (!Array.isArray(series) || series.length === 0) return ''
+    const w = 160, h = 48
+    const max = Math.max(...series, 1)
+    const min = Math.min(...series, 0)
+    const range = Math.max(1, max - min)
+    const step = w / Math.max(1, series.length - 1)
+    const points = series.map((v,i)=> `${i*step},${h - ((v - min)/range)*h}`).join(' ')
+    return `<svg class="sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline fill="none" stroke="rgba(229,192,96,0.9)" stroke-width="2" points="${points}"/></svg>`
+  }
+
+  // attempt to sample last 12 months using getMonthMetrics when available
+  const addMonthsLocal = (date, months) => { const r = new Date(date); r.setMonth(r.getMonth() + months); return r }
+  const formatMonthYearLocal = (date) => date.toLocaleString('fr-FR', { month: 'long', year: 'numeric' })
+  const now = new Date()
+  const months = []
+  for (let i=11;i>=0;i--) months.push(addMonthsLocal(now, -i))
+  const revSeries = []
+  const expSeries = []
+  const savSeries = []
+  const balSeries = []
+  try {
+    months.forEach(d => {
+      let m = null
+      if (typeof getMonthMetrics === 'function') {
+        m = getMonthMetrics(formatMonthYearLocal(d), { fromDom: true })
+      }
+      m = m || { income: result.metadata.rev || 0, expenses: result.metadata.totalCharges || 0, savings: result.metadata.savings || 0 }
+      revSeries.push(Number(m.income || 0))
+      expSeries.push(Number(m.expenses || (Number(m.fixed||0)+Number(m.variable||0))))
+      savSeries.push(Number(m.savings || (Number(m.income||0) - Number(m.expenses||0))))
+      balSeries.push((Number(m.income||0) - Number(m.expenses||0)))
+    })
+  } catch (e) {
+    // fallback to current month repeated
+    for (let i=0;i<12;i++) { revSeries.push(result.metadata.rev||0); expSeries.push(result.metadata.totalCharges||0); savSeries.push(result.metadata.savings||0); balSeries.push((result.metadata.rev||0)-(result.metadata.totalCharges||0)) }
+  }
+
+  if (chartsWrap) {
+    // create 4 small chart cards
+    chartsWrap.innerHTML = `
+      <div class="chart-card"><div style="font-size:12px;color:var(--text2);font-weight:700">Revenus (12m)</div>${renderSparklines(revSeries)}</div>
+      <div class="chart-card"><div style="font-size:12px;color:var(--text2);font-weight:700">Dépenses (12m)</div>${renderSparklines(expSeries)}</div>
+      <div class="chart-card"><div style="font-size:12px;color:var(--text2);font-weight:700">Épargne (12m)</div>${renderSparklines(savSeries)}</div>
+      <div class="chart-card"><div style="font-size:12px;color:var(--text2);font-weight:700">Solde (12m)</div>${renderSparklines(balSeries)}</div>
+    `
   }
 
   if (Array.isArray(result.budgetForecasts) && result.budgetForecasts.length > 0) {
