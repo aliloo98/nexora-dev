@@ -90,7 +90,7 @@ Chaque thème inclut:
    ├─ StorageManager.setItem()
    ├─ StorageManager.getItem()
    └─ StorageManager.removeItem()
-   
+
    Fonctionnalités:
    • IndexedDB avec fallback localStorage
    • Stockage chiffré natif
@@ -103,7 +103,7 @@ Chaque thème inclut:
    ├─ Utils.customConfirm() - Modales
    ├─ ConfettiEngine.trigger() - Animations
    └─ Fonctions globales
-   
+
    Utilité: Utilitaires partagés, confettis
 
 📁 js/theme-manager.js (99 lignes)
@@ -111,7 +111,7 @@ Chaque thème inclut:
    ├─ ThemeManager.selectTheme(id)
    ├─ ThemeManager.applyTheme()
    └─ ThemeManager.hexToRgb()
-   
+
    Gestion complète des 5 thèmes
 
 📁 js/logo-manager.js (123 lignes)
@@ -120,7 +120,7 @@ Chaque thème inclut:
    ├─ LogoManager.setCustomEmojiLogo()
    ├─ LogoManager.uploadLogoImage()
    └─ LogoManager.renderLogoOptions()
-   
+
    Gestion des 16 emojis + image
 
 
@@ -182,11 +182,11 @@ INCHANGÉS:
 
 1️⃣  Ouvrir l'app
     → Double-cliquez sur index.html
-    
+
 2️⃣  Changer de logo
     → Paramètres → Personnalisation → Logo
     → Cliquez un emoji ou entrez un custom
-    
+
 3️⃣  Changer de thème
     → Paramètres → Personnalisation → Thème
     → Cliquez une des 5 couleurs

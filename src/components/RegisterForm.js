@@ -1,9 +1,9 @@
 /**
  * Nexora - Register Form Component
- * 
+ *
  * Renders a modern, responsive registration form.
  * Handles validation and submission for new users.
- * 
+ *
  * TODO: Update styles when theme system is integrated
  */
 
@@ -154,12 +154,12 @@ export const attachRegisterFormListeners = () => {
   // Form submission
   form.addEventListener('submit', async (e) => {
     e.preventDefault()
-    
+
     // Clear errors
     errorBox.style.display = 'none'
     loadingBox.style.display = 'none'
     clearAllErrors()
-    
+
     const username = usernameInput.value.trim()
     const email = emailInput.value.trim()
     const password = passwordInput.value
@@ -200,7 +200,7 @@ export const attachRegisterFormListeners = () => {
     loadingBox.style.display = 'flex'
 
     try {
-      
+
       // Call auth context
       const { user, error } = await AuthContext.signUp(email, password, username)
 
@@ -210,10 +210,10 @@ export const attachRegisterFormListeners = () => {
         console.error('Register error:', error)
         return
       }
-      
+
       // Success
       window.showToast('✅ Inscription réussie! Bienvenue ' + username + '!')
-      
+
       // Simulate page transition to dashboard
       setTimeout(() => {
         window.location.hash = '#section-dashboard'

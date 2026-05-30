@@ -6,7 +6,7 @@
 - ✅ **CSS externalisé** : Extraction de ~1450 lignes CSS de `index.html` vers `styles.css`
   - Réduction du HTML de 3958 à 2511 lignes (-36%)
   - Meilleure maintenabilité et cache navigateur
-  
+
 - ✅ **JavaScript modulaire** : Création de 4 modules indépendants
   - `js/storage.js` - Gestion IndexedDB/localStorage
   - `js/utils.js` -  Utilitaires, confettis, toasts, modales
@@ -123,5 +123,5 @@ styles.css
 
 ---
 
-**Date:** 27 mai 2026  
+**Date:** 27 mai 2026
 **Version:** 2.0 (Architecture Améliorée)

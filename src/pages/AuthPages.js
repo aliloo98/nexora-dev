@@ -1,9 +1,9 @@
 /**
  * Nexora - Authentication Pages & Router
- * 
+ *
  * Manages auth pages (login, register) and routing between auth and dashboard.
  * Simple hash-based routing system compatible with vanilla JavaScript.
- * 
+ *
  * TODO: Replace with proper router when using framework
  */
 
@@ -25,10 +25,10 @@ export const AuthPages = {
    * Called when app starts
    */
   init() {
-    
+
     // Create auth container if not exists
     this._ensureAuthContainer()
-    
+
     // Check if user is already logged in
     const { user } = AuthContext.getState()
     if (user && user.id) {
@@ -60,7 +60,7 @@ export const AuthPages = {
     const authContainer = document.getElementById('auth-container')
     const main = document.querySelector('main')
     const sidebar = document.querySelector('.sidebar')
-    
+
     if (authContainer) authContainer.style.display = 'flex'
     if (main) main.style.display = 'none'
     if (sidebar) sidebar.style.display = 'none'
@@ -73,7 +73,7 @@ export const AuthPages = {
     const authContainer = document.getElementById('auth-container')
     const main = document.querySelector('main')
     const sidebar = document.querySelector('.sidebar')
-    
+
     if (authContainer) authContainer.style.display = 'none'
     if (main) main.style.display = 'block'
     if (sidebar) sidebar.style.display = 'flex'

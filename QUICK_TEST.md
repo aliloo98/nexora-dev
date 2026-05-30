@@ -1,7 +1,7 @@
 # ⚡ Nexora - Guide de test rapide (5 min)
 
-**Objectif**: Tester l'authentification en mode placeholder  
-**Durée**: 5 minutes  
+**Objectif**: Tester l'authentification en mode placeholder
+**Durée**: 5 minutes
 **Complexité**: Très facile ⭐
 
 ---
@@ -140,8 +140,8 @@ Après login:
 Connexion → F5 → Redirigé login
 ```
 
-**C'est normal!** ✅  
-Mode placeholder utilise `sessionStorage` qui se vide au refresh.  
+**C'est normal!** ✅
+Mode placeholder utilise `sessionStorage` qui se vide au refresh.
 Après activation Supabase, les sessions vont persister.
 
 ### Formulaires qui se remplissent au mode test
@@ -150,7 +150,7 @@ Après activation Supabase, les sessions vont persister.
 Cliquez "🧪 Mode test" → Email + Password se remplissent
 ```
 
-**C'est normal!** ✅  
+**C'est normal!** ✅
 C'est une démo pour faciliter les tests.
 
 ### Pas de vraie sécurité
@@ -159,8 +159,8 @@ C'est une démo pour faciliter les tests.
 Password visibles en sessionStorage
 ```
 
-**C'est normal!** ✅  
-Mode placeholder pour tests uniquement.  
+**C'est normal!** ✅
+Mode placeholder pour tests uniquement.
 Supabase aura du vrai chiffrement.
 
 ---
@@ -197,7 +197,7 @@ Supabase aura du vrai chiffrement.
 
 ### Login ne fonctionne pas
 
-**Solution**: 
+**Solution**:
 1. Ouvrez la console (F12)
 2. Regardez les erreurs rouges
 3. Reportez-les
@@ -290,7 +290,7 @@ User menu dropdown:
 
 Vous avez testé:
 ✅ Login
-✅ Registration  
+✅ Registration
 ✅ User menu
 ✅ Logout
 ✅ Validations
@@ -304,8 +304,8 @@ Vous avez testé:
 
 ---
 
-**Durée totale**: ~5 min ⏱️  
-**Complexité**: ⭐ Très facile  
-**Status**: 🟢 Prêt pour prod  
+**Durée totale**: ~5 min ⏱️
+**Complexité**: ⭐ Très facile
+**Status**: 🟢 Prêt pour prod
 
 **Bon test! 🎉**

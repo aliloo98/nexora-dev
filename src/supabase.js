@@ -1,9 +1,9 @@
 /**
  * Supabase Client Initialization
- * 
+ *
  * Initializes the Supabase client with environment variables.
  * Uses VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (publishable key only, never secret key).
- * 
+ *
  * For future use:
  * - User authentication (Auth)
  * - Cloud data persistence
@@ -29,17 +29,17 @@ export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
 export const testSupabaseConnection = async () => {
   try {
     const { data, error } = await supabase.auth.getUser()
-    
+
     if (error) {
       console.info('✓ Supabase connected (no user logged in - expected)')
       return true
     }
-    
+
     if (data.user) {
       console.info(`✓ Supabase connected (user: ${data.user.email})`)
       return true
     }
-    
+
     console.info('✓ Supabase connected (ready for auth)')
     return true
   } catch (err) {

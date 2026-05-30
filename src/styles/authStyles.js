@@ -1,9 +1,9 @@
 /**
  * Nexora - Authentication Styles
- * 
+ *
  * Styles for login and register pages.
  * Modern, responsive, and themed with Nexora design system.
- * 
+ *
  * TODO: Integrate with existing theme system for color consistency
  */
 

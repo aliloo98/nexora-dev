@@ -1,9 +1,9 @@
 /**
  * Nexora - Authentication Guard & Router
- * 
+ *
  * Protects routes and ensures only authenticated users can access the dashboard.
  * Manages navigation between auth pages and app pages.
- * 
+ *
  * TODO: Expand to support multiple routes and permissions
  * TODO: Integrate with URL history for better navigation
  */
@@ -100,7 +100,7 @@ export const NavigationMiddleware = {
     // Listen to hash changes
     window.addEventListener('hashchange', () => {
       const section = RouteGuard.getCurrentSection()
-      
+
       if (!RouteGuard.navigateTo(section)) {
         // Reset hash to dashboard if navigation failed
         window.location.hash = '#section-dashboard'
@@ -111,7 +111,7 @@ export const NavigationMiddleware = {
     if (window.showSection) {
       const originalShowSection = window.showSection
       window.showSection = function(sectionName) {
-        
+
         if (!RouteGuard.navigateTo(sectionName)) {
           return false
         }
@@ -140,7 +140,7 @@ export const NavigationMiddleware = {
    */
   validateProtectedSections() {
     const protectedSections = ['dashboard', 'saisie', 'historique', 'parametres']
-    
+
     protectedSections.forEach(section => {
       const element = document.getElementById(`section-${section}`)
       if (!element) {
@@ -174,23 +174,23 @@ export const AuthStateSync = {
 
     if (state.isAuthenticated && state.user) {
       // User just logged in
-      
+
       // Update header with username
       updateUserHeader()
       renderUserMenu()
-      
+
       // Hide auth pages
       AuthPages.hideAuthPages()
-      
+
       // Show dashboard
       window.showSection('dashboard')
     } else {
       // User logged out or app initialized without user
-      
+
       // Update header to default
       updateUserHeader()
       renderUserMenu()
-      
+
       // Show auth pages
       AuthPages.showAuthPages()
     }

@@ -19,7 +19,7 @@ const StorageManager = (() => {
     return new Promise((resolve) => {
       try {
         const request = indexedDB.open('BudgetDB', 1);
-        
+
         request.onerror = () => {
           console.warn('IndexedDB init failed, using localStorage');
           resolve(false);

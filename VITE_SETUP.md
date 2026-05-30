@@ -16,7 +16,7 @@
 
 #### 3. **Architecture modulaire**
    - `js/storage.js` → export StorageManager
-   - `js/utils.js` → export Utils, ConfettiEngine  
+   - `js/utils.js` → export Utils, ConfettiEngine
    - `js/theme-manager.js` → export ThemeManager
    - `js/logo-manager.js` → export LogoManager
    - `src/main.js` → Point d'entrée Vite (importe et expose globalement)
@@ -213,6 +213,6 @@ src/main.js (entry point)
 
 ---
 
-**Généré**: 28 mai 2026  
-**Version**: Nexora 1.0.0 (Vite + Supabase Ready)  
+**Généré**: 28 mai 2026
+**Version**: Nexora 1.0.0 (Vite + Supabase Ready)
 **Status**: ✅ Production-ready (auth pending)

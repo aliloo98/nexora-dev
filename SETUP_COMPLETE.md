@@ -1,7 +1,7 @@
 # ✅ Nexora - Configuration Supabase SaaS Complète
 
-**Date**: 28 mai 2026  
-**Statut**: ✅ Prêt pour production  
+**Date**: 28 mai 2026
+**Statut**: ✅ Prêt pour production
 **Version**: 1.0.0 (Vite + Supabase)
 
 ---
@@ -20,7 +20,7 @@ Votre PWA Nexora a été **transformée en architecture SaaS moderne** :
 
 ## 🎯 Objectif atteint
 
-**AVANT** : PWA standalone avec localStorage  
+**AVANT** : PWA standalone avec localStorage
 **APRÈS** : PWA SaaS + Cloud Ready + Multi-utilisateurs potentiels
 
 ```
@@ -335,6 +335,6 @@ CREATE TABLE transactions (
 
 ---
 
-**Généré**: 28 mai 2026  
-**Par**: Configuration SaaS Nexora  
+**Généré**: 28 mai 2026
+**Par**: Configuration SaaS Nexora
 **Status**: ✅ Prêt pour la Phase 1 (Auth)

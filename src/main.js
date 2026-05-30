@@ -1,11 +1,11 @@
 /**
  * Nexora - SaaS Budget Management App
  * Main entry point (Vite)
- * 
+ *
  * Imports and initializes all core modules.
  * Maintains backward compatibility by exposing modules globally.
  * Integrates Supabase for multi-user cloud persistence with authentication.
- * 
+ *
  * TODO: When Supabase credentials are added:
  * - Real auth will activate automatically
  * - No code changes needed
@@ -84,22 +84,22 @@ const initApp = async () => {
   try {
     // Initialize storage
     await StorageManager.initIndexedDB()
-    
+
     // Initialize theme
     await ThemeManager.init()
-    
+
     // Initialize logo
     await LogoManager.init()
-    
+
     // Inject auth styles
     injectAuthStyles()
 
     // Initialize local notifications layer
     await NotificationsService.init()
-    
+
     // Keep the connection check for early failure visibility without production noise.
     await testSupabaseConnection()
-    
+
     // Initialize authentication routing (handles login/register/dashboard)
     await initAuthRouting()
 

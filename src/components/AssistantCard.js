@@ -48,11 +48,12 @@ function createAssistantCard() {
     .assistant-trajectory{padding:6px 10px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;min-width:fit-content}
     .assistant-trajectory.healthy{background:rgba(34,197,94,0.12);color:var(--green);border:1px solid rgba(34,197,94,0.18)}
     .assistant-trajectory.neutral{background:rgba(250,204,21,0.12);color:var(--yellow);border:1px solid rgba(250,204,21,0.18)}
+    .assistant-trajectory.attention{background:rgba(250,159,26,0.12);color:#f59e0b;border:1px solid rgba(250,159,26,0.18)}
     .assistant-trajectory.critical{background:rgba(244,63,94,0.12);color:var(--red);border:1px solid rgba(244,63,94,0.18)}
     .assistant-body{display:grid;grid-template-columns:1fr;gap:12px}
     .assistant-main-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
     .assistant-situation, .assistant-analysis, .assistant-block{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:14px;min-height:88px}
-    .assistant-analysis p,.assistant-situation p{font-size:14px;line-height:1.5;color:var(--text);margin:0}
+    .assistant-analysis p,.assistant-situation p{font-size:14px;line-height:1.5;color:var(--text);margin:0;white-space:pre-line}
     .assistant-block strong, .assistant-analysis strong, .assistant-situation strong{display:block;font-size:11px;letter-spacing:0.8px;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
     .assistant-vigilance ul,.assistant-action ul{margin:0;padding-left:18px;list-style:disc;max-height:110px;overflow:hidden}
     .assistant-vigilance li,.assistant-action li{font-size:13px;line-height:1.5;color:var(--text2);margin-bottom:8px}
@@ -89,7 +90,14 @@ async function renderAssistantCard() {
     trajectoryEl.className = `assistant-trajectory ${result.status || 'neutral'}`
   }
   if (situationEl) situationEl.textContent = result.currentSituation || 'Les tendances financières seront affichées ici.'
-  if (analysisEl) analysisEl.textContent = result.naturalAnalysis || (result.insights && result.insights.length > 0 ? result.insights[0] : 'Analyse indisponible pour le mois.')
+  if (analysisEl) {
+    const analysisText = [
+      result.naturalAnalysis,
+      result.goalProjectionText,
+      Array.isArray(result.timeline) && result.timeline.length > 0 ? `Timeline : ${result.timeline.join(' — ')}` : null
+    ].filter(Boolean).join('\n\n')
+    analysisEl.textContent = analysisText || (result.insights && result.insights.length > 0 ? result.insights[0] : 'Analyse indisponible pour le mois.')
+  }
 
   const renderItems = (el, items, limit = 3) => {
     if (!el) return

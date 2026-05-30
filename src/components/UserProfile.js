@@ -1,9 +1,9 @@
 /**
  * Nexora - User Profile Header Component
- * 
+ *
  * Displays user's username in the header and provides logout functionality.
  * Replaces static "Ali & Megane" with dynamic username.
- * 
+ *
  * TODO: Integrate with dashboard header system
  * TODO: Add profile settings page
  */
@@ -105,7 +105,7 @@ export const attachUserMenuListeners = () => {
   // Toggle dropdown
   userMenuBtn.addEventListener('click', (e) => {
     e.stopPropagation()
-    userMenuDropdown.style.display = 
+    userMenuDropdown.style.display =
       userMenuDropdown.style.display === 'none' ? 'block' : 'none'
   })
 
@@ -125,7 +125,7 @@ export const attachUserMenuListeners = () => {
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async (e) => {
       e.preventDefault()
-      
+
       // Show confirmation
       window.customConfirm(
         'Déconnexion',
@@ -134,14 +134,14 @@ export const attachUserMenuListeners = () => {
           try {
             // Call logout
             const { error } = await AuthContext.signOut()
-            
+
             if (error) {
               window.showToast('❌ Erreur de déconnexion')
               return
             }
 
             window.showToast('✅ Vous avez été déconnecté')
-            
+
             // Redirect to login
             setTimeout(() => {
               AuthPages.showAuthPages()
@@ -162,14 +162,14 @@ export const attachUserMenuListeners = () => {
  * Updates UI when user logs in/out
  */
 export const setupAuthStateListener = () => {
-  
+
   // Subscribe to auth context changes
   const unsubscribe = AuthContext.subscribe((newState) => {
-    
+
     if (newState.isAuthenticated && newState.user) {
       // User logged in
       updateUserHeader()
-      
+
       // Update user menu if it exists
       renderUserMenu()
     } else {

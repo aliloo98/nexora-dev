@@ -1,9 +1,9 @@
 /**
  * Nexora - useAuth Hook
- * 
+ *
  * Custom hook for accessing auth state and functions in components.
  * Simplifies interaction with AuthContext.
- * 
+ *
  * TODO: Update when migrating to real Supabase
  */
 
@@ -11,10 +11,10 @@ import AuthContext from './authContext.js'
 
 /**
  * useAuth Hook - Similar to React's useAuth pattern
- * 
+ *
  * Usage in components:
  * const auth = useAuth()
- * 
+ *
  * Properties:
  * - user: Current user object or null
  * - isAuthenticated: Boolean flag
@@ -24,7 +24,7 @@ import AuthContext from './authContext.js'
  * - signUp(email, password, username): Sign up user
  * - signOut(): Sign out user
  * - displayName: User's display name
- * 
+ *
  * Example:
  * const { user, isAuthenticated, signOut } = useAuth()
  * if (isAuthenticated) {

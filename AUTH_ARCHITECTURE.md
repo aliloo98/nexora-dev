@@ -1,7 +1,7 @@
 # 🔐 Nexora - Architecture d'Authentification SaaS
 
-**Date**: 28 mai 2026  
-**Statut**: ✅ Préparée et prête pour activation  
+**Date**: 28 mai 2026
+**Statut**: ✅ Préparée et prête pour activation
 **Mode actuel**: 🧪 Placeholders (mode test)
 
 ---
@@ -285,16 +285,16 @@ const { data } = await supabase
 
 ### Header dynamique
 
-✅ **Avant login**: "Budget Ali & Megane"  
-✅ **Après login**: "Bonjour {username} 👋"  
+✅ **Avant login**: "Budget Ali & Megane"
+✅ **Après login**: "Bonjour {username} 👋"
 ✅ **User menu**: Avatar + email + logout
 
 ### Styles modernes
 
-✅ Thème d'or Nexora intégré  
-✅ Animations fluides (slide, spin, bounce)  
-✅ Responsive (mobile to desktop)  
-✅ Mode sombre par défaut  
+✅ Thème d'or Nexora intégré
+✅ Animations fluides (slide, spin, bounce)
+✅ Responsive (mobile to desktop)
+✅ Mode sombre par défaut
 ✅ Validations visuelles en temps réel
 
 ---
@@ -303,33 +303,33 @@ const { data } = await supabase
 
 ### "Supabase connection failed"
 
-**Cause**: `.env` non configuré  
+**Cause**: `.env` non configuré
 **Solution**: Ajouter `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY`
 
 ### "getCurrentUser returns null"
 
-**Placeholder mode**: Normal, pas de vraie session  
+**Placeholder mode**: Normal, pas de vraie session
 **Mode production**: Vérifier token Supabase valide
 
 ### Les données se perdent au rechargement
 
-**Placeholder mode**: C'est normal! (sessionStorage)  
+**Placeholder mode**: C'est normal! (sessionStorage)
 **Mode production**: Supabase persistera les données
 
 ### Erreur "Cannot read property 'signUp' of undefined"
 
-**Cause**: Supabase client mal configuré  
+**Cause**: Supabase client mal configuré
 **Solution**: Vérifier `.env` et import `src/supabase.js`
 
 ---
 
 ## 🔑 Bonnes pratiques de sécurité
 
-✅ **JAMAIS** committer `.env` (dans `.gitignore`)  
-✅ **JAMAIS** utiliser `VITE_SUPABASE_SECRET_KEY`  
-✅ **TOUJOURS** utiliser `VITE_SUPABASE_ANON_KEY`  
-✅ **TOUJOURS** valider côté serveur (future)  
-✅ **TOUJOURS** utiliser HTTPS en production  
+✅ **JAMAIS** committer `.env` (dans `.gitignore`)
+✅ **JAMAIS** utiliser `VITE_SUPABASE_SECRET_KEY`
+✅ **TOUJOURS** utiliser `VITE_SUPABASE_ANON_KEY`
+✅ **TOUJOURS** valider côté serveur (future)
+✅ **TOUJOURS** utiliser HTTPS en production
 
 ---
 
@@ -346,11 +346,11 @@ const { data } = await supabase
 
 ### Conservation du design existant
 
-✅ Dashboard **totalement préservé**  
-✅ Logique métier **intacte**  
-✅ Transactions **inchangées**  
-✅ localStorage **toujours actif**  
-✅ Tous les thèmes **fonctionnels**  
+✅ Dashboard **totalement préservé**
+✅ Logique métier **intacte**
+✅ Transactions **inchangées**
+✅ localStorage **toujours actif**
+✅ Tous les thèmes **fonctionnels**
 
 ### Zéro breaking changes
 
@@ -376,6 +376,6 @@ Le système d'authentification est **complètement optionnel** au démarrage:
 
 ---
 
-**Généré**: 28 mai 2026  
-**Version**: Nexora 1.0.0 Auth  
+**Généré**: 28 mai 2026
+**Version**: Nexora 1.0.0 Auth
 **Status**: ✅ Production-ready (mode test actif)

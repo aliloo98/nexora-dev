@@ -50,9 +50,24 @@ async function analyzeBudget(monthKey) {
     scoreObj = { score, label }
   }
 
+  const formatMonthYear = (date) => date.toLocaleString('fr-FR', { month: 'long', year: 'numeric' })
+  const addMonths = (date, months) => {
+    const result = new Date(date)
+    result.setMonth(result.getMonth() + months)
+    return result
+  }
+
   // Status from score
-  const status = scoreObj.score >= 90 ? 'excellent' : scoreObj.score >= 75 ? 'healthy' : scoreObj.score >= 50 ? 'neutral' : 'critical'
-  const trajectoryLabel = status === 'excellent' || status === 'healthy' ? 'Bonne trajectoire' : status === 'neutral' ? 'Sous surveillance' : 'Risque élevé'
+  const status = scoreObj.score >= 90 ? 'excellent' : scoreObj.score >= 75 ? 'healthy' : scoreObj.score >= 60 ? 'attention' : 'critical'
+  const trajectoryLabel = scoreObj.score >= 90
+    ? '🟢 Excellente trajectoire'
+    : scoreObj.score >= 75
+      ? '🟢 Situation saine'
+      : scoreObj.score >= 60
+        ? '🟡 Sous surveillance'
+        : scoreObj.score >= 40
+          ? '🟠 Attention budget'
+          : '🔴 Situation critique'
 
   const currentSituation = rev <= 0
     ? 'Aucun revenu saisi pour ce cycle.'
@@ -62,17 +77,86 @@ async function analyzeBudget(monthKey) {
         ? `Votre marge de fin de cycle devient limitée avec seulement ${savings} € prévus.`
         : `Votre budget reste positif. Vous devriez terminer ce cycle avec environ ${savings} € disponibles.`
 
-  const naturalAnalysis = rev <= 0
+  const mainAnalysis = rev <= 0
     ? 'Aucun revenu saisi pour ce cycle.'
     : savings < 0
-      ? 'La situation est fragile ce mois-ci avec un risque de déficit si les dépenses ne sont pas réduites.'
+      ? `Votre budget est en déficit de ${Math.abs(savings)} €, principalement sous l'effet des charges actuelles.`
       : chargesRate > 80
-        ? 'Votre situation reste saine malgré une pression importante des dépenses fixes.'
+        ? `Votre budget devrait terminer le cycle avec ${savings} € disponibles, mais les charges fixes représentent actuellement ${chargesRate}% des revenus, ce qui limite fortement votre capacité d’épargne.`
         : vari > 0 && rev > 0 && Math.round((vari / rev) * 100) > 40
-          ? 'La hausse des dépenses variables limite votre capacité d’épargne ce mois-ci.'
+          ? `Votre budget reste positif, mais la part des dépenses variables est élevée et réduit votre capacité à renforcer votre épargne.`
           : savingsRate >= 15
-            ? 'Votre niveau d’épargne progresse correctement par rapport à vos dépenses.'
-            : 'Votre budget reste équilibré mais les charges fixes réduisent votre capacité d’épargne ce mois-ci.'
+            ? `Votre budget reste positif et votre taux d’épargne progresse correctement par rapport à votre niveau de dépenses.`
+            : `Votre budget reste équilibré, mais la pression des charges limite votre marge d’épargne.`
+
+  const budgetObservations = []
+  if (rev > 0 && fixes > 0) {
+    const fixedRatio = Math.round((fixes / rev) * 100)
+    if (fixedRatio > 30) {
+      budgetObservations.push(`Les charges fixes représentent ${fixedRatio}% des revenus.`)
+    }
+  }
+  if (rev > 0 && vari > 0) {
+    const variableRatio = Math.round((vari / rev) * 100)
+    if (variableRatio <= 25) {
+      budgetObservations.push('Les dépenses variables sont maîtrisées.')
+    } else if (variableRatio > 40) {
+      budgetObservations.push('Les dépenses variables sont élevées et pèsent sur votre capacité d’épargne.')
+    }
+  }
+
+  const goalInsights = []
+  const goals = Array.isArray(goalsSummary?.goals) ? goalsSummary.goals : []
+  if (primaryGoal && Number(primaryGoal.current || 0) === 0) {
+    goalInsights.push('L’objectif principal n’est pas encore alimenté.')
+  }
+  goals.forEach(goal => {
+    if (goal && goal.targetDate) {
+      const targetDate = new Date(goal.targetDate)
+      const now = new Date()
+      const diffMonths = Math.ceil((targetDate - now) / (1000 * 60 * 60 * 24 * 30))
+      if (diffMonths > 0 && diffMonths <= 4 && /crédit|credit|loyer|logement/i.test(goal.name || '')) {
+        goalInsights.push('Le crédit lié à cet objectif sera bientôt terminé.')
+      }
+    }
+  })
+
+  const analysisExtras = [...budgetObservations, ...goalInsights].slice(0, 3)
+  const naturalAnalysis = [mainAnalysis, ...analysisExtras].join('\n\n')
+
+  const monthlyContribution = Math.max(0, Math.round(savings))
+  const goalProjections = goals
+    .filter(goal => goal && Number(goal.target || 0) > Number(goal.current || 0))
+    .map(goal => {
+      const remaining = Math.max(0, Number(goal.target || 0) - Number(goal.current || 0))
+      const currentMonths = monthlyContribution > 0 ? Math.ceil(remaining / monthlyContribution) : null
+      const months50 = monthlyContribution + 50 > 0 ? Math.ceil(remaining / (monthlyContribution + 50)) : null
+      const months100 = monthlyContribution + 100 > 0 ? Math.ceil(remaining / (monthlyContribution + 100)) : null
+      const eta = currentMonths !== null ? formatMonthYear(addMonths(new Date(), currentMonths)) : null
+      return {
+        name: goal.name || 'Objectif',
+        remaining,
+        currentMonths,
+        months50,
+        months100,
+        eta
+      }
+    })
+
+  const goalProjectionText = goalProjections.length > 0
+    ? goalProjections.map(proj => {
+      const current = proj.currentMonths !== null ? `${proj.currentMonths} mois` : 'sans rythme actuel'
+      const plus50 = proj.months50 !== null ? `${proj.months50} mois` : '–'
+      const plus100 = proj.months100 !== null ? `${proj.months100} mois` : '–'
+      return `${proj.name} — rythme actuel : ${current}, +50 €/mois : ${plus50}, +100 €/mois : ${plus100}.`
+    }).join('\n')
+    : null
+
+  const timelineEntries = goalProjections
+    .filter(p => p.eta)
+    .sort((a, b) => a.currentMonths - b.currentMonths)
+    .slice(0, 3)
+    .map(p => `${p.eta} : ${p.name} prévu`)
 
   // Rules -> insights, alerts, recommendations
   const insights = []
@@ -177,6 +261,8 @@ async function analyzeBudget(monthKey) {
     alerts: finalAlerts,
     alertDisplay: finalAlertTexts,
     recommendations: finalRecommendations,
+    goalProjectionText: goalProjectionText || null,
+    timeline: timelineEntries,
     metadata: {
       month: month || null,
       chargesRate,

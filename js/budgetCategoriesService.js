@@ -194,15 +194,26 @@ const readSupabaseCategories = async (userId) => {
   return Array.isArray(data) ? data : []
 }
 
-const logReadFallback = (err) => {
+const isDevMode = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV
+const isBudgetCategoriesTableMissing = (err) => {
   const status = err?.status || err?.statusCode
   const code = err?.code
-  const expectedFallback = status === 401 || status === 403 || code === 'PGRST301'
-  if (expectedFallback && console.info) {
-    console.info('[BudgetCategoriesService] Supabase read fallback:', err?.message || err)
+  const message = String(err?.message || err || '')
+  return status === 404 || code === 'PGRST205' || /budget_categories/i.test(message) && /not found|could not find|relation .* does not exist/i.test(message)
+}
+
+const logSupabaseFallback = (context, err) => {
+  if (isBudgetCategoriesTableMissing(err)) {
+    if (isDevMode && console.info) {
+      console.info(`[BudgetCategoriesService] Supabase ${context} fallback (budget_categories table optional):`, err?.message || err)
+    }
     return
   }
-  console.warn('[BudgetCategoriesService] Supabase read fallback:', err)
+
+  if (!isDevMode) return
+  if (console.warn) {
+    console.warn(`[BudgetCategoriesService] Supabase ${context} fallback:`, err)
+  }
 }
 
 const upsertSupabaseCategory = async (category) => {
@@ -249,7 +260,7 @@ const getBudgetCategories = async ({ includeInactive = false, userId } = {}) => 
       }
     }
   } catch (err) {
-    logReadFallback(err)
+    logSupabaseFallback('read', err)
   }
 
   return includeInactive ? categories : categories.filter(category => category.is_active)
@@ -274,7 +285,7 @@ const renameBudgetCategory = async (id, name, { userId } = {}) => {
       return normalizeCategory(await upsertSupabaseCategory({ ...updated, user_id: session.user.id }), session.user.id)
     }
   } catch (err) {
-    console.warn('[BudgetCategoriesService] Supabase rename fallback:', err)
+    logSupabaseFallback('rename', err)
   }
 
   return updated
@@ -311,7 +322,7 @@ const createBudgetCategory = async ({ name, type, position, userId } = {}) => {
       return normalizeCategory(await upsertSupabaseCategory(remoteCategory), session.user.id)
     }
   } catch (err) {
-    console.warn('[BudgetCategoriesService] Supabase create fallback:', err)
+    logSupabaseFallback('create', err)
   }
 
   return category
@@ -334,7 +345,7 @@ const disableBudgetCategory = async (id, { userId } = {}) => {
       return normalizeCategory(await upsertSupabaseCategory({ ...updated, user_id: session.user.id }), session.user.id)
     }
   } catch (err) {
-    console.warn('[BudgetCategoriesService] Supabase disable fallback:', err)
+    logSupabaseFallback('disable', err)
   }
 
   return updated
@@ -357,7 +368,7 @@ const restoreBudgetCategory = async (id, { userId } = {}) => {
       return normalizeCategory(await upsertSupabaseCategory({ ...updated, user_id: session.user.id }), session.user.id)
     }
   } catch (err) {
-    console.warn('[BudgetCategoriesService] Supabase restore fallback:', err)
+    logSupabaseFallback('restore', err)
   }
 
   return updated

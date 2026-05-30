@@ -1,9 +1,9 @@
 /**
  * Nexora - Authentication Service
- * 
+ *
  * Handles user authentication with Supabase.
  * Uses placeholders until VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are configured.
- * 
+ *
  * TODO: Activate real Supabase connection when credentials are added to .env
  */
 
@@ -21,11 +21,11 @@ const isSupabaseConfigured = Boolean(
 export const AuthService = {
   /**
    * Sign up new user with email, password, and username
-   * 
+   *
    * TODO: When Supabase is configured:
    * - Uncomment the real signUp logic below
    * - Remove the placeholder logic
-   * 
+   *
    * @param {string} email - User email
    * @param {string} password - User password
    * @param {string} username - User display name
@@ -54,9 +54,9 @@ export const AuthService = {
       //     data: { username }
       //   }
       // })
-      // 
+      //
       // if (error) throw error
-      // 
+      //
       // // Create user profile in users table
       // if (data.user) {
       //   const { error: profileError } = await supabase
@@ -69,14 +69,14 @@ export const AuthService = {
       //         created_at: new Date()
       //       }
       //     ])
-      //   
+      //
       //   if (profileError) throw profileError
       // }
-      // 
+      //
       // return { user: data.user, error: null }
 
       // PLACEHOLDER: Simulate successful signup
-      
+
       // Validate inputs
       if (!email || !password || !username) {
         return {
@@ -105,11 +105,11 @@ export const AuthService = {
 
   /**
    * Sign in with email and password
-   * 
+   *
    * TODO: When Supabase is configured:
    * - Uncomment the real signIn logic
    * - Remove the placeholder logic
-   * 
+   *
    * @param {string} email - User email
    * @param {string} password - User password
    * @returns {Promise<{user, session, error}>}
@@ -135,9 +135,9 @@ export const AuthService = {
       //   email,
       //   password
       // })
-      // 
+      //
       // if (error) throw error
-      // 
+      //
       // return {
       //   user: data.user,
       //   session: data.session,
@@ -145,7 +145,7 @@ export const AuthService = {
       // }
 
       // PLACEHOLDER: Simulate successful login
-      
+
       // Validate inputs
       if (!email || !password) {
         return {
@@ -183,11 +183,11 @@ export const AuthService = {
 
   /**
    * Sign out current user
-   * 
+   *
    * TODO: When Supabase is configured:
    * - Uncomment the real signOut logic
    * - Remove the placeholder logic
-   * 
+   *
    * @returns {Promise<{error}>}
    */
   async signOut() {
@@ -205,7 +205,7 @@ export const AuthService = {
       // return { error: null }
 
       // PLACEHOLDER: Simulate successful logout
-      
+
       // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 300))
       return { error: null }
@@ -217,11 +217,11 @@ export const AuthService = {
 
   /**
    * Get current authenticated user
-   * 
+   *
    * TODO: When Supabase is configured:
    * - Uncomment the real getCurrentUser logic
    * - Remove the placeholder logic
-   * 
+   *
    * @returns {Promise<{user, error}>}
    */
   async getCurrentUser() {
@@ -238,10 +238,10 @@ export const AuthService = {
       // return { user, error: null }
 
       // PLACEHOLDER: Simulate retrieving current user from session storage
-      
+
       // Try to get user from sessionStorage (set during login)
       const storedUser = sessionStorage.getItem('nexora_auth_user')
-      
+
       if (storedUser) {
         const user = JSON.parse(storedUser)
         return { user, error: null }
@@ -255,10 +255,10 @@ export const AuthService = {
 
   /**
    * Get current session
-   * 
+   *
    * TODO: When Supabase is configured:
    * - Uncomment the real getSession logic
-   * 
+   *
    * @returns {Promise<{session, error}>}
    */
   async getSession() {
@@ -275,9 +275,9 @@ export const AuthService = {
       // return { session, error: null }
 
       // PLACEHOLDER: Simulate retrieving session from sessionStorage
-      
+
       const storedSession = sessionStorage.getItem('nexora_auth_session')
-      
+
       if (storedSession) {
         const session = JSON.parse(storedSession)
         return { session, error: null }
@@ -292,9 +292,9 @@ export const AuthService = {
   /**
    * Store user session locally (for placeholder mode)
    * Useful for testing without real Supabase
-   * 
+   *
    * TODO: Remove this when using real Supabase Auth
-   * 
+   *
    * @param {object} user - User object
    * @param {object} session - Session object
    */
@@ -307,7 +307,7 @@ export const AuthService = {
 
   /**
    * Clear stored session (for placeholder mode)
-   * 
+   *
    * TODO: Remove this when using real Supabase Auth
    */
   clearSessionPlaceholder() {
@@ -318,11 +318,11 @@ export const AuthService = {
 
 /**
  * Supabase Listener Setup
- * 
+ *
  * TODO: When Supabase is configured:
  * - Uncomment the listener setup to track auth state changes
  * - This will automatically update the app when user logs in/out
- * 
+ *
  * Example:
  * supabase.auth.onAuthStateChange((event, session) => {
  *   if (event === 'SIGNED_IN') {

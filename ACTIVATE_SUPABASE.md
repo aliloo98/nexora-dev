@@ -1,7 +1,7 @@
 # 🚀 Guide d'activation Supabase - Nexora
 
-**Objectif**: Activer les vraies clés Supabase et passer en mode production  
-**Durée**: ~15 minutes  
+**Objectif**: Activer les vraies clés Supabase et passer en mode production
+**Durée**: ~15 minutes
 **Complexité**: Facile ⭐
 
 ---
@@ -31,7 +31,7 @@ Anon Public Key:    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 Secret Key:         sbp_xxxxxxxxxxxxx... (⚠️ NE PAS UTILISER)
 ```
 
-**Important**: 
+**Important**:
 - ✅ **Copier**: `Project URL` et `Anon Public Key`
 - ❌ **NE PAS utiliser**: `Secret Key` (c'est secret!)
 
@@ -178,7 +178,7 @@ async signOut() {
   try {
     // TODO: Real Supabase implementation (uncomment when ready)
     // const { error } = await supabase.auth.signOut()
-    
+
     // PLACEHOLDER: Simulate successful logout
     console.log('🔐 [PLACEHOLDER] SignOut initiated')
 ```
@@ -317,7 +317,7 @@ npm run dev
    ```
 4. Cliquez "S'inscrire"
 
-**Attendu**: 
+**Attendu**:
 - ✅ Redirection au dashboard
 - ✅ Header affiche "Bonjour Test User 👋"
 - ✅ Données dans Supabase Console
@@ -344,22 +344,22 @@ npm run dev
 
 ### "Supabase Auth API not available"
 
-**Cause**: Variables `.env` mal copiées  
+**Cause**: Variables `.env` mal copiées
 **Solution**: Vérifier exactement vos clés Supabase
 
 ### "Email already registered"
 
-**Cause**: Vous utilisez un email déjà enregistré  
+**Cause**: Vous utilisez un email déjà enregistré
 **Solution**: Utiliser un autre email pour tester
 
 ### "Project not initializing"
 
-**Cause**: Votre projet Supabase est en pause  
+**Cause**: Votre projet Supabase est en pause
 **Solution**: Allez dans Supabase Settings et activez le projet
 
 ### "Access denied: insufficient permissions"
 
-**Cause**: Vos RLS policies ne sont pas correctes  
+**Cause**: Vos RLS policies ne sont pas correctes
 **Solution**: Ajouter les policies de sécurité (Étape 8)
 
 ---
@@ -424,6 +424,6 @@ APRÈS:
 
 **Questions?** Voir [AUTH_ARCHITECTURE.md](./AUTH_ARCHITECTURE.md)
 
-**Généré**: 28 mai 2026  
-**Version**: Nexora 1.0.0  
+**Généré**: 28 mai 2026
+**Version**: Nexora 1.0.0
 **Status**: ✅ Prêt pour activation

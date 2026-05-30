@@ -1,9 +1,9 @@
 /**
  * Nexora - Authentication Context
- * 
+ *
  * Global state management for user authentication.
  * Provides a centralized way to manage and access auth state across the app.
- * 
+ *
  * TODO: Integration with real Supabase when credentials are added
  */
 
@@ -13,7 +13,7 @@ import { STORAGE_KEYS } from '../constants/storageKeys.js'
 /**
  * AuthContext - Simple event-based state management
  * Similar to React Context but for vanilla JavaScript
- * 
+ *
  * Usage:
  * - AuthContext.subscribe(callback) - Listen to auth state changes
  * - AuthContext.getState() - Get current auth state
@@ -40,7 +40,7 @@ export const AuthContext = {
    */
   subscribe(listener) {
     this._listeners.push(listener)
-    
+
     // Return unsubscribe function
     return () => {
       this._listeners = this._listeners.filter(l => l !== listener)
@@ -70,12 +70,12 @@ export const AuthContext = {
     this._state.user = user
     this._state.session = session
     this._state.isAuthenticated = !!user
-    
+
     // Also store in placeholder session storage
     if (user && session) {
       AuthService.storeSessionPlaceholder(user, session)
     }
-    
+
     this._notifyListeners()
   },
 
@@ -133,15 +133,15 @@ export const AuthContext = {
    */
   async init() {
     this._setLoading(true)
-    
+
     try {
       // TODO: When Supabase is configured:
       // - Remove placeholder logic
       // - Set up real auth listener with supabase.auth.onAuthStateChange()
-      
+
       // Try to restore session from placeholder storage
       const { user } = await AuthService.getCurrentUser()
-      
+
       if (user) {
         this._state.user = user
         this._state.isAuthenticated = true
@@ -170,9 +170,9 @@ export const AuthContext = {
     this._setError(null)
 
     try {
-      
+
       const { user, session, error } = await AuthService.signUp(email, password, username)
-      
+
       if (error) {
         this._setError(error)
         console.error('❌ SignUp failed:', error)
@@ -199,9 +199,9 @@ export const AuthContext = {
     this._setError(null)
 
     try {
-      
+
       const { user, session, error } = await AuthService.signIn(email, password)
-      
+
       if (error) {
         this._setError(error)
         console.error('❌ SignIn failed:', error)
@@ -227,23 +227,23 @@ export const AuthContext = {
     this._setError(null)
 
     try {
-      
+
       const { error } = await AuthService.signOut()
-      
+
       if (error) {
         this._setError(error)
         console.error('❌ SignOut failed:', error)
         return { error }
       }
-      
+
       // Clear user and session
       this._state.user = null
       this._state.session = null
       this._state.isAuthenticated = false
-      
+
       // Clear placeholder storage
       AuthService.clearSessionPlaceholder()
-      
+
       this._notifyListeners()
       return { error: null }
     } catch (error) {
@@ -281,17 +281,17 @@ export const AuthContext = {
    */
   getUserDisplayName() {
     if (!this._state.user) return null
-    
+
     // Try to get username from user_metadata
     if (this._state.user.user_metadata?.username) {
       return this._state.user.user_metadata.username
     }
-    
+
     // Fall back to email username
     if (this._state.user.email) {
       return this._state.user.email.split('@')[0]
     }
-    
+
     return 'Utilisateur'
   }
 }

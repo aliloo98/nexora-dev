@@ -1,9 +1,9 @@
 /**
  * Nexora - Login Form Component
- * 
+ *
  * Renders a modern, responsive login form.
  * Handles validation and submission.
- * 
+ *
  * TODO: Update styles when theme system is integrated
  */
 
@@ -119,11 +119,11 @@ export const attachLoginFormListeners = () => {
   // Form submission
   form.addEventListener('submit', async (e) => {
     e.preventDefault()
-    
+
     // Clear errors
     errorBox.style.display = 'none'
     loadingBox.style.display = 'none'
-    
+
     const email = emailInput.value.trim()
     const password = passwordInput.value
 
@@ -145,7 +145,7 @@ export const attachLoginFormListeners = () => {
     loadingBox.style.display = 'flex'
 
     try {
-      
+
       // Call auth context
       const { user, error } = await AuthContext.signIn(email, password)
 
@@ -155,10 +155,10 @@ export const attachLoginFormListeners = () => {
         console.error('Login error:', error)
         return
       }
-      
+
       // Success - navigate to dashboard
       window.showToast('✅ Connecté avec succès!')
-      
+
       // Simulate page transition
       setTimeout(() => {
         window.location.hash = '#section-dashboard'
@@ -177,14 +177,14 @@ export const attachLoginFormListeners = () => {
   // Demo mode
   demoBtn.addEventListener('click', async (e) => {
     e.preventDefault()
-    
+
     // Populate with demo credentials
     emailInput.value = 'demo@nexora.local'
     passwordInput.value = 'demo123456'
-    
+
     // Clear errors
     errorBox.style.display = 'none'
-    
+
     // Show loading state
     demoBtn.disabled = true
     loadingBox.style.display = 'flex'
@@ -199,7 +199,7 @@ export const attachLoginFormListeners = () => {
         return
       }
       window.showToast('✅ Mode test activé!')
-      
+
       setTimeout(() => {
         window.location.hash = '#section-dashboard'
         window.showSection('dashboard')

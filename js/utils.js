@@ -13,7 +13,7 @@ const Utils = {
   customConfirm: (title, message, onConfirm) => {
     const modal = document.getElementById('custom-modal');
     if (!modal) return;
-    
+
     modal.querySelector('.modal-title').textContent = title;
     modal.querySelector('#modal-body-content').textContent = message;
 
@@ -81,7 +81,7 @@ const ConfettiEngine = (() => {
   const trigger = () => {
     const canvas = document.getElementById('confetti-canvas');
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
