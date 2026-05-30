@@ -17,11 +17,18 @@ function setMocks({metrics, primaryGoal, goalsSummary}){
   }
 }
 
+function assertMinimumOutputs(r){
+  assert(r && Array.isArray(r.insights) && r.insights.length > 0, 'expected at least one insight')
+  assert(r && Array.isArray(r.alerts) && r.alerts.length > 0, 'expected at least one vigilance/alert')
+  assert(r && Array.isArray(r.recommendations) && r.recommendations.length > 0, 'expected at least one recommendation')
+}
+
 tests.push({
   name: 'budget positif',
   fn: async () => {
     setMocks({ metrics: { income: 2000, fixed: 800, variable: 600, expenses: 1400, savings: 600 } })
     const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
     assert(r.score > 50, 'expected score > 50')
     assert(!r.alerts.includes('Solde prévisionnel négatif'))
   }
@@ -32,6 +39,7 @@ tests.push({
   fn: async () => {
     setMocks({ metrics: { income: 1000, fixed: 900, variable: 300, expenses: 1200, savings: -200 } })
     const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
     assert(r.alerts.length > 0 && r.alerts.includes('Solde prévisionnel négatif'), 'expected negative balance alert')
   }
 })
@@ -41,6 +49,7 @@ tests.push({
   fn: async () => {
     setMocks({ metrics: { income: 2000, fixed: 1000, variable: 500, expenses: 1500, savings: 500, targetEpargne: 400 } })
     const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
     assert(r.insights.some(i => /épargne/i.test(i) || /Objectif d’épargne atteint/i), 'expected savings insight')
   }
 })
@@ -50,6 +59,7 @@ tests.push({
   fn: async () => {
     setMocks({ metrics: { income: 1500, fixed: 800, variable: 500, expenses: 1300, savings: 200 }, primaryGoal: { name: 'Test', current: 0, target: 1000 } })
     const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
     assert(r.recommendations.some(s => /Commencez/i || /Commencez/.test(s) ), 'expected encouragement to start contributing')
   }
 })
@@ -59,6 +69,7 @@ tests.push({
   fn: async () => {
     setMocks({ metrics: { income: 1500, fixed: 500, variable: 200, expenses: 700, savings: 800 }, primaryGoal: { name: 'Done', current: 1000, target: 800 } })
     const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
     assert(r.recommendations.some(s => /Félicitations/i || /Félicitations/.test(s) ), 'expected congrats recommendation')
   }
 })
@@ -68,6 +79,7 @@ tests.push({
   fn: async () => {
     setMocks({ metrics: { income: 2000, fixed: 600, variable: 1000, expenses: 1600, savings: 400 } })
     const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
     assert(r.alerts.includes('Dépenses variables élevées'), 'expected variable expense alert')
   }
 })
@@ -77,6 +89,7 @@ tests.push({
   fn: async () => {
     setMocks({ metrics: { income: 2000, fixed: 1500, variable: 400, expenses: 1900, savings: 100 } })
     const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
     assert(r.alerts.includes('Taux de charges très élevé'), 'expected high charges alert')
   }
 })

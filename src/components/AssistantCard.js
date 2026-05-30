@@ -8,33 +8,30 @@ function createAssistantCard() {
     <div class="assistant-header">
       <div>
         <div class="assistant-eyebrow">Assistant Nexora</div>
-        <h3 class="assistant-title">Lecture financière intelligente</h3>
+        <h3 class="assistant-title">Assistant financier IA</h3>
       </div>
-      <div class="assistant-badge">✨ Premium</div>
+      <div class="assistant-labels">
+        <div class="assistant-badge">Assistant IA</div>
+        <div id="assistant-trajectory" class="assistant-trajectory">Bonne trajectoire</div>
+      </div>
     </div>
     <div class="assistant-body">
-      <div class="assistant-top">
-        <div class="assistant-score">
-          <div class="score-ring"><span id="assistant-score-val">0</span></div>
-          <div class="score-meta">
-            <span id="assistant-score-label" class="score-label">Aucune donnée</span>
-            <span id="assistant-score-status" class="score-status">Statut disponible après saisie</span>
-          </div>
-        </div>
-        <div id="assistant-status" class="assistant-status neutral">—</div>
+      <div class="assistant-situation assistant-block">
+        <strong>Situation actuelle</strong>
+        <p id="assistant-situation-text">Les tendances financières seront affichées ici dès que vous aurez saisi vos revenus et dépenses.</p>
       </div>
-      <div class="assistant-highlight">
-        <strong id="assistant-highlight-title">Insight principal</strong>
-        <p id="assistant-highlight-text">Les informations clés apparaîtront ici dès que vous aurez saisi vos revenus et dépenses.</p>
-      </div>
-      <div class="assistant-content">
-        <div class="assistant-block assistant-insights">
-          <strong>Insights</strong>
-          <ul id="assistant-insights-list"></ul>
+      <div class="assistant-main-grid">
+        <div class="assistant-analysis assistant-block">
+          <strong>Analyse du mois</strong>
+          <p id="assistant-analysis-text">Les informations clés apparaîtront ici dès que vous aurez saisi vos revenus et dépenses.</p>
         </div>
-        <div class="assistant-block assistant-recs">
-          <strong>Recommandations</strong>
-          <ul id="assistant-recs-list"></ul>
+        <div class="assistant-block assistant-vigilance">
+          <strong>Point de vigilance</strong>
+          <ul id="assistant-vigilance-list"></ul>
+        </div>
+        <div class="assistant-block assistant-action">
+          <strong>Action recommandée</strong>
+          <ul id="assistant-action-list"></ul>
         </div>
       </div>
     </div>
@@ -42,34 +39,25 @@ function createAssistantCard() {
 
   const style = document.createElement('style')
   style.textContent = `
-    .assistant-card{padding:24px;display:flex;flex-direction:column;gap:18px;border-radius:24px;background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02));border:1px solid rgba(229,192,96,0.18);box-shadow:0 20px 60px rgba(0,0,0,0.26)}
-    .assistant-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
-    .assistant-eyebrow{text-transform:uppercase;color:var(--gold);letter-spacing:1px;font-size:11px;font-weight:800}
-    .assistant-title{font-size:20px;line-height:1.2;color:var(--text);margin-top:8px}
-    .assistant-badge{padding:6px 12px;background:rgba(229,192,96,0.12);color:var(--gold);border-radius:999px;font-size:12px;font-weight:700;letter-spacing:0.5px}
-    .assistant-body{display:flex;flex-direction:column;gap:18px}
-    .assistant-top{display:flex;justify-content:space-between;align-items:center;gap:16px}
-    .assistant-score{display:flex;align-items:center;gap:16px}
-    .score-ring{width:86px;height:86px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at top left,rgba(229,192,96,0.24),transparent 58%);border:2px solid rgba(229,192,96,0.25);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.05)}
-    #assistant-score-val{font-size:28px;font-weight:900;letter-spacing:-0.02em;color:var(--text)}
-    .score-meta{display:flex;flex-direction:column;gap:6px}
-    .score-label{font-size:12px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.6px}
-    .score-status{font-size:14px;color:var(--text);max-width:220px;line-height:1.4}
-    .assistant-status{font-weight:700;padding:8px 14px;border-radius:999px;white-space:nowrap}
-    .assistant-status.healthy{background:rgba(16,185,129,0.12);color:var(--green);border:1px solid rgba(16,185,129,0.18)}
-    .assistant-status.neutral{background:rgba(255,255,255,0.05);color:var(--text2);border:1px solid rgba(255,255,255,0.08)}
-    .assistant-status.critical{background:rgba(244,63,94,0.12);color:var(--red);border:1px solid rgba(244,63,94,0.18)}
-    .assistant-highlight{background:rgba(229,192,96,0.07);border:1px solid rgba(229,192,96,0.18);border-radius:18px;padding:16px}
-    .assistant-highlight strong{display:block;font-size:13px;color:var(--gold);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px}
-    .assistant-highlight p{font-size:15px;line-height:1.6;color:var(--text);margin:0}
-    .assistant-content{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
-    .assistant-block{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:18px;padding:16px}
-    .assistant-block strong{display:block;font-size:12px;letter-spacing:0.8px;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
-    .assistant-insights ul,.assistant-recs ul{margin:0;padding-left:18px;list-style:disc;max-height:120px;overflow:hidden}
-    .assistant-insights li,.assistant-recs li{font-size:13px;line-height:1.6;color:var(--text2);margin-bottom:10px}
-    .assistant-insights li:last-child,.assistant-recs li:last-child{margin-bottom:0}
-    @media(max-width:860px){.assistant-content{grid-template-columns:1fr}.assistant-top{flex-direction:column;align-items:flex-start}.assistant-score{flex-direction:row;gap:12px}.score-status{max-width:100%}}
-    @media(max-width:640px){.assistant-card{padding:18px}.score-ring{width:68px;height:68px}#assistant-score-val{font-size:24px}.assistant-header{flex-direction:column;align-items:flex-start}.assistant-badge{width:100%;text-align:center}.assistant-highlight{padding:14px}.assistant-block{padding:14px}}
+    .assistant-card{padding:16px;display:grid;grid-template-columns:1fr;gap:12px;border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02));border:1px solid rgba(229,192,96,0.18);box-shadow:0 18px 40px rgba(0,0,0,0.18)}
+    .assistant-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+    .assistant-labels{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+    .assistant-eyebrow{text-transform:uppercase;color:var(--gold);letter-spacing:1px;font-size:10px;font-weight:800}
+    .assistant-title{font-size:18px;line-height:1.2;color:var(--text);margin-top:6px}
+    .assistant-badge{padding:6px 10px;background:rgba(229,192,96,0.12);color:var(--gold);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0.5px}
+    .assistant-trajectory{padding:6px 10px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;min-width:fit-content}
+    .assistant-trajectory.healthy{background:rgba(34,197,94,0.12);color:var(--green);border:1px solid rgba(34,197,94,0.18)}
+    .assistant-trajectory.neutral{background:rgba(250,204,21,0.12);color:var(--yellow);border:1px solid rgba(250,204,21,0.18)}
+    .assistant-trajectory.critical{background:rgba(244,63,94,0.12);color:var(--red);border:1px solid rgba(244,63,94,0.18)}
+    .assistant-body{display:grid;grid-template-columns:1fr;gap:12px}
+    .assistant-main-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .assistant-situation, .assistant-analysis, .assistant-block{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:14px;min-height:88px}
+    .assistant-analysis p,.assistant-situation p{font-size:14px;line-height:1.5;color:var(--text);margin:0}
+    .assistant-block strong, .assistant-analysis strong, .assistant-situation strong{display:block;font-size:11px;letter-spacing:0.8px;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+    .assistant-vigilance ul,.assistant-action ul{margin:0;padding-left:18px;list-style:disc;max-height:110px;overflow:hidden}
+    .assistant-vigilance li,.assistant-action li{font-size:13px;line-height:1.5;color:var(--text2);margin-bottom:8px}
+    @media(max-width:960px){.assistant-main-grid{grid-template-columns:1fr}}
+    @media(max-width:640px){.assistant-card{padding:14px}.assistant-block{padding:12px}.assistant-analysis,.assistant-situation{padding:12px}}
   `
   container.appendChild(style)
 
@@ -90,38 +78,49 @@ async function renderAssistantCard() {
   }
 
   const result = await analyzeBudget()
+  const situationEl = existing.querySelector('#assistant-situation-text')
+  const analysisEl = existing.querySelector('#assistant-analysis-text')
+  const trajectoryEl = existing.querySelector('#assistant-trajectory')
+  const vigilanceList = existing.querySelector('#assistant-vigilance-list')
+  const actionList = existing.querySelector('#assistant-action-list')
 
-  const scoreEl = existing.querySelector('#assistant-score-val')
-  const labelEl = existing.querySelector('#assistant-score-label')
-  const metaEl = existing.querySelector('#assistant-score-status')
-  const statusEl = existing.querySelector('#assistant-status')
-  const highlightTitleEl = existing.querySelector('#assistant-highlight-title')
-  const highlightTextEl = existing.querySelector('#assistant-highlight-text')
-  const insightsList = existing.querySelector('#assistant-insights-list')
-  const recsList = existing.querySelector('#assistant-recs-list')
-
-  if (scoreEl) scoreEl.textContent = result.score || 0
-  if (labelEl) labelEl.textContent = result.scoreLabel || ''
-  if (metaEl) metaEl.textContent = result.status ? `État : ${result.status}` : 'Mise à jour en cours'
-  if (statusEl) {
-    statusEl.textContent = (result.status || '').toUpperCase()
-    statusEl.className = 'assistant-status ' + (result.status || 'neutral')
+  if (trajectoryEl) {
+    trajectoryEl.textContent = result.trajectoryLabel || 'Analyse en cours'
+    trajectoryEl.className = `assistant-trajectory ${result.status || 'neutral'}`
   }
-  if (highlightTitleEl) highlightTitleEl.textContent = 'Insight principal'
-  if (highlightTextEl) highlightTextEl.textContent = result.insights && result.insights.length > 0 ? result.insights[0] : 'Les informations clés apparaîtront ici dès que vous aurez saisi vos revenus et dépenses.'
+  if (situationEl) situationEl.textContent = result.currentSituation || 'Les tendances financières seront affichées ici.'
+  if (analysisEl) analysisEl.textContent = result.naturalAnalysis || (result.insights && result.insights.length > 0 ? result.insights[0] : 'Analyse indisponible pour le mois.')
 
   const renderItems = (el, items, limit = 3) => {
     if (!el) return
     el.innerHTML = ''
-    (items || []).slice(0, limit).forEach(i => {
+    // Defensive: coerce non-array/list inputs to an array so .slice/.forEach are safe
+    let listItems = items
+    if (!Array.isArray(listItems)) {
+      try {
+        if (listItems && typeof listItems === 'object' && typeof listItems.length === 'number') {
+          listItems = Array.from(listItems)
+        } else if (listItems == null) {
+          listItems = []
+        } else {
+          listItems = [String(listItems)]
+        }
+      } catch (e) {
+        listItems = []
+      }
+    }
+
+    listItems.slice(0, limit).forEach(i => {
       const li = document.createElement('li')
       li.textContent = i
       el.appendChild(li)
     })
   }
 
-  renderItems(insightsList, result.insights, 3)
-  renderItems(recsList, result.recommendations, 3)
+  // Vigilance -> show natural alert phrases, fallback to raw alerts if needed
+  renderItems(vigilanceList, result.alertDisplay || result.alerts, 3)
+  // Action -> show recommendations
+  renderItems(actionList, result.recommendations, 3)
 
   return result
 }
