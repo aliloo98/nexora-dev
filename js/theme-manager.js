@@ -52,10 +52,7 @@ const ThemeManager = (() => {
     const savedTheme = await StorageManager.getItem(STORAGE_KEYS.appTheme) || 'gold';
     applyTheme(savedTheme);
     activateThemeButton(savedTheme);
-
-    const savedIcon = await StorageManager.getItem(STORAGE_KEYS.appIcon) || 'gold';
-    applyAppIcon(savedIcon);
-    activateAppIconButton(savedIcon);
+    applyAppIcon();
   };
 
   const selectTheme = async (themeId) => {
@@ -88,35 +85,20 @@ const ThemeManager = (() => {
     if (activeEl) activeEl.classList.add('active');
   };
 
-  const selectAppIcon = async (iconTheme) => {
-    if (!THEMES[iconTheme]) return;
-
-    applyAppIcon(iconTheme);
-    activateAppIconButton(iconTheme);
-    await StorageManager.setItem(STORAGE_KEYS.appIcon, iconTheme);
-    showToast(`📱 Icône d'accueil modifiée : ${THEME_LABELS[iconTheme]}`);
-  };
-
-  const applyAppIcon = (iconTheme) => {
+  const applyAppIcon = () => {
     const manifestLink = document.getElementById('manifest-link');
     const faviconLink = document.getElementById('favicon-link');
     const appleIconLink = document.getElementById('apple-icon-link');
 
     if (manifestLink) {
-      manifestLink.href = `/manifest.json?icon=${iconTheme}`;
+      manifestLink.href = '/manifest.json';
     }
     if (faviconLink) {
-      faviconLink.href = `/icon-${iconTheme}-192.png`;
+      faviconLink.href = '/favicon.png';
     }
     if (appleIconLink) {
-      appleIconLink.href = `/icon-${iconTheme}-192.png`;
+      appleIconLink.href = '/apple-touch-icon.png';
     }
-  };
-
-  const activateAppIconButton = (iconTheme) => {
-    document.querySelectorAll('.icon-theme-option').forEach(el => el.classList.remove('active'));
-    const activeEl = document.getElementById(`icon-theme-${iconTheme}`);
-    if (activeEl) activeEl.classList.add('active');
   };
 
   const hexToRgb = (hex) => {
@@ -130,7 +112,6 @@ const ThemeManager = (() => {
     init,
     selectTheme,
     applyTheme,
-    selectAppIcon,
     applyAppIcon,
     THEMES,
     THEME_LABELS

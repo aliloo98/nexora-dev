@@ -9,10 +9,7 @@ const STORAGE_KEYS = {
   monthlyBudgetStatesMeta: 'nexora_monthly_budget_states_meta_v1',
   budgetMonthPrefix: 'budget_',
   cagnottes: 'budget_cagnottes',
-  appTheme: 'budget_app_theme',
-  appIcon: 'budget_app_icon',
-  logoType: 'budget_logo_type',
-  logoValue: 'budget_logo_value'
+  appTheme: 'budget_app_theme'
 }
 
 const SYNCED_APP_SETTING_KEYS = [

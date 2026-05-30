@@ -23,7 +23,9 @@
 
 <!-- SIDEBAR / BOTTOM BAR -->
 <nav class="sidebar">
-  <div class="sidebar-logo" id="app-sidebar-logo">💰</div>
+  <div class="sidebar-logo" id="app-sidebar-logo">
+    <img src="/icon-192.png" alt="NEXORA">
+  </div>
   <a href="#section-dashboard" class="nav-btn active" data-section="dashboard" onclick="showSection('dashboard'); return false;" title="Tableau de bord">🏠</a>
   <a href="#section-saisie" class="nav-btn" data-section="saisie" onclick="showSection('saisie'); return false;" title="Saisie du mois">✏️</a>
   <a href="#section-historique" class="nav-btn" data-section="historique" onclick="showSection('historique'); return false;" title="Historique">📚</a>
@@ -917,68 +919,6 @@
         </div>
       </div>
       
-      <!-- Icône d'écran d'accueil (PWA) -->
-      <div class="param-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
-        <div>
-          <div class="param-label">Icône d'écran d'accueil (PWA)</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px">Choisissez le logo de l'application installé sur votre écran d'accueil</div>
-        </div>
-        <div class="icon-theme-grid">
-          <div class="icon-theme-option" id="icon-theme-gold" onclick="ThemeManager.selectAppIcon('gold')" title="Or Royal">
-            <img src="/icon-gold-192.png" alt="Or Royal" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
-          </div>
-          <div class="icon-theme-option" id="icon-theme-emerald" onclick="ThemeManager.selectAppIcon('emerald')" title="Émeraude Cyber">
-            <img src="/icon-emerald-192.png" alt="Émeraude Cyber" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
-          </div>
-          <div class="icon-theme-option" id="icon-theme-amethyst" onclick="ThemeManager.selectAppIcon('amethyst')" title="Améthyste Rêve">
-            <img src="/icon-amethyst-192.png" alt="Améthyste Rêve" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
-          </div>
-          <div class="icon-theme-option" id="icon-theme-ruby" onclick="ThemeManager.selectAppIcon('ruby')" title="Rubis Feu">
-            <img src="/icon-ruby-192.png" alt="Rubis Feu" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
-          </div>
-          <div class="icon-theme-option" id="icon-theme-ocean" onclick="ThemeManager.selectAppIcon('ocean')" title="Bleu Océan">
-            <img src="/icon-ocean-192.png" alt="Bleu Océan" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
-          </div>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:8px;margin-top:6px;padding:10px 12px;background:rgba(255,255,255,0.04);border-radius:10px;border:1px solid var(--border);">
-          <span style="font-size:16px;flex-shrink:0;">📱</span>
-          <div style="font-size:11px;color:var(--text2);line-height:1.5;">
-            <strong style="color:var(--text);display:block;margin-bottom:2px;">Comment changer l'icône sur ton téléphone&nbsp;?</strong>
-            Choisis l'icône ci-dessus, puis <strong style="color:var(--gold);">désinstalle l'app</strong> de ton écran d'accueil et <strong style="color:var(--gold);">réinstalle-la</strong> depuis le navigateur ("Ajouter à l'écran d'accueil"). Le téléphone ne peut pas mettre à jour l'icône d'une app déjà installée.
-          </div>
-        </div>
-      </div>
-      
-      <!-- Choix du Logo -->
-      <div class="param-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
-        <div>
-          <div class="param-label">Logo de l'application</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px">Sélectionnez ou téléversez un logo personnalisé pour la barre latérale</div>
-        </div>
-        
-        <!-- Emoji selection grid -->
-        <div class="logo-options-grid" id="logo-presets-grid">
-          <!-- Dynamically populated by LogoManager.init() with 16 emoji options -->
-        </div>
-        
-        <!-- Custom Emoji -->
-        <div style="display: flex; align-items: center; gap: 10px; margin-top: 14px; width: 100%;">
-          <div style="font-size: 13px; font-weight: 600; color: var(--text);">Émoji personnalisé :</div>
-          <input type="text" id="logo-custom-emoji" class="budget-input" style="width: 60px; text-align: center; padding: 6px;" maxLength="2" placeholder="💎" oninput="LogoManager.setCustomEmojiLogo(this.value)">
-        </div>
-        
-        <!-- Image Upload container -->
-        <div class="logo-upload-container" style="width: 100%;">
-          <div class="logo-preview-box" id="logo-preview">💰</div>
-          <div style="flex: 1;">
-            <label class="btn btn-outline" style="cursor:pointer; padding: 6px 12px; font-size: 12px; display: inline-flex;">
-              Téléverser une image
-              <input type="file" id="logo-image-file" accept="image/*" style="display:none" onchange="LogoManager.uploadLogoImage(event)">
-            </label>
-            <button type="button" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px; border:none; background:rgba(239,68,68,0.1); color:#ef4444; margin-left: 8px; display: none;" id="btn-reset-logo" onclick="LogoManager.resetAppLogo()">Réinitialiser</button>
-          </div>
-        </div>
-      </div>
     </div>
 
     <div class="param-block">
@@ -1118,6 +1058,7 @@
     </div>
   </div>
 
+  <div class="save-bar-spacer" aria-hidden="true"></div>
 </main>
 
 <!-- SAVE BAR -->
@@ -1665,24 +1606,31 @@ function updateRowVisuals(k) {
   }
 }
 
-// Theme and logo logic moved to modules:
-// - `js/theme-manager.js` exposes `ThemeManager` (selectTheme/selectAppIcon/applyTheme)
-// - `js/logo-manager.js` exposes `LogoManager` (updateAppLogo, setCustomEmojiLogo, uploadLogoImage, resetAppLogo)
-// Use `ThemeManager.*` and `LogoManager.*` APIs from the UI (onclick handlers already reference them).
+// Theme logic moved to `js/theme-manager.js`.
 
 function loadPersonalization() {
-  // Themes and logos are now handled by modules (ThemeManager.init() and LogoManager.init())
-  // This function is now minimal and just ensures compatibility
-  const logoType = SafeStorage.getItem('budget_logo_type') || 'emoji';
-  const logoValue = SafeStorage.getItem('budget_logo_value') || '💰';
-  
-  if (logoType === 'emoji' && logoValue !== '💰') {
-    const isPreset = LogoManager.LOGO_PRESETS.map(p => p.emoji).includes(logoValue);
-    if (!isPreset) {
-      const input = document.getElementById('logo-custom-emoji');
-      if (input) input.value = logoValue;
-    }
-  }
+  if (typeof LogoManager !== 'undefined') LogoManager.init();
+}
+
+function updateSaveBarSpacer() {
+  const saveBar = document.querySelector('.save-bar');
+  const spacer = document.querySelector('.save-bar-spacer');
+  if (!saveBar || !spacer) return;
+
+  const height = Math.ceil(saveBar.getBoundingClientRect().height);
+  document.documentElement.style.setProperty('--save-bar-height', `${height}px`);
+}
+
+window.addEventListener('resize', updateSaveBarSpacer);
+window.addEventListener('orientationchange', updateSaveBarSpacer);
+window.addEventListener('load', updateSaveBarSpacer);
+if ('ResizeObserver' in window) {
+  const saveBarObserver = new ResizeObserver(updateSaveBarSpacer);
+  window.addEventListener('load', () => {
+    const saveBar = document.querySelector('.save-bar');
+    if (saveBar) saveBarObserver.observe(saveBar);
+    updateSaveBarSpacer();
+  });
 }
 
 let loadMonthRequestId = 0;
@@ -3353,7 +3301,7 @@ async function exportData(){
       }
     }
 
-    const storageKeys = ['budget_app_theme', 'budget_app_icon', 'budget_logo_type', 'budget_logo_value'];
+    const storageKeys = ['budget_app_theme'];
     if (typeof StorageManager !== 'undefined') {
       for (const key of storageKeys) {
         if (!(key in all)) {
@@ -3542,7 +3490,6 @@ async function importData(e){
         await saveData();
         buildHistory();
         if (typeof ThemeManager !== 'undefined') await ThemeManager.init();
-        if (typeof LogoManager !== 'undefined') await LogoManager.init();
         loadPersonalization();
         showToast('✅ Importation réussie ! (' + importedCount + ' entrées)');
       }
@@ -5155,6 +5102,7 @@ window.onload=async ()=>{
   
   // Initialize app
   loadPersonalization();
+  updateSaveBarSpacer();
   initBudgetCycleSettings();
   await syncBudgetCycleSettingsFromCloud({ update: false });
   installMonthlyHistorySnapshotHook();
