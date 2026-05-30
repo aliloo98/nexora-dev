@@ -1,7 +1,7 @@
 export default function createGoalCard(goal, handlers = {}) {
-  const { onEdit, onDelete } = handlers
+  const { onEdit, onDelete, onSetPrimary } = handlers
   const card = document.createElement('div')
-  card.className = 'goal-card'
+  card.className = `goal-card${goal.isPrimary ? ' is-primary-goal' : ''}`
   card.style.borderLeft = `6px solid ${goal.color || '#e5c060'}`
 
   const title = document.createElement('div')
@@ -56,11 +56,17 @@ export default function createGoalCard(goal, handlers = {}) {
   editBtn.className = 'btn'
   editBtn.textContent = 'Éditer'
   editBtn.onclick = () => onEdit && onEdit(goal)
+  const primaryBtn = document.createElement('button')
+  primaryBtn.className = goal.isPrimary ? 'btn btn-gold' : 'btn btn-outline'
+  primaryBtn.textContent = goal.isPrimary ? 'Objectif principal' : 'Définir principal'
+  primaryBtn.disabled = goal.isPrimary === true
+  primaryBtn.onclick = () => onSetPrimary && onSetPrimary(goal)
   const delBtn = document.createElement('button')
   delBtn.className = 'btn btn-outline'
   delBtn.textContent = 'Supprimer'
   delBtn.onclick = () => onDelete && onDelete(goal)
   actions.appendChild(editBtn)
+  actions.appendChild(primaryBtn)
   actions.appendChild(delBtn)
 
   card.appendChild(title)

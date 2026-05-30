@@ -3,10 +3,17 @@ import { UserAppSettingsService } from '../../js/userAppSettingsService.js'
 
 const STORAGE_KEY = 'nexora_goals_v1'
 
+const normalizeGoals = (goals) => {
+  const list = Array.isArray(goals) ? goals : []
+  const primaryIndex = list.findIndex(goal => goal?.isPrimary === true)
+  if (primaryIndex === -1 || list.length === 0) return list
+  return list.map((goal, index) => ({ ...goal, isPrimary: index === primaryIndex }))
+}
+
 const getGoals = async () => {
   const { value } = await UserAppSettingsService.getSetting(STORAGE_KEY)
   if (Array.isArray(value)) {
-    return value
+    return normalizeGoals(value)
   }
 
   const raw = await StorageManager.getItem(STORAGE_KEY)
@@ -15,7 +22,7 @@ const getGoals = async () => {
   }
   try {
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
+    return Array.isArray(parsed) ? normalizeGoals(parsed) : []
   } catch (err) {
     return []
   }
@@ -31,7 +38,7 @@ const GoalsService = {
   listGoals: getGoals,
 
   saveGoals: async (goals) => {
-    const goalsToSave = goals || []
+    const goalsToSave = normalizeGoals(goals || [])
     await UserAppSettingsService.saveSetting(STORAGE_KEY, goalsToSave)
     if (typeof UserAppSettingsService.syncLocalSettingToCloud === 'function') {
       await UserAppSettingsService.syncLocalSettingToCloud(STORAGE_KEY).catch((err) => {
@@ -44,7 +51,7 @@ const GoalsService = {
   createGoal: async (goal) => {
     const goals = await GoalsService.listGoals()
     const now = Date.now()
-    const entry = Object.assign({ id: String(now), name: '', target: 0, current: 0, color: '#e5c060', icon: '🎯', targetDate: null }, goal)
+    const entry = Object.assign({ id: String(now), name: '', target: 0, current: 0, color: '#e5c060', icon: '🎯', targetDate: null, isPrimary: goals.length === 0 }, goal)
     goals.push(entry)
     await GoalsService.saveGoals(goals)
     return entry
@@ -61,9 +68,30 @@ const GoalsService = {
 
   deleteGoal: async (id) => {
     let goals = await GoalsService.listGoals()
+    const deletedGoal = goals.find(g => g.id === id)
     goals = goals.filter(g => g.id !== id)
+    if (deletedGoal?.isPrimary && goals[0]) goals[0].isPrimary = true
     await GoalsService.saveGoals(goals)
     return true
+  },
+
+  setPrimaryGoal: async (id) => {
+    const goals = await GoalsService.listGoals()
+    const exists = goals.some(goal => goal.id === id)
+    if (!exists) return null
+    const updated = goals.map(goal => ({ ...goal, isPrimary: goal.id === id }))
+    await GoalsService.saveGoals(updated)
+    return updated.find(goal => goal.id === id) || null
+  },
+
+  getPrimaryGoal: async () => {
+    const goals = await GoalsService.listGoals()
+    if (goals.length === 0) return null
+    const primary = goals.find(goal => goal.isPrimary === true)
+    if (primary) return primary
+    goals[0].isPrimary = true
+    await GoalsService.saveGoals(goals)
+    return goals[0]
   },
 
   estimateMonthsToTarget: (goal, monthlyContribution) => {

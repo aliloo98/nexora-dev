@@ -18,6 +18,7 @@ import { Utils, ConfettiEngine } from '../js/utils.js'
 import { ThemeManager } from '../js/theme-manager.js'
 import { LogoManager } from '../js/logo-manager.js'
 import { NexoraPdfExport } from '../js/pdf-export.js'
+import { NotificationsService } from '../js/notificationsService.js'
 
 // Import Supabase
 import { supabase, testSupabaseConnection } from './supabase.js'
@@ -41,6 +42,7 @@ window.ConfettiEngine = ConfettiEngine
 window.ThemeManager = ThemeManager
 window.LogoManager = LogoManager
 window.NexoraPdfExport = NexoraPdfExport
+window.NotificationsService = NotificationsService
 
 // Expose Supabase globally for future modules
 window.supabase = supabase
@@ -92,6 +94,9 @@ const initApp = async () => {
     
     // Inject auth styles
     injectAuthStyles()
+
+    // Initialize local notifications layer
+    await NotificationsService.init()
     
     // Test Supabase connection
     const supabaseReady = await testSupabaseConnection()

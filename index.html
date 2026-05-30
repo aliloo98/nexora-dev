@@ -186,6 +186,25 @@
       </div>
     </div>
 
+    <div class="dashboard-primary-goal" id="dashboard-primary-goal">
+      <div class="dashboard-primary-goal-head">
+        <div>
+          <span>Objectif principal</span>
+          <strong id="dashboard-primary-goal-name">Aucun objectif</strong>
+        </div>
+        <em id="dashboard-primary-goal-pct">0%</em>
+      </div>
+      <div class="dashboard-primary-goal-track">
+        <i id="dashboard-primary-goal-bar"></i>
+      </div>
+      <div class="dashboard-primary-goal-meta">
+        <div><span>Actuel</span><strong id="dashboard-primary-goal-current">0 €</strong></div>
+        <div><span>Cible</span><strong id="dashboard-primary-goal-target">0 €</strong></div>
+        <div><span>Reste</span><strong id="dashboard-primary-goal-remaining">0 €</strong></div>
+        <div><span>Échéance</span><strong id="dashboard-primary-goal-date">Non définie</strong></div>
+      </div>
+    </div>
+
     <!-- RESUME RAPIDE & CHART -->
     <div class="dash-row">
       <div class="budget-block" style="margin-bottom:0">
@@ -845,6 +864,31 @@
       <div class="budget-cycle-summary" id="budget-cycle-summary">Mai 2026</div>
     </div>
 
+    <div class="param-block">
+      <div class="param-title">Notifications</div>
+      <div class="param-row notification-settings-row">
+        <div>
+          <div class="param-label">Notifications locales PWA</div>
+          <div id="notification-status" style="font-size:12px;color:var(--text2);margin-top:4px">État en cours de vérification...</div>
+        </div>
+        <div class="notification-actions">
+          <button class="btn btn-gold" type="button" onclick="enableNexoraNotifications()">Activer</button>
+          <button class="btn btn-outline" type="button" onclick="testNexoraNotification()">Tester</button>
+          <button class="btn btn-outline" type="button" onclick="disableNexoraNotifications()">Désactiver</button>
+        </div>
+      </div>
+      <div class="param-row notification-settings-row">
+        <div>
+          <div class="param-label">Alerte dépenses restantes</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Prévenir si le reste à payer dépasse ce seuil dans le cycle</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input id="notification-expense-threshold" class="budget-input" type="number" min="0" step="50" value="500" onchange="saveNexoraNotificationSettings()" style="width:110px">
+          <span style="font-weight:600;color:var(--text)">€</span>
+        </div>
+      </div>
+    </div>
+
     <!-- PERSONNALISATION -->
     <div class="param-block">
       <div class="param-title">Personnalisation de l'application</div>
@@ -1323,6 +1367,68 @@ function saveBudgetCycleSettingsFromUI() {
   refreshBudgetCycleSettingsUI();
   if (typeof updateAll === 'function') updateAll();
   return settings;
+}
+
+async function refreshNexoraNotificationSettingsUI() {
+  const statusEl = document.getElementById('notification-status');
+  const thresholdEl = document.getElementById('notification-expense-threshold');
+  if (!statusEl || !window.NotificationsService?.getSettings) return;
+
+  const settings = await window.NotificationsService.getSettings();
+  const provider = window.NotificationsService.getProviderStatus?.();
+  if (thresholdEl) thresholdEl.value = Number(settings.remainingExpenseThreshold || 500);
+
+  if (!provider?.local?.supported) {
+    statusEl.textContent = 'Notifications non supportées sur ce navigateur.';
+    return;
+  }
+
+  const permissionLabel = settings.permission === 'granted'
+    ? 'autorisées'
+    : settings.permission === 'denied'
+      ? 'bloquées par le navigateur'
+      : 'en attente d’autorisation';
+  statusEl.textContent = settings.enabled
+    ? `Activées, ${permissionLabel}.`
+    : `Désactivées, ${permissionLabel}.`;
+}
+
+async function saveNexoraNotificationSettings() {
+  if (!window.NotificationsService?.getSettings) return;
+  const thresholdEl = document.getElementById('notification-expense-threshold');
+  const settings = await window.NotificationsService.getSettings();
+  await window.NotificationsService.saveSettings({
+    ...settings,
+    remainingExpenseThreshold: Math.max(0, parseBudgetNumber(thresholdEl?.value || 0))
+  });
+  await refreshNexoraNotificationSettingsUI();
+}
+
+async function enableNexoraNotifications() {
+  if (!window.NotificationsService?.enable) {
+    showToast('⚠️ Notifications indisponibles');
+    return;
+  }
+  const settings = await window.NotificationsService.enable();
+  await saveNexoraNotificationSettings();
+  showToast(settings.enabled ? '✅ Notifications activées' : '⚠️ Autorisation notification refusée');
+}
+
+async function disableNexoraNotifications() {
+  if (!window.NotificationsService?.disable) return;
+  await window.NotificationsService.disable();
+  await refreshNexoraNotificationSettingsUI();
+  showToast('Notifications désactivées');
+}
+
+async function testNexoraNotification() {
+  if (!window.NotificationsService?.test) {
+    showToast('⚠️ Notifications indisponibles');
+    return;
+  }
+  const result = await window.NotificationsService.test();
+  showToast(result?.ok ? '✅ Notification envoyée' : '⚠️ Active les notifications avant le test');
+  await refreshNexoraNotificationSettingsUI();
 }
 
 function handleBudgetCycleModeChange() {
@@ -2816,6 +2922,22 @@ function updateAll(){
     fixesPct,
     variablesPct
   });
+  if (typeof updateDashboardPrimaryGoal === 'function') {
+    updateDashboardPrimaryGoal().catch(err => console.warn('[Goals] dashboard primary goal update failed', err));
+  }
+  if (window.NotificationsService?.evaluateBusinessNotifications) {
+    window.NotificationsService.evaluateBusinessNotifications({
+      monthKey: getMonth(),
+      cycleLabel: getBudgetCycleRange(getMonth()).fullLabel,
+      savingsTarget: targetEp,
+      metrics: {
+        solde,
+        soldeEstime,
+        totalDepRestant,
+        tauxEp
+      }
+    }).catch(err => console.warn('[Notifications] business evaluation failed', err));
+  }
 
   // Donut Chart updates
   updateDonutChart(fixReel, varReel, solde, revReel);
@@ -2965,6 +3087,47 @@ function updateDashboardGuidance(metrics) {
   setDashboardGuidanceText('dashboard-action-text', actionText);
 }
 
+async function updateDashboardPrimaryGoal() {
+  if (!window.GoalsService?.getPrimaryGoal) return;
+  const goal = await window.GoalsService.getPrimaryGoal();
+  const panel = document.getElementById('dashboard-primary-goal');
+  if (!panel) return;
+
+  if (!goal) {
+    panel.classList.add('is-empty');
+    setDashboardGuidanceText('dashboard-primary-goal-name', 'Aucun objectif');
+    setDashboardGuidanceText('dashboard-primary-goal-pct', '0%');
+    setDashboardGuidanceText('dashboard-primary-goal-current', '0 €');
+    setDashboardGuidanceText('dashboard-primary-goal-target', '0 €');
+    setDashboardGuidanceText('dashboard-primary-goal-remaining', '0 €');
+    setDashboardGuidanceText('dashboard-primary-goal-date', 'Non définie');
+    const bar = document.getElementById('dashboard-primary-goal-bar');
+    if (bar) bar.style.width = '0%';
+    return;
+  }
+
+  panel.classList.remove('is-empty');
+  const current = Number(goal.current) || 0;
+  const target = Number(goal.target) || 0;
+  const pct = target > 0 ? Math.min(100, Math.max(0, Math.round(current / target * 100))) : 0;
+  const remaining = Math.max(0, target - current);
+  const dateLabel = goal.targetDate
+    ? new Date(goal.targetDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+    : 'Non définie';
+  const bar = document.getElementById('dashboard-primary-goal-bar');
+
+  setDashboardGuidanceText('dashboard-primary-goal-name', `${goal.icon || '🎯'} ${goal.name || 'Objectif'}`);
+  setDashboardGuidanceText('dashboard-primary-goal-pct', `${pct}%`);
+  setDashboardGuidanceText('dashboard-primary-goal-current', fmt(current));
+  setDashboardGuidanceText('dashboard-primary-goal-target', fmt(target));
+  setDashboardGuidanceText('dashboard-primary-goal-remaining', fmt(remaining));
+  setDashboardGuidanceText('dashboard-primary-goal-date', dateLabel);
+  if (bar) {
+    bar.style.width = `${pct}%`;
+    bar.style.background = goal.color || 'var(--gold)';
+  }
+}
+
 function updateDonutChart(fix, vari, soldeVal, rev) {
   const donutTotal = document.getElementById('donut-total');
   const segFixes = document.querySelector('.segment-fixes');
@@ -3043,6 +3206,11 @@ function showSection(id){
     syncBudgetCycleSettingsFromCloud().catch((err) => {
       console.warn('[BudgetCycle] Cloud refresh failed', err);
     });
+    if (typeof refreshNexoraNotificationSettingsUI === 'function') {
+      refreshNexoraNotificationSettingsUI().catch((err) => {
+        console.warn('[Notifications] Settings refresh failed', err);
+      });
+    }
   }
 }
 
@@ -4896,6 +5064,9 @@ window.onload=async ()=>{
   await refreshCategoryLabels();
   await loadMonth();
   buildHistory();
+  if (typeof refreshNexoraNotificationSettingsUI === 'function') {
+    await refreshNexoraNotificationSettingsUI();
+  }
   const initialHash = window.location.hash.replace('#section-', '') || 'dashboard';
   showSection(initialHash);
 };

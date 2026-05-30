@@ -52,6 +52,8 @@ const GoalsPage = {
     GoalsPage.form.current.value = '0'
     await GoalsPage.render()
     await GoalsPage.renderAnalytics()
+    if (typeof window.updateDashboardPrimaryGoal === 'function') await window.updateDashboardPrimaryGoal()
+    if (typeof window.updateAll === 'function') window.updateAll()
   },
 
   handleEdit: async (goal) => {
@@ -62,6 +64,8 @@ const GoalsPage = {
     await GoalsService.updateGoal(goal.id, { name: newName, target: newTarget, current: newCurrent })
     await GoalsPage.render()
     await GoalsPage.renderAnalytics()
+    if (typeof window.updateDashboardPrimaryGoal === 'function') await window.updateDashboardPrimaryGoal()
+    if (typeof window.updateAll === 'function') window.updateAll()
   },
 
   handleDelete: async (goal) => {
@@ -70,6 +74,19 @@ const GoalsPage = {
     await GoalsService.deleteGoal(goal.id)
     await GoalsPage.render()
     await GoalsPage.renderAnalytics()
+    if (typeof window.updateDashboardPrimaryGoal === 'function') await window.updateDashboardPrimaryGoal()
+    if (typeof window.updateAll === 'function') window.updateAll()
+  },
+
+  handleSetPrimary: async (goal) => {
+    await GoalsService.setPrimaryGoal(goal.id)
+    window.showToast?.('🎯 Objectif principal mis à jour')
+    await GoalsPage.render()
+    await GoalsPage.renderAnalytics()
+    if (typeof window.updateDashboardPrimaryGoal === 'function') {
+      await window.updateDashboardPrimaryGoal()
+    }
+    if (typeof window.updateAll === 'function') window.updateAll()
   },
 
   hydrateFromCloud: async () => {
@@ -101,7 +118,7 @@ const GoalsPage = {
     goals.forEach(g => {
       const est = GoalsService.estimateMonthsToTarget(g, monthly)
       if (est !== null) g.__estimatedMonths = est
-      const card = createGoalCard(g, { onEdit: GoalsPage.handleEdit, onDelete: GoalsPage.handleDelete })
+      const card = createGoalCard(g, { onEdit: GoalsPage.handleEdit, onDelete: GoalsPage.handleDelete, onSetPrimary: GoalsPage.handleSetPrimary })
       GoalsPage.listEl.appendChild(card)
     })
     if (goals.length === 0) GoalsPage.listEl.innerHTML = '<div style="color:var(--text2);">Aucun objectif pour l\'instant.</div>'
@@ -115,7 +132,8 @@ const GoalsPage = {
       GoalsPage.analyticsTarget.innerHTML = '<div style="color:var(--text2)">Aucun objectif</div>'
       return
     }
-    const primary = goals[0]
+    const primary = await GoalsService.getPrimaryGoal()
+    if (!primary) return
     const wrapper = document.createElement('div')
     wrapper.innerHTML = `<div style="font-weight:700">Principal: ${primary.name} — ${Math.round((primary.current/primary.target)*100)||0}%</div><div style="font-size:13px;color:var(--text2)">Total: ${totalCurrent.toLocaleString()} € / ${totalTarget.toLocaleString()} € — ${progressPct}%</div>`
     GoalsPage.analyticsTarget.appendChild(wrapper)
