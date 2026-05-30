@@ -99,8 +99,8 @@ class LocalNotificationProvider extends NotificationProvider {
         await registration.showNotification(title, {
           body,
           tag,
-          icon: './icon-192.png',
-          badge: './icon-192.png',
+          icon: '/icon-192.png',
+          badge: '/icon-192.png',
           data: { source: 'nexora-local' }
         })
         return { ok: true, provider: 'service-worker' }
@@ -110,7 +110,7 @@ class LocalNotificationProvider extends NotificationProvider {
     }
 
     try {
-      new Notification(title, { body, tag, icon: './icon-192.png' })
+      new Notification(title, { body, tag, icon: '/icon-192.png' })
       return { ok: true, provider: 'notification-api' }
     } catch (err) {
       return {

@@ -878,12 +878,12 @@
       <div class="param-row notification-settings-row">
         <div>
           <div class="param-label">Notifications locales PWA</div>
-          <div id="notification-status" style="font-size:12px;color:var(--text2);margin-top:4px">État en cours de vérification...</div>
+          <div id="notification-status" class="notification-status">État en cours de vérification...</div>
         </div>
         <div class="notification-actions">
-          <button class="btn btn-gold" id="notification-enable-btn" type="button" onclick="enableNexoraNotifications()">Activer</button>
-          <button class="btn btn-outline" id="notification-test-btn" type="button" onclick="testNexoraNotification()">Tester</button>
-          <button class="btn btn-outline" id="notification-disable-btn" type="button" onclick="disableNexoraNotifications()">Désactiver</button>
+          <button class="btn btn-gold notification-action-btn" id="notification-enable-btn" type="button" onclick="enableNexoraNotifications()">Activer</button>
+          <button class="btn btn-outline notification-action-btn" id="notification-test-btn" type="button" onclick="testNexoraNotification()">Tester</button>
+          <button class="btn btn-outline notification-action-btn" id="notification-disable-btn" type="button" onclick="disableNexoraNotifications()">Désactiver</button>
         </div>
       </div>
       <div class="param-row notification-settings-row">
@@ -1391,7 +1391,29 @@ async function refreshNexoraNotificationSettingsUI() {
   const testAt = settings.lastTestAt
     ? new Date(settings.lastTestAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
     : null;
-  const testSuffix = testAt ? ` Dernier test : ${testAt}.` : '';
+  const setNotificationStatus = (state, title, detail = '') => {
+    statusEl.className = `notification-status${state ? ` is-${state}` : ''}`;
+    statusEl.textContent = '';
+    const titleEl = document.createElement('span');
+    titleEl.className = 'notification-status-title';
+    titleEl.textContent = title;
+    statusEl.appendChild(titleEl);
+    if (detail) {
+      const detailEl = document.createElement('span');
+      detailEl.className = 'notification-status-detail';
+      detailEl.textContent = detail;
+      statusEl.appendChild(detailEl);
+    }
+  };
+  const testDetail = testAt ? `Dernier test : ${testAt}` : '';
+  const notificationErrorMessages = {
+    'notification-api-unsupported': 'Notifications non supportées sur ce navigateur.',
+    'service-worker-unsupported': 'Service Worker non disponible.',
+    'permission-denied': 'Permission refusée.',
+    'permission-not-granted': 'Permission non accordée.',
+    'service-worker-notification-failed': 'Envoi impossible via la PWA.',
+    'notification-api-failed': 'Envoi impossible dans ce contexte.'
+  };
   if (thresholdEl) thresholdEl.value = Number(settings.remainingExpenseThreshold || 500);
   if (enableBtn) enableBtn.style.display = '';
   if (testBtn) testBtn.style.display = '';
@@ -1399,11 +1421,11 @@ async function refreshNexoraNotificationSettingsUI() {
 
   if (!provider?.local?.supported) {
     if (!provider?.local?.notificationApi) {
-      statusEl.textContent = 'Notifications non supportées sur ce navigateur.';
+      setNotificationStatus('error', 'Notifications non supportées', 'Ce navigateur ne permet pas les notifications locales.');
     } else if (!provider?.local?.serviceWorker) {
-      statusEl.textContent = 'Notifications indisponibles : Service Worker non disponible.';
+      setNotificationStatus('error', 'Notifications indisponibles', 'Service Worker non disponible.');
     } else {
-      statusEl.textContent = 'Notifications non supportées dans ce contexte.';
+      setNotificationStatus('error', 'Notifications non supportées', 'Ce contexte ne permet pas les notifications locales.');
     }
     if (enableBtn) enableBtn.style.display = 'none';
     if (testBtn) testBtn.style.display = 'none';
@@ -1412,31 +1434,32 @@ async function refreshNexoraNotificationSettingsUI() {
   }
 
   if (settings.permission === 'denied') {
-    statusEl.textContent = 'Autorisation refusée. Réactive les notifications dans les réglages iOS/Safari.';
+    setNotificationStatus('error', 'Autorisation refusée', 'Réactive les notifications dans les réglages iOS/Safari.');
     if (enableBtn) enableBtn.style.display = 'none';
     if (testBtn) testBtn.style.display = 'none';
     return;
   }
 
   if (settings.permission === 'granted' && settings.lastTestOk) {
-    statusEl.textContent = `Notification test réussie. Nexora peut afficher les alertes locales.${testSuffix}`;
+    setNotificationStatus('success', 'Notification test réussie', testDetail || 'Nexora peut afficher les alertes locales.');
     if (enableBtn) enableBtn.style.display = 'none';
     return;
   }
 
   if (settings.permission === 'granted' && settings.lastTestOk === false && settings.lastTestAt) {
-    statusEl.textContent = `Permission accordée, mais la notification test a échoué.${testSuffix}`;
+    const errorDetail = notificationErrorMessages[settings.lastTestReason] || 'Permission accordée, mais l’envoi a échoué.';
+    setNotificationStatus('error', 'Notification test échouée', testDetail ? `${testDetail} · ${errorDetail}` : errorDetail);
     if (enableBtn) enableBtn.style.display = 'none';
     return;
   }
 
   if (settings.permission === 'granted') {
-    statusEl.textContent = 'Permission accordée. Lance un test pour confirmer l’affichage.';
+    setNotificationStatus('success', 'Permission accordée', 'Lance un test pour confirmer l’affichage.');
     if (enableBtn) enableBtn.style.display = 'none';
     return;
   }
 
-  statusEl.textContent = 'Autorisation en attente. Le bouton Tester demandera la permission.';
+  setNotificationStatus('warning', 'Autorisation en attente', 'Le bouton Tester demandera la permission.');
   if (disableBtn) disableBtn.style.display = 'none';
 }
 

@@ -194,6 +194,17 @@ const readSupabaseCategories = async (userId) => {
   return Array.isArray(data) ? data : []
 }
 
+const logReadFallback = (err) => {
+  const status = err?.status || err?.statusCode
+  const code = err?.code
+  const expectedFallback = status === 401 || status === 403 || code === 'PGRST301'
+  if (expectedFallback && console.info) {
+    console.info('[BudgetCategoriesService] Supabase read fallback:', err?.message || err)
+    return
+  }
+  console.warn('[BudgetCategoriesService] Supabase read fallback:', err)
+}
+
 const upsertSupabaseCategory = async (category) => {
   const { data, error } = await supabase
     .from(TABLE_NAME)
@@ -238,7 +249,7 @@ const getBudgetCategories = async ({ includeInactive = false, userId } = {}) => 
       }
     }
   } catch (err) {
-    console.warn('[BudgetCategoriesService] Supabase read fallback:', err)
+    logReadFallback(err)
   }
 
   return includeInactive ? categories : categories.filter(category => category.is_active)
