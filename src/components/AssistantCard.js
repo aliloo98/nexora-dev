@@ -210,7 +210,20 @@ function createAssistantCard() {
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 14px;
     }
-    .proj-card {
+    /* Make embedded SVGs/canvases/images responsive to avoid horizontal overflow */
+    .assistant-card svg, .assistant-card canvas, .assistant-card img {
+      max-width: 100%;
+      height: auto !important;
+      display: block;
+    }
+    .assistant-card * {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
       background: rgba(0, 0, 0, 0.2);
       border: 1px solid rgba(255, 255, 255, 0.04);
       border-radius: 12px;

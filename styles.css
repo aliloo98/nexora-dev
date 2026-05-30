@@ -984,6 +984,34 @@ body,
   width: 100%;
 }
 
+/* Responsive fixes: prevent charts forcing horizontal scroll on small devices */
+@media (max-width: 600px) {
+  .analytics-trend-card {
+    min-width: 0;
+    width: 100%;
+  }
+  .analytics-health-card {
+    min-width: 0;
+    width: 100%;
+  }
+  .analytics-chart-shell {
+    overflow-x: hidden;
+  }
+  .analytics-line-chart {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+  .analytics-card, .analytics-chart-shell svg {
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+  /* Prevent any remaining horizontal scrolling on small viewports */
+  body {
+    overflow-x: hidden;
+  }
+}
+
 .analytics-axis {
   stroke: rgba(255, 255, 255, 0.08);
   stroke-width: 1;
