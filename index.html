@@ -519,6 +519,9 @@
       <button type="button" class="btn btn-gold" onclick="exportMonthlyPdf()" style="display: flex; align-items: center; gap: 8px; font-weight: 700; padding: 12px 24px;">
         Exporter PDF
       </button>
+      <button type="button" class="btn btn-outline" onclick="exportBudgetCsv()" style="display: flex; align-items: center; gap: 8px; font-weight: 700; padding: 12px 24px;">
+        Exporter Excel
+      </button>
       <button type="button" class="btn" onclick="window.print()" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 12px 24px; border: 1px solid var(--border); background: rgba(255,255,255,0.02);">
         📄 Imprimer le rapport mensuel
       </button>
@@ -3297,6 +3300,78 @@ async function exportMonthlyPdf(){
 }
 
 window.exportMonthlyPdf = exportMonthlyPdf;
+
+function exportBudgetCsv(){
+  try {
+    if (typeof refreshCategoryLabels === 'function') {
+      refreshCategoryLabels();
+    }
+    if (typeof updateAll === 'function') updateAll();
+
+    const rows = [];
+    const headers = ['Catégorie', 'Type', 'Montant', 'Payé', 'Commentaire'];
+    rows.push(headers);
+
+    const sectionMap = [
+      { type: 'Revenu', keys: getBudgetKeysByType('income') },
+      { type: 'Dépense fixe', keys: getBudgetKeysByType('fixed_expense') },
+      { type: 'Dépense variable', keys: getBudgetKeysByType('variable_expense') }
+    ];
+
+    let revenueTotal = 0;
+    let fixedTotal = 0;
+    let variableTotal = 0;
+
+    for (const section of sectionMap) {
+      for (const key of section.keys) {
+        const amount = getVal(key);
+        const paidElement = document.querySelector('[data-key="' + key + '_paye"]');
+        const paid = paidElement ? getVal(`${key}_paye`) : null;
+        rows.push([
+          getBudgetLabel(key) || key,
+          section.type,
+          amount != null ? amount : '',
+          paid != null ? (paid ? 'Oui' : 'Non') : '',
+          ''
+        ]);
+
+        if (section.type === 'Revenu') revenueTotal += amount;
+        if (section.type === 'Dépense fixe') fixedTotal += amount;
+        if (section.type === 'Dépense variable') variableTotal += amount;
+      }
+    }
+
+    const monthlyBalance = revenueTotal - fixedTotal - variableTotal;
+    const totals = [
+      ['Total revenus', '', revenueTotal, '', ''],
+      ['Total dépenses fixes', '', fixedTotal, '', ''],
+      ['Total dépenses variables', '', variableTotal, '', ''],
+      ['Solde mensuel', '', monthlyBalance, '', '']
+    ];
+
+    rows.push(['', '', '', '', '']);
+    totals.forEach(row => rows.push(row));
+
+    const csvContent = rows
+      .map(row => row.map(cell => String(cell).replace(/"/g, '""')).map(cell => `"${cell}"`).join(';'))
+      .join('\r\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'nexora-budget-export.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast('✅ Export Excel généré et téléchargé');
+  } catch (err) {
+    console.error('[CSV] Export impossible', err);
+    showToast('❌ Erreur lors de l’export Excel');
+  }
+}
 
 async function exportData(){
   try {
