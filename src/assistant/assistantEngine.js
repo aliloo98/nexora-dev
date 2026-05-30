@@ -24,10 +24,13 @@ async function analyzeBudget(monthKey) {
   const rev = Number(metrics.income || 0)
   const fixes = Number(metrics.fixed || 0)
   const vari = Number(metrics.variable || 0)
-  const totalDep = Number(metrics.expenses || fixes + vari)
-  const savings = Number(metrics.savings || rev - totalDep)
+  const totalCharges = Number(metrics.expenses || fixes + vari)
+  const savings = Number(metrics.savings || rev - totalCharges)
+  const fixedRate = rev > 0 ? Math.round((fixes / rev) * 100) : 0
+  const variableRate = rev > 0 ? Math.round((vari / rev) * 100) : 0
+  const totalChargesRate = rev > 0 ? Math.round((totalCharges / rev) * 100) : 0
   const savingsRate = rev > 0 ? Math.round((savings / rev) * 100) : 0
-  const chargesRate = rev > 0 ? Math.round((totalDep / rev) * 100) : 0
+  const chargesRate = totalChargesRate
 
   // Goals: prefer any runtime-provided GoalsService (window or globalThis). Avoid static imports so tests can mock easily.
   const G = (typeof window !== 'undefined' && window.GoalsService) ? window.GoalsService : (typeof globalThis !== 'undefined' ? globalThis.GoalsService : null)
@@ -82,8 +85,8 @@ async function analyzeBudget(monthKey) {
     : savings < 0
       ? `Votre budget est en déficit de ${Math.abs(savings)} €, principalement sous l'effet des charges actuelles.`
       : chargesRate > 80
-        ? `Votre budget devrait terminer le cycle avec ${savings} € disponibles, mais les charges fixes représentent actuellement ${chargesRate}% des revenus, ce qui limite fortement votre capacité d’épargne.`
-        : vari > 0 && rev > 0 && Math.round((vari / rev) * 100) > 40
+        ? `Votre budget devrait terminer le cycle avec ${savings} € disponibles, mais les charges totales représentent actuellement ${chargesRate}% des revenus. Les charges fixes pèsent ${fixedRate}% et les dépenses variables ${variableRate}% des revenus.`
+        : vari > 0 && rev > 0 && variableRate > 40
           ? `Votre budget reste positif, mais la part des dépenses variables est élevée et réduit votre capacité à renforcer votre épargne.`
           : savingsRate >= 15
             ? `Votre budget reste positif et votre taux d’épargne progresse correctement par rapport à votre niveau de dépenses.`
@@ -91,18 +94,19 @@ async function analyzeBudget(monthKey) {
 
   const budgetObservations = []
   if (rev > 0 && fixes > 0) {
-    const fixedRatio = Math.round((fixes / rev) * 100)
-    if (fixedRatio > 30) {
-      budgetObservations.push(`Les charges fixes représentent ${fixedRatio}% des revenus.`)
+    if (fixedRate > 30) {
+      budgetObservations.push(`Les charges fixes représentent ${fixedRate}% des revenus.`)
     }
   }
   if (rev > 0 && vari > 0) {
-    const variableRatio = Math.round((vari / rev) * 100)
-    if (variableRatio <= 25) {
+    if (variableRate <= 25) {
       budgetObservations.push('Les dépenses variables sont maîtrisées.')
-    } else if (variableRatio > 40) {
+    } else if (variableRate > 40) {
       budgetObservations.push('Les dépenses variables sont élevées et pèsent sur votre capacité d’épargne.')
     }
+  }
+  if (rev > 0 && totalCharges > 0 && totalChargesRate > 70) {
+    budgetObservations.push(`Les charges totales atteignent ${totalChargesRate}% des revenus.`)
   }
 
   const goalInsights = []
@@ -189,7 +193,7 @@ async function analyzeBudget(monthKey) {
 
     // High charges
     if (chargesRate > 80) {
-      pushAlert('charges', `Les charges représentent ${chargesRate}% des revenus.`, 'Taux de charges très élevé', 90, 'Réduire 50 € de charges fixes améliorerait immédiatement votre taux d’épargne.')
+      pushAlert('charges', `Les charges totales représentent ${chargesRate}% des revenus.`, 'Taux de charges très élevé', 90, 'Réduire 50 € de charges fixes améliorerait immédiatement votre taux d’épargne.')
     }
 
     const targetEp = (typeof getVal === 'function' ? getVal('target_epargne') : null) || 0
@@ -267,6 +271,10 @@ async function analyzeBudget(monthKey) {
     metadata: {
       month: month || null,
       chargesRate,
+      totalChargesRate,
+      fixedRate,
+      variableRate,
+      totalCharges,
       savingsRate,
       rev,
       fixes,

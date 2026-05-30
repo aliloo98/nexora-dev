@@ -94,6 +94,21 @@ tests.push({
   }
 })
 
+tests.push({
+  name: 'charges fixes et charges totales non confondues',
+  fn: async () => {
+    setMocks({ metrics: { income: 3205, fixed: 2049, variable: 810, expenses: 2859, savings: 346 } })
+    const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
+    assert.strictEqual(r.metadata.fixedRate, 64, 'fixed charge rate should be 64%')
+    assert.strictEqual(r.metadata.variableRate, 25, 'variable charge rate should be 25%')
+    assert.strictEqual(r.metadata.chargesRate, 89, 'total charge rate should be 89%')
+    assert(!/charges fixes .*89%/i.test(r.naturalAnalysis), 'fixed charges must not use total charge rate')
+    assert(/charges fixes représentent 64% des revenus/i.test(r.naturalAnalysis), 'expected fixed charges 64% text')
+    assert(/charges totales atteignent 89% des revenus/i.test(r.naturalAnalysis), 'expected total charges 89% text')
+  }
+})
+
 async function run() {
   console.log('Running assistantEngine tests...')
   let passed = 0
