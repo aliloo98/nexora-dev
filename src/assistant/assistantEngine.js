@@ -4,7 +4,8 @@
 const clamp = (n, a = 0, b = 100) => Math.max(a, Math.min(b, n))
 
 async function analyzeBudget(monthKey) {
-  const month = monthKey || (typeof getMonth === 'function' ? getMonth() : null)
+  try {
+    const month = monthKey || (typeof getMonth === 'function' ? getMonth() : null)
 
   // Gather metrics using existing helpers when available
   let metrics = null
@@ -446,6 +447,30 @@ async function analyzeBudget(monthKey) {
       savings,
       primaryGoal: primaryGoal || null,
       goalsSummary: goalsSummary || null
+    }
+    }
+  } catch (err) {
+    // Robust fallback: never throw to the caller, return minimal safe payload
+    return {
+      status: 'error',
+      trajectoryLabel: 'Analyse indisponible',
+      currentSituation: 'Analyse indisponible',
+      naturalAnalysis: 'Une erreur est survenue lors de l’analyse.',
+      score: 0,
+      scoreLabel: 'Indisponible',
+      insights: [],
+      alerts: [],
+      recommendations: [],
+      goalProjectionText: null,
+      goalProjections: [],
+      budgetForecasts: [],
+      goalForecasts: [],
+      advancedAnalysis: {},
+      scoreBreakdown: null,
+      advancedAlerts: [],
+      timeline: [],
+      kpis: null,
+      metadata: {}
     }
   }
 

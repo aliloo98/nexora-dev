@@ -4,6 +4,8 @@ function createAssistantCard() {
   const container = document.createElement('section')
   container.className = 'analytics-card assistant-card'
   container.id = 'assistant-card'
+  container.setAttribute('role', 'region')
+  container.setAttribute('aria-label', 'Assistant financier Nexora')
   container.innerHTML = `
     <div class="assistant-header">
       <div>
