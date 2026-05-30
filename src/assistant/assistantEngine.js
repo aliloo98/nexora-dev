@@ -208,6 +208,62 @@ async function analyzeBudget(monthKey) {
       }
     })
 
+  // --- Phase 4 : Analyse avancée + score breakdown
+  // Basic historical sampling (last 3 months) when available to detect instability
+  const sampleMonths = [addMonths(new Date(), -1), addMonths(new Date(), -2), addMonths(new Date(), -3)]
+  const incomes = []
+  try {
+    for (const d of sampleMonths) {
+      if (typeof getMonthMetrics === 'function') {
+        const m = getMonthMetrics(formatMonthYear(d), { fromDom: true })
+        incomes.push(Number(m?.income || 0))
+      }
+    }
+  } catch (e) {
+    // ignore sampling errors
+  }
+
+  const avgIncome = incomes.length > 0 ? incomes.reduce((a, b) => a + b, 0) / incomes.length : rev
+  const incomeVariancePct = avgIncome > 0 ? Math.round((Math.abs(rev - avgIncome) / avgIncome) * 100) : 0
+
+  // monthsAtRisk: first horizon where projectedBalance < 0
+  let monthsAtRisk = null
+  for (const f of budgetForecasts) {
+    if (typeof f.projectedBalance === 'number' && f.projectedBalance < 0) { monthsAtRisk = f.months; break }
+  }
+
+  // abnormal expenses detection (variable spending spike)
+  const abnormalExpenses = []
+  if (avgIncome > 0 && vari > 0) {
+    const typicalVariablePct = avgIncome > 0 ? Math.round((vari / Math.max(1, avgIncome)) * 100) : variableRate
+    if (variableRate > Math.max(30, typicalVariablePct * 1.5)) {
+      abnormalExpenses.push('Dépenses variables anormalement élevées ce mois-ci.')
+    }
+  }
+
+  const irregularRevenue = incomeVariancePct > 30
+
+  const unrealisticGoals = goalForecasts.filter(g => g.estimatedMonths !== null && g.estimatedMonths > 60).map(g => g.name)
+
+  const peaks = []
+  if (vari > rev * 0.5) peaks.push('Pic important de dépenses variables détecté.')
+
+  // Score breakdown (simple heuristics)
+  const scoreBreakdown = {
+    savingsComponent: clamp(savingsRate, 0, 100),
+    stabilityComponent: incomeVariancePct <= 5 ? 100 : Math.max(0, 100 - incomeVariancePct),
+    goalsComponent: goals.length > 0 ? clamp(100 - Math.round((goals.reduce((s, g) => s + Math.max(0, (Number(g.target||0) - Number(g.current||0))), 0) / Math.max(1, rev)) * 10), 0, 100) : 100
+  }
+
+  // Add intelligent alerts based on advanced analysis
+  const advancedAlerts = []
+  if (monthsAtRisk !== null) advancedAlerts.push(`Risque de découvert dans environ ${monthsAtRisk} mois.`)
+  if (abnormalExpenses.length) advancedAlerts.push(...abnormalExpenses)
+  if (irregularRevenue) advancedAlerts.push('Revenus irréguliers détectés — veillez à stabiliser vos rentrées.')
+  unrealisticGoals.forEach(n => advancedAlerts.push(`Objectif probablement irréaliste : ${n}`))
+  peaks.forEach(p => advancedAlerts.push(p))
+
+
   const goalProjectionText = goalProjections.length > 0
     ? goalProjections.map(proj => {
       const current = proj.currentMonths !== null ? `${proj.currentMonths} mois` : 'sans rythme actuel'
@@ -357,6 +413,15 @@ async function analyzeBudget(monthKey) {
     goalProjections: goalProjections || [],
     budgetForecasts: budgetForecasts || [],
     goalForecasts: goalForecasts || [],
+    advancedAnalysis: {
+      monthsAtRisk: monthsAtRisk || null,
+      abnormalExpenses: abnormalExpenses || [],
+      irregularRevenue: !!irregularRevenue,
+      unrealisticGoals: unrealisticGoals || [],
+      peaks: peaks || []
+    },
+    scoreBreakdown: scoreBreakdown || null,
+    advancedAlerts: advancedAlerts || [],
     timeline: timelineEntries,
     metadata: {
       month: month || null,

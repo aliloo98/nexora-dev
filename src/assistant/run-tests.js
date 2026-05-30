@@ -57,6 +57,29 @@ tests.push({
 })
 
 tests.push({
+  name: 'analyse avancée exposée',
+  fn: async () => {
+    setMocks({ metrics: { income: 2000, fixed: 900, variable: 700, expenses: 1600, savings: 400 } })
+    const r = await analyzeBudget('2026-05')
+    assert(typeof r.score === 'number', 'expected numeric score')
+    assert(r.score >= 0 && r.score <= 100, 'score range 0-100')
+    assert(r.scoreBreakdown && typeof r.scoreBreakdown.savingsComponent === 'number', 'expected scoreBreakdown.savingsComponent')
+    assert(r.advancedAnalysis && Array.isArray(r.advancedAnalysis.abnormalExpenses), 'expected advancedAnalysis.abnormalExpenses')
+  }
+})
+
+tests.push({
+  name: 'mois à risque détecté',
+  fn: async () => {
+    setMocks({ metrics: { income: 1000, fixed: 900, variable: 500, expenses: 1600, savings: -600 } })
+    const r = await analyzeBudget('2026-05')
+    assert(r.advancedAnalysis, 'expected advancedAnalysis')
+    // when negative savings, we expect a risk month to be present in alerts or advancedAlerts
+    assert(r.advancedAlerts.length > 0 || r.advancedAnalysis.monthsAtRisk !== null, 'expected monthsAtRisk or advanced alert for negative balance')
+  }
+})
+
+tests.push({
   name: 'cas limite revenus à 0',
   fn: async () => {
     setMocks({ metrics: { income: 0, fixed: 0, variable: 0, expenses: 0, savings: 0 } })
