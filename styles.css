@@ -2563,7 +2563,7 @@ body {
 
 .csv-preview-summary {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 10px;
   padding: 12px;
   border-bottom: 1px solid var(--border);
@@ -2601,6 +2601,110 @@ body {
   color: var(--red);
 }
 
+.csv-summary-card.ready strong {
+  color: var(--green);
+}
+
+.csv-summary-card.warning strong {
+  color: var(--orange);
+}
+
+.csv-next-step {
+  align-items: center;
+  background: rgba(229, 192, 96, 0.06);
+  border-bottom: 1px solid rgba(229, 192, 96, 0.18);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 12px;
+}
+
+.csv-next-step strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.csv-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.csv-filter-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 10px;
+}
+
+.csv-filter-btn.active {
+  background: rgba(229, 192, 96, 0.12);
+  border-color: rgba(229, 192, 96, 0.35);
+  color: var(--gold);
+}
+
+.csv-filter-btn span {
+  color: var(--text);
+  margin-left: 4px;
+}
+
+.csv-category-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.csv-category-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.csv-category-card span,
+.csv-category-card em {
+  color: var(--text2);
+  display: block;
+  font-size: 11px;
+  font-style: normal;
+}
+
+.csv-category-card strong {
+  color: var(--text);
+  display: block;
+  font-size: 14px;
+  margin: 3px 0;
+}
+
+.csv-bulk-actions {
+  align-items: center;
+  background: rgba(16, 185, 129, 0.06);
+  border-bottom: 1px solid rgba(16, 185, 129, 0.18);
+  display: none;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+}
+
+.csv-bulk-actions.active {
+  display: flex;
+}
+
+.csv-bulk-actions span {
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 800;
+  margin-right: auto;
+}
+
 .csv-preview-table {
   width: 100%;
   border-collapse: collapse;
@@ -2626,11 +2730,28 @@ body {
   background: rgba(255, 255, 255, 0.01);
 }
 
+.csv-row-ready {
+  opacity: 0.9;
+}
+
+.csv-row-attention {
+  background: rgba(244, 63, 94, 0.035);
+}
+
 .csv-row-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
   margin-top: 6px;
+}
+
+.csv-inline-toggle {
+  align-items: center;
+  color: var(--text2);
+  display: inline-flex;
+  font-size: 11px;
+  gap: 5px;
+  margin-top: 8px;
 }
 
 .csv-badge {
@@ -2657,8 +2778,17 @@ body {
   border-color: rgba(244, 63, 94, 0.24);
 }
 
+.csv-badge.applied {
+  color: var(--green);
+  border-color: rgba(16, 185, 129, 0.24);
+}
+
 .csv-row-duplicate {
   opacity: 0.72;
+}
+
+.csv-row-applied {
+  opacity: 0.58;
 }
 
 @media(max-width: 760px) {
@@ -2666,8 +2796,57 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .csv-next-step {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .csv-next-step .btn {
+    width: 100%;
+  }
+
   .csv-preview-table {
-    min-width: 720px;
+    min-width: 0;
+  }
+
+  .csv-preview-table,
+  .csv-preview-table tbody,
+  .csv-preview-table tr,
+  .csv-preview-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .csv-preview-table thead {
+    display: none;
+  }
+
+  .csv-preview-table tr {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    margin: 10px;
+    padding: 10px;
+    width: auto;
+  }
+
+  .csv-preview-table td {
+    border-bottom: 0;
+    padding: 8px 0;
+  }
+
+  .csv-preview-table td::before {
+    color: var(--text2);
+    content: attr(data-label);
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+
+  .csv-bulk-actions .btn {
+    flex: 1 1 100%;
   }
 }
 

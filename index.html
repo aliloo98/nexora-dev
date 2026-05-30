@@ -948,14 +948,14 @@
     <div class="param-block" id="csv-importer-block">
       <div class="param-title">Importer un relevé bancaire</div>
       <div style="font-size: 13px; color: var(--text2); margin-bottom: 20px; line-height: 1.6;">
-        Analyse un fichier CSV, propose des catégories et prépare un brouillon. Aucun montant n'est injecté automatiquement dans le budget à cette étape.
+        Analyse automatiquement les relevés bancaires, propose des catégories et prépare un brouillon. Aucun montant n'est injecté automatiquement dans le budget à cette étape.
       </div>
       
       <!-- Drag & Drop Zone -->
       <div class="csv-import-box" id="csv-dropzone" onclick="document.getElementById('csv-file-input').click()">
         <span style="font-size: 32px; display: block; margin-bottom: 12px;">📁</span>
         <span style="font-weight: 600; color: var(--text);">Glissez-déposez votre relevé bancaire CSV ici</span>
-        <span style="font-size: 12px; color: var(--text2); display: block; margin-top: 4px;">ou cliquez pour parcourir vos fichiers</span>
+        <span style="font-size: 12px; color: var(--text2); display: block; margin-top: 4px;">Crédit Agricole, Banque Populaire, Caisse d’Épargne, Crédit Mutuel, CIC, BNP, Société Générale, Banque Postale, Revolut, N26, Boursorama</span>
         <input type="file" id="csv-file-input" accept=".csv" style="display: none;" onchange="handleCSVSelect(event)">
       </div>
 
@@ -998,6 +998,17 @@
       <!-- Operations list preview -->
       <div class="csv-preview-table-container" id="csv-preview-panel">
         <div class="csv-preview-summary" id="csv-preview-summary"></div>
+        <div class="csv-next-step" id="csv-next-step"></div>
+        <div class="csv-filter-bar" id="csv-filter-bar"></div>
+        <div class="csv-category-summary" id="csv-category-summary"></div>
+        <div class="csv-bulk-actions" id="csv-bulk-actions">
+          <span id="csv-bulk-count">0 sélection</span>
+          <button class="btn btn-outline" onclick="bulkCategorizeCSVRows()">Catégoriser</button>
+          <button class="btn btn-outline" onclick="bulkAttachCSVRows()">Rattacher au budget</button>
+          <button class="btn btn-outline" onclick="bulkExcludeCSVRows()">Exclure</button>
+          <button class="btn btn-outline" onclick="bulkMarkCSVTransferRows()">Marquer comme transfert interne</button>
+          <button class="btn btn-gold" onclick="bulkApplyCSVToSimilarRows()">Appliquer aux similaires</button>
+        </div>
         <table class="csv-preview-table" id="csv-operations-table">
           <thead>
             <tr>
@@ -1005,6 +1016,7 @@
               <th>Date</th>
               <th>Opération détectée</th>
               <th>Catégorie proposée</th>
+              <th>Rattachement budget</th>
               <th style="text-align: right;">Montant</th>
             </tr>
           </thead>
@@ -1018,6 +1030,7 @@
       <div style="display: none; justify-content: flex-end; gap: 12px;" id="csv-actions-panel">
         <span id="csv-match-summary" style="font-size: 12px; color: var(--text2); align-self: center; margin-right: auto;">0 lignes sélectionnées pour le brouillon</span>
         <button class="btn btn-outline" onclick="resetCSVImporter()">Annuler</button>
+        <button class="btn btn-outline" onclick="applyCSVToBudget()">Appliquer au budget</button>
         <button class="btn btn-gold" onclick="applyCSVTransactions()">Enregistrer le brouillon</button>
       </div>
     </div>
@@ -3553,6 +3566,10 @@ let csvHeaders = [];
 let analyzedTransactions = [];
 let csvIgnoredRows = [];
 let csvDetectedSeparator = ';';
+let csvDetectedEncoding = 'UTF-8';
+let csvDetectedBank = 'Banque détectée automatiquement';
+let csvColumnMap = { date: -1, label: -1, amount: -1, debit: -1, credit: -1, balance: -1 };
+let csvCurrentFilter = 'all';
 
 const CSV_CATEGORY_OPTIONS = {
   courses: 'Courses',
@@ -3565,6 +3582,7 @@ const CSV_CATEGORY_OPTIONS = {
   restaurant: 'Restaurant',
   assurance: 'Assurance',
   administratif: 'Administratif',
+  transfert_interne: 'Transfert interne',
   rev_excep: 'Revenus'
 };
 
@@ -3579,8 +3597,38 @@ const CSV_CATEGORY_RULES = [
   { key: 'restaurant', name: 'Restaurant', confidence: 88, keywords: ['restaurant', 'resto', 'mcdonald', 'mcdo', 'burger king', 'kfc', 'ubereats', 'uber eats', 'deliveroo', 'pizzeria', 'boulangerie'] },
   { key: 'assurance', name: 'Assurance', confidence: 88, keywords: ['assurance', 'maif', 'macif', 'axa', 'allianz', 'matmut', 'gmf'] },
   { key: 'administratif', name: 'Administratif', confidence: 87, keywords: ['impot', 'impots', 'impôts', 'amende', 'tresor public', 'trésor public', 'dgfip'] },
+  { key: 'transfert_interne', name: 'Transfert interne', confidence: 96, keywords: ['virement a', 'virement à', 'virement de', 'to megane', 'to mégane', 'to ali', 'transfert interne'] },
   { key: 'rev_excep', name: 'Revenus', confidence: 92, keywords: ['salaire', 'paie', 'virement salaire', 'employeur', 'caf', 'allocations'] }
 ];
+
+const CSV_BANK_PROFILES = [
+  { name: 'Crédit Agricole', keywords: ['credit agricole', 'crédit agricole', 'date operation', 'libelle operation'] },
+  { name: 'Banque Populaire', keywords: ['banque populaire', 'date operation', 'libelle operation'] },
+  { name: 'Caisse d’Épargne', keywords: ['caisse d epargne', 'caisse d’épargne', 'date operation', 'libelle'] },
+  { name: 'Crédit Mutuel', keywords: ['credit mutuel', 'crédit mutuel', 'date operation', 'libelle'] },
+  { name: 'CIC', keywords: ['cic', 'date operation', 'libelle'] },
+  { name: 'BNP Paribas', keywords: ['bnp', 'bnp paribas', 'date operation', 'libelle operation'] },
+  { name: 'Société Générale', keywords: ['societe generale', 'société générale', 'date comptable', 'libelle'] },
+  { name: 'La Banque Postale', keywords: ['banque postale', 'date operation', 'libelle'] },
+  { name: 'Revolut', keywords: ['revolut', 'started date', 'description', 'amount'] },
+  { name: 'N26', keywords: ['n26', 'booking date', 'partner name', 'amount'] },
+  { name: 'Boursorama', keywords: ['boursorama', 'bourso', 'date operation', 'libelle'] }
+];
+
+const CSV_BUDGET_MATCH_RULES = {
+  courses: ['courses'],
+  gasoil: ['gasoil', 'essence', 'carburant'],
+  sante: ['sante', 'santé'],
+  restaurant: ['impvar', 'resto', 'restaurant'],
+  assurance: ['assauto', 'assurance'],
+  administratif: ['impots', 'impfix', 'administratif'],
+  transfert_interne: [],
+  rev_excep: ['rev_excep', 'rev_ali', 'rev_megane'],
+  stream: ['stream'],
+  box: ['box', 'tel_ali', 'tel_meg'],
+  elec: ['elec'],
+  impvar: ['impvar']
+};
 
 function normalizeCSVText(value) {
   return String(value || '')
@@ -3589,6 +3637,25 @@ function normalizeCSVText(value) {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/\s+/g, ' ');
+}
+
+function decodeCSVBuffer(buffer) {
+  try {
+    const text = new TextDecoder('utf-8', { fatal: true }).decode(buffer);
+    return { text, encoding: 'UTF-8' };
+  } catch {
+    return { text: new TextDecoder('windows-1252').decode(buffer), encoding: 'Windows-1252' };
+  }
+}
+
+function detectCSVBank(headers, sampleText) {
+  const haystack = normalizeCSVText([...headers, sampleText.slice(0, 1500)].join(' '));
+  let best = { name: 'Banque détectée automatiquement', score: 0 };
+  CSV_BANK_PROFILES.forEach(profile => {
+    const score = profile.keywords.reduce((sum, keyword) => sum + (haystack.includes(normalizeCSVText(keyword)) ? 1 : 0), 0);
+    if (score > best.score) best = { name: profile.name, score };
+  });
+  return best.name;
 }
 
 function escapeHtml(value) {
@@ -3708,9 +3775,12 @@ function parseCSVAmount(value) {
 
 function detectCSVColumn(headers, type) {
   const candidates = {
-    date: ['date operation', 'date d operation', 'date opération', 'date valeur', 'operation date', 'transaction date', 'date'],
-    label: ['libelle operation', 'libelle d operation', 'libellé opération', 'libelle', 'label', 'description', 'transaction', 'operation'],
-    amount: ['montant', 'amount', 'debit', 'débit', 'credit', 'crédit', 'montant operation', 'montant opération', 'solde']
+    date: ['date operation', 'date d operation', 'date comptable', 'date opération', 'date valeur', 'booking date', 'started date', 'completed date', 'operation date', 'transaction date', 'date'],
+    label: ['libelle operation', 'libelle d operation', 'libellé opération', 'partner name', 'payee', 'merchant', 'libelle', 'label', 'description', 'transaction', 'operation'],
+    amount: ['montant', 'amount', 'montant operation', 'montant opération'],
+    debit: ['debit', 'débit', 'withdrawal', 'sortie'],
+    credit: ['credit', 'crédit', 'deposit', 'entree', 'entrée'],
+    balance: ['solde', 'balance']
   }[type];
 
   let bestIndex = -1;
@@ -3742,8 +3812,16 @@ function findSiblingAmountColumn(amountIdx, preferredName) {
 }
 
 function getCSVAmountFromRow(row, amountIdx) {
-  const amountHeader = normalizeCSVText(csvHeaders[amountIdx]);
-  const selectedAmount = parseCSVAmount(row[amountIdx]);
+  const effectiveAmountIdx = amountIdx >= 0 ? amountIdx : csvColumnMap.amount;
+  const amountHeader = normalizeCSVText(csvHeaders[effectiveAmountIdx]);
+  const selectedAmount = effectiveAmountIdx >= 0 ? parseCSVAmount(row[effectiveAmountIdx]) : 0;
+
+  if (csvColumnMap.debit >= 0 || csvColumnMap.credit >= 0) {
+    const debit = csvColumnMap.debit >= 0 ? Math.abs(parseCSVAmount(row[csvColumnMap.debit])) : 0;
+    const credit = csvColumnMap.credit >= 0 ? Math.abs(parseCSVAmount(row[csvColumnMap.credit])) : 0;
+    if (credit > 0) return credit;
+    if (debit > 0) return -debit;
+  }
 
   if (amountHeader.includes('debit')) {
     const creditIdx = findSiblingAmountColumn(amountIdx, 'credit');
@@ -3762,10 +3840,14 @@ function getCSVAmountFromRow(row, amountIdx) {
 }
 
 function hasCSVAmountValue(row, amountIdx) {
-  if (row[amountIdx] && String(row[amountIdx]).trim()) return true;
+  if (amountIdx >= 0 && row[amountIdx] && String(row[amountIdx]).trim()) return true;
+  if (csvColumnMap.amount >= 0 && row[csvColumnMap.amount] && String(row[csvColumnMap.amount]).trim()) return true;
   const debitIdx = findSiblingAmountColumn(amountIdx, 'debit');
   const creditIdx = findSiblingAmountColumn(amountIdx, 'credit');
-  return (debitIdx >= 0 && String(row[debitIdx] || '').trim()) || (creditIdx >= 0 && String(row[creditIdx] || '').trim());
+  return (debitIdx >= 0 && String(row[debitIdx] || '').trim())
+    || (creditIdx >= 0 && String(row[creditIdx] || '').trim())
+    || (csvColumnMap.debit >= 0 && String(row[csvColumnMap.debit] || '').trim())
+    || (csvColumnMap.credit >= 0 && String(row[csvColumnMap.credit] || '').trim());
 }
 
 function getExistingCSVDuplicateSignatures() {
@@ -3773,18 +3855,50 @@ function getExistingCSVDuplicateSignatures() {
   const signatures = new Set();
   (Array.isArray(store.drafts) ? store.drafts : []).forEach(draft => {
     (draft.operations || []).forEach(operation => {
-      if (operation.signature) signatures.add(operation.signature);
+      if (isValidCSVSignature(operation.signature)) signatures.add(operation.signature);
     });
   });
   return signatures;
 }
 
+function normalizeCSVDateForSignature(date) {
+  const raw = String(date || '').trim();
+  const match = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/);
+  if (!match) return raw;
+  const day = match[1].padStart(2, '0');
+  const month = match[2].padStart(2, '0');
+  const year = match[3].length === 2 ? `20${match[3]}` : match[3];
+  return `${year}-${month}-${day}`;
+}
+
+function isValidCSVSignature(signature) {
+  return typeof signature === 'string' && signature.split('|').length === 3;
+}
+
 function buildCSVSignature(date, label, amount) {
   return [
-    String(date || '').trim(),
-    normalizeCSVText(label),
-    Number(amount || 0).toFixed(2)
+    normalizeCSVDateForSignature(date),
+    Number(amount || 0).toFixed(2),
+    normalizeCSVText(label)
   ].join('|');
+}
+
+function getBudgetMatchOptions() {
+  const keys = [...getBudgetKeysByType('income'), ...getBudgetKeysByType('fixed_expense'), ...getBudgetKeysByType('variable_expense')];
+  return keys.map(key => ({ key, label: getBudgetLabel(key) }));
+}
+
+function suggestBudgetMatch(categoryKey, label) {
+  const options = getBudgetMatchOptions();
+  const normalizedLabel = normalizeCSVText(label);
+  const preferredKeys = CSV_BUDGET_MATCH_RULES[categoryKey] || [];
+  for (const preferred of preferredKeys) {
+    const found = options.find(option => option.key === preferred || normalizeCSVText(option.label).includes(normalizeCSVText(preferred)));
+    if (found) return { key: found.key, name: found.label, confidence: 90 };
+  }
+  const direct = options.find(option => normalizedLabel.includes(normalizeCSVText(option.label)) && normalizeCSVText(option.label).length > 3);
+  if (direct) return { key: direct.key, name: direct.label, confidence: 78 };
+  return { key: '', name: 'À rattacher plus tard', confidence: 0 };
 }
 
 function suggestCSVCategory(label, amount) {
@@ -3799,6 +3913,10 @@ function suggestCSVCategory(label, amount) {
       confidence: 100,
       source: 'learning'
     };
+  }
+
+  if (/virement a|virement de|to megane|to ali|transfert interne/.test(normalized)) {
+    return { categoryKey: 'transfert_interne', suggestedCategory: 'Transfert interne', confidence: 96, source: 'rules' };
   }
 
   if (amount > 0 && /salaire|paie|virement salaire|employeur|caf|allocation/.test(normalized)) {
@@ -3834,9 +3952,11 @@ function handleCSVSelect(event) {
 
   const reader = new FileReader();
   reader.onload = function(e) {
-    parseCSV(e.target.result);
+    const decoded = decodeCSVBuffer(e.target.result);
+    csvDetectedEncoding = decoded.encoding;
+    parseCSV(decoded.text);
   };
-  reader.readAsText(file, 'UTF-8');
+  reader.readAsArrayBuffer(file);
 }
 
 function parseCSV(text) {
@@ -3848,6 +3968,7 @@ function parseCSV(text) {
   }
 
   csvHeaders = parseCSVLine(lines[0], csvDetectedSeparator);
+  csvDetectedBank = detectCSVBank(csvHeaders, text);
   csvRows = lines.slice(1)
     .map(line => parseCSVLine(line, csvDetectedSeparator))
     .filter(row => row.some(value => value !== ''));
@@ -3871,15 +3992,23 @@ function parseCSV(text) {
   const dateIdx = detectCSVColumn(csvHeaders, 'date');
   const labelIdx = detectCSVColumn(csvHeaders, 'label');
   const amountIdx = detectCSVColumn(csvHeaders, 'amount');
+  const debitIdx = detectCSVColumn(csvHeaders, 'debit');
+  const creditIdx = detectCSVColumn(csvHeaders, 'credit');
+  const balanceIdx = detectCSVColumn(csvHeaders, 'balance');
+  csvColumnMap = { date: dateIdx, label: labelIdx, amount: amountIdx, debit: debitIdx, credit: creditIdx, balance: balanceIdx };
   if (dateIdx >= 0) selectDate.value = String(dateIdx);
   if (labelIdx >= 0) selectDesc.value = String(labelIdx);
   if (amountIdx >= 0) selectAmount.value = String(amountIdx);
+  else if (debitIdx >= 0) selectAmount.value = String(debitIdx);
+  else if (creditIdx >= 0) selectAmount.value = String(creditIdx);
 
   document.getElementById('csv-dropzone').style.display = 'none';
-  document.getElementById('csv-mapping-panel').style.display = 'block';
+  const canAutoAnalyze = dateIdx >= 0 && labelIdx >= 0 && (amountIdx >= 0 || debitIdx >= 0 || creditIdx >= 0);
+  document.getElementById('csv-mapping-panel').style.display = canAutoAnalyze ? 'none' : 'block';
   document.getElementById('csv-preview-panel').style.display = 'none';
   document.getElementById('csv-actions-panel').style.display = 'none';
-  showToast(`✅ CSV lu (${csvRows.length} opérations, séparateur "${csvDetectedSeparator}")`);
+  showToast(`✅ CSV lu (${csvRows.length} opérations, ${csvDetectedBank}, ${csvDetectedEncoding})`);
+  if (canAutoAnalyze) analyzeCSVData();
 }
 
 function resetCSVImporter() {
@@ -3887,6 +4016,10 @@ function resetCSVImporter() {
   csvHeaders = [];
   analyzedTransactions = [];
   csvIgnoredRows = [];
+  csvDetectedEncoding = 'UTF-8';
+  csvDetectedBank = 'Banque détectée automatiquement';
+  csvColumnMap = { date: -1, label: -1, amount: -1, debit: -1, credit: -1, balance: -1 };
+  csvCurrentFilter = 'all';
   document.getElementById('csv-file-input').value = '';
   document.getElementById('csv-dropzone').style.display = 'block';
   document.getElementById('csv-mapping-panel').style.display = 'none';
@@ -3894,33 +4027,212 @@ function resetCSVImporter() {
   document.getElementById('csv-actions-panel').style.display = 'none';
   document.getElementById('csv-operations-body').innerHTML = '';
   document.getElementById('csv-preview-summary').innerHTML = '';
+  document.getElementById('csv-next-step').innerHTML = '';
+  document.getElementById('csv-filter-bar').innerHTML = '';
+  document.getElementById('csv-category-summary').innerHTML = '';
+  document.getElementById('csv-bulk-actions').classList.remove('active');
+}
+
+function isCSVReady(transaction) {
+  return !transaction.excluded
+    && !transaction.duplicate
+    && !transaction.applied
+    && transaction.categoryKey
+    && transaction.categoryKey !== 'transfert_interne'
+    && transaction.budgetMatchKey
+    && Number(transaction.confidence || 0) >= 80;
+}
+
+function isCSVToReview(transaction) {
+  return !transaction.applied
+    && !transaction.duplicate
+    && (!transaction.categoryKey || !transaction.budgetMatchKey || Number(transaction.confidence || 0) < 80);
+}
+
+function isCSVVisibleForFilter(transaction) {
+  if (csvCurrentFilter === 'ready') return isCSVReady(transaction);
+  if (csvCurrentFilter === 'review') return isCSVToReview(transaction);
+  if (csvCurrentFilter === 'unknown') return !transaction.categoryKey;
+  if (csvCurrentFilter === 'duplicates') return transaction.duplicate;
+  if (csvCurrentFilter === 'transfers') return transaction.categoryKey === 'transfert_interne';
+  if (csvCurrentFilter === 'applied') return transaction.applied;
+  return true;
+}
+
+function getVisibleCSVTransactions() {
+  return analyzedTransactions.filter(isCSVVisibleForFilter);
+}
+
+function getSelectedCSVTransactions() {
+  return Array.from(document.querySelectorAll('.csv-row-checkbox:checked'))
+    .map(checkbox => analyzedTransactions.find(t => t.id === parseInt(checkbox.dataset.id)))
+    .filter(Boolean);
+}
+
+function setCSVFilter(filter) {
+  csvCurrentFilter = filter;
+  renderCSVOperationsTable();
+  renderCSVFilters();
+  updateCSVBulkActions();
+}
+
+function renderCSVFilters() {
+  const filters = [
+    ['all', 'Toutes'],
+    ['ready', 'Prêtes'],
+    ['review', 'À vérifier'],
+    ['unknown', 'Inconnues'],
+    ['duplicates', 'Doublons'],
+    ['transfers', 'Transferts internes'],
+    ['applied', 'Appliquées']
+  ];
+  document.getElementById('csv-filter-bar').innerHTML = filters.map(([key, label]) => {
+    const count = key === 'all' ? analyzedTransactions.length : analyzedTransactions.filter(t => {
+      const previous = csvCurrentFilter;
+      csvCurrentFilter = key;
+      const visible = isCSVVisibleForFilter(t);
+      csvCurrentFilter = previous;
+      return visible;
+    }).length;
+    return `<button type="button" class="csv-filter-btn ${csvCurrentFilter === key ? 'active' : ''}" onclick="setCSVFilter('${key}')">${label} <span>${count}</span></button>`;
+  }).join('');
+}
+
+function renderCSVNextStep(stats) {
+  let message = '✅ Tout est prêt à être appliqué au budget';
+  let action = '<button class="btn btn-gold" onclick="applyCSVToBudget()">Appliquer au budget</button>';
+  if (stats.unknown > 0 || stats.review > 0) {
+    message = `👉 Prochaine étape : traiter ${stats.unknown || stats.review} opération(s) inconnue(s) ou à vérifier`;
+    action = '<button class="btn btn-outline" onclick="setCSVFilter(\'review\')">Traiter les inconnues</button>';
+  } else if (stats.duplicates > 0) {
+    message = `👉 Prochaine étape : vérifier ${stats.duplicates} doublon(s) détecté(s)`;
+    action = '<button class="btn btn-outline" onclick="setCSVFilter(\'duplicates\')">Vérifier les doublons</button>';
+  }
+  document.getElementById('csv-next-step').innerHTML = `<strong>${message}</strong>${action}`;
+}
+
+function renderCSVCategorySummary() {
+  const groups = new Map();
+  analyzedTransactions.forEach(transaction => {
+    const key = transaction.categoryKey || 'autres';
+    const name = CSV_CATEGORY_OPTIONS[key] || 'Autres';
+    const current = groups.get(key) || { name, count: 0, total: 0 };
+    current.count += 1;
+    current.total += Math.abs(Number(transaction.signedAmount) || 0);
+    groups.set(key, current);
+  });
+  const total = Array.from(groups.values()).reduce((sum, group) => sum + group.total, 0) || 1;
+  document.getElementById('csv-category-summary').innerHTML = Array.from(groups.values())
+    .sort((a, b) => b.total - a.total)
+    .map(group => {
+      const pct = Math.round((group.total / total) * 100);
+      return `<div class="csv-category-card"><span>${escapeHtml(group.name)}</span><strong>${group.count} op.</strong><em>${fmt(group.total)} · ${pct}%</em></div>`;
+    }).join('');
 }
 
 function renderCSVSummary() {
-  const selected = analyzedTransactions.filter(t => !t.excluded);
   const recognized = analyzedTransactions.filter(t => t.categoryKey && !t.duplicate).length;
   const unknown = analyzedTransactions.filter(t => !t.categoryKey).length;
   const duplicateCount = analyzedTransactions.filter(t => t.duplicate).length;
-  const incomeTotal = selected.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-  const expenseTotal = selected.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+  const readyCount = analyzedTransactions.filter(isCSVReady).length;
+  const reviewCount = analyzedTransactions.filter(isCSVToReview).length;
+  const avgConfidence = analyzedTransactions.length
+    ? Math.round(analyzedTransactions.reduce((sum, t) => sum + Number(t.confidence || 0), 0) / analyzedTransactions.length)
+    : 0;
+  const incomeTotal = analyzedTransactions
+    .filter(t => Number(t.signedAmount) > 0)
+    .reduce((sum, t) => sum + Number(t.signedAmount), 0);
+  const expenseTotal = analyzedTransactions
+    .filter(t => Number(t.signedAmount) < 0)
+    .reduce((sum, t) => sum + Number(t.signedAmount), 0);
 
   document.getElementById('csv-preview-summary').innerHTML = `
-    <div class="csv-summary-card"><span>Total détecté</span><strong>${analyzedTransactions.length}</strong></div>
-    <div class="csv-summary-card"><span>Reconnues</span><strong>${recognized}</strong></div>
-    <div class="csv-summary-card"><span>Inconnues</span><strong>${unknown}</strong></div>
-    <div class="csv-summary-card"><span>Ignorées</span><strong>${csvIgnoredRows.length}</strong></div>
-    <div class="csv-summary-card"><span>Doublons probables</span><strong>${duplicateCount}</strong></div>
-    <div class="csv-summary-card income"><span>Revenus</span><strong>${fmt(incomeTotal)}</strong></div>
-    <div class="csv-summary-card expense"><span>Dépenses</span><strong>${fmt(expenseTotal)}</strong></div>
+    <div class="csv-summary-card ready"><span>✅ Opérations prêtes</span><strong>${readyCount}</strong></div>
+    <div class="csv-summary-card warning"><span>⚠️ À vérifier</span><strong>${reviewCount}</strong></div>
+    <div class="csv-summary-card warning"><span>❓ Inconnues</span><strong>${unknown}</strong></div>
+    <div class="csv-summary-card expense"><span>🚫 Doublons</span><strong>${duplicateCount}</strong></div>
+    <div class="csv-summary-card income"><span>💰 Revenus</span><strong>${fmt(incomeTotal)}</strong></div>
+    <div class="csv-summary-card expense"><span>💸 Dépenses</span><strong>${fmt(Math.abs(expenseTotal))}</strong></div>
+    <div class="csv-summary-card"><span>📊 Confiance moyenne</span><strong>${avgConfidence}%</strong></div>
+    <div class="csv-summary-card"><span>Format</span><strong>${escapeHtml(csvDetectedBank)} · ${escapeHtml(csvDetectedEncoding)}</strong></div>
   `;
+  renderCSVNextStep({ unknown, review: reviewCount, duplicates: duplicateCount });
+  renderCSVFilters();
+  renderCSVCategorySummary();
+}
+
+function renderCSVOperationsTable() {
+  const tbody = document.getElementById('csv-operations-body');
+  const visibleTransactions = getVisibleCSVTransactions();
+  tbody.innerHTML = visibleTransactions.map(transaction => {
+    let selectOptions = '<option value="">Inconnue / à traiter plus tard</option>';
+    Object.keys(CSV_CATEGORY_OPTIONS).forEach(key => {
+      const selected = transaction.categoryKey === key ? 'selected' : '';
+      selectOptions += `<option value="${key}" ${selected}>${CSV_CATEGORY_OPTIONS[key]}</option>`;
+    });
+    let budgetOptions = '<option value="">À rattacher plus tard</option>';
+    getBudgetMatchOptions().forEach(option => {
+      const selected = transaction.budgetMatchKey === option.key ? 'selected' : '';
+      budgetOptions += `<option value="${option.key}" ${selected}>${escapeHtml(option.label)}</option>`;
+    });
+
+    const confidenceLabel = transaction.confidence > 0 ? `${transaction.confidence}%${transaction.source === 'learning' ? ' appris' : ''}` : 'À vérifier';
+    const duplicateBadge = transaction.duplicate ? '<span class="csv-badge duplicate">doublon probable</span>' : '';
+    const appliedBadge = transaction.applied ? '<span class="csv-badge applied">appliqué</span>' : '';
+    const typeBadge = transaction.type === 'income'
+      ? '<span class="csv-badge income">revenu</span>'
+      : '<span class="csv-badge expense">dépense</span>';
+
+    const attentionClass = transaction.duplicate || !transaction.categoryKey || Number(transaction.confidence || 0) < 80 ? 'csv-row-attention' : 'csv-row-ready';
+    return `
+      <tr class="${attentionClass} ${transaction.duplicate ? 'csv-row-duplicate' : ''} ${transaction.applied ? 'csv-row-applied' : ''}">
+        <td data-label="Sélection"><input type="checkbox" class="csv-row-checkbox" data-id="${transaction.id}" ${transaction.excluded ? '' : 'checked'} ${transaction.applied ? 'disabled' : ''} onchange="toggleCSVTransaction(${transaction.id}, this.checked)"></td>
+        <td data-label="Date">${escapeHtml(transaction.date)}</td>
+        <td data-label="Opération" style="font-weight: 500;">
+          ${escapeHtml(transaction.label)}
+          <div class="csv-row-meta">${typeBadge}${duplicateBadge}${appliedBadge}<span class="csv-badge">${confidenceLabel}</span></div>
+          <label class="csv-inline-toggle"><input type="checkbox" ${transaction.duplicate ? 'checked' : ''} onchange="toggleCSVDuplicate(${transaction.id}, this.checked)"> doublon probable</label>
+        </td>
+        <td data-label="Catégorie">
+          <select class="budget-input csv-row-category" data-id="${transaction.id}" style="width: 100%; font-size: 12px; padding: 4px 8px;" onchange="changeCSVCategory(${transaction.id}, this.value)">
+            ${selectOptions}
+          </select>
+        </td>
+        <td data-label="Budget">
+          <select class="budget-input csv-row-budget-match" data-id="${transaction.id}" style="width: 100%; font-size: 12px; padding: 4px 8px;" onchange="changeCSVBudgetMatch(${transaction.id}, this.value)">
+            ${budgetOptions}
+          </select>
+        </td>
+        <td data-label="Montant" style="text-align: right; font-weight: 700; color: ${transaction.type === 'expense' ? 'var(--red)' : 'var(--green)'};">
+          ${transaction.type === 'expense' ? '-' : '+'}${fmt(transaction.amount)}
+        </td>
+      </tr>
+    `;
+  }).join('');
+  if (visibleTransactions.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:24px;">Aucune opération dans ce filtre.</td></tr>';
+  }
+  updateCSVBulkActions();
 }
 
 function analyzeCSVData() {
   const dateIdx = parseInt(document.getElementById('csv-map-date').value);
   const descIdx = parseInt(document.getElementById('csv-map-desc').value);
   const amountIdx = parseInt(document.getElementById('csv-map-amount').value);
+  csvColumnMap.date = Number.isNaN(dateIdx) ? csvColumnMap.date : dateIdx;
+  csvColumnMap.label = Number.isNaN(descIdx) ? csvColumnMap.label : descIdx;
+  if (!Number.isNaN(amountIdx)) {
+    const selectedHeader = normalizeCSVText(csvHeaders[amountIdx]);
+    if (selectedHeader.includes('debit')) csvColumnMap.debit = amountIdx;
+    else if (selectedHeader.includes('credit')) csvColumnMap.credit = amountIdx;
+    else csvColumnMap.amount = amountIdx;
+  }
 
-  if (isNaN(dateIdx) || isNaN(descIdx) || isNaN(amountIdx)) {
+  const effectiveDateIdx = csvColumnMap.date;
+  const effectiveDescIdx = csvColumnMap.label;
+  const effectiveAmountIdx = csvColumnMap.amount >= 0 ? csvColumnMap.amount : (csvColumnMap.debit >= 0 ? csvColumnMap.debit : csvColumnMap.credit);
+
+  if (effectiveDateIdx < 0 || effectiveDescIdx < 0 || effectiveAmountIdx < 0) {
     showToast('⚠️ Veuillez associer toutes les colonnes requises');
     return;
   }
@@ -3932,16 +4244,17 @@ function analyzeCSVData() {
   analyzedTransactions = [];
 
   csvRows.forEach((row, rowIndex) => {
-    const date = row[dateIdx] || '';
-    const label = row[descIdx] || '';
-    const signedAmount = getCSVAmountFromRow(row, amountIdx);
-    if (!label || !hasCSVAmountValue(row, amountIdx) || signedAmount === 0) {
+    const date = row[effectiveDateIdx] || '';
+    const label = row[effectiveDescIdx] || '';
+    const signedAmount = getCSVAmountFromRow(row, effectiveAmountIdx);
+    if (!label || !hasCSVAmountValue(row, effectiveAmountIdx) || signedAmount === 0) {
       csvIgnoredRows.push({ rowIndex, reason: 'missing-required-data', row });
       return;
     }
     const type = signedAmount >= 0 ? 'income' : 'expense';
     const amount = Math.abs(signedAmount);
     const suggestion = suggestCSVCategory(label, signedAmount);
+    const budgetMatch = suggestBudgetMatch(suggestion.categoryKey, label);
     const signature = buildCSVSignature(date, label, signedAmount);
     const duplicate = seen.has(signature) || existingSignatures.has(signature);
     seen.add(signature);
@@ -3956,47 +4269,18 @@ function analyzeCSVData() {
       suggestedCategory: suggestion.suggestedCategory,
       categoryKey: suggestion.categoryKey,
       confidence: suggestion.confidence,
+      source: suggestion.source,
+      budgetMatchKey: budgetMatch.key,
+      budgetMatchName: budgetMatch.name,
+      budgetMatchConfidence: budgetMatch.confidence,
       duplicate,
       signature,
-      excluded: duplicate
+      excluded: duplicate,
+      applied: false
     });
   });
 
-  const tbody = document.getElementById('csv-operations-body');
-  tbody.innerHTML = '';
-
-  analyzedTransactions.forEach(transaction => {
-    let selectOptions = '<option value="">Inconnue / à traiter plus tard</option>';
-    Object.keys(CSV_CATEGORY_OPTIONS).forEach(key => {
-      const selected = transaction.categoryKey === key ? 'selected' : '';
-      selectOptions += `<option value="${key}" ${selected}>${CSV_CATEGORY_OPTIONS[key]}</option>`;
-    });
-
-    const confidenceLabel = transaction.confidence > 0 ? `${transaction.confidence}%` : 'À vérifier';
-    const duplicateBadge = transaction.duplicate ? '<span class="csv-badge duplicate">doublon probable</span>' : '';
-    const typeBadge = transaction.type === 'income'
-      ? '<span class="csv-badge income">revenu</span>'
-      : '<span class="csv-badge expense">dépense</span>';
-
-    tbody.innerHTML += `
-      <tr class="${transaction.duplicate ? 'csv-row-duplicate' : ''}">
-        <td><input type="checkbox" class="csv-row-checkbox" data-id="${transaction.id}" ${transaction.excluded ? '' : 'checked'} onchange="toggleCSVTransaction(${transaction.id}, this.checked)"></td>
-        <td>${escapeHtml(transaction.date)}</td>
-        <td style="font-weight: 500;">
-          ${escapeHtml(transaction.label)}
-          <div class="csv-row-meta">${typeBadge}${duplicateBadge}<span class="csv-badge">${confidenceLabel}</span></div>
-        </td>
-        <td>
-          <select class="budget-input csv-row-category" data-id="${transaction.id}" style="width: 100%; font-size: 12px; padding: 4px 8px;" onchange="changeCSVCategory(${transaction.id}, this.value)">
-            ${selectOptions}
-          </select>
-        </td>
-        <td style="text-align: right; font-weight: 700; color: ${transaction.type === 'expense' ? 'var(--red)' : 'var(--green)'};">
-          ${transaction.type === 'expense' ? '-' : '+'}${fmt(transaction.amount)}
-        </td>
-      </tr>
-    `;
-  });
+  renderCSVOperationsTable();
 
   renderCSVSummary();
   document.getElementById('csv-mapping-panel').style.display = 'none';
@@ -4010,6 +4294,7 @@ function toggleCSVTransaction(id, checked) {
   if (transaction) transaction.excluded = !checked;
   renderCSVSummary();
   updateCSVMatchSummary();
+  updateCSVBulkActions();
 }
 
 function changeCSVCategory(id, categoryKey) {
@@ -4019,26 +4304,261 @@ function changeCSVCategory(id, categoryKey) {
   transaction.categoryKey = categoryKey;
   transaction.suggestedCategory = CSV_CATEGORY_OPTIONS[categoryKey] || 'Inconnue';
   transaction.confidence = categoryKey ? 100 : 0;
+  transaction.source = categoryKey ? 'manual' : 'unknown';
+  const budgetMatch = suggestBudgetMatch(categoryKey, transaction.label);
+  transaction.budgetMatchKey = budgetMatch.key;
+  transaction.budgetMatchName = budgetMatch.name;
+  transaction.budgetMatchConfidence = budgetMatch.confidence;
   if (categoryKey) saveCSVLearningForLabel(transaction.label, categoryKey);
+  analyzeCSVDataRenderOnly();
+}
+
+function changeCSVBudgetMatch(id, budgetKey) {
+  const transaction = analyzedTransactions.find(t => t.id === id);
+  if (!transaction) return;
+  const option = getBudgetMatchOptions().find(item => item.key === budgetKey);
+  transaction.budgetMatchKey = budgetKey;
+  transaction.budgetMatchName = option?.label || 'À rattacher plus tard';
+  transaction.budgetMatchConfidence = budgetKey ? 100 : 0;
+  updateCSVMatchSummary();
+  updateCSVBulkActions();
+}
+
+function toggleCSVDuplicate(id, isDuplicate) {
+  const transaction = analyzedTransactions.find(t => t.id === id);
+  if (!transaction) return;
+  transaction.duplicate = isDuplicate;
+  transaction.excluded = isDuplicate;
+  analyzeCSVDataRenderOnly();
+}
+
+function analyzeCSVDataRenderOnly() {
+  renderCSVOperationsTable();
   renderCSVSummary();
   updateCSVMatchSummary();
 }
 
 function toggleAllCSVCheckboxes(selectAllEl) {
   document.querySelectorAll('.csv-row-checkbox').forEach(cb => {
+    if (cb.disabled) return;
     cb.checked = selectAllEl.checked;
     const transaction = analyzedTransactions.find(t => t.id === parseInt(cb.dataset.id));
     if (transaction) transaction.excluded = !selectAllEl.checked;
   });
   renderCSVSummary();
   updateCSVMatchSummary();
+  updateCSVBulkActions();
 }
 
 function updateCSVMatchSummary() {
   const selected = analyzedTransactions.filter(t => !t.excluded);
   const recognized = selected.filter(t => t.categoryKey).length;
+  const applicable = getApplicableCSVBudgetTransactions().length;
   document.getElementById('csv-match-summary').textContent =
-    `${selected.length} ligne(s) sélectionnée(s), ${recognized} catégorisée(s) - brouillon uniquement`;
+    `${selected.length} ligne(s), ${recognized} catégorisée(s), ${applicable} applicable(s) au budget`;
+}
+
+function updateCSVBulkActions() {
+  const selected = getSelectedCSVTransactions().filter(transaction => !transaction.applied);
+  const bar = document.getElementById('csv-bulk-actions');
+  const count = document.getElementById('csv-bulk-count');
+  if (!bar || !count) return;
+  count.textContent = `${selected.length} sélectionnée(s)`;
+  bar.classList.toggle('active', selected.length > 1);
+}
+
+function findCSVCategoryKey(value) {
+  const normalized = normalizeCSVText(value);
+  return Object.keys(CSV_CATEGORY_OPTIONS).find(key =>
+    normalizeCSVText(key) === normalized || normalizeCSVText(CSV_CATEGORY_OPTIONS[key]) === normalized
+  ) || '';
+}
+
+function findCSVBudgetKey(value) {
+  const normalized = normalizeCSVText(value);
+  const option = getBudgetMatchOptions().find(item =>
+    normalizeCSVText(item.key) === normalized || normalizeCSVText(item.label) === normalized
+  );
+  return option?.key || '';
+}
+
+async function bulkCategorizeCSVRows() {
+  const selected = getSelectedCSVTransactions();
+  if (selected.length === 0) return;
+  const value = await openNexoraActionModal({
+    title: 'Catégoriser',
+    message: `Catégorie à appliquer (${Object.values(CSV_CATEGORY_OPTIONS).join(', ')})`,
+    input: true,
+    required: true,
+    confirmLabel: 'Appliquer'
+  });
+  if (value === null) return;
+  const categoryKey = findCSVCategoryKey(value);
+  if (!categoryKey) {
+    showToast('⚠️ Catégorie non reconnue');
+    return;
+  }
+  selected.forEach(transaction => {
+    transaction.categoryKey = categoryKey;
+    transaction.suggestedCategory = CSV_CATEGORY_OPTIONS[categoryKey];
+    transaction.confidence = 100;
+    transaction.source = 'manual';
+    if (categoryKey) saveCSVLearningForLabel(transaction.label, categoryKey);
+    const budgetMatch = suggestBudgetMatch(categoryKey, transaction.label);
+    transaction.budgetMatchKey = budgetMatch.key;
+    transaction.budgetMatchName = budgetMatch.name;
+    transaction.budgetMatchConfidence = budgetMatch.confidence;
+  });
+  analyzeCSVDataRenderOnly();
+}
+
+async function bulkAttachCSVRows() {
+  const selected = getSelectedCSVTransactions();
+  if (selected.length === 0) return;
+  const value = await openNexoraActionModal({
+    title: 'Rattacher au budget',
+    message: 'Nom exact ou clé de la ligne budget Nexora',
+    input: true,
+    required: true,
+    confirmLabel: 'Rattacher'
+  });
+  if (value === null) return;
+  const budgetKey = findCSVBudgetKey(value);
+  if (!budgetKey) {
+    showToast('⚠️ Ligne budget non reconnue');
+    return;
+  }
+  const option = getBudgetMatchOptions().find(item => item.key === budgetKey);
+  selected.forEach(transaction => {
+    transaction.budgetMatchKey = budgetKey;
+    transaction.budgetMatchName = option?.label || budgetKey;
+    transaction.budgetMatchConfidence = 100;
+  });
+  analyzeCSVDataRenderOnly();
+}
+
+function bulkExcludeCSVRows() {
+  getSelectedCSVTransactions().forEach(transaction => {
+    transaction.excluded = true;
+  });
+  analyzeCSVDataRenderOnly();
+}
+
+function bulkMarkCSVTransferRows() {
+  getSelectedCSVTransactions().forEach(transaction => {
+    transaction.categoryKey = 'transfert_interne';
+    transaction.suggestedCategory = CSV_CATEGORY_OPTIONS.transfert_interne;
+    transaction.confidence = 100;
+    transaction.source = 'manual';
+    transaction.budgetMatchKey = '';
+    transaction.budgetMatchName = 'À rattacher plus tard';
+    saveCSVLearningForLabel(transaction.label, 'transfert_interne');
+  });
+  analyzeCSVDataRenderOnly();
+}
+
+function bulkApplyCSVToSimilarRows() {
+  const selected = getSelectedCSVTransactions();
+  if (selected.length === 0) return;
+  selected.forEach(source => {
+    const normalized = normalizeCSVText(source.label);
+    analyzedTransactions.forEach(transaction => {
+      if (normalizeCSVText(transaction.label) !== normalized || transaction.applied) return;
+      transaction.categoryKey = source.categoryKey;
+      transaction.suggestedCategory = source.suggestedCategory;
+      transaction.confidence = source.categoryKey ? 100 : source.confidence;
+      transaction.source = source.categoryKey ? 'learning' : source.source;
+      transaction.budgetMatchKey = source.budgetMatchKey;
+      transaction.budgetMatchName = source.budgetMatchName;
+      transaction.budgetMatchConfidence = source.budgetMatchConfidence;
+    });
+    if (source.categoryKey) saveCSVLearningForLabel(source.label, source.categoryKey);
+  });
+  analyzeCSVDataRenderOnly();
+}
+
+function getCSVBudgetTarget(transaction) {
+  if (!transaction?.budgetMatchKey) return null;
+  const amount = Number(transaction.signedAmount) || 0;
+  if (amount < 0) {
+    return { key: `${transaction.budgetMatchKey}_paye`, amount: Math.abs(amount), kind: 'expense' };
+  }
+  if (amount > 0 && transaction.budgetMatchKey.startsWith('rev_')) {
+    return { key: transaction.budgetMatchKey, amount, kind: 'income' };
+  }
+  return null;
+}
+
+function getApplicableCSVBudgetTransactions() {
+  return analyzedTransactions
+    .filter(transaction => {
+      if (transaction.excluded || transaction.duplicate || transaction.applied) return false;
+      if (!transaction.categoryKey || transaction.categoryKey === 'transfert_interne') return false;
+      if (!transaction.budgetMatchKey) return false;
+      return !!getCSVBudgetTarget(transaction);
+    });
+}
+
+function summarizeCSVBudgetApplication(transactions) {
+  const categories = new Map();
+  let incomeTotal = 0;
+  let expenseTotal = 0;
+
+  transactions.forEach(transaction => {
+    const target = getCSVBudgetTarget(transaction);
+    if (!target) return;
+    if (target.kind === 'income') incomeTotal += target.amount;
+    if (target.kind === 'expense') expenseTotal += target.amount;
+    const label = transaction.budgetMatchName || getBudgetLabel(transaction.budgetMatchKey);
+    categories.set(label, (categories.get(label) || 0) + target.amount);
+  });
+
+  return { incomeTotal, expenseTotal, categories };
+}
+
+async function applyCSVToBudget() {
+  const applicable = getApplicableCSVBudgetTransactions();
+  if (applicable.length === 0) {
+    showToast('⚠️ Aucune ligne CSV applicable au budget');
+    return;
+  }
+
+  const summary = summarizeCSVBudgetApplication(applicable);
+  const categoryList = Array.from(summary.categories.entries())
+    .map(([name, amount]) => `${name}: ${fmt(amount)}`)
+    .join('\n');
+  const confirmed = await openNexoraActionModal({
+    title: 'Appliquer au budget',
+    message: `${applicable.length} ligne(s) seront appliquée(s).\nRevenus : ${fmt(summary.incomeTotal)}\nDépenses : ${fmt(summary.expenseTotal)}\n\nCatégories impactées :\n${categoryList}`,
+    confirmLabel: 'Appliquer'
+  });
+  if (!confirmed) return;
+
+  let appliedCount = 0;
+  applicable.forEach(transaction => {
+    const target = getCSVBudgetTarget(transaction);
+    if (!target) return;
+    const input = document.querySelector(`input.budget-input[data-key="${target.key}"]`);
+    if (!input) return;
+    evaluateFormula(input);
+    const current = parseBudgetNumber(input.value);
+    input.value = formatFormulaResult(current + target.amount);
+    transaction.applied = true;
+    transaction.excluded = true;
+    appliedCount++;
+  });
+
+  if (appliedCount === 0) {
+    showToast('⚠️ Aucune ligne budget correspondante trouvée');
+    return;
+  }
+
+  updateAll();
+  await saveData();
+  renderCSVOperationsTable();
+  renderCSVSummary();
+  updateCSVMatchSummary();
+  showToast(`✅ ${appliedCount} ligne(s) appliquée(s) au budget`);
 }
 
 function applyCSVTransactions() {
@@ -4052,9 +4572,14 @@ function applyCSVTransactions() {
       type: t.type,
       suggestedCategory: t.suggestedCategory,
       categoryKey: t.categoryKey,
+      source: t.source,
       confidence: t.confidence,
+      budgetMatchKey: t.budgetMatchKey,
+      budgetMatchName: t.budgetMatchName,
+      budgetMatchConfidence: t.budgetMatchConfidence,
       signature: t.signature,
-      duplicate: t.duplicate
+      duplicate: t.duplicate,
+      applied: t.applied === true
     }));
 
   if (selected.length === 0) {
@@ -4068,8 +4593,11 @@ function applyCSVTransactions() {
     id: `csv_draft_${Date.now()}`,
     month: getMonth(),
     created_at: new Date().toISOString(),
+    bank: csvDetectedBank,
     separator: csvDetectedSeparator,
+    encoding: csvDetectedEncoding,
     headers: csvHeaders,
+    ignored_count: csvIgnoredRows.length,
     operations: selected
   });
 
