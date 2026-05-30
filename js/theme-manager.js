@@ -103,13 +103,13 @@ const ThemeManager = (() => {
     const appleIconLink = document.getElementById('apple-icon-link');
 
     if (manifestLink) {
-      manifestLink.href = `manifest.json?icon=${iconTheme}`;
+      manifestLink.href = `/manifest.json?icon=${iconTheme}`;
     }
     if (faviconLink) {
-      faviconLink.href = `icon-${iconTheme}-192.png`;
+      faviconLink.href = `/icon-${iconTheme}-192.png`;
     }
     if (appleIconLink) {
-      appleIconLink.href = `icon-${iconTheme}-192.png`;
+      appleIconLink.href = `/icon-${iconTheme}-192.png`;
     }
   };
 

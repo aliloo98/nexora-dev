@@ -12,8 +12,8 @@
 <meta name="description" content="NEXORA, application de gestion de budget personnelle et collaborative.">
 <meta name="apple-mobile-web-app-title" content="NEXORA">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="icon" type="image/png" href="favicon.png" id="favicon-link">
-<link rel="apple-touch-icon" href="icon-192.png" id="apple-icon-link">
+<link rel="icon" type="image/png" href="/favicon.png" id="favicon-link">
+<link rel="apple-touch-icon" href="/icon-192.png" id="apple-icon-link">
 <link rel="stylesheet" href="styles.css">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -925,19 +925,19 @@
         </div>
         <div class="icon-theme-grid">
           <div class="icon-theme-option" id="icon-theme-gold" onclick="ThemeManager.selectAppIcon('gold')" title="Or Royal">
-            <img src="icon-gold-192.png" alt="Or Royal" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
+            <img src="/icon-gold-192.png" alt="Or Royal" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
           </div>
           <div class="icon-theme-option" id="icon-theme-emerald" onclick="ThemeManager.selectAppIcon('emerald')" title="Émeraude Cyber">
-            <img src="icon-emerald-192.png" alt="Émeraude Cyber" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
+            <img src="/icon-emerald-192.png" alt="Émeraude Cyber" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
           </div>
           <div class="icon-theme-option" id="icon-theme-amethyst" onclick="ThemeManager.selectAppIcon('amethyst')" title="Améthyste Rêve">
-            <img src="icon-amethyst-192.png" alt="Améthyste Rêve" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
+            <img src="/icon-amethyst-192.png" alt="Améthyste Rêve" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
           </div>
           <div class="icon-theme-option" id="icon-theme-ruby" onclick="ThemeManager.selectAppIcon('ruby')" title="Rubis Feu">
-            <img src="icon-ruby-192.png" alt="Rubis Feu" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
+            <img src="/icon-ruby-192.png" alt="Rubis Feu" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
           </div>
           <div class="icon-theme-option" id="icon-theme-ocean" onclick="ThemeManager.selectAppIcon('ocean')" title="Bleu Océan">
-            <img src="icon-ocean-192.png" alt="Bleu Océan" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
+            <img src="/icon-ocean-192.png" alt="Bleu Océan" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
           </div>
         </div>
         <div style="display:flex;align-items:flex-start;gap:8px;margin-top:6px;padding:10px 12px;background:rgba(255,255,255,0.04);border-radius:10px;border:1px solid var(--border);">
@@ -5164,7 +5164,7 @@ if ('serviceWorker' in navigator) {
       console.warn('Impossible de désenregistrer les anciens service workers', err);
     }
 
-    navigator.serviceWorker.register('./sw.js')
+    navigator.serviceWorker.register('/sw.js')
       .then(reg => {
         if (reg.update) reg.update();
       })
