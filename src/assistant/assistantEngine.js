@@ -263,6 +263,14 @@ async function analyzeBudget(monthKey) {
   unrealisticGoals.forEach(n => advancedAlerts.push(`Objectif probablement irréaliste : ${n}`))
   peaks.forEach(p => advancedAlerts.push(p))
 
+  // --- Phase 5: KPI advanced calculations for Dashboard Premium
+  const kpis = {
+    realSavingsRate: rev > 0 ? Math.round((savings / rev) * 10000) / 100 : 0,
+    dailyLeftover: Math.round((savings > 0 ? savings : 0) / 30),
+    projectionEndOfYear: Math.round(savings + monthlyContribution * (12 - (new Date().getMonth()))),
+    annualSavingsProjection: Math.round((savings > 0 ? savings : 0) * 12)
+  }
+
 
   const goalProjectionText = goalProjections.length > 0
     ? goalProjections.map(proj => {
@@ -423,6 +431,7 @@ async function analyzeBudget(monthKey) {
     scoreBreakdown: scoreBreakdown || null,
     advancedAlerts: advancedAlerts || [],
     timeline: timelineEntries,
+    kpis: kpis || null,
     metadata: {
       month: month || null,
       chargesRate,

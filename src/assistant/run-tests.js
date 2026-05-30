@@ -69,6 +69,16 @@ tests.push({
 })
 
 tests.push({
+  name: 'kpis exposés pour dashboard',
+  fn: async () => {
+    setMocks({ metrics: { income: 3000, fixed: 1000, variable: 800, expenses: 1800, savings: 1200 } })
+    const r = await analyzeBudget('2026-05')
+    assert(r.kpis && typeof r.kpis.realSavingsRate === 'number', 'expected kpis.realSavingsRate')
+    assert(typeof r.kpis.dailyLeftover === 'number', 'expected kpis.dailyLeftover')
+  }
+})
+
+tests.push({
   name: 'mois à risque détecté',
   fn: async () => {
     setMocks({ metrics: { income: 1000, fixed: 900, variable: 500, expenses: 1600, savings: -600 } })
