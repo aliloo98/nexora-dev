@@ -25,8 +25,8 @@
   --border-hover: rgba(229, 192, 96, 0.3);
   --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   --glass-blur: blur(14px);
-  --save-bar-height: 70px;
-  --save-bar-clearance: calc(var(--save-bar-height) + env(safe-area-inset-bottom, 0px) + 48px);
+  --save-bar-height: 60px;
+  --save-bar-clearance: calc(var(--save-bar-height) + env(safe-area-inset-bottom, 0px) + 40px);
 }
 
 body {
@@ -829,7 +829,7 @@ body,
 
 .analytics-grid {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 18px;
 }
 
@@ -844,21 +844,21 @@ body,
   transition: border-color 0.25s ease, transform 0.25s ease;
 }
 
+.assistant-card {
+  grid-column: 1 / -1;
+}
+
 .analytics-card:hover {
   border-color: rgba(229, 192, 96, 0.16);
   transform: translateY(-2px);
 }
 
 .analytics-health-card {
-  grid-column: span 4;
+  min-width: 320px;
 }
 
 .analytics-trend-card {
-  grid-column: span 8;
-}
-
-.analytics-grid .analytics-card:nth-child(n + 3) {
-  grid-column: span 4;
+  min-width: 420px;
 }
 
 .analytics-card-title {
@@ -1457,18 +1457,19 @@ body,
 /* SAVE BAR */
 .save-bar {
   position: fixed;
-  bottom: 32px;
-  right: 32px;
+  bottom: 20px;
+  right: 22px;
   display: flex;
-  gap: 16px;
+  gap: 12px;
   z-index: 200;
-  background: rgba(10, 10, 15, 0.6);
-  padding: 8px 12px;
-  border-radius: 18px;
-  border: 1px solid var(--border);
+  background: rgba(10, 10, 15, 0.55);
+  padding: 8px 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  box-shadow: var(--card-shadow);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+  min-height: 52px;
 }
 
 .save-bar-spacer {

@@ -35,6 +35,7 @@ import GoalsPage from './pages/GoalsPage.js'
 import { GoalsService } from './goals/goalsService.js'
 import { UserAppSettingsService } from '../js/userAppSettingsService.js'
 import { STORAGE_KEYS } from './constants/storageKeys.js'
+import { renderAssistantCard } from './components/AssistantCard.js'
 
 // Expose modules globally for HTML event handlers and old code
 window.StorageManager = StorageManager
@@ -123,6 +124,13 @@ const initApp = async () => {
       } catch (e) {
         console.warn('⚠️ User app settings sync failed', e)
       }
+    }
+
+    // Render Assistant Nexora card (rules-based, local-only)
+    try {
+      if (typeof renderAssistantCard === 'function') await renderAssistantCard()
+    } catch (e) {
+      console.warn('[Assistant] render failed', e)
     }
   } catch (err) {
     console.error('❌ App initialization error:', err)
