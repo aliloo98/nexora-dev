@@ -382,6 +382,16 @@ function createAssistantCard() {
       gap: 6px;
     }
 
+    /* Skeleton loader for async states */
+    .assistant-card.loading .skeleton-row {
+      height: 12px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.06), rgba(255,255,255,0.04));
+      border-radius: 6px;
+      animation: shimmer 1.4s infinite linear;
+      margin-bottom: 8px;
+    }
+    @keyframes shimmer { 0% { background-position: -200px 0 } 100% { background-position: 200px 0 } }
+
     @media(max-width: 960px) {
       .assistant-main-grid {
         grid-template-columns: 1fr;
@@ -431,7 +441,14 @@ async function renderAssistantCard() {
     existing = document.getElementById('assistant-card')
   }
 
+  // show lightweight skeleton while computing
+  existing.classList.add('loading')
+  const skeletonAnalysisEl = existing.querySelector('#assistant-analysis-content')
+  if (skeletonAnalysisEl) {
+    skeletonAnalysisEl.innerHTML = '<div class="skeleton-row" style="width:80%"></div><div class="skeleton-row" style="width:60%"></div><div class="skeleton-row" style="width:90%"></div>'
+  }
   const result = await analyzeBudget()
+  existing.classList.remove('loading')
   const situationEl = existing.querySelector('#assistant-situation-text')
   const trajectoryEl = existing.querySelector('#assistant-trajectory')
   const vigilanceList = existing.querySelector('#assistant-vigilance-list')
