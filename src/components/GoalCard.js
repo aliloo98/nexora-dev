@@ -10,21 +10,45 @@ export default function createGoalCard(goal, handlers = {}) {
 
   const meta = document.createElement('div')
   meta.className = 'goal-card-meta'
-  const pct = goal.target > 0 ? Math.round((goal.current / goal.target) * 100) : 0
-  meta.innerHTML = `<div class="goal-pct">${pct}%</div><div class="goal-amount">${(Number(goal.current)||0).toLocaleString()} € / ${(Number(goal.target)||0).toLocaleString()} €</div>`
+  const current = Number(goal.current) || 0
+  const target = Number(goal.target) || 0
+  const pct = target > 0 ? Math.round((current / target) * 100) : 0
+  const safePct = Math.min(100, Math.max(0, pct))
+  const status = safePct >= 100
+    ? 'Objectif atteint'
+    : safePct >= 75
+      ? 'Dernière ligne droite'
+      : safePct >= 40
+        ? 'Bonne progression'
+        : 'À lancer'
+  meta.innerHTML = `
+    <div>
+      <span class="goal-status">${status}</span>
+      <div class="goal-amount">${current.toLocaleString()} € / ${target.toLocaleString()} €</div>
+    </div>
+    <div class="goal-pct">${safePct}%</div>
+  `
 
   const barWrap = document.createElement('div')
   barWrap.className = 'goal-progress-wrap'
   const fill = document.createElement('div')
   fill.className = 'goal-progress-fill'
-  fill.style.width = Math.min(100, Math.max(0, pct)) + '%'
+  fill.style.width = safePct + '%'
+  fill.style.background = goal.color || '#e5c060'
   barWrap.appendChild(fill)
 
   const footer = document.createElement('div')
   footer.className = 'goal-card-footer'
-  const remaining = Math.max(0, (Number(goal.target)||0) - (Number(goal.current)||0))
+  const remaining = Math.max(0, target - current)
   const est = goal.__estimatedMonths ? `${goal.__estimatedMonths} mois` : '—'
-  footer.innerHTML = `<div class="goal-remaining">Reste: ${remaining.toLocaleString()} €</div><div class="goal-est">Est: ${est}</div>`
+  const targetDate = goal.targetDate
+    ? new Date(goal.targetDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+    : 'Non définie'
+  footer.innerHTML = `
+    <div class="goal-remaining"><span>Reste</span><strong>${remaining.toLocaleString()} €</strong></div>
+    <div class="goal-date"><span>Échéance</span><strong>${targetDate}</strong></div>
+    <div class="goal-est"><span>Rythme</span><strong>${est}</strong></div>
+  `
 
   const actions = document.createElement('div')
   actions.className = 'goal-actions'

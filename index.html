@@ -168,6 +168,24 @@
       </div>
     </div>
 
+    <div class="dashboard-guidance">
+      <div class="guidance-card primary">
+        <span>Situation du mois</span>
+        <strong id="dashboard-situation-title">À compléter</strong>
+        <p id="dashboard-situation-text">Saisis tes revenus et tes dépenses pour obtenir une lecture rapide.</p>
+      </div>
+      <div class="guidance-card">
+        <span>À surveiller</span>
+        <strong id="dashboard-watch-title">Aucune alerte</strong>
+        <p id="dashboard-watch-text">Les points sensibles apparaîtront ici automatiquement.</p>
+      </div>
+      <div class="guidance-card">
+        <span>Prochaine action</span>
+        <strong id="dashboard-action-title">Commencer la saisie</strong>
+        <p id="dashboard-action-text">Renseigne les montants du mois puis sauvegarde.</p>
+      </div>
+    </div>
+
     <!-- RESUME RAPIDE & CHART -->
     <div class="dash-row">
       <div class="budget-block" style="margin-bottom:0">
@@ -2785,6 +2803,20 @@ function updateAll(){
   
   document.getElementById('dash-mois').textContent = getBudgetCycleRange(getMonth()).fullLabel;
 
+  updateDashboardGuidance({
+    revReel,
+    totalDepReel,
+    totalDepPayee,
+    totalDepRestant,
+    solde,
+    soldeEstime,
+    tauxEp,
+    tauxCh,
+    depPayesPct,
+    fixesPct,
+    variablesPct
+  });
+
   // Donut Chart updates
   updateDonutChart(fixReel, varReel, solde, revReel);
 
@@ -2866,6 +2898,71 @@ function updateAll(){
   if (typeof updatePremiumAnalytics === 'function') updatePremiumAnalytics();
   if (typeof renderCagnottes === 'function') renderCagnottes();
   if (typeof updateTrendIndicators === 'function') updateTrendIndicators();
+}
+
+function setDashboardGuidanceText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+
+function updateDashboardGuidance(metrics) {
+  const {
+    revReel,
+    totalDepRestant,
+    solde,
+    soldeEstime,
+    tauxEp,
+    tauxCh,
+    depPayesPct,
+    fixesPct,
+    variablesPct
+  } = metrics;
+
+  let situationTitle = 'Budget à compléter';
+  let situationText = 'Ajoute les revenus et dépenses du mois pour obtenir une lecture fiable.';
+  if (revReel > 0 && solde >= 0) {
+    situationTitle = `Solde prévu positif : ${fmt(solde)}`;
+    situationText = `Après toutes les dépenses prévues, le budget garde ${tauxEp}% d'épargne.`;
+  } else if (revReel > 0) {
+    situationTitle = `Déficit prévu : ${fmt(Math.abs(solde))}`;
+    situationText = 'Le total des dépenses prévues dépasse les revenus du mois.';
+  }
+
+  let watchTitle = 'Rien de critique';
+  let watchText = `${fmt(totalDepRestant)} restent à payer.`;
+  if (soldeEstime < 0) {
+    watchTitle = 'Solde actuel négatif';
+    watchText = 'Les paiements déjà saisis dépassent les revenus disponibles.';
+  } else if (fixesPct > 60) {
+    watchTitle = 'Charges fixes élevées';
+    watchText = `Les charges fixes représentent ${fixesPct}% des revenus.`;
+  } else if (variablesPct > 40) {
+    watchTitle = 'Variables à surveiller';
+    watchText = `Les dépenses variables atteignent ${variablesPct}% des revenus.`;
+  } else if (tauxCh > 85) {
+    watchTitle = 'Taux de charges élevé';
+    watchText = `Les charges consomment ${tauxCh}% des revenus.`;
+  }
+
+  let actionTitle = 'Sauvegarder le mois';
+  let actionText = 'Une fois les montants vérifiés, utilise le bouton Sauvegarder.';
+  if (revReel === 0) {
+    actionTitle = 'Saisir les revenus';
+    actionText = 'Commence par renseigner les revenus pour débloquer les indicateurs.';
+  } else if (depPayesPct < 50 && totalDepRestant > 0) {
+    actionTitle = 'Mettre à jour les paiements';
+    actionText = 'Complète les champs déjà payé pour suivre le reste à régler.';
+  } else if (tauxEp < 10) {
+    actionTitle = 'Réduire une dépense';
+    actionText = 'Cherche une variable ou un abonnement facile à réduire.';
+  }
+
+  setDashboardGuidanceText('dashboard-situation-title', situationTitle);
+  setDashboardGuidanceText('dashboard-situation-text', situationText);
+  setDashboardGuidanceText('dashboard-watch-title', watchTitle);
+  setDashboardGuidanceText('dashboard-watch-text', watchText);
+  setDashboardGuidanceText('dashboard-action-title', actionTitle);
+  setDashboardGuidanceText('dashboard-action-text', actionText);
 }
 
 function updateDonutChart(fix, vari, soldeVal, rev) {
