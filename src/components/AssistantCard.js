@@ -260,22 +260,6 @@ function createAssistantCard() {
       height: auto !important;
       display: block;
     }
-    .assistant-card * {
-      padding: 18px;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-      width: 100%;
-      max-width: 100%;
-      overflow-x: hidden;
-      background: rgba(0, 0, 0, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      border-radius: 12px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
     .proj-card-title {
       font-size: 13.5px;
       font-weight: 700;
