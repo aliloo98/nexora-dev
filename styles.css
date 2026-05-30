@@ -3630,4 +3630,72 @@ body,
     min-width: 200px;
     max-width: calc(100vw - 28px);
   }
+
+  /* P0 & P1 - Overflow & Mobile Layout Optimizations */
+  .chart-container {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 20px !important;
+    padding: 20px 14px !important;
+  }
+  .chart-legend {
+    min-width: 0 !important;
+    width: 100% !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+  .legend-item {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  .cagnotte-new-form > div {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .cagnotte-new-form button {
+    width: 100% !important;
+  }
+
+  /* Goal creation form overrides for inner layout inside dashed border */
+  #section-objectifs .budget-block > div[style*="padding"] > div > div[style*="display:flex"],
+  #section-objectifs .budget-block > div[style*="padding"] > div[style*="display:flex"] {
+    align-items: stretch !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+  #section-objectifs .budget-input,
+  #goal-create-btn {
+    flex: 1 1 auto !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Spacing and scroll optimizations */
+  .budget-block {
+    margin-bottom: 20px !important;
+  }
+  .budget-block-header {
+    padding: 14px 16px !important;
+  }
+  .budget-category-divider {
+    padding: 8px 16px !important;
+  }
+  .add-budget-line-btn {
+    padding: 10px 16px !important;
+  }
+  .main {
+    padding-top: 16px !important;
+  }
+  .header {
+    margin-bottom: 16px !important;
+  }
+  .rule-container {
+    padding: 16px !important;
+  }
+  .simulator-grid {
+    padding: 16px !important;
+  }
 }

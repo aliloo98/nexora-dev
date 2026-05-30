@@ -262,6 +262,7 @@ async function analyzeBudget(monthKey) {
     alertDisplay: finalAlertTexts,
     recommendations: finalRecommendations,
     goalProjectionText: goalProjectionText || null,
+    goalProjections: goalProjections || [],
     timeline: timelineEntries,
     metadata: {
       month: month || null,
