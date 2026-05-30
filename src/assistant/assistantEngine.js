@@ -92,22 +92,43 @@ async function analyzeBudget(monthKey) {
             ? `Votre budget reste positif et votre taux d’épargne progresse correctement par rapport à votre niveau de dépenses.`
             : `Votre budget reste équilibré, mais la pression des charges limite votre marge d’épargne.`
 
-  const budgetObservations = []
-  if (rev > 0 && fixes > 0) {
-    if (fixedRate > 30) {
-      budgetObservations.push(`Les charges fixes représentent ${fixedRate}% des revenus.`)
+    // Observations with anti-duplication flags to avoid repeating the same
+    // indicator multiple times in the diagnostics (mainAnalysis + observations)
+    const budgetObservations = []
+    const seenIndicators = { fixed: false, variable: false, total: false, savings: false, goal: false }
+
+    // mark indicators already described in mainAnalysis to avoid repetition
+    const ma = String(mainAnalysis || '').toLowerCase()
+    // Only mark an indicator as seen if the mainAnalysis uses an explicit
+    // "représentent" phrasing for that indicator — otherwise keep the
+    // observation line so tests and UX have a clear, uniform sentence.
+    // For total charges, only treat as seen when mainAnalysis already uses the
+    // exact 'atteignent' phrasing; otherwise keep the uniform observation line.
+    if (ma.includes('charges totales atteignent') || ma.includes('les charges totales atteignent')) seenIndicators.total = true
+    if (ma.includes('charges fixes représentent') || ma.includes('les charges fixes représentent')) seenIndicators.fixed = ma.includes('charges fixes représentent') || ma.includes('les charges fixes représentent')
+    if (ma.includes('dépenses variables représentent') || ma.includes('les dépenses variables représentent')) seenIndicators.variable = ma.includes('dépenses variables représentent') || ma.includes('les dépenses variables représentent')
+    if (ma.includes('épargne') || ma.includes("taux d'épargne") || ma.includes('taux d epargne')) seenIndicators.savings = true
+    if (ma.includes('objectif principal') || ma.includes('objectif')) seenIndicators.goal = true
+
+    if (rev > 0 && fixes > 0 && !seenIndicators.fixed) {
+      if (fixedRate > 30) {
+        budgetObservations.push(`Les charges fixes représentent ${fixedRate}% des revenus.`)
+        seenIndicators.fixed = true
+      }
     }
-  }
-  if (rev > 0 && vari > 0) {
-    if (variableRate <= 25) {
-      budgetObservations.push('Les dépenses variables sont maîtrisées.')
-    } else if (variableRate > 40) {
-      budgetObservations.push('Les dépenses variables sont élevées et pèsent sur votre capacité d’épargne.')
+    if (rev > 0 && vari > 0 && !seenIndicators.variable) {
+      if (variableRate <= 25) {
+        budgetObservations.push('Les dépenses variables sont maîtrisées.')
+        seenIndicators.variable = true
+      } else if (variableRate > 40) {
+        budgetObservations.push('Les dépenses variables sont élevées et pèsent sur votre capacité d’épargne.')
+        seenIndicators.variable = true
+      }
     }
-  }
-  if (rev > 0 && totalCharges > 0 && totalChargesRate > 70) {
-    budgetObservations.push(`Les charges totales atteignent ${totalChargesRate}% des revenus.`)
-  }
+    if (rev > 0 && totalCharges > 0 && totalChargesRate > 70 && !seenIndicators.total) {
+      budgetObservations.push(`Les charges totales atteignent ${totalChargesRate}% des revenus.`)
+      seenIndicators.total = true
+    }
 
   const goalInsights = []
   const goals = Array.isArray(goalsSummary?.goals) ? goalsSummary.goals : []
@@ -181,14 +202,37 @@ async function analyzeBudget(monthKey) {
     if (savings >= 0) insights.push(`Solde estimé positif: ${savings} €`)
     else insights.push(`Solde estimé négatif: ${savings} €`)
 
-    // Negative balance - highest priority
-    if (savings < 0) {
-      pushAlert('deficit', `Attention, ce cycle risque de se terminer avec un déficit estimé de ${Math.abs(savings)} €.`, 'Solde prévisionnel négatif', 100, 'Réduisez les dépenses variables prioritaires avant la fin du cycle.')
-    }
-
     // Variable expenses high
     if (vari > 0 && rev > 0 && Math.round((vari / rev) * 100) > 40) {
       pushAlert('variable_expenses', 'Dépenses variables élevées', 'Dépenses variables élevées', 50, 'Réduisez environ 50 € de dépenses variables pour soulager votre budget.')
+    }
+
+    // High fixed charges recommendation
+    if (fixedRate > 50) {
+      const targetFixed = Math.round(rev * 0.5)
+      const reductionNeeded = Math.max(0, fixes - targetFixed)
+      recommendations.push(`Réduire environ ${reductionNeeded} € de charges fixes vous rapprocherait d’un niveau sain.`)
+    }
+
+    const targetEp = (typeof getVal === 'function' ? getVal('target_epargne') : null) || 0
+    if (targetEp > 0 && savings < targetEp) {
+      const shortfall = targetEp - savings
+      recommendations.push(`Il manque ${shortfall} € pour atteindre votre objectif d’épargne mensuel de ${targetEp} €.`)
+    }
+
+    if (savings > 0) {
+      const safetyAllocation = Math.max(0, Math.round(savings * 0.6))
+      if (primaryGoal && Number(primaryGoal.current || 0) < Number(primaryGoal.target || 0) && safetyAllocation >= 50) {
+        const available = Math.min(safetyAllocation, Math.max(0, Math.round((Number(primaryGoal.target || 0) - Number(primaryGoal.current || 0)))))
+        recommendations.push(`Vous pouvez affecter environ ${available} € à votre objectif principal tout en gardant une marge de sécurité.`)
+      } else if (!primaryGoal && safetyAllocation >= 50) {
+        recommendations.push(`Votre solde est positif : vous pouvez affecter environ ${safetyAllocation} € à vos objectifs ou à l’épargne tout en conservant une marge de sécurité.`)
+      }
+    }
+
+    // Negative balance - highest priority
+    if (savings < 0) {
+      pushAlert('deficit', `Attention, ce cycle risque de se terminer avec un déficit estimé de ${Math.abs(savings)} €.`, 'Solde prévisionnel négatif', 100, 'Priorisez la réduction des dépenses variables et des charges fixes avant de financer des objectifs.')
     }
 
     // High charges
@@ -196,14 +240,18 @@ async function analyzeBudget(monthKey) {
       pushAlert('charges', `Les charges totales représentent ${chargesRate}% des revenus.`, 'Taux de charges très élevé', 90, 'Réduire 50 € de charges fixes améliorerait immédiatement votre taux d’épargne.')
     }
 
-    const targetEp = (typeof getVal === 'function' ? getVal('target_epargne') : null) || 0
-    if (targetEp > 0) {
-      if (savings >= targetEp) {
-        insights.push('Objectif d’épargne atteint ou dépassé.')
-      } else {
-        insights.push(`Épargne: ${savings} € — Objectif: ${targetEp} €`)
-        const pctEpargne = Math.round((savings / targetEp) * 100)
-        if (pctEpargne < 50) pushAlert('savings_insufficient', `Épargne sous objectif: ${savings}€ sur ${targetEp}€ (${pctEpargne}%)`, 'Épargne sous objectif', 40, 'Augmentez vos versements d’environ 30 € pour rapprocher l’objectif.')
+    if (primaryGoal) {
+      const current = Number(primaryGoal.current || 0)
+      const target = Number(primaryGoal.target || 0)
+      const pct = target > 0 ? Math.round((current / target) * 100) : 0
+      insights.push(`Objectif principal: ${primaryGoal.name || '—'} ${pct}% atteint`)
+      if (pct >= 100) recommendations.push('Félicitations — objectif principal atteint.')
+      else if (pct === 0) {
+        const remaining = Math.max(0, target - current)
+        const suggestedMonthly = Math.max(100, Math.round(remaining / 24))
+        const monthsNeeded = Math.ceil(remaining / suggestedMonthly)
+        recommendations.push(`En mettant ${suggestedMonthly} €/mois sur ${primaryGoal.name || 'cet objectif'}, vous pourriez l’atteindre en environ ${monthsNeeded} mois.`)
+        pushAlert('goal_zero', `Objectif principal "${primaryGoal.name || '—'}" à 0%`, 'Objectif principal à 0%', 80, `Commencez à alimenter l'objectif ${primaryGoal.name || '—'} avec une première contribution de ${suggestedMonthly} € par mois.`)
       }
     }
 

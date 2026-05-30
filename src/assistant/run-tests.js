@@ -95,6 +95,56 @@ tests.push({
 })
 
 tests.push({
+  name: 'recommandation objectif non alimenté',
+  fn: async () => {
+    setMocks({ metrics: { income: 2500, fixed: 900, variable: 700, expenses: 1600, savings: 900 }, primaryGoal: { name: 'Déménagement', current: 0, target: 3000 } })
+    const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
+    assert(r.recommendations.some(s => /En mettant \d+ €\/mois sur Déménagement, vous pourriez l’atteindre en environ \d+ mois\./i.test(s)), 'expected goal funding recommendation')
+  }
+})
+
+tests.push({
+  name: 'recommandation charges fixes élevées',
+  fn: async () => {
+    setMocks({ metrics: { income: 2000, fixed: 1200, variable: 300, expenses: 1500, savings: 500 } })
+    const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
+    assert(r.recommendations.some(s => /Réduire environ \d+ € de charges fixes vous rapprocherait d’un niveau sain\./i.test(s)), 'expected fixed charge reduction recommendation')
+  }
+})
+
+tests.push({
+  name: 'recommandation épargne sous objectif',
+  fn: async () => {
+    setMocks({ metrics: { income: 2000, fixed: 800, variable: 700, expenses: 1500, savings: 200, targetEpargne: 400 } })
+    const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
+    assert(r.recommendations.some(s => /Il manque \d+ € pour atteindre votre objectif d’épargne mensuel de 400 €/i.test(s)), 'expected savings shortfall recommendation')
+  }
+})
+
+tests.push({
+  name: 'recommandation solde positif avec marge',
+  fn: async () => {
+    setMocks({ metrics: { income: 3000, fixed: 1000, variable: 800, expenses: 1800, savings: 1200 }, primaryGoal: { name: 'Déménagement', current: 800, target: 2000 } })
+    const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
+    assert(r.recommendations.some(s => /Vous pouvez affecter environ \d+ € à votre objectif principal tout en gardant une marge de sécurité\./i.test(s)), 'expected positive surplus allocation recommendation')
+  }
+})
+
+tests.push({
+  name: 'recommandation solde négatif',
+  fn: async () => {
+    setMocks({ metrics: { income: 2000, fixed: 900, variable: 800, expenses: 1900, savings: -100 } })
+    const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
+    assert(r.recommendations.some(s => /Priorisez la réduction des dépenses variables et des charges fixes avant de financer des objectifs\./i.test(s)), 'expected deficit priority recommendation')
+  }
+})
+
+tests.push({
   name: 'charges fixes et charges totales non confondues',
   fn: async () => {
     setMocks({ metrics: { income: 3205, fixed: 2049, variable: 810, expenses: 2859, savings: 346 } })
