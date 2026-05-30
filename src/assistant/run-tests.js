@@ -45,6 +45,75 @@ tests.push({
 })
 
 tests.push({
+  name: 'prévisions budgétaires publiées',
+  fn: async () => {
+    setMocks({ metrics: { income: 2500, fixed: 900, variable: 700, expenses: 1600, savings: 900 } })
+    const r = await analyzeBudget('2026-05')
+    assert(Array.isArray(r.budgetForecasts), 'expected budgetForecasts array')
+    assert.strictEqual(r.budgetForecasts.length, 4, 'expected 4 forecast horizons')
+    assert(r.budgetForecasts.every(item => typeof item.projectedBalance === 'number'), 'expected projectedBalance numbers')
+    assert(Array.isArray(r.goalForecasts), 'expected goalForecasts array')
+  }
+})
+
+tests.push({
+  name: 'cas limite revenus à 0',
+  fn: async () => {
+    setMocks({ metrics: { income: 0, fixed: 0, variable: 0, expenses: 0, savings: 0 } })
+    const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
+    assert.strictEqual(r.budgetForecasts.length, 4, 'expected 4 forecast horizons when income is zero')
+    assert.strictEqual(r.budgetForecasts[0].cumulativeSavings, 0, 'expected zero savings projection')
+    assert.strictEqual(r.goalForecasts.length, 0, 'expected no goal forecasts when there are no goals')
+  }
+})
+
+tests.push({
+  name: 'cas limite épargne à 0',
+  fn: async () => {
+    setMocks({ metrics: { income: 2000, fixed: 1000, variable: 1000, expenses: 2000, savings: 0 } })
+    const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
+    assert.strictEqual(r.budgetForecasts[0].cumulativeSavings, 0, 'expected zero monthly savings forecast')
+    assert.strictEqual(r.budgetForecasts[0].projectedBalance, 0, 'expected zero projected balance when savings are zero')
+  }
+})
+
+tests.push({
+  name: 'cas limite objectif sans montant cible',
+  fn: async () => {
+    setMocks({ metrics: { income: 2200, fixed: 800, variable: 700, expenses: 1500, savings: 700 }, primaryGoal: { name: 'Sans cible', current: 100, target: 0 } })
+    const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
+    assert.strictEqual(r.goalProjections.length, 0, 'expected no goal projections without a valid target')
+    assert.strictEqual(r.goalForecasts.length, 0, 'expected no goal forecasts without a valid target')
+    assert.strictEqual(r.goalProjectionText, null, 'expected no goal projection text when no target exists')
+  }
+})
+
+tests.push({
+  name: 'cas limite objectif déjà atteint',
+  fn: async () => {
+    setMocks({ metrics: { income: 2200, fixed: 700, variable: 600, expenses: 1300, savings: 900 }, primaryGoal: { name: 'Atteint', current: 1200, target: 1000 } })
+    const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
+    assert.strictEqual(r.goalProjections.length, 0, 'expected no goal projections when goal is already reached')
+    assert.strictEqual(r.goalForecasts.length, 0, 'expected no goal forecasts when goal is already reached')
+  }
+})
+
+tests.push({
+  name: 'cas limite aucun objectif existant',
+  fn: async () => {
+    setMocks({ metrics: { income: 2000, fixed: 800, variable: 600, expenses: 1400, savings: 600 }, primaryGoal: null, goalsSummary: { goals: [], totalTarget: 0, totalCurrent: 0, progressPct: 0 } })
+    const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
+    assert.strictEqual(r.goalProjections.length, 0, 'expected no goal projections when there are no goals')
+    assert.strictEqual(r.goalForecasts.length, 0, 'expected no goal forecasts when there are no goals')
+  }
+})
+
+tests.push({
   name: 'épargne atteinte',
   fn: async () => {
     setMocks({ metrics: { income: 2000, fixed: 1000, variable: 500, expenses: 1500, savings: 500, targetEpargne: 400 } })

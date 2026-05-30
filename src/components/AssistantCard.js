@@ -45,6 +45,12 @@ function createAssistantCard() {
         <div class="assistant-projections-grid" id="assistant-projections-grid"></div>
       </div>
 
+      <!-- Forecasts Section -->
+      <div class="assistant-block assistant-forecast-section" id="assistant-forecast-block" style="display:none;">
+        <strong>Prévisions financières</strong>
+        <div class="assistant-forecast-grid" id="assistant-forecast-grid"></div>
+      </div>
+
       <!-- Visual Timeline Section -->
       <div class="assistant-block assistant-timeline-section" id="assistant-timeline-block" style="display:none;">
         <strong>Timeline des Objectifs</strong>
@@ -209,6 +215,44 @@ function createAssistantCard() {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 14px;
+    }
+    .assistant-forecast-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0 !important;
+    }
+    .assistant-forecast-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .forecast-card {
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 100px;
+    }
+    .forecast-card-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .forecast-card-era {
+      font-size: 12px;
+      color: var(--text2);
+    }
+    .forecast-card-detail {
+      font-size: 13px;
+      line-height: 1.4;
+      color: var(--text);
     }
     /* Make embedded SVGs/canvases/images responsive to avoid horizontal overflow */
     .assistant-card svg, .assistant-card canvas, .assistant-card img {
@@ -481,6 +525,8 @@ async function renderAssistantCard() {
   // Populate formatted visual comparison for savings projections
   const projectionsBlock = existing.querySelector('#assistant-projections-block')
   const projectionsGrid = existing.querySelector('#assistant-projections-grid')
+  const forecastBlock = existing.querySelector('#assistant-forecast-block')
+  const forecastGrid = existing.querySelector('#assistant-forecast-grid')
 
   if (Array.isArray(result.goalProjections) && result.goalProjections.length > 0) {
     if (projectionsBlock) projectionsBlock.style.display = 'flex'
@@ -537,6 +583,36 @@ async function renderAssistantCard() {
     }
   } else {
     if (projectionsBlock) projectionsBlock.style.display = 'none'
+  }
+
+  if (Array.isArray(result.budgetForecasts) && result.budgetForecasts.length > 0) {
+    if (forecastBlock) forecastBlock.style.display = 'flex'
+    if (forecastGrid) {
+      forecastGrid.innerHTML = result.budgetForecasts.map(item => {
+        const formattedBalance = typeof window.Utils?.formatCurrency === 'function'
+          ? window.Utils.formatCurrency(item.projectedBalance)
+          : `${item.projectedBalance} €`
+        const savings = typeof window.Utils?.formatCurrency === 'function'
+          ? window.Utils.formatCurrency(item.cumulativeSavings)
+          : `${item.cumulativeSavings} €`
+        const expenses = typeof window.Utils?.formatCurrency === 'function'
+          ? window.Utils.formatCurrency(item.cumulativeExpenses)
+          : `${item.cumulativeExpenses} €`
+
+        return `
+          <div class="forecast-card">
+            <div class="forecast-card-title">
+              <span>${item.label}</span>
+              <span>${formattedBalance}</span>
+            </div>
+            <div class="forecast-card-era">Projection du solde sur ${item.label}</div>
+            <div class="forecast-card-detail">Épargne cumulée : ${savings}, dépenses cumulées : ${expenses}</div>
+          </div>
+        `
+      }).join('')
+    }
+  } else {
+    if (forecastBlock) forecastBlock.style.display = 'none'
   }
 
   // Populate formatted milestone vertical timeline

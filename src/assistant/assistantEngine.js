@@ -168,6 +168,46 @@ async function analyzeBudget(monthKey) {
       }
     })
 
+  const forecastHorizons = [1, 3, 6, 12]
+  const budgetForecasts = forecastHorizons.map(months => ({
+    months,
+    label: months === 1 ? '1 mois' : `${months} mois`,
+    cumulativeSavings: Math.round(monthlyContribution * months),
+    cumulativeExpenses: Math.round(totalCharges * months),
+    projectedBalance: Math.round(savings + monthlyContribution * months)
+  }))
+
+  const goalForecasts = goals
+    .filter(goal => goal && Number(goal.target || 0) > Number(goal.current || 0))
+    .map(goal => {
+      const current = Number(goal.current || 0)
+      const target = Number(goal.target || 0)
+      const remaining = Math.max(0, target - current)
+      const estimatedMonths = monthlyContribution > 0 ? Math.ceil(remaining / monthlyContribution) : null
+      const estimatedDate = estimatedMonths !== null ? formatMonthYear(addMonths(new Date(), estimatedMonths)) : null
+      const horizons = forecastHorizons.map(months => {
+        const projectedCurrent = Math.min(target, current + monthlyContribution * months)
+        const progressPct = target > 0 ? Math.round(Math.min(100, (projectedCurrent / target) * 100)) : 0
+        return {
+          months,
+          label: months === 1 ? '1 mois' : `${months} mois`,
+          projectedCurrent,
+          progressPct,
+          reached: projectedCurrent >= target,
+          dateAttained: projectedCurrent >= target ? estimatedDate : null
+        }
+      })
+      return {
+        name: goal.name || 'Objectif',
+        current,
+        target,
+        remaining,
+        estimatedMonths,
+        estimatedDate,
+        horizons
+      }
+    })
+
   const goalProjectionText = goalProjections.length > 0
     ? goalProjections.map(proj => {
       const current = proj.currentMonths !== null ? `${proj.currentMonths} mois` : 'sans rythme actuel'
@@ -315,6 +355,8 @@ async function analyzeBudget(monthKey) {
     recommendations: finalRecommendations,
     goalProjectionText: goalProjectionText || null,
     goalProjections: goalProjections || [],
+    budgetForecasts: budgetForecasts || [],
+    goalForecasts: goalForecasts || [],
     timeline: timelineEntries,
     metadata: {
       month: month || null,
