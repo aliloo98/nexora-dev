@@ -34,6 +34,7 @@ import { MonthlyBudgetStateService } from '../js/monthlyBudgetStateService.js'
 import GoalsPage from './pages/GoalsPage.js'
 import { GoalsService } from './goals/goalsService.js'
 import { UserAppSettingsService } from '../js/userAppSettingsService.js'
+import { STORAGE_KEYS } from './constants/storageKeys.js'
 
 // Expose modules globally for HTML event handlers and old code
 window.StorageManager = StorageManager
@@ -55,6 +56,7 @@ window.MonthlyBudgetStateService = MonthlyBudgetStateService
 window.GoalsService = GoalsService
 window.GoalsPage = GoalsPage
 window.UserAppSettingsService = UserAppSettingsService
+window.NexoraStorageKeys = STORAGE_KEYS
 
 // Expose helper functions globally (for HTML onclick handlers)
 window.showToast = (msg) => Utils.showToast(msg)
@@ -71,7 +73,6 @@ const injectAuthStyles = () => {
   styleElement.id = 'nexora-auth-styles'
   styleElement.textContent = authStyles
   document.head.appendChild(styleElement)
-  console.log('🎨 Auth styles injected')
 }
 
 /**
@@ -82,15 +83,12 @@ const initApp = async () => {
   try {
     // Initialize storage
     await StorageManager.initIndexedDB()
-    console.log('📊 Storage initialized')
     
     // Initialize theme
     await ThemeManager.init()
-    console.log('🎨 Theme initialized')
     
     // Initialize logo
     await LogoManager.init()
-    console.log('🔤 Logo initialized')
     
     // Inject auth styles
     injectAuthStyles()
@@ -98,17 +96,8 @@ const initApp = async () => {
     // Initialize local notifications layer
     await NotificationsService.init()
     
-    // Test Supabase connection
-    const supabaseReady = await testSupabaseConnection()
-    if (supabaseReady) {
-      console.log('☁️  Supabase ready for multi-user features')
-    }
-    
-    // TODO: Update these logs when real Supabase credentials are configured
-    console.log('🔐 Authentication system: PLACEHOLDER MODE (testing)')
-    console.log('⚠️  To enable real Supabase auth, add these to .env:')
-    console.log('   VITE_SUPABASE_URL=your_url')
-    console.log('   VITE_SUPABASE_ANON_KEY=your_key')
+    // Keep the connection check for early failure visibility without production noise.
+    await testSupabaseConnection()
     
     // Initialize authentication routing (handles login/register/dashboard)
     await initAuthRouting()
@@ -116,7 +105,7 @@ const initApp = async () => {
     // Hydrate goals before the first render so cloud-only goals appear on a fresh device.
     if (typeof UserAppSettingsService !== 'undefined' && UserAppSettingsService?.syncCloudSettingToLocal) {
       try {
-        await UserAppSettingsService.syncCloudSettingToLocal('nexora_goals_v1')
+        await UserAppSettingsService.syncCloudSettingToLocal(STORAGE_KEYS.goals)
       } catch (e) {
         console.warn('⚠️ Goals cloud hydration failed', e)
       }
@@ -125,20 +114,16 @@ const initApp = async () => {
     // Initialize Goals premium section (separate layer)
     if (typeof GoalsPage !== 'undefined' && GoalsPage && typeof GoalsPage.init === 'function') {
       await GoalsPage.init()
-      console.log('🎯 Goals module initialized')
     }
 
     // Sync user app settings from cloud/local where applicable
     if (typeof UserAppSettingsService !== 'undefined' && UserAppSettingsService && typeof UserAppSettingsService.syncAllAppSettings === 'function') {
       try {
         await UserAppSettingsService.syncAllAppSettings()
-        console.log('🔁 User app settings sync attempted')
       } catch (e) {
         console.warn('⚠️ User app settings sync failed', e)
       }
     }
-
-    console.log('✅ Nexora initialized successfully')
   } catch (err) {
     console.error('❌ App initialization error:', err)
   }
@@ -151,5 +136,5 @@ if (document.readyState === 'loading') {
   initApp()
 }
 
-// Expose app initialization for debugging
+// Exposed for manual recovery from the browser console if startup is interrupted.
 window.initApp = initApp

@@ -76,7 +76,6 @@ export const AuthService = {
       // return { user: data.user, error: null }
 
       // PLACEHOLDER: Simulate successful signup
-      console.log('🔐 [PLACEHOLDER] SignUp attempted:', { email, username })
       
       // Validate inputs
       if (!email || !password || !username) {
@@ -97,8 +96,6 @@ export const AuthService = {
         created_at: new Date().toISOString(),
         email_confirmed_at: null
       }
-
-      console.log('✅ [PLACEHOLDER] SignUp successful:', mockUser)
       return { user: mockUser, error: null }
     } catch (error) {
       console.error('❌ [PLACEHOLDER] SignUp error:', error.message)
@@ -148,7 +145,6 @@ export const AuthService = {
       // }
 
       // PLACEHOLDER: Simulate successful login
-      console.log('🔐 [PLACEHOLDER] SignIn attempted:', { email })
       
       // Validate inputs
       if (!email || !password) {
@@ -178,8 +174,6 @@ export const AuthService = {
         created_at: new Date().toISOString(),
         email_confirmed_at: new Date().toISOString()
       }
-
-      console.log('✅ [PLACEHOLDER] SignIn successful:', { user: mockUser, session: mockSession })
       return { user: mockUser, session: mockSession, error: null }
     } catch (error) {
       console.error('❌ [PLACEHOLDER] SignIn error:', error.message)
@@ -211,12 +205,9 @@ export const AuthService = {
       // return { error: null }
 
       // PLACEHOLDER: Simulate successful logout
-      console.log('🔐 [PLACEHOLDER] SignOut initiated')
       
       // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 300))
-
-      console.log('✅ [PLACEHOLDER] SignOut successful')
       return { error: null }
     } catch (error) {
       console.error('❌ [PLACEHOLDER] SignOut error:', error.message)
@@ -247,18 +238,14 @@ export const AuthService = {
       // return { user, error: null }
 
       // PLACEHOLDER: Simulate retrieving current user from session storage
-      console.log('🔐 [PLACEHOLDER] getCurrentUser called')
       
       // Try to get user from sessionStorage (set during login)
       const storedUser = sessionStorage.getItem('nexora_auth_user')
       
       if (storedUser) {
         const user = JSON.parse(storedUser)
-        console.log('✅ [PLACEHOLDER] getCurrentUser found:', user)
         return { user, error: null }
       }
-
-      console.log('ℹ️  [PLACEHOLDER] No user session found')
       return { user: null, error: null }
     } catch (error) {
       console.error('❌ [PLACEHOLDER] getCurrentUser error:', error.message)
@@ -288,17 +275,13 @@ export const AuthService = {
       // return { session, error: null }
 
       // PLACEHOLDER: Simulate retrieving session from sessionStorage
-      console.log('🔐 [PLACEHOLDER] getSession called')
       
       const storedSession = sessionStorage.getItem('nexora_auth_session')
       
       if (storedSession) {
         const session = JSON.parse(storedSession)
-        console.log('✅ [PLACEHOLDER] getSession found:', session)
         return { session, error: null }
       }
-
-      console.log('ℹ️  [PLACEHOLDER] No session found')
       return { session: null, error: null }
     } catch (error) {
       console.error('❌ [PLACEHOLDER] getSession error:', error.message)

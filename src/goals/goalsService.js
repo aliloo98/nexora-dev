@@ -1,7 +1,8 @@
 import { StorageManager } from '../../js/storage.js'
 import { UserAppSettingsService } from '../../js/userAppSettingsService.js'
+import { STORAGE_KEYS } from '../constants/storageKeys.js'
 
-const STORAGE_KEY = 'nexora_goals_v1'
+const STORAGE_KEY = STORAGE_KEYS.goals
 
 const normalizeGoals = (goals) => {
   const list = Array.isArray(goals) ? goals : []

@@ -15,24 +15,7 @@
 import { supabase } from '../src/supabase.js'
 import AuthContext from '../src/auth/authContext.js'
 
-// ─────────────────────────────────────────────
-// DEBUG LOGGER (TEMPORAIRE - a retirer en prod)
-// ─────────────────────────────────────────────
-const DEBUG = true
-const log = (type, msg, data) => {
-  if (!DEBUG) return
-  const icons = {
-    success: '✅ [TX-SERVICE]',
-    error:   '❌ [TX-SERVICE]',
-    warn:    '⚠️  [TX-SERVICE]',
-    info:    'ℹ️  [TX-SERVICE]',
-    sync:    '🔄 [TX-SERVICE]',
-    offline: '📴 [TX-SERVICE]',
-    supa:    '☁️  [TX-SERVICE]',
-    local:   '💾 [TX-SERVICE]'
-  }
-  console.log(`${icons[type] || icons.info} ${msg}`, data !== undefined ? data : '')
-}
+const log = () => {}
 
 // ─────────────────────────────────────────────
 // HELPERS

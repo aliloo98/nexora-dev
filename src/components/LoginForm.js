@@ -145,7 +145,6 @@ export const attachLoginFormListeners = () => {
     loadingBox.style.display = 'flex'
 
     try {
-      console.log('🔐 Logging in with:', email)
       
       // Call auth context
       const { user, error } = await AuthContext.signIn(email, password)
@@ -156,8 +155,6 @@ export const attachLoginFormListeners = () => {
         console.error('Login error:', error)
         return
       }
-
-      console.log('✅ Login successful:', user)
       
       // Success - navigate to dashboard
       window.showToast('✅ Connecté avec succès!')
@@ -181,8 +178,6 @@ export const attachLoginFormListeners = () => {
   demoBtn.addEventListener('click', async (e) => {
     e.preventDefault()
     
-    console.log('🧪 Entering demo mode')
-    
     // Populate with demo credentials
     emailInput.value = 'demo@nexora.local'
     passwordInput.value = 'demo123456'
@@ -203,8 +198,6 @@ export const attachLoginFormListeners = () => {
         errorBox.style.display = 'flex'
         return
       }
-
-      console.log('✅ Demo login successful:', user)
       window.showToast('✅ Mode test activé!')
       
       setTimeout(() => {

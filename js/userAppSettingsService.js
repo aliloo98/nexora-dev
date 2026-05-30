@@ -1,14 +1,9 @@
 import { StorageManager } from './storage.js'
+import { STORAGE_KEYS, SYNCED_APP_SETTING_KEYS } from '../src/constants/storageKeys.js'
 
 const META_SUFFIX = '::meta'
 
-const DEFAULT_KEYS = [
-  'nexora_goals_v1',
-  'nexora_monthly_history_snapshots_v1',
-  'nexora_budget_cycle_settings_v1',
-  'nexora_csv_learning_v1',
-  'nexora_csv_import_drafts_v1'
-]
+const DEFAULT_KEYS = SYNCED_APP_SETTING_KEYS
 
 const parseJson = (raw) => {
   if (raw === null || raw === undefined) return null
@@ -98,11 +93,7 @@ const refreshBudgetCycleUiAfterCloudMerge = async () => {
 }
 
 const UserAppSettingsService = {
-  log: (message, data) => {
-    if (typeof console !== 'undefined' && console.debug) {
-      console.debug('[UserAppSettingsService]', message, data || '')
-    }
-  },
+  log: () => {},
 
   warn: (message, data) => {
     if (typeof console !== 'undefined' && console.warn) {
@@ -216,7 +207,7 @@ const UserAppSettingsService = {
     const localUpdated = localMeta && localMeta.updated_at ? new Date(localMeta.updated_at).getTime() : 0
     const cloudValue = row.data
 
-    if (key === 'nexora_goals_v1' && isNonEmptyArray(cloudValue) && !isNonEmptyArray(localValue)) {
+    if (key === STORAGE_KEYS.goals && isNonEmptyArray(cloudValue) && !isNonEmptyArray(localValue)) {
       await forceWriteLocalSetting(key, cloudValue, row.updated_at)
       await refreshGoalsUiAfterCloudMerge()
       UserAppSettingsService.log('Injected non-empty cloud goals into local storage', key)
@@ -236,10 +227,10 @@ const UserAppSettingsService = {
     if (!localValue && cloudValue) {
       // no local, cloud present -> write cloud to local
       await forceWriteLocalSetting(key, cloudValue, row.updated_at)
-      if (key === 'nexora_goals_v1') {
+      if (key === STORAGE_KEYS.goals) {
         await refreshGoalsUiAfterCloudMerge()
       }
-      if (key === 'nexora_budget_cycle_settings_v1') {
+      if (key === STORAGE_KEYS.budgetCycleSettings) {
         await refreshBudgetCycleUiAfterCloudMerge()
       }
       UserAppSettingsService.log('Pulled cloud setting to local', key)
@@ -249,10 +240,10 @@ const UserAppSettingsService = {
     if (cloudUpdated > localUpdated) {
       // cloud newer -> replace local
       await forceWriteLocalSetting(key, cloudValue, row.updated_at)
-      if (key === 'nexora_goals_v1') {
+      if (key === STORAGE_KEYS.goals) {
         await refreshGoalsUiAfterCloudMerge()
       }
-      if (key === 'nexora_budget_cycle_settings_v1') {
+      if (key === STORAGE_KEYS.budgetCycleSettings) {
         await refreshBudgetCycleUiAfterCloudMerge()
       }
       UserAppSettingsService.log('Cloud setting is newer; updated local value', key)

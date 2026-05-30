@@ -28,7 +28,6 @@ const StorageManager = (() => {
         request.onsuccess = () => {
           db = request.result;
           useIndexedDB = true;
-          console.log('IndexedDB initialized');
           resolve(true);
         };
 
@@ -112,6 +111,4 @@ const StorageManager = (() => {
 export { StorageManager };
 
 // Initialize on load
-StorageManager.initIndexedDB().then(() => {
-  console.log('Storage Manager ready');
-});
+StorageManager.initIndexedDB();

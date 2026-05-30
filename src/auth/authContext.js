@@ -8,6 +8,7 @@
  */
 
 import { AuthService } from './authService.js'
+import { STORAGE_KEYS } from '../constants/storageKeys.js'
 
 /**
  * AuthContext - Simple event-based state management
@@ -94,7 +95,7 @@ export const AuthContext = {
           await window.UserAppSettingsService.syncAllAppSettings()
         }
         if (window.UserAppSettingsService && typeof window.UserAppSettingsService.syncCloudSettingToLocal === 'function') {
-          await window.UserAppSettingsService.syncCloudSettingToLocal('nexora_goals_v1')
+          await window.UserAppSettingsService.syncCloudSettingToLocal(STORAGE_KEYS.goals)
         }
         if (window.GoalsPage && typeof window.GoalsPage.render === 'function') {
           await window.GoalsPage.render()
@@ -138,19 +139,15 @@ export const AuthContext = {
       // - Remove placeholder logic
       // - Set up real auth listener with supabase.auth.onAuthStateChange()
       
-      console.log('🔐 AuthContext initializing...')
-      
       // Try to restore session from placeholder storage
       const { user } = await AuthService.getCurrentUser()
       
       if (user) {
-        console.log('📋 Restored user session:', user)
         this._state.user = user
         this._state.isAuthenticated = true
         this._state.error = null
         this._syncSupabaseToLocalAfterLogin()
       } else {
-        console.log('ℹ️  No user session to restore')
         this._state.user = null
         this._state.isAuthenticated = false
       }
@@ -173,7 +170,6 @@ export const AuthContext = {
     this._setError(null)
 
     try {
-      console.log('🔐 AuthContext.signUp called')
       
       const { user, session, error } = await AuthService.signUp(email, password, username)
       
@@ -182,8 +178,6 @@ export const AuthContext = {
         console.error('❌ SignUp failed:', error)
         return { user: null, error }
       }
-
-      console.log('✅ SignUp successful')
       this._setUser(user, session)
       return { user, session, error: null }
     } catch (error) {
@@ -205,7 +199,6 @@ export const AuthContext = {
     this._setError(null)
 
     try {
-      console.log('🔐 AuthContext.signIn called')
       
       const { user, session, error } = await AuthService.signIn(email, password)
       
@@ -214,8 +207,6 @@ export const AuthContext = {
         console.error('❌ SignIn failed:', error)
         return { user: null, session: null, error }
       }
-
-      console.log('✅ SignIn successful')
       await this._setUser(user, session)
       this._syncSupabaseToLocalAfterLogin()
       return { user, session, error: null }
@@ -236,7 +227,6 @@ export const AuthContext = {
     this._setError(null)
 
     try {
-      console.log('🔐 AuthContext.signOut called')
       
       const { error } = await AuthService.signOut()
       
@@ -245,8 +235,6 @@ export const AuthContext = {
         console.error('❌ SignOut failed:', error)
         return { error }
       }
-
-      console.log('✅ SignOut successful')
       
       // Clear user and session
       this._state.user = null

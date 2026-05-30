@@ -168,21 +168,26 @@
       </div>
     </div>
 
-    <div class="dashboard-guidance">
-      <div class="guidance-card primary">
-        <span>Situation du mois</span>
+    <div class="dashboard-action-center">
+      <div class="action-center-head">
+        <span>Centre d'action</span>
         <strong id="dashboard-situation-title">À compléter</strong>
-        <p id="dashboard-situation-text">Saisis tes revenus et tes dépenses pour obtenir une lecture rapide.</p>
       </div>
-      <div class="guidance-card">
-        <span>À surveiller</span>
-        <strong id="dashboard-watch-title">Aucune alerte</strong>
-        <p id="dashboard-watch-text">Les points sensibles apparaîtront ici automatiquement.</p>
-      </div>
-      <div class="guidance-card">
-        <span>Prochaine action</span>
-        <strong id="dashboard-action-title">Commencer la saisie</strong>
-        <p id="dashboard-action-text">Renseigne les montants du mois puis sauvegarde.</p>
+      <div class="action-center-grid">
+        <div>
+          <span>Situation</span>
+          <p id="dashboard-situation-text">Saisis tes revenus et tes dépenses pour obtenir une lecture rapide.</p>
+        </div>
+        <div>
+          <span>À surveiller</span>
+          <strong id="dashboard-watch-title">Aucune alerte</strong>
+          <p id="dashboard-watch-text">Les points sensibles apparaîtront ici automatiquement.</p>
+        </div>
+        <div>
+          <span>Prochaine action</span>
+          <strong id="dashboard-action-title">Commencer la saisie</strong>
+          <p id="dashboard-action-text">Renseigne les montants du mois puis sauvegarde.</p>
+        </div>
       </div>
     </div>
 
@@ -202,6 +207,7 @@
         <div><span>Cible</span><strong id="dashboard-primary-goal-target">0 €</strong></div>
         <div><span>Reste</span><strong id="dashboard-primary-goal-remaining">0 €</strong></div>
         <div><span>Échéance</span><strong id="dashboard-primary-goal-date">Non définie</strong></div>
+        <div><span>Rythme</span><strong id="dashboard-primary-goal-estimate">Non défini</strong></div>
       </div>
     </div>
 
@@ -872,9 +878,9 @@
           <div id="notification-status" style="font-size:12px;color:var(--text2);margin-top:4px">État en cours de vérification...</div>
         </div>
         <div class="notification-actions">
-          <button class="btn btn-gold" type="button" onclick="enableNexoraNotifications()">Activer</button>
-          <button class="btn btn-outline" type="button" onclick="testNexoraNotification()">Tester</button>
-          <button class="btn btn-outline" type="button" onclick="disableNexoraNotifications()">Désactiver</button>
+          <button class="btn btn-gold" id="notification-enable-btn" type="button" onclick="enableNexoraNotifications()">Activer</button>
+          <button class="btn btn-outline" id="notification-test-btn" type="button" onclick="testNexoraNotification()">Tester</button>
+          <button class="btn btn-outline" id="notification-disable-btn" type="button" onclick="disableNexoraNotifications()">Désactiver</button>
         </div>
       </div>
       <div class="param-row notification-settings-row">
@@ -1372,25 +1378,59 @@ function saveBudgetCycleSettingsFromUI() {
 async function refreshNexoraNotificationSettingsUI() {
   const statusEl = document.getElementById('notification-status');
   const thresholdEl = document.getElementById('notification-expense-threshold');
+  const enableBtn = document.getElementById('notification-enable-btn');
+  const testBtn = document.getElementById('notification-test-btn');
+  const disableBtn = document.getElementById('notification-disable-btn');
   if (!statusEl || !window.NotificationsService?.getSettings) return;
 
   const settings = await window.NotificationsService.getSettings();
   const provider = window.NotificationsService.getProviderStatus?.();
   if (thresholdEl) thresholdEl.value = Number(settings.remainingExpenseThreshold || 500);
+  if (enableBtn) enableBtn.style.display = '';
+  if (testBtn) testBtn.style.display = '';
+  if (disableBtn) disableBtn.style.display = '';
 
   if (!provider?.local?.supported) {
-    statusEl.textContent = 'Notifications non supportées sur ce navigateur.';
+    if (!provider?.local?.notificationApi) {
+      statusEl.textContent = 'Notifications non supportées sur ce navigateur.';
+    } else if (!provider?.local?.serviceWorker) {
+      statusEl.textContent = 'Notifications indisponibles : Service Worker non disponible.';
+    } else {
+      statusEl.textContent = 'Notifications non supportées dans ce contexte.';
+    }
+    if (enableBtn) enableBtn.style.display = 'none';
+    if (testBtn) testBtn.style.display = 'none';
+    if (disableBtn) disableBtn.style.display = 'none';
     return;
   }
 
-  const permissionLabel = settings.permission === 'granted'
-    ? 'autorisées'
-    : settings.permission === 'denied'
-      ? 'bloquées par le navigateur'
-      : 'en attente d’autorisation';
-  statusEl.textContent = settings.enabled
-    ? `Activées, ${permissionLabel}.`
-    : `Désactivées, ${permissionLabel}.`;
+  if (settings.permission === 'denied') {
+    statusEl.textContent = 'Autorisation refusée. Réactive les notifications dans les réglages iOS/Safari.';
+    if (enableBtn) enableBtn.style.display = 'none';
+    if (testBtn) testBtn.style.display = 'none';
+    return;
+  }
+
+  if (settings.permission === 'granted' && settings.lastTestOk) {
+    statusEl.textContent = 'Notification test réussie. Nexora peut afficher les alertes locales.';
+    if (enableBtn) enableBtn.style.display = 'none';
+    return;
+  }
+
+  if (settings.permission === 'granted' && settings.lastTestOk === false && settings.lastTestAt) {
+    statusEl.textContent = 'Permission accordée, mais la notification test a échoué.';
+    if (enableBtn) enableBtn.style.display = 'none';
+    return;
+  }
+
+  if (settings.permission === 'granted') {
+    statusEl.textContent = 'Permission accordée. Lance un test pour confirmer l’affichage.';
+    if (enableBtn) enableBtn.style.display = 'none';
+    return;
+  }
+
+  statusEl.textContent = 'Autorisation en attente. Le bouton Tester demandera la permission.';
+  if (disableBtn) disableBtn.style.display = 'none';
 }
 
 async function saveNexoraNotificationSettings() {
@@ -1411,7 +1451,7 @@ async function enableNexoraNotifications() {
   }
   const settings = await window.NotificationsService.enable();
   await saveNexoraNotificationSettings();
-  showToast(settings.enabled ? '✅ Notifications activées' : '⚠️ Autorisation notification refusée');
+  showToast(settings.permission === 'granted' ? '✅ Permission accordée, lance un test' : '⚠️ Autorisation notification refusée');
 }
 
 async function disableNexoraNotifications() {
@@ -1427,7 +1467,32 @@ async function testNexoraNotification() {
     return;
   }
   const result = await window.NotificationsService.test();
-  showToast(result?.ok ? '✅ Notification envoyée' : '⚠️ Active les notifications avant le test');
+  if (result?.ok) {
+    showToast('✅ Notification envoyée');
+  } else {
+    const status = result?.status?.local || window.NotificationsService.getProviderStatus?.()?.local || {};
+    const messages = {
+      'notification-api-unsupported': 'Notifications non supportées sur ce navigateur.',
+      'service-worker-unsupported': 'Notifications indisponibles : Service Worker non disponible.',
+      'permission-denied': 'Permission refusée. Réactive les notifications dans les réglages iOS/Safari.',
+      'permission-not-granted': 'Permission non accordée.',
+      'service-worker-notification-failed': 'Notification impossible via la PWA pour le moment.',
+      'notification-api-failed': 'Notification impossible dans ce contexte.'
+    };
+    let message = messages[result?.reason] || 'Notification impossible pour le moment.';
+    if (!status.standalonePwa && /iPhone|iPad|iPod/i.test(navigator.userAgent || '')) {
+      message = 'Sur iPhone, les notifications fonctionnent depuis la PWA installée sur l’écran d’accueil.';
+    }
+    if (typeof openNexoraActionModal === 'function') {
+      await openNexoraActionModal({
+        title: 'Notifications Nexora',
+        message,
+        confirmLabel: 'OK',
+        showCancel: false
+      });
+    }
+    showToast(`⚠️ ${message}`);
+  }
   await refreshNexoraNotificationSettingsUI();
 }
 
@@ -3097,10 +3162,11 @@ async function updateDashboardPrimaryGoal() {
     panel.classList.add('is-empty');
     setDashboardGuidanceText('dashboard-primary-goal-name', 'Aucun objectif');
     setDashboardGuidanceText('dashboard-primary-goal-pct', '0%');
-    setDashboardGuidanceText('dashboard-primary-goal-current', '0 €');
-    setDashboardGuidanceText('dashboard-primary-goal-target', '0 €');
-    setDashboardGuidanceText('dashboard-primary-goal-remaining', '0 €');
-    setDashboardGuidanceText('dashboard-primary-goal-date', 'Non définie');
+  setDashboardGuidanceText('dashboard-primary-goal-current', '0 €');
+  setDashboardGuidanceText('dashboard-primary-goal-target', '0 €');
+  setDashboardGuidanceText('dashboard-primary-goal-remaining', '0 €');
+  setDashboardGuidanceText('dashboard-primary-goal-date', 'Non définie');
+  setDashboardGuidanceText('dashboard-primary-goal-estimate', 'Non défini');
     const bar = document.getElementById('dashboard-primary-goal-bar');
     if (bar) bar.style.width = '0%';
     return;
@@ -3114,6 +3180,10 @@ async function updateDashboardPrimaryGoal() {
   const dateLabel = goal.targetDate
     ? new Date(goal.targetDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
     : 'Non définie';
+  const monthlyInput = document.getElementById('goal-monthly-contrib');
+  const monthly = monthlyInput ? Number(monthlyInput.value) || 0 : 0;
+  const estimatedMonths = window.GoalsService?.estimateMonthsToTarget?.(goal, monthly);
+  const estimateLabel = estimatedMonths ? `${estimatedMonths} mois` : 'Non défini';
   const bar = document.getElementById('dashboard-primary-goal-bar');
 
   setDashboardGuidanceText('dashboard-primary-goal-name', `${goal.icon || '🎯'} ${goal.name || 'Objectif'}`);
@@ -3122,6 +3192,7 @@ async function updateDashboardPrimaryGoal() {
   setDashboardGuidanceText('dashboard-primary-goal-target', fmt(target));
   setDashboardGuidanceText('dashboard-primary-goal-remaining', fmt(remaining));
   setDashboardGuidanceText('dashboard-primary-goal-date', dateLabel);
+  setDashboardGuidanceText('dashboard-primary-goal-estimate', estimateLabel);
   if (bar) {
     bar.style.width = `${pct}%`;
     bar.style.background = goal.color || 'var(--gold)';
@@ -5088,10 +5159,9 @@ if ('serviceWorker' in navigator) {
 
     navigator.serviceWorker.register('./sw.js')
       .then(reg => {
-        console.log('Service Worker enregistré !', reg);
         if (reg.update) reg.update();
       })
-      .catch(err => console.log('Erreur Service Worker', err));
+      .catch(err => console.warn('Erreur Service Worker', err));
   });
 }
 </script>

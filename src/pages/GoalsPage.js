@@ -1,8 +1,23 @@
 import { GoalsService } from '../goals/goalsService.js'
 import { UserAppSettingsService } from '../../js/userAppSettingsService.js'
 import createGoalCard from '../components/GoalCard.js'
+import { STORAGE_KEYS } from '../constants/storageKeys.js'
 
-const GOALS_STORAGE_KEY = 'nexora_goals_v1'
+const GOALS_STORAGE_KEY = STORAGE_KEYS.goals
+
+const openGoalModal = async (options) => {
+  if (typeof window.openNexoraActionModal === 'function') {
+    return window.openNexoraActionModal(options)
+  }
+  return null
+}
+
+const readGoalNumber = (value, fallback) => {
+  const normalized = String(value ?? '').trim().replace(',', '.')
+  if (normalized === '') return fallback
+  const parsed = Number(normalized)
+  return Number.isFinite(parsed) ? parsed : fallback
+}
 
 const GoalsPage = {
   init: async () => {
@@ -57,10 +72,40 @@ const GoalsPage = {
   },
 
   handleEdit: async (goal) => {
-    // Simple prompt-based edit for now
-    const newName = prompt('Nom de l\'objectif', goal.name) || goal.name
-    const newTarget = Number(prompt('Montant cible', goal.target) || goal.target)
-    const newCurrent = Number(prompt('Montant déjà épargné', goal.current) || goal.current)
+    const newName = await openGoalModal({
+      title: 'Modifier l’objectif',
+      message: 'Nouveau nom de l’objectif',
+      input: true,
+      defaultValue: goal.name || '',
+      required: true,
+      confirmLabel: 'Continuer'
+    })
+    if (newName === null) return
+
+    const targetValue = await openGoalModal({
+      title: 'Modifier l’objectif',
+      message: 'Montant cible en euros',
+      input: true,
+      defaultValue: String(goal.target || 0),
+      required: true,
+      confirmLabel: 'Continuer',
+      validateValue: (value) => readGoalNumber(value, 0) > 0 ? '' : 'Le montant cible est requis'
+    })
+    if (targetValue === null) return
+
+    const currentValue = await openGoalModal({
+      title: 'Modifier l’objectif',
+      message: 'Montant déjà épargné en euros',
+      input: true,
+      defaultValue: String(goal.current || 0),
+      required: true,
+      confirmLabel: 'Enregistrer',
+      validateValue: (value) => readGoalNumber(value, -1) >= 0 ? '' : 'Le montant doit être positif'
+    })
+    if (currentValue === null) return
+
+    const newTarget = readGoalNumber(targetValue, Number(goal.target) || 0)
+    const newCurrent = readGoalNumber(currentValue, Number(goal.current) || 0)
     await GoalsService.updateGoal(goal.id, { name: newName, target: newTarget, current: newCurrent })
     await GoalsPage.render()
     await GoalsPage.renderAnalytics()
@@ -69,7 +114,11 @@ const GoalsPage = {
   },
 
   handleDelete: async (goal) => {
-    const ok = confirm(`Supprimer l\'objectif « ${goal.name} » ?`)
+    const ok = await openGoalModal({
+      title: 'Supprimer l’objectif',
+      message: `Supprimer l’objectif « ${goal.name} » ?`,
+      confirmLabel: 'Supprimer'
+    })
     if (!ok) return
     await GoalsService.deleteGoal(goal.id)
     await GoalsPage.render()
@@ -79,6 +128,14 @@ const GoalsPage = {
   },
 
   handleSetPrimary: async (goal) => {
+    if (!goal.isPrimary) {
+      const ok = await openGoalModal({
+        title: 'Objectif principal',
+        message: `Définir « ${goal.name} » comme objectif principal ?`,
+        confirmLabel: 'Définir'
+      })
+      if (!ok) return
+    }
     await GoalsService.setPrimaryGoal(goal.id)
     window.showToast?.('🎯 Objectif principal mis à jour')
     await GoalsPage.render()

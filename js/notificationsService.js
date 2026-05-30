@@ -1,13 +1,23 @@
 import { StorageManager } from './storage.js'
+import { STORAGE_KEYS } from '../src/constants/storageKeys.js'
 
-const SETTINGS_KEY = 'nexora_notifications_settings_v1'
-const HISTORY_KEY = 'nexora_notifications_history_v1'
+const SETTINGS_KEY = STORAGE_KEYS.notificationsSettings
+const HISTORY_KEY = STORAGE_KEYS.notificationsHistory
 
 const defaultSettings = {
   enabled: false,
   permission: 'default',
+  lastTestOk: false,
+  lastTestAt: null,
+  lastTestReason: null,
   remainingExpenseThreshold: 500,
   updated_at: null
+}
+
+const isStandalonePwa = () => {
+  if (typeof window === 'undefined') return false
+  return window.matchMedia?.('(display-mode: standalone)')?.matches === true
+    || window.navigator?.standalone === true
 }
 
 const readJson = async (key, fallback) => {
@@ -55,10 +65,16 @@ class NotificationProvider {
 }
 
 class LocalNotificationProvider extends NotificationProvider {
+  hasNotificationApi() {
+    return typeof window !== 'undefined' && 'Notification' in window
+  }
+
+  hasServiceWorker() {
+    return typeof navigator !== 'undefined' && 'serviceWorker' in navigator
+  }
+
   isSupported() {
-    return typeof window !== 'undefined'
-      && 'Notification' in window
-      && 'serviceWorker' in navigator
+    return this.hasNotificationApi() && this.hasServiceWorker()
   }
 
   getPermission() {
@@ -76,20 +92,28 @@ class LocalNotificationProvider extends NotificationProvider {
       return { ok: false, reason: 'permission-denied' }
     }
 
-    const registration = await navigator.serviceWorker.ready.catch(() => null)
-    if (registration?.showNotification) {
-      await registration.showNotification(title, {
-        body,
-        tag,
-        icon: './icon-192.png',
-        badge: './icon-192.png',
-        data: { source: 'nexora-local' }
-      })
-      return { ok: true, provider: 'service-worker' }
+    try {
+      const registration = await navigator.serviceWorker.ready.catch(() => null)
+      if (registration?.showNotification) {
+        await registration.showNotification(title, {
+          body,
+          tag,
+          icon: './icon-192.png',
+          badge: './icon-192.png',
+          data: { source: 'nexora-local' }
+        })
+        return { ok: true, provider: 'service-worker' }
+      }
+    } catch (err) {
+      return { ok: false, reason: 'service-worker-notification-failed', error: err }
     }
 
-    new Notification(title, { body, tag, icon: './icon-192.png' })
-    return { ok: true, provider: 'notification-api' }
+    try {
+      new Notification(title, { body, tag, icon: './icon-192.png' })
+      return { ok: true, provider: 'notification-api' }
+    } catch (err) {
+      return { ok: false, reason: 'notification-api-failed', error: err }
+    }
   }
 }
 
@@ -132,7 +156,10 @@ const NotificationsService = {
   getProviderStatus: () => ({
     local: {
       supported: provider.isSupported(),
-      permission: provider.getPermission()
+      permission: provider.getPermission(),
+      notificationApi: provider.hasNotificationApi(),
+      serviceWorker: provider.hasServiceWorker(),
+      standalonePwa: isStandalonePwa()
     },
     push: {
       supported: pushProvider.isSupported(),
@@ -169,13 +196,45 @@ const NotificationsService = {
   },
 
   test: async () => {
-    const settings = await NotificationsService.getSettings()
-    if (!settings.enabled) return { ok: false, reason: 'disabled' }
-    return provider.send({
+    if (!provider.isSupported()) {
+      const reason = !provider.hasNotificationApi()
+        ? 'notification-api-unsupported'
+        : 'service-worker-unsupported'
+      await NotificationsService.saveSettings({ enabled: false, permission: provider.getPermission(), lastTestOk: false, lastTestAt: new Date().toISOString(), lastTestReason: reason })
+      return { ok: false, reason, status: NotificationsService.getProviderStatus() }
+    }
+
+    let permission = provider.getPermission()
+    if (permission === 'default') {
+      permission = await provider.requestPermission()
+    }
+
+    if (permission === 'denied') {
+      await NotificationsService.saveSettings({ enabled: false, permission, lastTestOk: false, lastTestAt: new Date().toISOString(), lastTestReason: 'permission-denied' })
+      return { ok: false, reason: 'permission-denied', status: NotificationsService.getProviderStatus() }
+    }
+
+    if (permission !== 'granted') {
+      await NotificationsService.saveSettings({ enabled: false, permission, lastTestOk: false, lastTestAt: new Date().toISOString(), lastTestReason: 'permission-not-granted' })
+      return { ok: false, reason: 'permission-not-granted', status: NotificationsService.getProviderStatus() }
+    }
+
+    const currentSettings = await NotificationsService.getSettings()
+    await NotificationsService.saveSettings({ ...currentSettings, enabled: true, permission })
+    const result = await provider.send({
       title: 'Nexora',
       body: 'Les notifications Nexora sont correctement configurées.',
       tag: 'nexora-test'
     })
+    await NotificationsService.saveSettings({
+      ...currentSettings,
+      enabled: result.ok,
+      permission,
+      lastTestOk: result.ok,
+      lastTestAt: new Date().toISOString(),
+      lastTestReason: result.ok ? null : result.reason
+    })
+    return { ...result, status: NotificationsService.getProviderStatus() }
   },
 
   getHistory: async () => {

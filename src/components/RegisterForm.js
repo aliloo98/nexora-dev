@@ -200,7 +200,6 @@ export const attachRegisterFormListeners = () => {
     loadingBox.style.display = 'flex'
 
     try {
-      console.log('📝 Registering user:', { username, email })
       
       // Call auth context
       const { user, error } = await AuthContext.signUp(email, password, username)
@@ -211,8 +210,6 @@ export const attachRegisterFormListeners = () => {
         console.error('Register error:', error)
         return
       }
-
-      console.log('✅ Registration successful:', user)
       
       // Success
       window.showToast('✅ Inscription réussie! Bienvenue ' + username + '!')

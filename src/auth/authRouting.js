@@ -45,7 +45,6 @@ export const RouteGuard = {
    * @param {string} sectionName - Section/route to navigate to
    */
   navigateTo(sectionName) {
-    console.log(`🗺️  Navigating to: ${sectionName}`)
 
     // Check if route exists
     const section = document.getElementById(`section-${sectionName}`)
@@ -62,8 +61,6 @@ export const RouteGuard = {
       AuthPages.showLoginPage()
       return false
     }
-
-    console.log(`✅ Access granted to ${sectionName}`)
     return true
   },
 
@@ -99,12 +96,10 @@ export const NavigationMiddleware = {
    * Initialize middleware
    */
   init() {
-    console.log('🗺️  Initializing navigation middleware')
 
     // Listen to hash changes
     window.addEventListener('hashchange', () => {
       const section = RouteGuard.getCurrentSection()
-      console.log(`🔄 Hash changed, current section: ${section}`)
       
       if (!RouteGuard.navigateTo(section)) {
         // Reset hash to dashboard if navigation failed
@@ -116,7 +111,6 @@ export const NavigationMiddleware = {
     if (window.showSection) {
       const originalShowSection = window.showSection
       window.showSection = function(sectionName) {
-        console.log(`📄 showSection called with: ${sectionName}`)
         
         if (!RouteGuard.navigateTo(sectionName)) {
           return false
@@ -133,7 +127,6 @@ export const NavigationMiddleware = {
       if (!navBtn) return
 
       const section = navBtn.dataset.section
-      console.log(`🔘 Nav button clicked: ${section}`)
 
       if (!RouteGuard.navigateTo(section)) {
         e.preventDefault()
@@ -166,7 +159,6 @@ export const AuthStateSync = {
    * Initialize auth state sync
    */
   init() {
-    console.log('🔄 Initializing auth state sync')
 
     // Subscribe to auth context changes
     AuthContext.subscribe((newState) => {
@@ -179,11 +171,9 @@ export const AuthStateSync = {
    * @private
    */
   _onAuthStateChange(state) {
-    console.log(`🔐 Auth state updated - authenticated: ${state.isAuthenticated}`)
 
     if (state.isAuthenticated && state.user) {
       // User just logged in
-      console.log(`✅ User logged in: ${state.user.email}`)
       
       // Update header with username
       updateUserHeader()
@@ -196,7 +186,6 @@ export const AuthStateSync = {
       window.showSection('dashboard')
     } else {
       // User logged out or app initialized without user
-      console.log(`❌ User not authenticated`)
       
       // Update header to default
       updateUserHeader()
@@ -213,31 +202,23 @@ export const AuthStateSync = {
  * Called from main.js during app init
  */
 export const initAuthRouting = async () => {
-  console.log('🗺️  Initializing authentication routing system')
 
   try {
     // Initialize auth context
     await AuthContext.init()
-    console.log('✅ Auth context initialized')
 
     // Initialize auth pages
     AuthPages.init()
-    console.log('✅ Auth pages initialized')
 
     // Initialize navigation middleware
     NavigationMiddleware.init()
-    console.log('✅ Navigation middleware initialized')
 
     // Validate protected sections exist
     NavigationMiddleware.validateProtectedSections()
-    console.log('✅ Protected sections validated')
 
     // Setup auth state sync
     AuthStateSync.init()
     AuthStateSync._onAuthStateChange(AuthContext.getState())
-    console.log('✅ Auth state sync initialized')
-
-    console.log('✅ Authentication routing system ready')
   } catch (error) {
     console.error('❌ Error initializing auth routing:', error)
   }

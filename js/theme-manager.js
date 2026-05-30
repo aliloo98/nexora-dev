@@ -1,3 +1,5 @@
+import { STORAGE_KEYS } from '../src/constants/storageKeys.js'
+
 // Theme Management System
 const ThemeManager = (() => {
   const THEMES = {
@@ -47,11 +49,11 @@ const ThemeManager = (() => {
   };
 
   const init = async () => {
-    const savedTheme = await StorageManager.getItem('budget_app_theme') || 'gold';
+    const savedTheme = await StorageManager.getItem(STORAGE_KEYS.appTheme) || 'gold';
     applyTheme(savedTheme);
     activateThemeButton(savedTheme);
 
-    const savedIcon = await StorageManager.getItem('budget_app_icon') || 'gold';
+    const savedIcon = await StorageManager.getItem(STORAGE_KEYS.appIcon) || 'gold';
     applyAppIcon(savedIcon);
     activateAppIconButton(savedIcon);
   };
@@ -64,7 +66,7 @@ const ThemeManager = (() => {
     if (activeEl) activeEl.classList.add('active');
 
     applyTheme(themeId);
-    await StorageManager.setItem('budget_app_theme', themeId);
+    await StorageManager.setItem(STORAGE_KEYS.appTheme, themeId);
     showToast(`🎨 Thème appliqué : ${THEME_LABELS[themeId]}`);
   };
 
@@ -91,7 +93,7 @@ const ThemeManager = (() => {
 
     applyAppIcon(iconTheme);
     activateAppIconButton(iconTheme);
-    await StorageManager.setItem('budget_app_icon', iconTheme);
+    await StorageManager.setItem(STORAGE_KEYS.appIcon, iconTheme);
     showToast(`📱 Icône d'accueil modifiée : ${THEME_LABELS[iconTheme]}`);
   };
 

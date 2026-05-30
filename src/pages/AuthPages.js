@@ -25,7 +25,6 @@ export const AuthPages = {
    * Called when app starts
    */
   init() {
-    console.log('🔐 Initializing Auth Pages')
     
     // Create auth container if not exists
     this._ensureAuthContainer()
@@ -33,10 +32,8 @@ export const AuthPages = {
     // Check if user is already logged in
     const { user } = AuthContext.getState()
     if (user && user.id) {
-      console.log('✅ User already logged in:', user.email)
       this.hideAuthPages()
     } else {
-      console.log('ℹ️  No user session, showing login')
       this.showAuthPages()
       this.showLoginPage()
     }
@@ -67,8 +64,6 @@ export const AuthPages = {
     if (authContainer) authContainer.style.display = 'flex'
     if (main) main.style.display = 'none'
     if (sidebar) sidebar.style.display = 'none'
-    
-    console.log('🔓 Showing auth pages')
   },
 
   /**
@@ -82,8 +77,6 @@ export const AuthPages = {
     if (authContainer) authContainer.style.display = 'none'
     if (main) main.style.display = 'block'
     if (sidebar) sidebar.style.display = 'flex'
-    
-    console.log('🔒 Hiding auth pages')
   },
 
   /**
@@ -96,8 +89,6 @@ export const AuthPages = {
     authContainer.innerHTML = createLoginForm()
     attachLoginFormListeners()
     currentAuthPage = 'login'
-    
-    console.log('📄 Displaying login page')
   },
 
   /**
@@ -110,8 +101,6 @@ export const AuthPages = {
     authContainer.innerHTML = createRegisterForm()
     attachRegisterFormListeners()
     currentAuthPage = 'register'
-    
-    console.log('📄 Displaying register page')
   },
 
   /**

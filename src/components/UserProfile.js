@@ -35,11 +35,9 @@ export const updateUserHeader = () => {
   if (user) {
     // User is logged in - show greeting with username
     headerTitle.innerHTML = `Bonjour <span style="color: var(--accent); font-weight: 700;">${escapeHTML(displayName)}</span> 👋`
-    console.log('✅ Header updated with username:', displayName)
   } else {
     // No user - show default
     headerTitle.textContent = 'NEXORA'
-    console.log('ℹ️  Header showing default title')
   }
 }
 
@@ -128,8 +126,6 @@ export const attachUserMenuListeners = () => {
     logoutBtn.addEventListener('click', async (e) => {
       e.preventDefault()
       
-      console.log('🔐 Logout initiated by user')
-      
       // Show confirmation
       window.customConfirm(
         'Déconnexion',
@@ -145,7 +141,6 @@ export const attachUserMenuListeners = () => {
             }
 
             window.showToast('✅ Vous avez été déconnecté')
-            console.log('✅ User logged out successfully')
             
             // Redirect to login
             setTimeout(() => {
@@ -167,22 +162,18 @@ export const attachUserMenuListeners = () => {
  * Updates UI when user logs in/out
  */
 export const setupAuthStateListener = () => {
-  console.log('🔐 Setting up auth state listener')
   
   // Subscribe to auth context changes
   const unsubscribe = AuthContext.subscribe((newState) => {
-    console.log('📊 Auth state changed:', newState)
     
     if (newState.isAuthenticated && newState.user) {
       // User logged in
-      console.log('✅ User authenticated:', newState.user.email)
       updateUserHeader()
       
       // Update user menu if it exists
       renderUserMenu()
     } else {
       // User logged out
-      console.log('❌ User not authenticated')
       updateUserHeader()
       renderUserMenu()
     }

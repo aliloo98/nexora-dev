@@ -1,3 +1,5 @@
+import { STORAGE_KEYS } from '../src/constants/storageKeys.js'
+
 // Logo Management System
 const LogoManager = (() => {
   const LOGO_PRESETS = [
@@ -15,8 +17,8 @@ const LogoManager = (() => {
   let currentLogoValue = '💰';
 
   const init = async () => {
-    const savedType = await StorageManager.getItem('budget_logo_type') || 'emoji';
-    const savedValue = await StorageManager.getItem('budget_logo_value') || '💰';
+    const savedType = await StorageManager.getItem(STORAGE_KEYS.logoType) || 'emoji';
+    const savedValue = await StorageManager.getItem(STORAGE_KEYS.logoValue) || '💰';
     
     currentLogoType = savedType;
     currentLogoValue = savedValue;
@@ -64,8 +66,8 @@ const LogoManager = (() => {
     currentLogoType = type;
     currentLogoValue = value;
 
-    await StorageManager.setItem('budget_logo_type', type);
-    await StorageManager.setItem('budget_logo_value', value);
+    await StorageManager.setItem(STORAGE_KEYS.logoType, type);
+    await StorageManager.setItem(STORAGE_KEYS.logoValue, value);
 
     if (type === 'emoji') {
       sidebarLogo.innerHTML = value;
