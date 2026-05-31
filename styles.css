@@ -3210,6 +3210,32 @@ body.mode-simple .goal-card-meta {
   border: 1px solid var(--border);
 }
 
+.home-goal-summary {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.home-goal-summary span {
+  color: var(--text2);
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.home-goal-summary strong {
+  color: var(--text);
+  display: block;
+  font-size: 16px;
+  margin-top: 5px;
+}
+
+body.mode-simple .home-goal-summary {
+  display: none;
+}
+
 /* CSV Importer Styles */
 .csv-import-box {
   border: 2px dashed var(--border);
