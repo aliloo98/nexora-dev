@@ -9,11 +9,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="/manifest.json" id="manifest-link">
-<meta name="description" content="NEXORA, application de gestion de budget personnelle et collaborative.">
 <meta name="apple-mobile-web-app-title" content="NEXORA">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="/favicon.png" id="favicon-link">
-<link rel="apple-touch-icon" href="/icon-192.png" id="apple-icon-link">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" id="apple-icon-link">
 <link rel="stylesheet" href="styles.css">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -41,7 +39,7 @@
   <div class="modal-card">
     <div class="modal-header">
       <h3 class="modal-title">Confirmation</h3>
-      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <button class="modal-close" onclick="closeModal()" aria-label="Fermer la boîte de dialogue">&times;</button>
     </div>
     <div class="modal-body" id="modal-body-content">Voulez-vous vraiment effectuer cette action ?</div>
     <div class="modal-footer">
@@ -56,7 +54,7 @@
   <div class="modal-card nexora-action-modal-card">
     <div class="modal-header">
       <h3 class="modal-title" id="nexora-action-modal-title">Action</h3>
-      <button class="modal-close" type="button" onclick="closeNexoraActionModal(null)">&times;</button>
+      <button class="modal-close" type="button" onclick="closeNexoraActionModal(null)" aria-label="Fermer la boîte de dialogue">&times;</button>
     </div>
     <div class="modal-body">
       <div id="nexora-action-modal-message"></div>
@@ -65,6 +63,9 @@
         class="budget-input nexora-action-modal-input"
         type="text"
         autocomplete="off"
+        aria-labelledby="nexora-action-modal-title"
+        placeholder="Saisir la valeur"
+        aria-label="Valeur à saisir"
       >
       <div id="nexora-action-modal-error" class="nexora-action-modal-error" aria-live="polite"></div>
     </div>
@@ -497,15 +498,15 @@
           <div style="font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--accent);">➕ Créer un nouveau projet d'épargne</div>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) 120px; gap: 12px; align-items: flex-end;">
             <div>
-              <label style="font-size: 11px; color: var(--text2); display: block; margin-bottom: 4px;">Nom du projet</label>
+              <label for="cagnotte-new-name" style="font-size: 11px; color: var(--text2); display: block; margin-bottom: 4px;">Nom du projet</label>
               <input type="text" id="cagnotte-new-name" class="budget-input" style="width: 100%;" placeholder="ex: Voyage au Japon">
             </div>
             <div>
-              <label style="font-size: 11px; color: var(--text2); display: block; margin-bottom: 4px;">Montant Cible (€)</label>
+              <label for="cagnotte-new-target" style="font-size: 11px; color: var(--text2); display: block; margin-bottom: 4px;">Montant Cible (€)</label>
               <input type="number" id="cagnotte-new-target" class="budget-input" style="width: 100%;" placeholder="ex: 3000">
             </div>
             <div>
-              <label style="font-size: 11px; color: var(--text2); display: block; margin-bottom: 4px;">Montant Actuel (€)</label>
+              <label for="cagnotte-new-current" style="font-size: 11px; color: var(--text2); display: block; margin-bottom: 4px;">Montant Actuel (€)</label>
               <input type="number" id="cagnotte-new-current" class="budget-input" style="width: 100%;" placeholder="ex: 500" value="0">
             </div>
             <button type="button" class="btn btn-gold" style="width: 100%;" onclick="addCagnotte()">Créer</button>
@@ -538,7 +539,7 @@
       <div style="padding:16px">
         <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
           <div style="min-width:180px">
-            <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:3px">Contribution mensuelle aux objectifs</label>
+            <label for="goal-monthly-contrib" style="font-size:12px;color:var(--text2);display:block;margin-bottom:3px">Contribution mensuelle aux objectifs</label>
             <div style="font-size:11px;color:var(--text2);line-height:1.35">Utilisée uniquement pour estimer la date d’atteinte.</div>
           </div>
           <input id="goal-monthly-contrib" type="number" class="budget-input" style="width:140px" value="0" oninput="if(window.GoalsPage) GoalsPage.render()">
@@ -547,12 +548,12 @@
         <div id="goals-list" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px"></div>
         <div style="margin-top:16px;padding:12px;background:rgba(255,255,255,0.02);border-radius:12px;border:1px dashed rgba(229,192,96,0.2);">
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <input type="text" id="goal-new-name" class="budget-input" placeholder="Nom (ex: Voyage de noces)" style="flex:2;min-width:180px">
-            <input type="number" id="goal-new-target" class="budget-input" placeholder="Montant cible (€)" style="width:160px">
-            <input type="number" id="goal-new-current" class="budget-input" placeholder="Montant déjà épargné (€)" value="0" style="width:140px">
-            <input type="date" id="goal-new-date" class="budget-input" style="width:160px">
-            <input type="color" id="goal-new-color" value="#e5c060" title="Couleur" style="width:48px;height:40px;border:none;padding:0">
-            <input type="text" id="goal-new-icon" class="budget-input" placeholder="Emoji" style="width:80px">
+            <input type="text" id="goal-new-name" class="budget-input" placeholder="Nom (ex: Voyage de noces)" style="flex:2;min-width:180px" aria-label="Nom de l'objectif">
+            <input type="number" id="goal-new-target" class="budget-input" placeholder="Montant cible (€)" style="width:160px" aria-label="Montant cible de l'objectif">
+            <input type="number" id="goal-new-current" class="budget-input" placeholder="Montant déjà épargné (€)" value="0" style="width:140px" aria-label="Montant déjà épargné de l'objectif">
+            <input type="date" id="goal-new-date" class="budget-input" style="width:160px" aria-label="Date d'échéance de l'objectif">
+            <input type="color" id="goal-new-color" value="#e5c060" title="Couleur" style="width:48px;height:40px;border:none;padding:0" aria-label="Couleur de l'objectif">
+            <input type="text" id="goal-new-icon" class="budget-input" placeholder="Emoji" style="width:80px" aria-label="Emoji de l'objectif">
             <button type="button" id="goal-create-btn" class="btn btn-gold">Créer</button>
           </div>
         </div>
@@ -866,11 +867,11 @@
           <div style="font-size:12px;color:var(--text2);margin-top:4px">Exemples : 28 → 27, 5 → 4, 15 → 14</div>
         </div>
         <div class="budget-cycle-fields">
-          <label>Début
+          <label for="budget-cycle-start-day">Début
             <input id="budget-cycle-start-day" class="budget-input budget-cycle-input" type="number" min="1" max="31" value="28" onchange="saveBudgetCycleSettingsFromUI()">
           </label>
           <span>→</span>
-          <label>Fin
+          <label for="budget-cycle-end-day">Fin
             <input id="budget-cycle-end-day" class="budget-input budget-cycle-input" type="number" min="1" max="31" value="27" onchange="saveBudgetCycleSettingsFromUI()">
           </label>
         </div>
@@ -893,11 +894,11 @@
       </div>
       <div class="param-row notification-settings-row">
         <div>
-          <div class="param-label">Alerte dépenses restantes</div>
+          <label for="notification-expense-threshold" class="param-label" style="display:block">Alerte dépenses restantes</label>
           <div style="font-size:12px;color:var(--text2);margin-top:4px">Prévenir si le reste à payer dépasse ce seuil dans le cycle</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
-          <input id="notification-expense-threshold" class="budget-input" type="number" min="0" step="50" value="500" onchange="saveNexoraNotificationSettings()" style="width:110px">
+          <input id="notification-expense-threshold" class="budget-input" type="number" min="0" step="50" value="500" onchange="saveNexoraNotificationSettings()" style="width:110px" aria-label="Seuil d'alerte des dépenses restantes">
           <span style="font-weight:600;color:var(--text)">€</span>
         </div>
       </div>
@@ -970,7 +971,7 @@
         <span style="font-size: 32px; display: block; margin-bottom: 12px;">📁</span>
         <span style="font-weight: 600; color: var(--text);">Glissez-déposez votre relevé bancaire CSV ici</span>
         <span style="font-size: 12px; color: var(--text2); display: block; margin-top: 4px;">Crédit Agricole, Banque Populaire, Caisse d’Épargne, Crédit Mutuel, CIC, BNP, Société Générale, Banque Postale, Revolut, N26, Boursorama</span>
-        <input type="file" id="csv-file-input" accept=".csv" style="display: none;" onchange="handleCSVSelect(event)">
+        <input type="file" id="csv-file-input" accept=".csv" style="display: none;" onchange="handleCSVSelect(event)" aria-label="Sélectionner le fichier de relevé bancaire CSV">
       </div>
 
       <!-- Columns Mapping Selector -->
@@ -986,21 +987,21 @@
         <div class="csv-mapping-row">
           <span style="font-size: 13px; font-weight: 600;">📅 Colonne de la Date</span>
           <span style="color: var(--text2); font-size: 11px; text-align: center;">correspond à</span>
-          <select id="csv-map-date" class="budget-input" style="width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 8px; background: var(--bg3); color: var(--text);"></select>
+          <select id="csv-map-date" class="budget-input" style="width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 8px; background: var(--bg3); color: var(--text);" aria-label="Sélectionner la colonne de la date"></select>
         </div>
 
         <!-- Row: Description -->
         <div class="csv-mapping-row">
           <span style="font-size: 13px; font-weight: 600;">💬 Colonne du Libellé / Texte</span>
           <span style="color: var(--text2); font-size: 11px; text-align: center;">correspond à</span>
-          <select id="csv-map-desc" class="budget-input" style="width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 8px; background: var(--bg3); color: var(--text);"></select>
+          <select id="csv-map-desc" class="budget-input" style="width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 8px; background: var(--bg3); color: var(--text);" aria-label="Sélectionner la colonne du libellé / texte"></select>
         </div>
 
         <!-- Row: Amount -->
         <div class="csv-mapping-row">
           <span style="font-size: 13px; font-weight: 600;">💰 Colonne du Montant</span>
           <span style="color: var(--text2); font-size: 11px; text-align: center;">correspond à</span>
-          <select id="csv-map-amount" class="budget-input" style="width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 8px; background: var(--bg3); color: var(--text);"></select>
+          <select id="csv-map-amount" class="budget-input" style="width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 8px; background: var(--bg3); color: var(--text);" aria-label="Sélectionner la colonne du montant"></select>
         </div>
 
         <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px;">

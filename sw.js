@@ -51,8 +51,10 @@ self.addEventListener('fetch', e => {
         .then(response => response.json())
         .then(data => {
           data.icons = [
-            { "src": `${iconPrefix}-192.png`, "sizes": "192x192", "type": "image/png" },
-            { "src": `${iconPrefix}-512.png`, "sizes": "512x512", "type": "image/png" }
+            { "src": `${iconPrefix}-192.png`, "sizes": "192x192", "type": "image/png", "purpose": "any" },
+            { "src": `${iconPrefix}-192.png`, "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+            { "src": `${iconPrefix}-512.png`, "sizes": "512x512", "type": "image/png", "purpose": "any" },
+            { "src": `${iconPrefix}-512.png`, "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
           ];
           return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } });
         })
@@ -61,8 +63,10 @@ self.addEventListener('fetch', e => {
             if (cachedResponse) {
               return cachedResponse.json().then(data => {
                 data.icons = [
-                  { "src": `${iconPrefix}-192.png`, "sizes": "192x192", "type": "image/png" },
-                  { "src": `${iconPrefix}-512.png`, "sizes": "512x512", "type": "image/png" }
+                  { "src": `${iconPrefix}-192.png`, "sizes": "192x192", "type": "image/png", "purpose": "any" },
+                  { "src": `${iconPrefix}-192.png`, "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+                  { "src": `${iconPrefix}-512.png`, "sizes": "512x512", "type": "image/png", "purpose": "any" },
+                  { "src": `${iconPrefix}-512.png`, "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
                 ];
                 return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } });
               });
@@ -79,8 +83,10 @@ self.addEventListener('fetch', e => {
               "theme_color": "#07070a",
               "orientation": "portrait-primary",
               "icons": [
-                { "src": `${iconPrefix}-192.png`, "sizes": "192x192", "type": "image/png" },
-                { "src": `${iconPrefix}-512.png`, "sizes": "512x512", "type": "image/png" }
+                { "src": `${iconPrefix}-192.png`, "sizes": "192x192", "type": "image/png", "purpose": "any" },
+                { "src": `${iconPrefix}-192.png`, "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+                { "src": `${iconPrefix}-512.png`, "sizes": "512x512", "type": "image/png", "purpose": "any" },
+                { "src": `${iconPrefix}-512.png`, "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
               ]
             };
             return new Response(JSON.stringify(fallback), { headers: { 'Content-Type': 'application/json' } });
