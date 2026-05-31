@@ -3356,7 +3356,7 @@ function exportBudgetCsv(){
       .map(row => row.map(cell => String(cell).replace(/"/g, '""')).map(cell => `"${cell}"`).join(';'))
       .join('\r\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -5213,14 +5213,7 @@ window.addEventListener('hashchange', () => {
 
 // Service Worker Registration for PWA Installation
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
-    try {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(reg => reg.unregister()));
-    } catch (err) {
-      console.warn('Impossible de désenregistrer les anciens service workers', err);
-    }
-
+  window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
       .then(reg => {
         if (reg.update) reg.update();
