@@ -15,7 +15,8 @@ const PDF_LOGO_SIZE = 128;
 const euroFormatter = new Intl.NumberFormat('fr-FR', {
   style: 'currency',
   currency: 'EUR',
-  maximumFractionDigits: 0
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
 });
 
 const normalizePdfSpaces = (value) => String(value ?? '')
@@ -67,7 +68,34 @@ const WIN_ANSI_EXTRA = {
 const normalizePdfText = (value) => String(value ?? '')
   .replace(/[\u2028\u2029]/g, ' ')
   .replace(/\u202f/g, ' ')
-  .replace(/\u00a0/g, ' ');
+  .replace(/\u00a0/g, ' ')
+  .replace(/→/g, ' au ')
+  .replace(/->/g, ' au ')
+  .replace(/\s+/g, ' ')
+  .trim();
+
+const getPdfMonthLabel = () => {
+  const select = document.getElementById('monthSelect');
+  const month = select?.value;
+  if (month && typeof window.getBudgetCycleRange === 'function') {
+    try {
+      const range = window.getBudgetCycleRange(month);
+      if (range?.monthLabel && range?.start && range?.end) {
+        const start = new Date(range.start);
+        const end = new Date(range.end);
+        const startLabel = start.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+        const endLabel = end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+        return `${range.monthLabel} (Cycle du ${startLabel} au ${endLabel})`;
+      }
+      if (range?.monthLabel && range?.rangeLabel) {
+        return `${range.monthLabel} (Cycle du ${range.rangeLabel.replace(/\s*→\s*/g, ' au ')})`;
+      }
+    } catch (err) {
+      console.warn('[PdfExport] failed to build month label from budget cycle range', err);
+    }
+  }
+  return sanitize(select?.selectedOptions?.[0]?.textContent || select?.value || 'Mois en cours');
+};
 
 const winAnsiBytes = (value) => {
   const text = normalizePdfText(value);
@@ -210,8 +238,10 @@ const collectBudgetData = () => {
   };
   totals.balance = totals.income - totals.fixed - totals.variable;
 
+  const monthLabel = getPdfMonthLabel();
+
   return {
-    monthLabel: getMonthLabel(),
+    monthLabel,
     generatedAt: new Date(),
     sections,
     totals
@@ -459,3 +489,5 @@ export const NexoraPdfExport = {
   generateMonthlyBudgetPdfPremium,
   exportMonthlyBudgetPdf
 };
+
+export { PdfDocument, addHeader, addSummary, addSection, loadLogoForPdf, collectBudgetData };
