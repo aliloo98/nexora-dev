@@ -30,4 +30,4 @@ Thumbs.db
 .env.development.local
 
 # Playwright artifacts
- test-results/
+test-results/
