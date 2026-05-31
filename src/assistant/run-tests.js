@@ -124,6 +124,34 @@ tests.push({
     assert.strictEqual(r.budgetForecasts.length, 4, 'expected 4 forecast horizons when income is zero')
     assert.strictEqual(r.budgetForecasts[0].cumulativeSavings, 0, 'expected zero savings projection')
     assert.strictEqual(r.goalForecasts.length, 0, 'expected no goal forecasts when there are no goals')
+    assert.strictEqual(r.metadata.fixedRate, null, 'expected fixedRate null when revenue is zero')
+    assert.strictEqual(r.metadata.variableRate, null, 'expected variableRate null when revenue is zero')
+    assert.strictEqual(r.metadata.totalChargesRate, null, 'expected totalChargesRate null when revenue is zero')
+    assert.strictEqual(r.currentSituation, 'Données insuffisantes : aucun revenu saisi pour ce cycle.', 'expected insufficient data message when income is zero')
+  }
+})
+
+tests.push({
+  name: 'cas limite revenus à 0 avec charges',
+  fn: async () => {
+    setMocks({ metrics: { income: 0, fixed: 200, variable: 100, expenses: 300, savings: -300 } })
+    const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
+    assert.strictEqual(r.metadata.fixedRate, null, 'expected fixedRate null when revenue is zero')
+    assert.strictEqual(r.metadata.variableRate, null, 'expected variableRate null when revenue is zero')
+    assert.strictEqual(r.metadata.totalChargesRate, null, 'expected totalChargesRate null when revenue is zero')
+    assert(r.alerts.some(a => /Solde prévisionnel négatif/i.test(a)), 'expected negative balance alert on revenue zero with charges')
+  }
+})
+
+tests.push({
+  name: 'variable rate non nul pour dépenses variables positives',
+  fn: async () => {
+    setMocks({ metrics: { income: 2000, fixed: 1000, variable: 10, expenses: 1010, savings: 990 } })
+    const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
+    assert.strictEqual(r.metadata.variableRate, 1, 'expected variableRate to be at least 1% when variable expenses are positive')
+    assert.strictEqual(r.metadata.totalChargesRate, 51, 'expected totalChargesRate to reflect fixed + variable charges')
   }
 })
 

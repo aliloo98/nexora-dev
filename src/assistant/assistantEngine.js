@@ -24,14 +24,23 @@ async function analyzeBudget(monthKey) {
   // Derive additional values
   const rev = Number(metrics.income || 0)
   const fixes = Number(metrics.fixed || 0)
-  const vari = Number(metrics.variable || 0)
-  const totalCharges = Number(metrics.expenses || fixes + vari)
-  const savings = Number(metrics.savings || rev - totalCharges)
-  const fixedRate = rev > 0 ? Math.round((fixes / rev) * 100) : 0
-  const variableRate = rev > 0 ? Math.round((vari / rev) * 100) : 0
-  const totalChargesRate = rev > 0 ? Math.round((totalCharges / rev) * 100) : 0
+  const rawVariable = Number.isFinite(Number(metrics.variable)) ? Number(metrics.variable) : NaN
+  const inferredVariable = Number.isFinite(Number(metrics.expenses)) ? Number(metrics.expenses) - fixes : 0
+  const vari = rawVariable > 0 ? rawVariable : Math.max(0, inferredVariable)
+  const totalCharges = Number.isFinite(Number(metrics.expenses)) ? Math.max(Number(metrics.expenses), fixes + vari) : fixes + vari
+  const savings = Number(metrics.savings ?? rev - totalCharges)
+  const fixedRate = rev > 0 ? (fixes > 0 ? Math.max(1, Math.round((fixes / rev) * 100)) : 0) : 0
+  const variableRate = rev > 0 ? (vari > 0 ? Math.max(1, Math.round((vari / rev) * 100)) : 0) : 0
+  const totalChargesRate = rev > 0 ? (totalCharges > 0 ? Math.max(1, Math.round((totalCharges / rev) * 100)) : 0) : 0
   const savingsRate = rev > 0 ? Math.round((savings / rev) * 100) : 0
   const chargesRate = totalChargesRate
+  const chargesRateMeta = rev > 0 ? totalChargesRate : null
+
+  // For UI/metadata: if revenue is zero, present rates as null to avoid misleading 0% values
+  const metaFixedRate = rev > 0 ? fixedRate : null
+  const metaVariableRate = rev > 0 ? variableRate : null
+  const metaTotalChargesRate = chargesRateMeta
+  const metaSavingsRate = rev > 0 ? savingsRate : null
 
   // Goals: prefer any runtime-provided GoalsService (window or globalThis). Avoid static imports so tests can mock easily.
   const G = (typeof window !== 'undefined' && window.GoalsService) ? window.GoalsService : (typeof globalThis !== 'undefined' ? globalThis.GoalsService : null)
@@ -119,7 +128,7 @@ async function analyzeBudget(monthKey) {
           : '🔴 Situation critique'
 
   const currentSituation = rev <= 0
-    ? 'Aucun revenu saisi pour ce cycle.'
+    ? 'Données insuffisantes : aucun revenu saisi pour ce cycle.'
     : savings < 0
       ? `Attention, ce cycle risque de se terminer avec un déficit estimé de ${Math.abs(savings)} €.`
       : savings <= 100
@@ -127,7 +136,7 @@ async function analyzeBudget(monthKey) {
         : `Votre budget reste positif. Vous devriez terminer ce cycle avec environ ${savings} € disponibles.`
 
   const mainAnalysis = rev <= 0
-    ? 'Aucun revenu saisi pour ce cycle.'
+    ? 'Données insuffisantes : aucun revenu saisi pour ce cycle.'
     : savings < 0
       ? `Votre budget est en déficit de ${Math.abs(savings)} €, principalement sous l'effet des charges actuelles.`
       : chargesRate > 80
@@ -392,6 +401,9 @@ async function analyzeBudget(monthKey) {
   if (rev <= 0) {
     insights.push('Aucun revenu saisi pour le mois.')
     recommendations.push('Saisissez vos revenus pour activer l’analyse.')
+    if (savings < 0) {
+      pushAlert('deficit', `Attention, ce cycle risque de se terminer avec un déficit estimé de ${Math.abs(savings)} €.`, 'Solde prévisionnel négatif', 100, 'Saisissez vos revenus pour estimer votre solde réel.')
+    }
   } else {
     insights.push(`Revenus: ${rev} € — Taux d’épargne estimé ${savingsRate}%`)
     if (savings >= 0) insights.push(`Solde estimé positif: ${savings} €`)
@@ -530,11 +542,11 @@ async function analyzeBudget(monthKey) {
     metadata: {
       month: month || null,
       chargesRate,
-      totalChargesRate,
-      fixedRate,
-      variableRate,
+      totalChargesRate: metaTotalChargesRate,
+      fixedRate: metaFixedRate,
+      variableRate: metaVariableRate,
       totalCharges,
-      savingsRate,
+      savingsRate: metaSavingsRate,
       rev,
       fixes,
       vari,
