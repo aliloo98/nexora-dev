@@ -2342,22 +2342,30 @@ body,
     opacity: 0.16;
   }
   .budget-row {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px 12px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
     padding: 14px 16px;
     min-width: 0;
   }
+  .budget-row:has(.col-header) {
+    display: none;
+  }
   .budget-row-label {
-    grid-column: span 2;
+    grid-column: 1 / -1;
+    order: 1;
     font-weight: 600;
     font-size: 14px;
     margin-bottom: 2px;
     overflow-wrap: anywhere;
   }
+  .budget-row > .budget-input:not(.paid-input):not(.note-input) {
+    order: 3;
+  }
   .budget-input {
     width: 100%;
     text-align: center;
     padding: 8px 12px;
+    scroll-margin-bottom: calc(var(--save-bar-clearance) + 32px);
   }
   .budget-input-label {
     text-align: left;
@@ -2366,15 +2374,15 @@ body,
     display: none;
   }
   .custom-budget-row {
-    grid-template-columns: minmax(0, 1fr) minmax(104px, 42%) !important;
-    align-items: center;
-    gap: 10px;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: stretch;
+    gap: 8px;
   }
   .custom-budget-row > div:empty {
     display: none;
   }
   .custom-budget-row .budget-row-label {
-    grid-column: auto;
+    grid-column: 1 / -1;
     line-height: 1.25;
     margin-bottom: 0;
   }
@@ -2382,7 +2390,7 @@ body,
     justify-self: stretch;
   }
   .custom-budget-row .paid-container {
-    grid-column: 2;
+    grid-column: 1 / -1;
     justify-self: stretch;
   }
   .custom-budget-row .paid-input {
@@ -2391,6 +2399,17 @@ body,
   }
   .custom-budget-row .row-progress {
     grid-column: 1 / -1;
+  }
+  .paid-container {
+    order: 4;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    gap: 8px;
+    width: 100%;
+  }
+  .row-progress {
+    grid-column: 1 / -1;
+    order: 5;
   }
   .save-bar {
     bottom: calc(62px + env(safe-area-inset-bottom, 0px));
@@ -2787,8 +2806,11 @@ body,
 
 @media(max-width: 576px) {
   .note-container {
-    grid-column: span 2;
-    padding: 6px 16px;
+    grid-column: 1 / -1;
+    order: 2;
+    padding: 2px 0 4px;
+    border-bottom: 0;
+    background: transparent;
   }
 }
 

@@ -2436,7 +2436,7 @@ function initDynamicElements() {
         };
 
         noteContainer.appendChild(noteInput);
-        row.parentNode.insertBefore(noteContainer, row.nextSibling);
+        row.appendChild(noteContainer);
       }
     }
   });
@@ -2457,7 +2457,7 @@ function updateNoteIconState(baseKey) {
   const container = document.getElementById(`note-container-${baseKey}`);
   if (container) {
     const input = container.querySelector('input');
-    const row = container.previousSibling;
+    const row = container.closest('.budget-row');
     if (row && row.querySelector) {
       const btn = row.querySelector('.note-toggle-btn');
       if (btn) {
