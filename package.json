@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:assistant": "node ./src/assistant/run-tests.js",
-    "test:e2e": "npx playwright test tests/playwright --config=./playwright.config.js || echo 'Playwright not installed'"
+    "test:e2e": "npx playwright test tests/playwright --config=./playwright.config.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0"
