@@ -25,8 +25,8 @@
   --border-hover: rgba(229, 192, 96, 0.3);
   --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   --glass-blur: blur(14px);
-  --save-bar-height: 60px;
-  --save-bar-clearance: calc(var(--save-bar-height) + env(safe-area-inset-bottom, 0px) + 40px);
+  --save-bar-height: 48px;
+  --save-bar-clearance: calc(var(--save-bar-height) + env(safe-area-inset-bottom, 0px) + 72px);
 }
 
 body {
@@ -1597,13 +1597,13 @@ body,
   gap: 12px;
   z-index: 200;
   background: rgba(10, 10, 15, 0.55);
-  padding: 8px 10px;
-  border-radius: 16px;
+  padding: 6px 8px;
+  border-radius: 14px;
   border: 1px solid rgba(255,255,255,0.08);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
-  min-height: 52px;
+  min-height: var(--save-bar-height);
 }
 
 .save-bar-spacer {
@@ -2324,11 +2324,12 @@ body,
     box-sizing: border-box;
     gap: 8px;
     justify-content: center;
-    padding: 5px 7px;
-    border-radius: 13px;
+    padding: 4px 6px;
+    border-radius: 12px;
+    min-height: 46px;
   }
   .save-bar .btn {
-    min-height: 36px;
+    min-height: 32px;
   }
   .btn {
     padding: 10px 16px;
@@ -2517,17 +2518,18 @@ body,
     order: 5;
   }
   .save-bar {
-    bottom: calc(62px + env(safe-area-inset-bottom, 0px));
-    left: 12px;
-    right: 12px;
-    width: calc(100% - 24px);
-    gap: 6px;
-    padding: 4px 5px;
+    bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+    left: 14px;
+    right: 14px;
+    width: calc(100% - 28px);
+    gap: 5px;
+    padding: 3px 5px;
+    min-height: 42px;
   }
   .save-bar .btn {
     font-size: 12px;
-    min-height: 36px;
-    padding: 5px 9px;
+    min-height: 30px;
+    padding: 4px 8px;
   }
   .save-bar .btn-outline {
     flex: 0 0 56px;
