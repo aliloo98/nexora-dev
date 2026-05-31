@@ -693,6 +693,7 @@ async function renderAssistantCard() {
   }
 
   // Simple lightweight sparklines (revenus/dépenses/épargne/solde)
+  const chartsBlock = existing.querySelector('#assistant-charts-block')
   const chartsWrap = existing.querySelector('#assistant-charts-grid')
   const renderSparklines = (series) => {
     if (!Array.isArray(series) || series.length === 0) return ''
@@ -740,6 +741,7 @@ async function renderAssistantCard() {
       <div class="chart-card"><div style="font-size:12px;color:var(--text2);font-weight:700">Épargne (12m)</div>${renderSparklines(savSeries)}</div>
       <div class="chart-card"><div style="font-size:12px;color:var(--text2);font-weight:700">Solde (12m)</div>${renderSparklines(balSeries)}</div>
     `
+    if (chartsBlock) chartsBlock.style.display = 'block'
   }
 
   if (Array.isArray(result.budgetForecasts) && result.budgetForecasts.length > 0) {

@@ -28,3 +28,6 @@ Thumbs.db
 
 # Dev server
 .env.development.local
+
+# Playwright artifacts
+ test-results/
