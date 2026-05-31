@@ -106,7 +106,18 @@ self.addEventListener('fetch', e => {
           })
           .catch(() => {
             if (request.destination === 'document') {
-              return caches.match('/index.html');
+              return caches.match('/index.html').then(async cachedResponse => {
+                if (cachedResponse) {
+                  try {
+                    const body = await cachedResponse.text();
+                    return new Response(body, { headers: { 'Content-Type': 'text/html' } });
+                  } catch (err) {
+                    return cachedResponse;
+                  }
+                }
+                const offlineHtml = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hors ligne</title></head><body><h1>Vous êtes hors ligne</h1><p>Ouvrez l\'application plus tard ou reconnectez-vous.</p></body></html>';
+                return new Response(offlineHtml, { headers: { 'Content-Type': 'text/html' } });
+              });
             }
             return caches.match(request);
           })
