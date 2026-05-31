@@ -140,6 +140,37 @@ class PushNotificationProvider extends NotificationProvider {
 const provider = new LocalNotificationProvider()
 const pushProvider = new PushNotificationProvider()
 
+const VALID_NOTIFICATION_TYPES = ['budget', 'objectif', 'facture', 'réussite', 'système']
+const VALID_NOTIFICATION_PRIORITIES = ['info', 'warning', 'critical', 'success']
+
+const normalizeNotification = (notification = {}) => {
+  const createdAt = notification.createdAt || new Date().toISOString()
+  const type = VALID_NOTIFICATION_TYPES.includes(notification.type) ? notification.type : 'système'
+  const priority = VALID_NOTIFICATION_PRIORITIES.includes(notification.priority) ? notification.priority : 'info'
+  return {
+    id: notification.id || `${type}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    type,
+    priority,
+    title: String(notification.title || 'Nexora').trim(),
+    message: String(notification.message || '').trim(),
+    createdAt,
+    readAt: notification.readAt || null,
+    archivedAt: notification.archivedAt || null,
+    source: notification.source || 'system',
+    actionLabel: notification.actionLabel || null,
+    actionTarget: notification.actionTarget || null
+  }
+}
+
+const getNotificationSignature = (notification) => [
+  notification.type,
+  notification.priority,
+  notification.source,
+  notification.title,
+  notification.message,
+  notification.actionTarget || ''
+].join('|')
+
 const NotificationsService = {
   SETTINGS_KEY,
   HISTORY_KEY,
@@ -244,8 +275,12 @@ const NotificationsService = {
   },
 
   getHistory: async () => {
-    const history = await readJson(HISTORY_KEY, { sent: {} })
-    return history && typeof history === 'object' ? { sent: {}, ...history } : { sent: {} }
+    const history = await readJson(HISTORY_KEY, { sent: {}, notifications: [] })
+    const normalized = history && typeof history === 'object' ? { sent: {}, notifications: [], ...history } : { sent: {}, notifications: [] }
+    normalized.notifications = Array.isArray(normalized.notifications)
+      ? normalized.notifications.map(normalizeNotification)
+      : []
+    return normalized
   },
 
   markSent: async (signature) => {
@@ -257,6 +292,71 @@ const NotificationsService = {
   hasSent: async (signature) => {
     const history = await NotificationsService.getHistory()
     return Boolean(history.sent?.[signature])
+  },
+
+  listNotifications: async ({ includeArchived = false } = {}) => {
+    const history = await NotificationsService.getHistory()
+    return history.notifications
+      .filter(notification => includeArchived || !notification.archivedAt)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  },
+
+  dedupeNotification: async (notification) => {
+    const history = await NotificationsService.getHistory()
+    const next = normalizeNotification(notification)
+    const signature = getNotificationSignature(next)
+    const lastSame = history.notifications.find(item => getNotificationSignature(item) === signature && !item.archivedAt)
+    if (!lastSame) return { duplicate: false, notification: next }
+    const lastAt = new Date(lastSame.createdAt).getTime()
+    const freshWindowMs = 6 * 60 * 60 * 1000
+    if (Date.now() - lastAt < freshWindowMs) return { duplicate: true, notification: lastSame }
+    return { duplicate: false, notification: next }
+  },
+
+  createNotification: async (notification) => {
+    const history = await NotificationsService.getHistory()
+    const { duplicate, notification: next } = await NotificationsService.dedupeNotification(notification)
+    if (duplicate) return next
+    history.notifications.unshift(next)
+    history.notifications = history.notifications.slice(0, 80)
+    await writeJson(HISTORY_KEY, history)
+    if (typeof window !== 'undefined') window.dispatchEvent?.(new CustomEvent('nexora:notifications-updated'))
+    return next
+  },
+
+  markNotificationRead: async (id) => {
+    const history = await NotificationsService.getHistory()
+    const now = new Date().toISOString()
+    history.notifications = history.notifications.map(notification => (
+      notification.id === id ? { ...notification, readAt: notification.readAt || now } : notification
+    ))
+    await writeJson(HISTORY_KEY, history)
+    if (typeof window !== 'undefined') window.dispatchEvent?.(new CustomEvent('nexora:notifications-updated'))
+  },
+
+  markAllNotificationsRead: async () => {
+    const history = await NotificationsService.getHistory()
+    const now = new Date().toISOString()
+    history.notifications = history.notifications.map(notification => (
+      notification.archivedAt ? notification : { ...notification, readAt: notification.readAt || now }
+    ))
+    await writeJson(HISTORY_KEY, history)
+    if (typeof window !== 'undefined') window.dispatchEvent?.(new CustomEvent('nexora:notifications-updated'))
+  },
+
+  archiveNotification: async (id) => {
+    const history = await NotificationsService.getHistory()
+    const now = new Date().toISOString()
+    history.notifications = history.notifications.map(notification => (
+      notification.id === id ? { ...notification, readAt: notification.readAt || now, archivedAt: notification.archivedAt || now } : notification
+    ))
+    await writeJson(HISTORY_KEY, history)
+    if (typeof window !== 'undefined') window.dispatchEvent?.(new CustomEvent('nexora:notifications-updated'))
+  },
+
+  getUnreadCount: async () => {
+    const notifications = await NotificationsService.listNotifications()
+    return notifications.filter(notification => !notification.readAt && !notification.archivedAt).length
   },
 
   sendOnce: async ({ eventKey, periodKey, title = 'Nexora', body, tag }) => {
@@ -277,36 +377,75 @@ const NotificationsService = {
 
   evaluateBusinessNotifications: async ({ monthKey, cycleLabel, metrics = {}, savingsTarget = 0 }) => {
     const settings = await NotificationsService.getSettings()
-    if (!settings.enabled || settings.permission !== 'granted') return
-
     const periodKey = monthKey || 'current'
-    await NotificationsService.sendOnce({
-      eventKey: 'cycle-start',
-      periodKey,
-      body: `Nouveau cycle budgétaire : ${cycleLabel || periodKey}.`
-    })
+    const revenue = Number(metrics.revReel || metrics.income || 0)
+    const solde = Number(metrics.solde || 0)
+    const totalDepRestant = Number(metrics.totalDepRestant || 0)
 
-    if (Number(metrics.solde || 0) < 0) {
+    if (revenue <= 0) {
+      await NotificationsService.createNotification({
+        type: 'budget',
+        priority: 'info',
+        title: 'Budget à compléter',
+        message: 'Ajoutez vos revenus pour calculer votre situation.',
+        source: `budget:${periodKey}`,
+        actionLabel: 'Ouvrir le budget',
+        actionTarget: 'saisie'
+      })
+      return
+    }
+
+    if (settings.enabled && settings.permission === 'granted') {
       await NotificationsService.sendOnce({
-        eventKey: 'negative-forecast',
+        eventKey: 'cycle-start',
         periodKey,
-        body: 'Le solde prévisionnel du mois est négatif.'
+        body: `Nouveau cycle budgétaire : ${cycleLabel || periodKey}.`
       })
     }
 
-    if (Number(metrics.totalDepRestant || 0) >= Number(settings.remainingExpenseThreshold || 0)) {
+    if (solde < 0) {
+      await NotificationsService.createNotification({
+        type: 'budget',
+        priority: 'critical',
+        title: 'Solde prévisionnel négatif',
+        message: 'Le solde prévisionnel du mois est négatif.',
+        source: `budget:${periodKey}:negative`,
+        actionLabel: 'Voir budget',
+        actionTarget: 'saisie'
+      })
+      if (settings.enabled && settings.permission === 'granted') {
+        await NotificationsService.sendOnce({
+          eventKey: 'negative-forecast',
+          periodKey,
+          body: 'Le solde prévisionnel du mois est négatif.'
+        })
+      }
+    } else {
+      await NotificationsService.createNotification({
+        type: 'réussite',
+        priority: 'success',
+        title: 'Budget positif',
+        message: 'Bravo, votre budget reste positif.',
+        source: `budget:${periodKey}:positive`,
+        actionLabel: 'Voir tableau de bord',
+        actionTarget: 'dashboard'
+      })
+    }
+
+    if (totalDepRestant >= Number(settings.remainingExpenseThreshold || 0)) {
+      await NotificationsService.createNotification({
+        type: 'facture',
+        priority: 'warning',
+        title: 'Charges à payer',
+        message: `Il reste encore ${Math.round(totalDepRestant).toLocaleString('fr-FR')} € de dépenses à payer.`,
+        source: `budget:${periodKey}:remaining`,
+        actionLabel: 'Voir budget',
+        actionTarget: 'saisie'
+      })
       await NotificationsService.sendOnce({
         eventKey: 'large-remaining-expenses',
         periodKey,
         body: `Il reste encore ${Math.round(metrics.totalDepRestant).toLocaleString('fr-FR')} € de dépenses à payer.`
-      })
-    }
-
-    if (Number(savingsTarget || 0) > 0 && Number(metrics.solde || 0) < Number(savingsTarget || 0)) {
-      await NotificationsService.sendOnce({
-        eventKey: 'savings-below-target',
-        periodKey,
-        body: "L'épargne prévue est inférieure à l'objectif mensuel."
       })
     }
 
@@ -317,17 +456,35 @@ const NotificationsService = {
       const target = Number(goal.target) || 0
       if (target <= 0) continue
       const pct = current / target * 100
-      if (pct >= 100) {
-        await NotificationsService.sendOnce({
-          eventKey: `goal-reached-${goal.id}`,
-          periodKey,
-          body: `Objectif atteint : ${goal.name || 'objectif financier'}.`
+      if (current <= 0) {
+        await NotificationsService.createNotification({
+          type: 'objectif',
+          priority: 'info',
+          title: 'Objectif non alimenté',
+          message: `L’objectif ${goal.name || 'objectif financier'} n’a pas encore de contribution.`,
+          source: `goal:${goal.id}:empty`,
+          actionLabel: 'Voir objectifs',
+          actionTarget: 'objectifs'
+        })
+      } else if (pct >= 100) {
+        await NotificationsService.createNotification({
+          type: 'réussite',
+          priority: 'success',
+          title: 'Objectif atteint',
+          message: `Objectif atteint : ${goal.name || 'objectif financier'}.`,
+          source: `goal:${goal.id}:reached`,
+          actionLabel: 'Voir objectifs',
+          actionTarget: 'objectifs'
         })
       } else if (pct >= 90) {
-        await NotificationsService.sendOnce({
-          eventKey: `goal-almost-${goal.id}`,
-          periodKey,
-          body: `Objectif presque atteint : ${goal.name || 'objectif financier'} est à ${Math.round(pct)}%.`
+        await NotificationsService.createNotification({
+          type: 'objectif',
+          priority: 'success',
+          title: 'Objectif bientôt atteint',
+          message: `${goal.name || 'Objectif financier'} est à ${Math.round(pct)}%.`,
+          source: `goal:${goal.id}:almost`,
+          actionLabel: 'Voir objectifs',
+          actionTarget: 'objectifs'
         })
       }
     }

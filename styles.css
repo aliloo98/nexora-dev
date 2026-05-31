@@ -659,6 +659,93 @@ body,
   color: var(--orange);
 }
 
+.notification-center {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+.notification-center-head,
+.notification-item {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.notification-unread-badge {
+  align-items: center;
+  background: rgba(229,192,96,0.16);
+  border: 1px solid rgba(229,192,96,0.28);
+  border-radius: 999px;
+  color: var(--gold);
+  display: inline-flex;
+  font-size: 11px;
+  justify-content: center;
+  margin-left: 6px;
+  min-height: 22px;
+  min-width: 22px;
+  padding: 2px 7px;
+}
+
+.notification-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.notification-empty {
+  color: var(--text2);
+  font-size: 13px;
+}
+
+.notification-item {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.notification-item.is-read { opacity: 0.68; }
+.notification-item.priority-critical { border-color: rgba(244,63,94,0.3); }
+.notification-item.priority-warning { border-color: rgba(245,158,11,0.28); }
+.notification-item.priority-success { border-color: rgba(34,197,94,0.25); }
+
+.notification-item-main strong {
+  color: var(--text);
+  display: block;
+  font-size: 14px;
+  margin: 3px 0 4px;
+}
+
+.notification-item-main p {
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.notification-item-meta {
+  color: var(--gold);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.notification-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.notification-item-actions .btn {
+  font-size: 11px;
+  min-height: 30px;
+  padding: 5px 8px;
+}
+
 #section-parametres {
   margin-left: auto;
   margin-right: auto;
@@ -680,6 +767,18 @@ body,
   .goal-actions .btn,
   .notification-actions .btn {
     flex: 1 1 auto;
+    max-width: none;
+    width: 100%;
+  }
+  .notification-center-head,
+  .notification-item {
+    flex-direction: column;
+  }
+  .notification-item-actions {
+    justify-content: stretch;
+    width: 100%;
+  }
+  .notification-item-actions .btn {
     max-width: none;
     width: 100%;
   }

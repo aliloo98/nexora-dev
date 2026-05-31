@@ -902,6 +902,13 @@
           <span style="font-weight:600;color:var(--text)">€</span>
         </div>
       </div>
+      <div class="notification-center" id="notification-center">
+        <div class="notification-center-head">
+          <div class="param-label">Centre de notifications <span id="notification-unread-badge" class="notification-unread-badge">0</span></div>
+          <button class="btn btn-outline notification-action-btn" type="button" onclick="markAllNexoraNotificationsRead()">Tout marquer comme lu</button>
+        </div>
+        <div id="notification-list" class="notification-list">Aucune notification pour le moment</div>
+      </div>
     </div>
 
     <!-- PERSONNALISATION -->
@@ -1470,6 +1477,62 @@ async function testNexoraNotification() {
   }
   await refreshNexoraNotificationSettingsUI();
 }
+
+async function renderNexoraNotificationCenter() {
+  if (!window.NotificationsService?.listNotifications) return;
+  const listEl = document.getElementById('notification-list');
+  const badgeEl = document.getElementById('notification-unread-badge');
+  if (!listEl) return;
+  const notifications = await window.NotificationsService.listNotifications();
+  const unreadCount = await window.NotificationsService.getUnreadCount();
+  if (badgeEl) {
+    badgeEl.textContent = String(unreadCount);
+    badgeEl.style.display = unreadCount > 0 ? 'inline-flex' : 'none';
+  }
+  if (notifications.length === 0) {
+    listEl.innerHTML = '<div class="notification-empty">Aucune notification pour le moment</div>';
+    return;
+  }
+  listEl.innerHTML = '';
+  notifications.slice(0, 12).forEach(notification => {
+    const item = document.createElement('div');
+    item.className = `notification-item priority-${notification.priority}${notification.readAt ? ' is-read' : ''}`;
+    const date = new Date(notification.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    item.innerHTML = `
+      <div class="notification-item-main">
+        <div class="notification-item-meta">${escapeHtml(notification.type)} · ${date}</div>
+        <strong>${escapeHtml(notification.title)}</strong>
+        <p>${escapeHtml(notification.message)}</p>
+      </div>
+      <div class="notification-item-actions">
+        ${notification.actionTarget ? `<button class="btn btn-outline" type="button" data-action-target="${escapeHtml(notification.actionTarget)}">${escapeHtml(notification.actionLabel || 'Ouvrir')}</button>` : ''}
+        <button class="btn btn-outline" type="button" data-read-id="${escapeHtml(notification.id)}">${notification.readAt ? 'Lu' : 'Marquer lu'}</button>
+        <button class="btn btn-outline" type="button" data-archive-id="${escapeHtml(notification.id)}">Archiver</button>
+      </div>
+    `;
+    item.querySelector('[data-action-target]')?.addEventListener('click', (event) => {
+      showSection(event.currentTarget.dataset.actionTarget);
+    });
+    item.querySelector('[data-read-id]')?.addEventListener('click', async (event) => {
+      await window.NotificationsService.markNotificationRead(event.currentTarget.dataset.readId);
+      await renderNexoraNotificationCenter();
+    });
+    item.querySelector('[data-archive-id]')?.addEventListener('click', async (event) => {
+      await window.NotificationsService.archiveNotification(event.currentTarget.dataset.archiveId);
+      await renderNexoraNotificationCenter();
+    });
+    listEl.appendChild(item);
+  });
+}
+
+async function markAllNexoraNotificationsRead() {
+  await window.NotificationsService?.markAllNotificationsRead?.();
+  await renderNexoraNotificationCenter();
+}
+
+window.addEventListener('nexora:notifications-updated', () => {
+  renderNexoraNotificationCenter().catch(err => console.warn('[Notifications] render failed', err));
+});
 
 function handleBudgetCycleModeChange() {
   const previous = readBudgetCycleSettings();
@@ -3131,6 +3194,7 @@ function updateAll(){
       cycleLabel: getBudgetCycleRange(getMonth()).fullLabel,
       savingsTarget: targetEp,
       metrics: {
+        revReel,
         solde,
         soldeEstime,
         totalDepRestant,
@@ -5368,6 +5432,9 @@ window.onload=async ()=>{
   buildHistory();
   if (typeof refreshNexoraNotificationSettingsUI === 'function') {
     await refreshNexoraNotificationSettingsUI();
+  }
+  if (typeof renderNexoraNotificationCenter === 'function') {
+    await renderNexoraNotificationCenter();
   }
   const initialHash = window.location.hash.replace('#section-', '') || 'dashboard';
   showSection(initialHash);
