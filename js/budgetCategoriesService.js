@@ -374,6 +374,30 @@ const restoreBudgetCategory = async (id, { userId } = {}) => {
   return updated
 }
 
+const deleteBudgetCategory = async (id, { userId } = {}) => {
+  if (!id) throw new Error('id categorie requis')
+
+  const ownerId = getOwnerId(userId)
+  const categories = readLocalCategories(ownerId)
+  const category = categories.find(item => item.id === id)
+  if (!category) throw new Error(`Categorie introuvable: ${id}`)
+
+  const remaining = categories.filter(item => item.id !== id)
+  writeLocalCategories(ownerId, remaining)
+
+  try {
+    const { session } = await getSupabaseSession()
+    if (session?.user?.id && isOnline()) {
+      const { error } = await supabase.from(TABLE_NAME).delete().eq('id', id).eq('user_id', session.user.id)
+      if (error) throw error
+    }
+  } catch (err) {
+    logSupabaseFallback('delete', err)
+  }
+
+  return true
+}
+
 export const BudgetCategoriesService = {
   DEFAULT_BUDGET_CATEGORIES,
   getBudgetCategories,
@@ -381,4 +405,5 @@ export const BudgetCategoriesService = {
   createBudgetCategory,
   disableBudgetCategory,
   restoreBudgetCategory
+  ,deleteBudgetCategory
 }

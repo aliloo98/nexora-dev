@@ -126,6 +126,51 @@ const initApp = async () => {
       }
     }
 
+    // Attach amount input handlers to sanitize user input (prevent letters, support French formats)
+    const attachAmountInputHandlers = () => {
+        const sanitize = (v) => String(v ?? '')
+          .replace(/[^0-9\s,\.\-]/g, '') // allow digits, spaces, comma, dot, minus
+          .replace(/\,+/g, ',')
+          .replace(/\.+/g, '.')
+          .trim()
+
+        const inputs = document.querySelectorAll('.budget-input')
+        inputs.forEach(input => {
+          if (input.__amountHandlerAttached) return
+          input.__amountHandlerAttached = true
+
+          input.addEventListener('input', (e) => {
+            const selStart = input.selectionStart
+            const selEnd = input.selectionEnd
+            const cleaned = sanitize(input.value)
+            if (cleaned !== input.value) {
+              input.value = cleaned
+              try { input.setSelectionRange(selStart - 1, selEnd - 1) } catch (err) {}
+            }
+          })
+
+          input.addEventListener('paste', (e) => {
+            e.preventDefault()
+            const text = (e.clipboardData || window.clipboardData).getData('text') || ''
+            const cleaned = sanitize(text)
+            document.execCommand('insertText', false, cleaned)
+          })
+
+          input.addEventListener('blur', (e) => {
+            const raw = sanitize(input.value)
+            const numeric = parseFloat(String(raw).replace(/\s/g, '').replace(',', '.'))
+            if (!Number.isNaN(numeric) && typeof window.Utils?.formatCurrency === 'function') {
+              try { input.value = window.Utils.formatCurrency(numeric) } catch (err) {}
+            }
+          })
+        })
+      }
+
+      // Run once after init and also expose for manual re-attachment
+      if (typeof document !== 'undefined') {
+        attachAmountInputHandlers()
+        window.attachAmountInputHandlers = attachAmountInputHandlers
+      }
     // Render Assistant Nexora card (rules-based, local-only)
     try {
       if (typeof renderAssistantCard === 'function') await renderAssistantCard()

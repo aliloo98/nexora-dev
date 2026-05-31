@@ -2600,10 +2600,42 @@ function createHiddenBudgetRowsPanel(type, categories) {
     restoreBtn.textContent = 'Restaurer';
     restoreBtn.onclick = () => restoreCustomBudgetLine(category.id);
 
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'delete-category-btn';
+    deleteBtn.textContent = 'Supprimer définitivement';
+    deleteBtn.onclick = () => deleteCustomBudgetLine(category.id, category.name);
+
     item.appendChild(name);
-    item.appendChild(restoreBtn);
+    const actions = document.createElement('div');
+    actions.style.display = 'flex';
+    actions.style.gap = '8px';
+    actions.appendChild(restoreBtn);
+    actions.appendChild(deleteBtn);
+    item.appendChild(actions);
     panel.appendChild(item);
   });
+
+  if (hiddenCategories.length > 1) {
+    const bulk = document.createElement('div');
+    bulk.style.marginTop = '8px';
+    const bulkBtn = document.createElement('button');
+    bulkBtn.type = 'button';
+    bulkBtn.className = 'delete-category-btn';
+    bulkBtn.textContent = 'Supprimer toutes les lignes masquées';
+    bulkBtn.onclick = async () => {
+      const confirmed = await openNexoraActionModal({ title: 'Supprimer toutes', message: 'Supprimer définitivement toutes les lignes masquées ?', confirmLabel: 'Supprimer' });
+      if (!confirmed) return;
+      for (const c of hiddenCategories) {
+        try { await window.BudgetCategoriesService.deleteBudgetCategory(c.id) } catch (err) { console.warn('bulk delete failed', err) }
+      }
+      await renderCustomBudgetRows();
+      await refreshCategoryLabels();
+      updateAll();
+    };
+    bulk.appendChild(bulkBtn);
+    panel.appendChild(bulk);
+  }
 
   return panel;
 }
@@ -2707,6 +2739,26 @@ async function restoreCustomBudgetLine(categoryId) {
     updateAll();
   } catch (err) {
     console.warn('[Phase4D] Restauration de ligne impossible', err);
+  }
+}
+
+async function deleteCustomBudgetLine(categoryId, categoryName) {
+  try {
+    if (!categoryId || !window.BudgetCategoriesService?.deleteBudgetCategory) return;
+
+    const confirmed = await openNexoraActionModal({
+      title: 'Supprimer la ligne',
+      message: `Supprimer définitivement "${categoryName}" ? Cette action est irréversible.`,
+      confirmLabel: 'Supprimer'
+    });
+    if (!confirmed) return;
+
+    await window.BudgetCategoriesService.deleteBudgetCategory(categoryId);
+    await renderCustomBudgetRows();
+    await refreshCategoryLabels();
+    updateAll();
+  } catch (err) {
+    console.warn('[Phase4E] Suppression de ligne impossible', err);
   }
 }
 
