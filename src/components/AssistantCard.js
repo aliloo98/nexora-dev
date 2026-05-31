@@ -696,7 +696,10 @@ async function renderAssistantCard() {
   const chartsBlock = existing.querySelector('#assistant-charts-block')
   const chartsWrap = existing.querySelector('#assistant-charts-grid')
   const renderSparklines = (series) => {
-    if (!Array.isArray(series) || series.length === 0) return ''
+    if (!Array.isArray(series) || series.length < 2) return `<div style="font-size:13px;color:var(--text2)">Pas encore assez d'historique — ajoutez plusieurs mois pour voir l'évolution</div>`
+    // consider there is data only when at least one non-zero value exists
+    const hasData = series.some(v => typeof v === 'number' && !isNaN(v) && Number(v) !== 0)
+    if (!hasData) return `<div style="font-size:13px;color:var(--text2)">Pas encore assez d'historique — ajoutez plusieurs mois pour voir l'évolution</div>`
     const w = 160, h = 48
     const max = Math.max(...series, 1)
     const min = Math.min(...series, 0)
@@ -707,30 +710,37 @@ async function renderAssistantCard() {
   }
 
   // attempt to sample last 12 months using getMonthMetrics when available
-  const addMonthsLocal = (date, months) => { const r = new Date(date); r.setMonth(r.getMonth() + months); return r }
-  const formatMonthYearLocal = (date) => date.toLocaleString('fr-FR', { month: 'long', year: 'numeric' })
-  const now = new Date()
+  const currentMonth = typeof getMonth === 'function' ? getMonth() : null
   const months = []
-  for (let i=11;i>=0;i--) months.push(addMonthsLocal(now, -i))
+  if (currentMonth) {
+    for (let i = 11; i >= 0; i--) {
+      months.push(monthShift(currentMonth, -i))
+    }
+  }
   const revSeries = []
   const expSeries = []
   const savSeries = []
   const balSeries = []
   try {
-    months.forEach(d => {
+    months.forEach(month => {
       let m = null
-      if (typeof getMonthMetrics === 'function') {
-        m = getMonthMetrics(formatMonthYearLocal(d), { fromDom: true })
+      if (month && typeof getMonthMetrics === 'function') {
+        m = getMonthMetrics(month, { fromDom: month === currentMonth })
       }
       m = m || { income: result.metadata.rev || 0, expenses: result.metadata.totalCharges || 0, savings: result.metadata.savings || 0 }
       revSeries.push(Number(m.income || 0))
-      expSeries.push(Number(m.expenses || (Number(m.fixed||0)+Number(m.variable||0))))
-      savSeries.push(Number(m.savings || (Number(m.income||0) - Number(m.expenses||0))))
-      balSeries.push((Number(m.income||0) - Number(m.expenses||0)))
+      expSeries.push(Number(m.expenses || (Number(m.fixed || 0) + Number(m.variable || 0))))
+      savSeries.push(Number(m.savings || (Number(m.income || 0) - Number(m.expenses || 0))))
+      balSeries.push(Number(m.income || 0) - Number(m.expenses || 0))
     })
   } catch (e) {
     // fallback to current month repeated
-    for (let i=0;i<12;i++) { revSeries.push(result.metadata.rev||0); expSeries.push(result.metadata.totalCharges||0); savSeries.push(result.metadata.savings||0); balSeries.push((result.metadata.rev||0)-(result.metadata.totalCharges||0)) }
+    for (let i = 0; i < 12; i++) {
+      revSeries.push(result.metadata.rev || 0)
+      expSeries.push(result.metadata.totalCharges || 0)
+      savSeries.push(result.metadata.savings || 0)
+      balSeries.push((result.metadata.rev || 0) - (result.metadata.totalCharges || 0))
+    }
   }
 
   if (chartsWrap) {
