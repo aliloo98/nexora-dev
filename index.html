@@ -1833,10 +1833,12 @@ let budgetCategoriesCache = [];
 
 function getBudgetKeysByType(type) {
   const historicalKeys = BUDGET_KEYS_BY_TYPE[type] || [];
+  const categoryById = new Map(budgetCategoriesCache.map(category => [category.id, category]));
+  const activeHistoricalKeys = historicalKeys.filter(key => categoryById.get(key)?.is_active !== false);
   const customKeys = budgetCategoriesCache
     .filter(category => category.type === type && category.is_active !== false && !category.is_default)
     .map(category => category.id);
-  return [...new Set([...historicalKeys, ...customKeys])];
+  return [...new Set([...activeHistoricalKeys, ...customKeys])];
 }
 
 let analyticsPeriod = 6;
@@ -2392,6 +2394,8 @@ function initDynamicElements() {
       const baseKey = inputs[0].dataset.key;
 
       const label = row.querySelector('.budget-row-label');
+      const category = getBudgetCategoryById(baseKey);
+      decorateBudgetRowActions(row, category);
       if (label && !label.querySelector('.note-toggle-btn')) {
         if (!label.querySelector('.rename-category-btn')) {
           const renameBtn = document.createElement('button');
@@ -2521,6 +2525,57 @@ function getCustomRowsContainerId(type) {
   }[type];
 }
 
+function getBudgetCategoryType(categoryId) {
+  if ((BUDGET_KEYS_BY_TYPE.income || []).includes(categoryId)) return 'income';
+  if ((BUDGET_KEYS_BY_TYPE.fixed_expense || []).includes(categoryId)) return 'fixed_expense';
+  if ((BUDGET_KEYS_BY_TYPE.variable_expense || []).includes(categoryId)) return 'variable_expense';
+  return null;
+}
+
+function getBudgetCategoryById(categoryId) {
+  return getCategoryById(categoryId) || {
+    id: categoryId,
+    name: getBudgetRowLabelText(document.querySelector(`[data-row-key="${categoryId}"] .budget-row-label`)) || categoryId,
+    type: getBudgetCategoryType(categoryId),
+    is_default: true,
+    is_active: true
+  };
+}
+
+function decorateBudgetRowActions(row, category) {
+  const label = row?.querySelector('.budget-row-label');
+  if (!label || !category?.id) return;
+
+  if (!label.querySelector('.hide-category-btn')) {
+    const hideBtn = document.createElement('button');
+    hideBtn.className = 'hide-category-btn';
+    hideBtn.innerHTML = '×';
+    hideBtn.type = 'button';
+    hideBtn.title = category.is_default
+      ? 'Masquer cette catégorie système protégée'
+      : 'Masquer cette ligne';
+    hideBtn.onclick = (e) => {
+      e.preventDefault();
+      hideCustomBudgetLine(category.id, category.name, category.is_default);
+    };
+    label.appendChild(hideBtn);
+  }
+}
+
+function applyBudgetCategoryVisibility(categories) {
+  const categoryById = new Map(categories.map(category => [category.id, category]));
+  Object.values(BUDGET_KEYS_BY_TYPE).flat().forEach(key => {
+    const category = categoryById.get(key);
+    const row = document.querySelector(`[data-row-key="${key}"]`)
+      || document.querySelector(`input.budget-input[data-key="${key}"]`)?.closest('.budget-row');
+    const note = document.getElementById(`note-container-${key}`);
+    if (!row) return;
+    row.dataset.rowKey = key;
+    row.style.display = category?.is_active === false ? 'none' : '';
+    if (note) note.style.display = category?.is_active === false ? 'none' : note.style.display;
+  });
+}
+
 function createCustomBudgetRow(category) {
   const row = document.createElement('div');
   row.className = 'budget-row custom-budget-row';
@@ -2536,7 +2591,7 @@ function createCustomBudgetRow(category) {
   hideBtn.title = 'Masquer cette ligne';
   hideBtn.onclick = (e) => {
     e.preventDefault();
-    hideCustomBudgetLine(category.id, category.name);
+    hideCustomBudgetLine(category.id, category.name, category.is_default);
   };
   label.appendChild(hideBtn);
 
@@ -2575,7 +2630,7 @@ function createCustomBudgetRow(category) {
 
 function createHiddenBudgetRowsPanel(type, categories) {
   const hiddenCategories = categories
-    .filter(category => category.type === type && category.is_active === false && !category.is_default)
+    .filter(category => category.type === type && category.is_active === false)
     .sort((a, b) => a.position - b.position || a.name.localeCompare(b.name));
 
   if (hiddenCategories.length === 0) return null;
@@ -2593,7 +2648,7 @@ function createHiddenBudgetRowsPanel(type, categories) {
     item.className = 'hidden-budget-line-item';
 
     const name = document.createElement('span');
-    name.textContent = category.name;
+    name.textContent = category.is_default ? `${category.name} · système protégée` : category.name;
 
     const restoreBtn = document.createElement('button');
     restoreBtn.type = 'button';
@@ -2612,12 +2667,21 @@ function createHiddenBudgetRowsPanel(type, categories) {
     actions.style.display = 'flex';
     actions.style.gap = '8px';
     actions.appendChild(restoreBtn);
-    actions.appendChild(deleteBtn);
+    if (category.is_default) {
+      const protectedLabel = document.createElement('span');
+      protectedLabel.className = 'protected-category-label';
+      protectedLabel.textContent = 'Protégée';
+      protectedLabel.title = 'Catégorie système : restauration possible, suppression définitive indisponible';
+      actions.appendChild(protectedLabel);
+    } else {
+      actions.appendChild(deleteBtn);
+    }
     item.appendChild(actions);
     panel.appendChild(item);
   });
 
-  if (hiddenCategories.length > 1) {
+  const deletableHiddenCategories = hiddenCategories.filter(category => !category.is_default);
+  if (deletableHiddenCategories.length > 1) {
     const bulk = document.createElement('div');
     bulk.style.marginTop = '8px';
     const bulkBtn = document.createElement('button');
@@ -2627,7 +2691,7 @@ function createHiddenBudgetRowsPanel(type, categories) {
     bulkBtn.onclick = async () => {
       const confirmed = await openNexoraActionModal({ title: 'Supprimer toutes', message: 'Supprimer définitivement toutes les lignes masquées ?', confirmLabel: 'Supprimer' });
       if (!confirmed) return;
-      for (const c of hiddenCategories) {
+      for (const c of deletableHiddenCategories) {
         try { await window.BudgetCategoriesService.deleteBudgetCategory(c.id) } catch (err) { console.warn('bulk delete failed', err) }
       }
       await renderCustomBudgetRows();
@@ -2647,6 +2711,7 @@ async function renderCustomBudgetRows() {
   const currentValues = snapshotBudgetInputs();
   const categories = await window.BudgetCategoriesService.getBudgetCategories({ includeInactive: true });
   budgetCategoriesCache = categories;
+  applyBudgetCategoryVisibility(categories);
 
   ['income', 'fixed_expense', 'variable_expense'].forEach(type => {
     const container = document.getElementById(getCustomRowsContainerId(type));
@@ -2696,13 +2761,15 @@ async function addCustomBudgetLine(type) {
   }
 }
 
-async function hideCustomBudgetLine(categoryId, categoryName) {
+async function hideCustomBudgetLine(categoryId, categoryName, isSystemCategory = false) {
   try {
     if (!categoryId || !window.BudgetCategoriesService?.disableBudgetCategory) return;
 
     const confirmed = await openNexoraActionModal({
-      title: 'Masquer la ligne',
-      message: `Masquer "${categoryName}" ? Les montants déjà enregistrés ne seront pas supprimés.`,
+      title: isSystemCategory ? 'Masquer la catégorie système' : 'Masquer la ligne',
+      message: isSystemCategory
+        ? `"${categoryName}" est une catégorie système protégée. Elle peut être masquée et restaurée plus tard.`
+        : `Masquer "${categoryName}" ? Les montants déjà enregistrés ne seront pas supprimés.`,
       confirmLabel: 'Masquer'
     });
     if (!confirmed) return;
@@ -2714,6 +2781,18 @@ async function hideCustomBudgetLine(categoryId, categoryName) {
   } catch (err) {
     console.warn('[Phase3E] Masquage de ligne impossible', err);
   }
+}
+
+async function clearBudgetCategoryData(categoryId) {
+  if (!categoryId) return;
+  const m = getMonth();
+  const data = {};
+  try { Object.assign(data, JSON.parse(SafeStorage.getItem(storageKey(m)) || '{}')); } catch (err) { console.warn('Donnée mois invalide lors du nettoyage catégorie', err); }
+  delete data[categoryId];
+  delete data[`${categoryId}_paye`];
+  delete data[`note_${categoryId}`];
+  SafeStorage.setItem(storageKey(m), JSON.stringify(data));
+  await persistMonthSnapshot(m, data);
 }
 
 async function restoreCustomBudgetLine(categoryId) {
@@ -2746,6 +2825,16 @@ async function restoreCustomBudgetLine(categoryId) {
 async function deleteCustomBudgetLine(categoryId, categoryName) {
   try {
     if (!categoryId || !window.BudgetCategoriesService?.deleteBudgetCategory) return;
+    const category = getCategoryById(categoryId);
+    if (category?.is_default) {
+      await openNexoraActionModal({
+        title: 'Catégorie protégée',
+        message: `"${category.name}" est une catégorie système. Vous pouvez la masquer, puis la restaurer si besoin.`,
+        confirmLabel: 'OK',
+        showCancel: false
+      });
+      return;
+    }
 
     const confirmed = await openNexoraActionModal({
       title: 'Supprimer la ligne',
@@ -2755,8 +2844,10 @@ async function deleteCustomBudgetLine(categoryId, categoryName) {
     if (!confirmed) return;
 
     await window.BudgetCategoriesService.deleteBudgetCategory(categoryId);
+    await clearBudgetCategoryData(categoryId);
     await renderCustomBudgetRows();
     await refreshCategoryLabels();
+    try { await loadMonth(); } catch (e) { console.warn('loadMonth after delete failed', e); }
     updateAll();
   } catch (err) {
     console.warn('[Phase4E] Suppression de ligne impossible', err);

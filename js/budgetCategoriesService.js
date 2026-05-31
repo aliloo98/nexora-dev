@@ -382,6 +382,10 @@ const deleteBudgetCategory = async (id, { userId } = {}) => {
   const category = categories.find(item => item.id === id)
   if (!category) throw new Error(`Categorie introuvable: ${id}`)
 
+  if (category.is_default) {
+    return disableBudgetCategory(id, { userId })
+  }
+
   const remaining = categories.filter(item => item.id !== id)
   writeLocalCategories(ownerId, remaining)
 
