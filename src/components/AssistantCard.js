@@ -549,7 +549,7 @@ async function renderAssistantCard() {
       .filter(Boolean)
 
     if (paragraphs.length > 0) {
-      paragraphs.forEach(text => {
+      paragraphs.slice(0, document.body?.classList?.contains('mode-simple') ? 1 : paragraphs.length).forEach(text => {
         const item = document.createElement('div')
         item.className = 'assistant-analysis-bullet-item'
 
@@ -595,9 +595,10 @@ async function renderAssistantCard() {
   }
 
   // Vigilance -> show natural alert phrases
-  renderItems(vigilanceList, result.alertDisplay || result.alerts, 3)
+  const isSimpleMode = document.body?.classList?.contains('mode-simple')
+  renderItems(vigilanceList, result.alertDisplay || result.alerts, isSimpleMode ? 1 : 3)
   // Action -> show recommendations
-  renderItems(actionList, result.recommendations, 3)
+  renderItems(actionList, result.recommendations, isSimpleMode ? 1 : 3)
 
   // Populate formatted visual comparison for savings projections
   const projectionsBlock = existing.querySelector('#assistant-projections-block')
