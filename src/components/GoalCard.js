@@ -42,13 +42,26 @@ export default function createGoalCard(goal, handlers = {}) {
   footer.className = 'goal-card-footer'
   const remaining = Math.max(0, target - current)
   const est = goal.__estimatedMonths ? `${goal.__estimatedMonths} mois` : '—'
+  const deadlineInfo = goal.__deadlineInfo || {}
   const targetDate = goal.targetDate
     ? new Date(goal.targetDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
     : 'Non définie'
+  const deadlineText = deadlineInfo.status === 'reached'
+    ? 'Atteint'
+    : deadlineInfo.status === 'past'
+      ? 'Échue'
+      : deadlineInfo.monthsRemaining
+        ? `${deadlineInfo.monthsRemaining} mois restants`
+        : 'Sans échéance'
+  const effortText = deadlineInfo.monthlyEffort
+    ? `${deadlineInfo.monthlyEffort.toLocaleString()} €/mois`
+    : deadlineInfo.status === 'reached'
+      ? 'Terminé'
+      : '—'
   footer.innerHTML = `
     <div class="goal-remaining"><span>Reste</span><strong>${remaining.toLocaleString()} €</strong></div>
-    <div class="goal-date"><span>Échéance</span><strong>${targetDate}</strong></div>
-    <div class="goal-est"><span>Rythme</span><strong>${est}</strong></div>
+    <div class="goal-date"><span>Échéance</span><strong>${targetDate}</strong><small>${deadlineText}</small></div>
+    <div class="goal-est"><span>Effort</span><strong>${effortText}</strong><small>Rythme ${est}</small></div>
   `
 
   const actions = document.createElement('div')

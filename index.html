@@ -2223,7 +2223,7 @@ function closeNexoraActionModal(result = null) {
   }
 }
 
-function openNexoraActionModal({ title, message, input = false, defaultValue = '', confirmLabel = 'Confirmer', required = false, validateValue = null, showCancel = true }) {
+function openNexoraActionModal({ title, message, input = false, inputType = 'text', defaultValue = '', confirmLabel = 'Confirmer', required = false, validateValue = null, showCancel = true }) {
   const modal = document.getElementById('nexora-action-modal');
   const titleEl = document.getElementById('nexora-action-modal-title');
   const messageEl = document.getElementById('nexora-action-modal-message');
@@ -2240,6 +2240,7 @@ function openNexoraActionModal({ title, message, input = false, defaultValue = '
 
   titleEl.textContent = title || 'Action';
   messageEl.textContent = message || '';
+  inputEl.type = inputType || 'text';
   inputEl.value = defaultValue || '';
   inputEl.style.display = input ? 'block' : 'none';
   inputEl.classList.remove('input-error');

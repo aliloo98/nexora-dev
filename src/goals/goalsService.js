@@ -4,11 +4,44 @@ import { STORAGE_KEYS } from '../constants/storageKeys.js'
 
 const STORAGE_KEY = STORAGE_KEYS.goals
 
+const normalizeTargetDate = (targetDate) => {
+  if (!targetDate) return null
+  const value = String(targetDate).trim()
+  if (!value) return null
+  const date = new Date(`${value}T00:00:00`)
+  return Number.isNaN(date.getTime()) ? null : value.slice(0, 10)
+}
+
 const normalizeGoals = (goals) => {
   const list = Array.isArray(goals) ? goals : []
   const primaryIndex = list.findIndex(goal => goal?.isPrimary === true)
-  if (primaryIndex === -1 || list.length === 0) return list
-  return list.map((goal, index) => ({ ...goal, isPrimary: index === primaryIndex }))
+  if (primaryIndex === -1 || list.length === 0) {
+    return list.map(goal => ({ ...goal, targetDate: normalizeTargetDate(goal?.targetDate) }))
+  }
+  return list.map((goal, index) => ({ ...goal, targetDate: normalizeTargetDate(goal?.targetDate), isPrimary: index === primaryIndex }))
+}
+
+const getDeadlineInfo = (goal, monthlyContribution = 0) => {
+  const current = Number(goal?.current) || 0
+  const target = Number(goal?.target) || 0
+  const remaining = Math.max(0, target - current)
+  const targetDate = normalizeTargetDate(goal?.targetDate)
+  const reached = target > 0 && current >= target
+
+  if (!targetDate) {
+    return { remaining, targetDate: null, monthsRemaining: null, monthlyEffort: null, status: reached ? 'reached' : 'none' }
+  }
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const deadline = new Date(`${targetDate}T00:00:00`)
+  const diffDays = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24))
+  const monthsRemaining = diffDays > 0 ? Math.max(1, Math.ceil(diffDays / 30)) : 0
+  const monthlyEffort = reached ? 0 : monthsRemaining > 0 ? Math.ceil(remaining / monthsRemaining) : null
+  const projectedMonths = GoalsService.estimateMonthsToTarget(goal, monthlyContribution)
+  const status = reached ? 'reached' : diffDays < 0 ? 'past' : 'future'
+
+  return { remaining, targetDate, monthsRemaining, monthlyEffort, projectedMonths, status }
 }
 
 const getGoals = async () => {
@@ -53,6 +86,7 @@ const GoalsService = {
     const goals = await GoalsService.listGoals()
     const now = Date.now()
     const entry = Object.assign({ id: String(now), name: '', target: 0, current: 0, color: '#e5c060', icon: '🎯', targetDate: null, isPrimary: goals.length === 0 }, goal)
+    entry.targetDate = normalizeTargetDate(entry.targetDate)
     goals.push(entry)
     await GoalsService.saveGoals(goals)
     return entry
@@ -63,6 +97,9 @@ const GoalsService = {
     const idx = goals.findIndex(g => g.id === id)
     if (idx === -1) return null
     goals[idx] = Object.assign({}, goals[idx], patch)
+    if (Object.prototype.hasOwnProperty.call(patch || {}, 'targetDate')) {
+      goals[idx].targetDate = normalizeTargetDate(patch.targetDate)
+    }
     await GoalsService.saveGoals(goals)
     return goals[idx]
   },
@@ -101,6 +138,8 @@ const GoalsService = {
     if (monthlyContribution <= 0) return null
     return Math.ceil(remaining / monthlyContribution)
   },
+
+  getDeadlineInfo,
 
   getSummary: async () => {
     const goals = await GoalsService.listGoals()

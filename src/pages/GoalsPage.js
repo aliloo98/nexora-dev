@@ -19,6 +19,12 @@ const readGoalNumber = (value, fallback) => {
   return Number.isFinite(parsed) ? parsed : fallback
 }
 
+const normalizeGoalDate = (value) => {
+  const date = String(value ?? '').trim()
+  if (!date) return null
+  return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null
+}
+
 const GoalsPage = {
   init: async () => {
     await GoalsService.init()
@@ -65,6 +71,7 @@ const GoalsPage = {
     GoalsPage.form.name.value = ''
     GoalsPage.form.target.value = ''
     GoalsPage.form.current.value = '0'
+    GoalsPage.form.date.value = ''
     await GoalsPage.render()
     await GoalsPage.renderAnalytics()
     if (typeof window.updateDashboardPrimaryGoal === 'function') await window.updateDashboardPrimaryGoal()
@@ -99,14 +106,30 @@ const GoalsPage = {
       input: true,
       defaultValue: String(goal.current || 0),
       required: true,
-      confirmLabel: 'Enregistrer',
+      confirmLabel: 'Continuer',
       validateValue: (value) => readGoalNumber(value, -1) >= 0 ? '' : 'Le montant doit être positif'
     })
     if (currentValue === null) return
 
+    const targetDateValue = await openGoalModal({
+      title: 'Modifier l’échéance',
+      message: 'Date cible optionnelle. Laissez vide pour supprimer l’échéance.',
+      input: true,
+      inputType: 'date',
+      defaultValue: normalizeGoalDate(goal.targetDate) || '',
+      required: false,
+      confirmLabel: 'Enregistrer',
+      validateValue: (value) => {
+        const trimmed = String(value || '').trim()
+        if (!trimmed) return ''
+        return normalizeGoalDate(trimmed) ? '' : 'Utilisez une date valide'
+      }
+    })
+    if (targetDateValue === null) return
+
     const newTarget = readGoalNumber(targetValue, Number(goal.target) || 0)
     const newCurrent = readGoalNumber(currentValue, Number(goal.current) || 0)
-    await GoalsService.updateGoal(goal.id, { name: newName, target: newTarget, current: newCurrent })
+    await GoalsService.updateGoal(goal.id, { name: newName, target: newTarget, current: newCurrent, targetDate: normalizeGoalDate(targetDateValue) })
     await GoalsPage.render()
     await GoalsPage.renderAnalytics()
     if (typeof window.updateDashboardPrimaryGoal === 'function') await window.updateDashboardPrimaryGoal()
@@ -175,6 +198,9 @@ const GoalsPage = {
     goals.forEach(g => {
       const est = GoalsService.estimateMonthsToTarget(g, monthly)
       if (est !== null) g.__estimatedMonths = est
+      if (typeof GoalsService.getDeadlineInfo === 'function') {
+        g.__deadlineInfo = GoalsService.getDeadlineInfo(g, monthly)
+      }
       const card = createGoalCard(g, { onEdit: GoalsPage.handleEdit, onDelete: GoalsPage.handleDelete, onSetPrimary: GoalsPage.handleSetPrimary })
       GoalsPage.listEl.appendChild(card)
     })

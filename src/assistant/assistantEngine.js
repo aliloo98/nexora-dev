@@ -70,6 +70,29 @@ async function analyzeBudget(monthKey) {
     result.setMonth(result.getMonth() + months)
     return result
   }
+  const normalizeDateValue = (value) => {
+    if (!value) return null
+    const date = new Date(`${String(value).slice(0, 10)}T00:00:00`)
+    return Number.isNaN(date.getTime()) ? null : date
+  }
+  const getDeadlineInfo = (goal) => {
+    const current = Number(goal?.current || 0)
+    const target = Number(goal?.target || 0)
+    const remaining = Math.max(0, target - current)
+    const reached = target > 0 && current >= target
+    const deadline = normalizeDateValue(goal?.targetDate)
+    if (!deadline) return { remaining, monthsRemaining: null, monthlyEffort: null, status: reached ? 'reached' : 'none' }
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const diffDays = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24))
+    const monthsRemaining = diffDays > 0 ? Math.max(1, Math.ceil(diffDays / 30)) : 0
+    return {
+      remaining,
+      monthsRemaining,
+      monthlyEffort: reached || monthsRemaining <= 0 ? null : Math.ceil(remaining / monthsRemaining),
+      status: reached ? 'reached' : diffDays < 0 ? 'past' : 'future'
+    }
+  }
 
   const normalizeLabel = (text) => String(text || '').toLowerCase()
   const subscriptionKeywords = ['abonnement', 'stream', 'box', 'téléphone', 'internet', 'netflix', 'spotify', 'prime', 'canal', 'sfr', 'orange', 'free', 'bouygues', 'deezer', 'spotify', 'disney']
@@ -191,11 +214,14 @@ async function analyzeBudget(monthKey) {
   }
   goals.forEach(goal => {
     if (goal && goal.targetDate) {
-      const targetDate = new Date(goal.targetDate)
-      const now = new Date()
-      const diffMonths = Math.ceil((targetDate - now) / (1000 * 60 * 60 * 24 * 30))
-      if (diffMonths > 0 && diffMonths <= 4 && /crédit|credit|loyer|logement/i.test(goal.name || '')) {
-        goalInsights.push('Le crédit lié à cet objectif sera bientôt terminé.')
+      const deadline = getDeadlineInfo(goal)
+      if (deadline.status === 'past' && Number(goal.current || 0) < Number(goal.target || 0)) {
+        goalInsights.push(`L’échéance de ${goal.name || 'cet objectif'} est passée avec ${deadline.remaining} € restants.`)
+      } else if (deadline.status === 'future' && deadline.monthsRemaining !== null) {
+        goalInsights.push(`${goal.name || 'Objectif'} : ${deadline.remaining} € restants, ${deadline.monthsRemaining} mois restants, effort nécessaire ${deadline.monthlyEffort || 0} €/mois.`)
+        if (deadline.monthsRemaining <= 4 && /crédit|credit|loyer|logement/i.test(goal.name || '')) {
+          goalInsights.push('Le crédit lié à cet objectif sera bientôt terminé.')
+        }
       }
     }
   })
@@ -212,13 +238,15 @@ async function analyzeBudget(monthKey) {
       const months50 = monthlyContribution + 50 > 0 ? Math.ceil(remaining / (monthlyContribution + 50)) : null
       const months100 = monthlyContribution + 100 > 0 ? Math.ceil(remaining / (monthlyContribution + 100)) : null
       const eta = currentMonths !== null ? formatMonthYear(addMonths(new Date(), currentMonths)) : null
+      const deadline = getDeadlineInfo(goal)
       return {
         name: goal.name || 'Objectif',
         remaining,
         currentMonths,
         months50,
         months100,
-        eta
+        eta,
+        deadline
       }
     })
 
@@ -239,6 +267,7 @@ async function analyzeBudget(monthKey) {
       const remaining = Math.max(0, target - current)
       const estimatedMonths = monthlyContribution > 0 ? Math.ceil(remaining / monthlyContribution) : null
       const estimatedDate = estimatedMonths !== null ? formatMonthYear(addMonths(new Date(), estimatedMonths)) : null
+      const deadline = getDeadlineInfo(goal)
       const horizons = forecastHorizons.map(months => {
         const projectedCurrent = Math.min(target, current + monthlyContribution * months)
         const progressPct = target > 0 ? Math.round(Math.min(100, (projectedCurrent / target) * 100)) : 0
@@ -258,6 +287,7 @@ async function analyzeBudget(monthKey) {
         remaining,
         estimatedMonths,
         estimatedDate,
+        deadline,
         horizons
       }
     })

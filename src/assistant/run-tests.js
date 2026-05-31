@@ -190,6 +190,41 @@ tests.push({
 })
 
 tests.push({
+  name: 'objectif avec échéance future',
+  fn: async () => {
+    const future = new Date()
+    future.setMonth(future.getMonth() + 6)
+    const targetDate = future.toISOString().slice(0, 10)
+    setMocks({
+      metrics: { income: 2400, fixed: 800, variable: 600, expenses: 1400, savings: 1000 },
+      primaryGoal: { name: 'Voyage', current: 400, target: 1600, targetDate },
+      goalsSummary: { goals: [{ name: 'Voyage', current: 400, target: 1600, targetDate }], totalTarget: 1600, totalCurrent: 400, progressPct: 25 }
+    })
+    const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
+    assert.strictEqual(r.goalProjections.length, 1, 'expected goal projection with deadline')
+    assert(r.goalProjections[0].deadline.monthsRemaining > 0, 'expected future months remaining')
+    assert(r.goalProjections[0].deadline.monthlyEffort > 0, 'expected monthly effort')
+    assert(/mois restants/i.test(r.naturalAnalysis), 'expected deadline context in analysis')
+  }
+})
+
+tests.push({
+  name: 'objectif avec échéance passée',
+  fn: async () => {
+    setMocks({
+      metrics: { income: 2400, fixed: 800, variable: 600, expenses: 1400, savings: 1000 },
+      primaryGoal: { name: 'Dossier', current: 200, target: 1000, targetDate: '2025-01-01' },
+      goalsSummary: { goals: [{ name: 'Dossier', current: 200, target: 1000, targetDate: '2025-01-01' }], totalTarget: 1000, totalCurrent: 200, progressPct: 20 }
+    })
+    const r = await analyzeBudget('2026-05')
+    assertMinimumOutputs(r)
+    assert.strictEqual(r.goalProjections[0].deadline.status, 'past', 'expected past deadline status')
+    assert(/échéance de Dossier est passée/i.test(r.naturalAnalysis), 'expected past deadline warning')
+  }
+})
+
+tests.push({
   name: 'cas limite aucun objectif existant',
   fn: async () => {
     setMocks({ metrics: { income: 2000, fixed: 800, variable: 600, expenses: 1400, savings: 600 }, primaryGoal: null, goalsSummary: { goals: [], totalTarget: 0, totalCurrent: 0, progressPct: 0 } })

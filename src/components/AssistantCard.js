@@ -616,6 +616,14 @@ async function renderAssistantCard() {
         const currentSpeed = proj.currentMonths !== null ? `${proj.currentMonths} mois` : '–'
         const speed50 = proj.months50 !== null ? `${proj.months50} mois` : '–'
         const speed100 = proj.months100 !== null ? `${proj.months100} mois` : '–'
+        const deadline = proj.deadline || {}
+        const deadlineLabel = deadline.status === 'past'
+          ? 'Échéance passée'
+          : deadline.status === 'reached'
+            ? 'Objectif atteint'
+            : deadline.monthsRemaining
+              ? `${deadline.monthsRemaining} mois restants · ${deadline.monthlyEffort || 0} €/mois`
+              : 'Sans échéance'
 
         let save50 = ''
         if (proj.currentMonths !== null && proj.months50 !== null) {
@@ -635,6 +643,7 @@ async function renderAssistantCard() {
               <span>🎯 ${proj.name}</span>
               <span style="color:var(--gold)">Reste : ${remainingStr}</span>
             </div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.35">${deadlineLabel}</div>
             <div class="proj-speeds">
               <div class="proj-speed-item recommended">
                 <span class="proj-speed-label">Rythme actuel</span>
