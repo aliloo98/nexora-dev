@@ -2960,7 +2960,7 @@ function updateAll(){
   document.getElementById('kpi-fixes').textContent=fmt(fixReel);
 
   const fixesPct = revReel>0?Math.round(fixReel/revReel*100):0;
-  document.getElementById('kpi-fixes-pct').textContent=fixesPct+'% des revenus';
+  document.getElementById('kpi-fixes-pct').textContent = revReel > 0 ? fixesPct+'% des revenus' : 'Ajoutez vos revenus pour commencer';
 
   const cardFixes = document.getElementById('card-fixes');
   if (cardFixes) {
@@ -2971,7 +2971,7 @@ function updateAll(){
 
   document.getElementById('kpi-variables').textContent=fmt(varReel);
   const variablesPct = revReel>0?Math.round(varReel/revReel*100):0;
-  document.getElementById('kpi-variables-pct').textContent=variablesPct+'% des revenus';
+  document.getElementById('kpi-variables-pct').textContent = revReel > 0 ? variablesPct+'% des revenus' : 'Données insuffisantes';
 
   const cardVars = document.getElementById('card-variables');
   if (cardVars) {
@@ -3013,13 +3013,16 @@ function updateAll(){
   const pctObjectif = targetEp > 0 ? Math.round((solde / targetEp) * 100) : 0;
 
   const epEl=document.getElementById('kpi-epargne');
-  epEl.textContent=tauxEp+'%';
+  epEl.textContent = revReel > 0 ? tauxEp+'%' : '—';
 
   const cardEpargne = document.getElementById('card-epargne');
   const celebrateStar = document.getElementById('epargne-celebrate-star');
   if (cardEpargne) {
     cardEpargne.classList.remove('success-status', 'warning-status', 'danger-status');
-    if (pctObjectif >= 100) {
+    if (revReel <= 0) {
+      epEl.className = 'kpi-value';
+      if (celebrateStar) celebrateStar.style.display = 'none';
+    } else if (pctObjectif >= 100) {
       cardEpargne.classList.add('success-status');
       epEl.className = 'kpi-value positive';
       if (celebrateStar) celebrateStar.style.display = 'inline-block';
@@ -3033,24 +3036,30 @@ function updateAll(){
       if (celebrateStar) celebrateStar.style.display = 'none';
     }
   }
-  document.getElementById('kpi-epargne-sub').textContent = `Objectif : ${fmt(targetEp)} — ${pctObjectif}% atteint`;
-  updateCircularGauge(pctObjectif);
+  document.getElementById('kpi-epargne-sub').textContent = revReel > 0
+    ? `Objectif : ${fmt(targetEp)} — ${pctObjectif}% atteint`
+    : 'Budget à compléter';
+  updateCircularGauge(revReel > 0 ? pctObjectif : 0);
   if (typeof updateSimulation === 'function') updateSimulation();
 
   // Dynamic automatic confetti trigger
-  if (pctObjectif >= 100 && (!window.lastSavingsGoalPct || window.lastSavingsGoalPct < 100)) {
+  if (revReel > 0 && pctObjectif >= 100 && (!window.lastSavingsGoalPct || window.lastSavingsGoalPct < 100)) {
     triggerConfetti();
   }
   window.lastSavingsGoalPct = pctObjectif;
 
   // Taux de charges card
   const tauxEl=document.getElementById('kpi-taux');
-  tauxEl.textContent=tauxCh+'%';
+  tauxEl.textContent = revReel > 0 ? tauxCh+'%' : '—';
+  const tauxSub = document.querySelector('#card-taux .kpi-sub');
+  if (tauxSub) tauxSub.textContent = revReel > 0 ? 'Fixes + variables' : 'Données insuffisantes';
 
   const cardTaux = document.getElementById('card-taux');
   if (cardTaux) {
     cardTaux.classList.remove('success-status', 'warning-status', 'danger-status');
-    if (tauxCh <= 70) {
+    if (revReel <= 0) {
+      tauxEl.className = 'kpi-value';
+    } else if (tauxCh <= 70) {
       cardTaux.classList.add('success-status');
       tauxEl.className = 'kpi-value positive';
     } else if (tauxCh <= 85) {
@@ -3071,13 +3080,13 @@ function updateAll(){
 
   const epBar = document.getElementById('kpi-epargne-bar');
   if (epBar) {
-    epBar.style.width = Math.max(0, Math.min(pctObjectif, 100)) + '%';
+    epBar.style.width = revReel > 0 ? Math.max(0, Math.min(pctObjectif, 100)) + '%' : '0%';
     epBar.style.backgroundColor = pctObjectif >= 100 ? 'var(--green)' : pctObjectif >= 50 ? 'var(--orange)' : 'var(--red)';
   }
 
   const tauxBar = document.getElementById('kpi-taux-bar');
   if (tauxBar) {
-    tauxBar.style.width = Math.min(tauxCh, 100) + '%';
+    tauxBar.style.width = revReel > 0 ? Math.min(tauxCh, 100) + '%' : '0%';
     tauxBar.style.backgroundColor = tauxCh <= 70 ? 'var(--green)' : tauxCh <= 85 ? 'var(--orange)' : 'var(--red)';
   }
 
@@ -3250,7 +3259,10 @@ function updateDashboardGuidance(metrics) {
 
   let watchTitle = 'Rien de critique';
   let watchText = `${fmt(totalDepRestant)} restent à payer.`;
-  if (soldeEstime < 0) {
+  if (revReel === 0) {
+    watchTitle = 'Données insuffisantes';
+    watchText = 'Ajoutez vos revenus pour commencer.';
+  } else if (soldeEstime < 0) {
     watchTitle = 'Solde actuel négatif';
     watchText = 'Les paiements déjà saisis dépassent les revenus disponibles.';
   } else if (fixesPct > 60) {
@@ -3293,19 +3305,29 @@ async function updateDashboardPrimaryGoal() {
 
   if (!goal) {
     panel.classList.add('is-empty');
-    setDashboardGuidanceText('dashboard-primary-goal-name', 'Aucun objectif');
-    setDashboardGuidanceText('dashboard-primary-goal-pct', '0%');
-    setDashboardGuidanceText('dashboard-primary-goal-current', '0 €');
-    setDashboardGuidanceText('dashboard-primary-goal-target', '0 €');
-    setDashboardGuidanceText('dashboard-primary-goal-remaining', '0 €');
-    setDashboardGuidanceText('dashboard-primary-goal-date', 'Non définie');
-    setDashboardGuidanceText('dashboard-primary-goal-estimate', 'Non défini');
+    setDashboardGuidanceText('dashboard-primary-goal-name', 'Aucun objectif configuré');
+    setDashboardGuidanceText('dashboard-primary-goal-pct', '—');
+    setDashboardGuidanceText('dashboard-primary-goal-current', '—');
+    setDashboardGuidanceText('dashboard-primary-goal-target', '—');
+    setDashboardGuidanceText('dashboard-primary-goal-remaining', '—');
+    setDashboardGuidanceText('dashboard-primary-goal-date', '—');
+    setDashboardGuidanceText('dashboard-primary-goal-estimate', '—');
     const bar = document.getElementById('dashboard-primary-goal-bar');
     if (bar) bar.style.width = '0%';
+    if (!document.getElementById('dashboard-goal-create-btn')) {
+      const createBtn = document.createElement('button');
+      createBtn.type = 'button';
+      createBtn.id = 'dashboard-goal-create-btn';
+      createBtn.className = 'btn btn-gold dashboard-goal-create-btn';
+      createBtn.textContent = 'Créer un objectif';
+      createBtn.onclick = () => showSection('objectifs');
+      panel.appendChild(createBtn);
+    }
     return;
   }
 
   panel.classList.remove('is-empty');
+  document.getElementById('dashboard-goal-create-btn')?.remove();
   const current = Number(goal.current) || 0;
   const target = Number(goal.target) || 0;
   const pct = target > 0 ? Math.min(100, Math.max(0, Math.round(current / target * 100))) : 0;

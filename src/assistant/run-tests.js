@@ -127,7 +127,7 @@ tests.push({
     assert.strictEqual(r.metadata.fixedRate, null, 'expected fixedRate null when revenue is zero')
     assert.strictEqual(r.metadata.variableRate, null, 'expected variableRate null when revenue is zero')
     assert.strictEqual(r.metadata.totalChargesRate, null, 'expected totalChargesRate null when revenue is zero')
-    assert.strictEqual(r.currentSituation, 'Données insuffisantes : aucun revenu saisi pour ce cycle.', 'expected insufficient data message when income is zero')
+    assert.strictEqual(r.currentSituation, 'Ajoutez vos revenus pour commencer : le budget est à compléter avant analyse.', 'expected incomplete budget message when income is zero')
   }
 })
 
@@ -140,7 +140,7 @@ tests.push({
     assert.strictEqual(r.metadata.fixedRate, null, 'expected fixedRate null when revenue is zero')
     assert.strictEqual(r.metadata.variableRate, null, 'expected variableRate null when revenue is zero')
     assert.strictEqual(r.metadata.totalChargesRate, null, 'expected totalChargesRate null when revenue is zero')
-    assert(r.alerts.some(a => /Solde prévisionnel négatif/i.test(a)), 'expected negative balance alert on revenue zero with charges')
+    assert(!r.alerts.some(a => /Solde prévisionnel négatif/i.test(a)), 'expected no negative balance alert before revenue is entered')
   }
 })
 

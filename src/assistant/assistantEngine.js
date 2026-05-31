@@ -151,7 +151,7 @@ async function analyzeBudget(monthKey) {
           : '🔴 Situation critique'
 
   const currentSituation = rev <= 0
-    ? 'Données insuffisantes : aucun revenu saisi pour ce cycle.'
+    ? 'Ajoutez vos revenus pour commencer : le budget est à compléter avant analyse.'
     : savings < 0
       ? `Attention, ce cycle risque de se terminer avec un déficit estimé de ${Math.abs(savings)} €.`
       : savings <= 100
@@ -431,9 +431,6 @@ async function analyzeBudget(monthKey) {
   if (rev <= 0) {
     insights.push('Aucun revenu saisi pour le mois.')
     recommendations.push('Saisissez vos revenus pour activer l’analyse.')
-    if (savings < 0) {
-      pushAlert('deficit', `Attention, ce cycle risque de se terminer avec un déficit estimé de ${Math.abs(savings)} €.`, 'Solde prévisionnel négatif', 100, 'Saisissez vos revenus pour estimer votre solde réel.')
-    }
   } else {
     insights.push(`Revenus: ${rev} € — Taux d’épargne estimé ${savingsRate}%`)
     if (savings >= 0) insights.push(`Solde estimé positif: ${savings} €`)

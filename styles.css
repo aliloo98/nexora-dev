@@ -557,6 +557,12 @@ body,
   opacity: 0.75;
 }
 
+.dashboard-goal-create-btn {
+  align-self: flex-start;
+  margin-top: 10px;
+  max-width: 220px;
+}
+
 @media(max-width: 992px) {
   .dash-row {
     grid-template-columns: 1fr;
