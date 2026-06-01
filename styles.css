@@ -359,6 +359,11 @@ body.mode-simple .simple-dashboard-grid {
 
 body.mode-simple .kpi-grid,
 body.mode-simple .dash-row,
+body.mode-simple .dashboard-action-center,
+body.mode-simple .dashboard-primary-goal,
+body.mode-simple .analytics-premium,
+body.mode-simple .simulator-block,
+body.mode-simple .print-actions-container,
 body.mode-simple .assistant-kpis,
 body.mode-simple .assistant-advanced-insights,
 body.mode-simple .assistant-charts-section,
@@ -366,10 +371,6 @@ body.mode-simple .assistant-projections-section,
 body.mode-simple .assistant-forecast-section,
 body.mode-simple .assistant-timeline-section {
   display: none !important;
-}
-
-body.mode-simple .dashboard-action-center {
-  margin-bottom: 16px;
 }
 
 body.mode-simple .action-center-grid,
