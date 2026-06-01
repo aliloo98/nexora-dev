@@ -11,6 +11,11 @@ const MUTED = [100, 116, 139];
 const GREEN = [22, 163, 74];
 const RED = [220, 38, 38];
 const PDF_LOGO_SIZE = 128;
+const SECTION_ACCENTS = {
+  Revenus: GREEN,
+  'Charges fixes': RED,
+  'Dépenses variables': [234, 88, 12]
+};
 
 const euroFormatter = new Intl.NumberFormat('fr-FR', {
   style: 'currency',
@@ -147,6 +152,27 @@ const getLabelText = (label) => {
 const truncate = (value, maxLength = 58) => {
   const text = sanitize(value);
   return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
+};
+
+const wrapText = (value, maxLength = 52, maxLines = 2) => {
+  const words = sanitize(value).split(' ').filter(Boolean);
+  const lines = [];
+  let current = '';
+  words.forEach(word => {
+    const next = current ? `${current} ${word}` : word;
+    if (next.length <= maxLength) {
+      current = next;
+      return;
+    }
+    if (current) lines.push(current);
+    current = word;
+  });
+  if (current) lines.push(current);
+  if (lines.length <= maxLines) return lines;
+  return [
+    ...lines.slice(0, maxLines - 1),
+    truncate(lines.slice(maxLines - 1).join(' '), maxLength)
+  ];
 };
 
 const toHex = (bytes) => Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
@@ -359,60 +385,79 @@ class PdfDocument {
 
 const addHeader = (pdf, data) => {
   const centerX = PAGE_WIDTH / 2;
-  pdf.rect(0, PAGE_HEIGHT - 178, PAGE_WIDTH, 178, NAVY);
-  pdf.rect(0, PAGE_HEIGHT - 180, PAGE_WIDTH, 4, GOLD);
+  pdf.rect(0, PAGE_HEIGHT - 184, PAGE_WIDTH, 184, NAVY);
+  pdf.rect(0, PAGE_HEIGHT - 184, PAGE_WIDTH, 5, GOLD);
   if (pdf.images.Logo) {
-    pdf.image('Logo', centerX - 18, PAGE_HEIGHT - 58, 36, 36);
+    pdf.image('Logo', centerX - 18, PAGE_HEIGHT - 59, 36, 36);
   } else {
-    pdf.rect(centerX - 18, PAGE_HEIGHT - 58, 36, 36, GOLD);
-    pdf.centerText('N', centerX, PAGE_HEIGHT - 45, { size: 17, bold: true, fillColor: NAVY });
+    pdf.rect(centerX - 18, PAGE_HEIGHT - 59, 36, 36, GOLD);
+    pdf.centerText('N', centerX, PAGE_HEIGHT - 46, { size: 17, bold: true, fillColor: NAVY });
   }
-  pdf.centerText('NEXORA', centerX, PAGE_HEIGHT - 82, { size: 24, bold: true, fillColor: [255, 255, 255] });
-  pdf.centerText('Rapport Premium Budget Mensuel', centerX, PAGE_HEIGHT - 105, { size: 12, fillColor: [226, 232, 240] });
-  pdf.centerText(data.reportMonthLabel || data.monthLabel, centerX, PAGE_HEIGHT - 126, { size: 15, bold: true, fillColor: [255, 255, 255] });
+  pdf.centerText('NEXORA', centerX, PAGE_HEIGHT - 82, { size: 25, bold: true, fillColor: [255, 255, 255] });
+  pdf.centerText('Rapport Premium Budget Mensuel', centerX, PAGE_HEIGHT - 106, { size: 12, fillColor: [226, 232, 240] });
+  pdf.centerText(data.reportMonthLabel || data.monthLabel, centerX, PAGE_HEIGHT - 128, { size: 15, bold: true, fillColor: [255, 255, 255] });
 
   if (data.cycleLabel) {
-    pdf.centerText('Cycle budgétaire', centerX, PAGE_HEIGHT - 148, { size: 9, bold: true, fillColor: GOLD });
-    pdf.centerText(data.cycleLabel, centerX, PAGE_HEIGHT - 162, { size: 9, fillColor: [226, 232, 240] });
+    pdf.centerText('Cycle budgétaire', centerX, PAGE_HEIGHT - 151, { size: 9, bold: true, fillColor: GOLD });
+    pdf.centerText(data.cycleLabel, centerX, PAGE_HEIGHT - 166, { size: 9, fillColor: [226, 232, 240] });
   }
-  pdf.centerText(`Généré le ${data.generatedAt.toLocaleDateString('fr-FR')}`, centerX, PAGE_HEIGHT - 174, { size: 8, fillColor: [203, 213, 225] });
-  pdf.y = PAGE_HEIGHT - 206;
+  pdf.centerText(`Généré le ${data.generatedAt.toLocaleDateString('fr-FR')}`, centerX, PAGE_HEIGHT - 180, { size: 8, fillColor: [203, 213, 225] });
+  pdf.y = PAGE_HEIGHT - 214;
+};
+
+const addExecutiveSummary = (pdf, totals) => {
+  pdf.ensure(70);
+  const balanceColor = totals.balance >= 0 ? GREEN : RED;
+  pdf.rect(MARGIN, pdf.y - 58, PAGE_WIDTH - MARGIN * 2, 58, SOFT_GOLD, BORDER);
+  pdf.rect(MARGIN, pdf.y - 58, 5, 58, balanceColor);
+  pdf.text('Résumé exécutif', MARGIN + 18, pdf.y - 20, { size: 10, bold: true, fillColor: NAVY });
+  pdf.text(`Ce mois-ci vous disposez d’un solde prévisionnel de ${formatCurrency(totals.balance)}.`, MARGIN + 18, pdf.y - 40, { size: 12, bold: true, fillColor: TEXT });
+  pdf.y -= 82;
 };
 
 const addSummary = (pdf, totals) => {
   const cards = [
-    ['Revenus totaux', totals.income, GREEN],
+    ['Revenus', totals.income, GREEN],
     ['Charges fixes', totals.fixed, RED],
-    ['Dépenses variables', totals.variable, RED],
-    ['Solde', totals.balance, totals.balance >= 0 ? GREEN : RED]
+    ['Dépenses variables', totals.variable, [234, 88, 12]],
+    ['Solde prévisionnel', totals.balance, totals.balance >= 0 ? GREEN : RED]
   ];
   const gap = 10;
   const width = (PAGE_WIDTH - MARGIN * 2 - gap * 3) / 4;
   cards.forEach(([label, value, valueColor], index) => {
     const x = MARGIN + index * (width + gap);
-    pdf.rect(x, pdf.y - 64, width, 64, LIGHT_BG, BORDER);
-    pdf.text(label, x + 12, pdf.y - 24, { size: 8, bold: true, fillColor: MUTED });
+    pdf.rect(x, pdf.y - 68, width, 68, LIGHT_BG, BORDER);
+    pdf.rect(x, pdf.y - 6, width, 6, valueColor);
+    pdf.text(label, x + 12, pdf.y - 26, { size: 8, bold: true, fillColor: MUTED });
     pdf.rightText(formatCurrency(value), x + width - 12, pdf.y - 48, { size: 11, bold: true, fillColor: valueColor });
   });
-  pdf.y -= 92;
+  pdf.y -= 96;
 };
 
 const addSection = (pdf, section) => {
-  pdf.ensure(52);
-  pdf.text(section.title, MARGIN, pdf.y, { size: 14, bold: true, fillColor: NAVY });
-  pdf.y -= 18;
-  pdf.rect(MARGIN, pdf.y - 22, PAGE_WIDTH - MARGIN * 2, 22, SOFT_GOLD);
-  pdf.text('Nom', MARGIN + 12, pdf.y - 14, { size: 9, bold: true, fillColor: NAVY });
+  pdf.ensure(64);
+  const accent = SECTION_ACCENTS[section.title] || GOLD;
+  pdf.rect(MARGIN, pdf.y - 30, PAGE_WIDTH - MARGIN * 2, 30, NAVY);
+  pdf.rect(MARGIN, pdf.y - 30, 5, 30, accent);
+  pdf.text(section.title, MARGIN + 14, pdf.y - 19, { size: 13, bold: true, fillColor: [255, 255, 255] });
+  pdf.rightText(formatCurrency(section.total), PAGE_WIDTH - MARGIN - 12, pdf.y - 19, { size: 11, bold: true, fillColor: [255, 255, 255] });
+  pdf.y -= 42;
+  pdf.rect(MARGIN, pdf.y - 22, PAGE_WIDTH - MARGIN * 2, 22, SOFT_GOLD, BORDER);
+  pdf.text('Catégorie', MARGIN + 12, pdf.y - 14, { size: 9, bold: true, fillColor: NAVY });
   pdf.rightText('Montant', PAGE_WIDTH - MARGIN - 12, pdf.y - 14, { size: 9, bold: true, fillColor: NAVY });
-  pdf.y -= 28;
+  pdf.y -= 30;
 
   section.rows.forEach((row, index) => {
-    pdf.ensure(24);
-    if (index % 2 === 1) pdf.rect(MARGIN, pdf.y - 16, PAGE_WIDTH - MARGIN * 2, 20, LIGHT_BG);
-    pdf.text(truncate(row.name), MARGIN + 12, pdf.y - 10, { size: 9, fillColor: TEXT });
+    const nameLines = wrapText(row.name, 54, 2);
+    const rowHeight = Math.max(24, 14 + nameLines.length * 11);
+    pdf.ensure(rowHeight + 6);
+    if (index % 2 === 1) pdf.rect(MARGIN, pdf.y - rowHeight + 4, PAGE_WIDTH - MARGIN * 2, rowHeight, LIGHT_BG);
+    nameLines.forEach((line, lineIndex) => {
+      pdf.text(line, MARGIN + 12, pdf.y - 10 - (lineIndex * 11), { size: 9, fillColor: TEXT });
+    });
     pdf.rightText(formatCurrency(row.amount), PAGE_WIDTH - MARGIN - 12, pdf.y - 10, { size: 9, bold: row.amount !== 0, fillColor: row.amount === 0 ? MUTED : TEXT });
-    pdf.line(MARGIN, pdf.y - 20, PAGE_WIDTH - MARGIN, pdf.y - 20, BORDER);
-    pdf.y -= 22;
+    pdf.line(MARGIN, pdf.y - rowHeight, PAGE_WIDTH - MARGIN, pdf.y - rowHeight, BORDER);
+    pdf.y -= rowHeight + 2;
   });
 
   pdf.ensure(30);
@@ -497,6 +542,7 @@ const generateMonthlyBudgetPdf = () => {
   const data = collectBudgetData();
   const pdf = new PdfDocument();
   addHeader(pdf, data);
+  addExecutiveSummary(pdf, data.totals);
   addSummary(pdf, data.totals);
   data.sections.forEach(section => addSection(pdf, section));
   return {
@@ -510,6 +556,7 @@ const generateMonthlyBudgetPdfPremium = async () => {
   const pdf = new PdfDocument();
   pdf.addImage('Logo', await loadLogoForPdf());
   addHeader(pdf, data);
+  addExecutiveSummary(pdf, data.totals);
   addSummary(pdf, data.totals);
   data.sections.forEach(section => addSection(pdf, section));
   return {
@@ -531,4 +578,4 @@ export const NexoraPdfExport = {
   exportMonthlyBudgetPdf
 };
 
-export { PdfDocument, addHeader, addSummary, addSection, loadLogoForPdf, collectBudgetData };
+export { PdfDocument, addHeader, addExecutiveSummary, addSummary, addSection, loadLogoForPdf, collectBudgetData };
