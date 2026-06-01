@@ -43,6 +43,9 @@ import { renderDashboardMaster } from './components/DashboardMaster.js'
 import { renderAdvisorUI } from './advisor/AdvisorUI.js'
 import CoupleOverlay from './couple/coupleOverlay.js'
 import { renderTreasuryPlanner } from './components/TreasuryPlannerUI.js'
+import { renderPlanHub } from './plan/PlanHubUI.js'
+import { renderSettingsPanels, renderRecurringIncomeSettings, renderBillScheduleSettings } from './settings/SettingsUI.js'
+import { CoupleService } from './couple/coupleService.js'
 
 // Expose modules globally for HTML event handlers and old code
 window.StorageManager = StorageManager
@@ -78,6 +81,86 @@ window.showToast = (msg) => Utils.showToast(msg)
 window.closeModal = () => Utils.closeModal()
 window.customConfirm = (title, message, onConfirm) => Utils.customConfirm(title, message, onConfirm)
 window.triggerConfetti = () => ConfettiEngine.trigger()
+
+window.setCoupleFallbackMessage = (message) => {
+  const banner = document.getElementById('couple-fallback-message')
+  if (!banner) return
+  banner.textContent = message
+  banner.style.display = 'block'
+}
+
+window.renderCoupleSection = async () => {
+  const section = document.getElementById('section-couple')
+  if (!section) return
+
+  const user = AuthContext.getState()?.user
+  const status = await CoupleService.getCombinedStatus(user)
+
+  if (status.status === 'couple_actif') {
+    const monthlyBudget = await TransactionsService.getBudgetMonth(new Date().toISOString().slice(0, 7)).catch(() => ({}))
+    const user1Income = Number(monthlyBudget.rev_ali) || 0
+    const user2Income = Number(monthlyBudget.rev_megane) || 0
+    const commonExpenses = Object.entries(monthlyBudget).reduce((total, [key, value]) => {
+      if (typeof value === 'number' || typeof value === 'string') {
+        if (!key.startsWith('rev_')) {
+          return total + Number(value || 0)
+        }
+      }
+      return total
+    }, 0)
+    const commonIncome = user1Income + user2Income
+    const remaining = commonIncome - commonExpenses
+
+    section.style.display = 'block'
+    section.innerHTML = `
+      <div class="budget-block">
+        <div class="budget-block-header">
+          <span class="budget-block-title">❤️ Budget couple</span>
+          <span style="font-size:12px;color:var(--text2)">Partage local et aperçu des finances du foyer</span>
+        </div>
+        <div style="padding:16px;display:grid;gap:16px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;">
+            <div class="kpi-card"><div class="kpi-icon">💰</div><div class="kpi-label">Revenus foyer</div><div class="kpi-value">${commonIncome.toLocaleString('fr-FR')} €</div></div>
+            <div class="kpi-card"><div class="kpi-icon">📉</div><div class="kpi-label">Charges communes</div><div class="kpi-value">${commonExpenses.toLocaleString('fr-FR')} €</div></div>
+            <div class="kpi-card"><div class="kpi-icon">✨</div><div class="kpi-label">Reste disponible</div><div class="kpi-value">${remaining.toLocaleString('fr-FR')} €</div></div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:flex-start;">
+            <button class="btn btn-outline" type="button" onclick="showSection('plan')">Retour au Plan</button>
+            <button class="btn btn-outline" type="button" onclick="showSection('parametres')">Paramètres couple</button>
+          </div>
+        </div>
+      </div>
+    `
+  } else {
+    section.style.display = 'none'
+  }
+}
+
+window.updateCoupleNavigation = async () => {
+  try {
+    const coupleNav = document.querySelector('.sidebar .nav-btn[data-section="couple"]')
+    const user = AuthContext.getState()?.user
+    const status = await CoupleService.getCombinedStatus(user)
+    const isVisible = status.status === 'couple_actif'
+
+    if (coupleNav) {
+      coupleNav.style.display = isVisible ? 'inline-flex' : 'none'
+    }
+
+    if (typeof window.renderCoupleSection === 'function') {
+      await window.renderCoupleSection()
+    }
+
+    window.__isCoupleTabVisible = isVisible
+    if (!isVisible) {
+      window.setCoupleFallbackMessage('Mode couple bientôt disponible / activez-le depuis les réglages')
+    }
+    return isVisible
+  } catch (error) {
+    console.warn('[Couple] update nav failed', error)
+    return false
+  }
+}
 
 /**
  * Inject Authentication Styles
@@ -151,6 +234,23 @@ const initApp = async () => {
     // Initialize Goals premium section (separate layer)
     if (typeof GoalsPage !== 'undefined' && GoalsPage && typeof GoalsPage.init === 'function') {
       await GoalsPage.init()
+    }
+
+    if (typeof renderPlanHub === 'function' && document.getElementById('plan-root')) {
+      await renderPlanHub('plan-root')
+      window.refreshPlanHub = async () => renderPlanHub('plan-root')
+    }
+
+    if (typeof renderSettingsPanels === 'function') {
+      await renderSettingsPanels()
+    }
+
+    if (typeof window.updateCoupleNavigation === 'function') {
+      await window.updateCoupleNavigation()
+    }
+
+    if (typeof window.renderCoupleSection === 'function') {
+      await window.renderCoupleSection()
     }
 
     // Sync user app settings from cloud/local where applicable
@@ -245,10 +345,15 @@ const initApp = async () => {
         const TreasuryService = (await import('./treasury/treasuryService.js')).default
         renderDashboardMaster('dashboard-master-root', TreasuryService)
       }
-      // Render Advisor UI if present
+      // Render Advisor UI if present in dashboard
       if (typeof renderAdvisorUI === 'function' && document.getElementById('advisor-root')) {
         const AdvisorService = (await import('./advisor/advisorService.js')).default
         renderAdvisorUI('advisor-root', AdvisorService)
+      }
+      // Render Nexora page advisor if present
+      if (typeof renderAdvisorUI === 'function' && document.getElementById('nexora-page-root')) {
+        const AdvisorService = (await import('./advisor/advisorService.js')).default
+        renderAdvisorUI('nexora-page-root', AdvisorService)
       }
     } catch (err) {
       console.warn('[Treasury] render failed', err)

@@ -15,6 +15,27 @@ import { StorageManager } from '../../js/storage.js'
 
 const COUPLE_CACHE_KEY = 'nexora_couple_cache'
 const COUPLE_TTL = 5 * 60 * 1000 // 5 minutes
+const LOCAL_COUPLE_KEY = 'nexora_couple_household'
+
+const parseLocalHousehold = () => {
+  try {
+    const raw = localStorage.getItem(LOCAL_COUPLE_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch (error) {
+    console.warn('[CoupleService] invalid local household payload', error)
+    return null
+  }
+}
+
+const saveLocalHousehold = (payload) => {
+  try {
+    localStorage.setItem(LOCAL_COUPLE_KEY, JSON.stringify(payload))
+    return payload
+  } catch (error) {
+    console.warn('[CoupleService] failed to save local household', error)
+    return null
+  }
+}
 
 export const CoupleService = {
   /**
@@ -336,6 +357,52 @@ export const CoupleService = {
    */
   async clearCache() {
     await StorageManager.removeItem(COUPLE_CACHE_KEY)
+  },
+
+  getLocalHousehold() {
+    return parseLocalHousehold()
+  },
+
+  enableLocalCouple(partnerEmail) {
+    const household = {
+      status: 'active',
+      partnerEmail: partnerEmail || 'partenaire@nexora.app',
+      createdAt: new Date().toISOString(),
+      invitationCode: `NEXORA-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
+    }
+    return saveLocalHousehold(household)
+  },
+
+  disableLocalCouple() {
+    localStorage.removeItem(LOCAL_COUPLE_KEY)
+    return null
+  },
+
+  async getCombinedStatus(user) {
+    const local = this.getLocalHousehold()
+    if (local?.status === 'active') {
+      return {
+        status: 'couple_actif',
+        details: {
+          couple: {
+            status: 'active',
+            partnerEmail: local.partnerEmail,
+            local: true,
+            createdAt: local.createdAt
+          }
+        }
+      }
+    }
+
+    return await this.getActiveCoupleForUser(user?.id).then((result) => {
+      if (result?.couple) {
+        return { status: 'couple_actif', details: { couple: result.couple } }
+      }
+      return { status: 'aucune_invitation', details: {} }
+    }).catch((error) => {
+      console.warn('[CoupleService] combined status failed', error)
+      return { status: 'erreur', details: { error: error.message } }
+    })
   }
 }
 

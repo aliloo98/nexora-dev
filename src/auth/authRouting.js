@@ -22,7 +22,7 @@ export const RouteGuard = {
    * @returns {boolean} True if route requires auth
    */
   requiresAuth(routeName) {
-    const protectedRoutes = ['dashboard', 'saisie', 'historique', 'parametres', 'couple']
+    const protectedRoutes = ['dashboard', 'saisie', 'historique', 'plan', 'nexora', 'parametres', 'couple']
     return protectedRoutes.includes(routeName)
   },
 
@@ -151,7 +151,7 @@ export const NavigationMiddleware = {
    * Validate all protected sections on init
    */
   validateProtectedSections() {
-    const protectedSections = ['dashboard', 'saisie', 'historique', 'parametres', 'couple']
+    const protectedSections = ['dashboard', 'saisie', 'historique', 'plan', 'nexora', 'parametres', 'couple']
 
     protectedSections.forEach(section => {
       const element = document.getElementById(`section-${section}`)

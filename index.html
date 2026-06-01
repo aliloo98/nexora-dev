@@ -25,10 +25,10 @@
     <img src="/icon-192.png" alt="NEXORA">
   </div>
   <a href="#section-dashboard" class="nav-btn active" data-section="dashboard" onclick="showSection('dashboard'); return false;" title="Tableau de bord" aria-label="Tableau de bord">🏠</a>
-  <a href="#section-saisie" class="nav-btn" data-section="saisie" onclick="showSection('saisie'); return false;" title="Saisie du mois" aria-label="Saisie du mois">✏️</a>
-  <a href="#section-historique" class="nav-btn" data-section="historique" onclick="showSection('historique'); return false;" title="Historique" aria-label="Historique">📚</a>
-  <a href="#section-objectifs" class="nav-btn" data-section="objectifs" onclick="showSection('objectifs'); return false;" title="Objectifs" aria-label="Objectifs">🎯</a>
-  <a href="#section-dettes" class="nav-btn" data-section="dettes" onclick="showSection('dettes'); return false;" title="Dettes" aria-label="Dettes">💳</a>
+  <a href="#section-saisie" class="nav-btn" data-section="saisie" onclick="showSection('saisie'); return false;" title="Budget" aria-label="Budget">✏️</a>
+  <a href="#section-plan" class="nav-btn" data-section="plan" onclick="showSection('plan'); return false;" title="Plan" aria-label="Plan">📈</a>
+  <a href="#section-nexora" class="nav-btn" data-section="nexora" onclick="showSection('nexora'); return false;" title="Conseiller Nexora" aria-label="Conseiller Nexora">🤖</a>
+  <a href="#section-couple" class="nav-btn couple-nav-btn" data-section="couple" onclick="showSection('couple'); return false;" title="Mode couple" aria-label="Mode couple" style="display:none;">❤️</a>
   <a href="#section-parametres" class="nav-btn" data-section="parametres" onclick="showSection('parametres'); return false;" title="Paramètres" aria-label="Paramètres">⚙️</a>
 </nav>
 
@@ -585,6 +585,26 @@
     </div>
   </div>
 
+  <div id="section-plan" class="section">
+    <div class="budget-block">
+      <div class="budget-block-header">
+        <span class="budget-block-title">📈 Plan financier</span>
+        <span style="font-size:12px;color:var(--text2)">Regarde tes objectifs, échéances et priorités en un seul endroit</span>
+      </div>
+      <div id="plan-root" style="padding:16px"></div>
+    </div>
+  </div>
+
+  <div id="section-nexora" class="section">
+    <div class="budget-block">
+      <div class="budget-block-header">
+        <span class="budget-block-title">🤖 Nexora</span>
+        <span style="font-size:12px;color:var(--text2)">Conseiller budgétaire intelligent</span>
+      </div>
+      <div id="nexora-page-root" style="padding:16px"></div>
+    </div>
+  </div>
+
   <!-- OBJECTIFS -->
   <div id="section-objectifs" class="section">
     <div class="budget-block">
@@ -1015,6 +1035,31 @@
         </div>
         <div id="notification-list" class="notification-list">Aucune notification pour le moment</div>
       </div>
+    </div>
+
+    <div class="param-block">
+      <div class="param-title">Revenus récurrents & échéances</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Revenus récurrents</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Configure les revenus qui reviennent chaque mois.</div>
+        </div>
+        <button class="btn btn-outline" type="button" onclick="renderRecurringIncomeSettings()">Gérer</button>
+      </div>
+      <div id="recurring-incomes-root" style="margin-top:14px"></div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Échéances de charges</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Ajoute des dates et des priorités pour améliorer ton plan de trésorerie.</div>
+        </div>
+        <button class="btn btn-outline" type="button" onclick="renderBillScheduleSettings()">Gérer</button>
+      </div>
+      <div id="bill-schedule-root" style="margin-top:14px"></div>
+    </div>
+
+    <div class="param-block">
+      <div class="param-title">Mode couple</div>
+      <div id="couple-mode-settings-root" style="margin-top:12px"></div>
     </div>
 
     <!-- PERSONNALISATION -->
@@ -4114,10 +4159,22 @@ function showSection(id){
     buildHistory();
   }
 
+  if (id === 'plan' && typeof window.refreshPlanHub === 'function') {
+    window.refreshPlanHub().catch(() => {})
+  }
+
   if (id === 'objectifs' && window.GoalsPage?.refreshFromCloud) {
     window.GoalsPage.refreshFromCloud().catch((err) => {
       console.warn('[GoalsPage] Cloud refresh failed', err);
     });
+  }
+
+  if (id === 'nexora' && typeof window.renderAdvisorUI === 'function') {
+    // no-op; rendered once at init
+  }
+
+  if (id === 'couple' && typeof window.renderCoupleSection === 'function') {
+    window.renderCoupleSection().catch?.(() => {})
   }
 
   if (id === 'parametres' && typeof syncBudgetCycleSettingsFromCloud === 'function') {

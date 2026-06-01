@@ -15,6 +15,16 @@
 
 import { supabase } from '../supabase.js'
 
+const LOCAL_COUPLE_KEY = 'nexora_couple_household'
+const getLocalCouple = () => {
+  try {
+    const raw = localStorage.getItem(LOCAL_COUPLE_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch (error) {
+    return null
+  }
+}
+
 // Generate invitation code
 const generateInvitationCode = () => {
   const rawCode = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
@@ -289,6 +299,20 @@ export const CoupleInvitationService = {
    */
   async getCoupleStatus(userId) {
     try {
+      const local = getLocalCouple()
+      if (local?.status === 'active') {
+        return {
+          status: 'couple_actif',
+          details: {
+            couple: {
+              status: 'active',
+              partnerEmail: local.partnerEmail,
+              local: true
+            }
+          }
+        }
+      }
+
       if (!userId) return { status: 'aucune_invitation', details: {} }
 
       // Check for active couple
