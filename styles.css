@@ -1343,6 +1343,7 @@ body.mode-simple .goal-card-meta {
 .expense-list,
 .top-expenses-list,
 .comparison-list,
+.history-insights-list,
 .goals-list,
 .forecast-list {
   display: grid;
@@ -1498,6 +1499,25 @@ body.mode-simple .goal-card-meta {
 
 .analytics-empty.compact {
   min-height: 80px;
+}
+
+.history-intelligence-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 22px;
+  padding: 18px;
+}
+
+.history-insight-row {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.45;
+  padding: 11px 12px;
 }
 
 @media(max-width: 1100px) {

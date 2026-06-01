@@ -356,6 +356,11 @@
         </section>
 
         <section class="analytics-card">
+          <div class="analytics-card-title">Mémoire financière</div>
+          <div class="history-insights-list" id="analytics-history-insights"></div>
+        </section>
+
+        <section class="analytics-card">
           <div class="analytics-card-title">Objectifs financiers</div>
           <div class="goals-list" id="analytics-goals"></div>
         </section>
@@ -810,6 +815,7 @@
     </div>
 
     <div class="history-comparison-panel" id="history-comparison-panel" style="display:none;"></div>
+    <div class="history-intelligence-panel" id="history-intelligence-panel" style="display:none;"></div>
     <div class="history-grid" id="history-grid"></div>
   </div>
 
@@ -2169,6 +2175,84 @@ function renderComparisons(current, previous) {
   }).join('');
 }
 
+function averageMetric(entries, field) {
+  const values = entries
+    .map(item => Number(item.metrics?.[field] || 0))
+    .filter(value => Number.isFinite(value));
+  if (values.length === 0) return 0;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function getGroupTotalForMonth(group, month, { fromDom = false } = {}) {
+  const data = fromDom ? null : readStoredMonthData(month);
+  return group.keys.reduce((sum, key) => (
+    sum + (fromDom ? getVal(key) : getAmountFromData(data, key))
+  ), 0);
+}
+
+function buildFinancialHistoryInsights(entries) {
+  const usable = entries
+    .filter(item => item.metrics && (item.metrics.income > 0 || item.metrics.expenses > 0 || item.metrics.savings !== 0))
+    .sort((a, b) => a.month.localeCompare(b.month));
+
+  if (usable.length === 0) {
+    return ['Aucune donnée historique pour le moment.'];
+  }
+
+  const latest = usable[usable.length - 1];
+  const previous = usable[usable.length - 2] || null;
+  const best = usable.reduce((winner, item) => item.metrics.savings > winner.metrics.savings ? item : winner, usable[0]);
+  const worst = usable.reduce((loser, item) => item.metrics.savings < loser.metrics.savings ? item : loser, usable[0]);
+  const last3 = usable.slice(-3);
+  const last12 = usable.slice(-12);
+  const insights = [
+    `Meilleur mois : ${best.label || monthShortLabel(best.month)} avec ${fmt(best.metrics.savings)} de solde.`,
+    `Mois le plus fragile : ${worst.label || monthShortLabel(worst.month)} avec ${fmt(worst.metrics.savings)} de solde.`,
+    `Moyenne 3 mois : revenus ${fmt(averageMetric(last3, 'income'))}, dépenses ${fmt(averageMetric(last3, 'expenses'))}, solde ${fmt(averageMetric(last3, 'savings'))}.`
+  ];
+
+  if (last12.length >= 4) {
+    insights.push(`Moyenne 12 mois : revenus ${fmt(averageMetric(last12, 'income'))}, dépenses ${fmt(averageMetric(last12, 'expenses'))}, solde ${fmt(averageMetric(last12, 'savings'))}.`);
+  }
+
+  if (previous) {
+    const expenseDiff = latest.metrics.expenses - previous.metrics.expenses;
+    const incomeDiff = latest.metrics.income - previous.metrics.income;
+    const savingsDiff = latest.metrics.savings - previous.metrics.savings;
+    insights.push(`Évolution dépenses : ${expenseDiff <= 0 ? 'baisse' : 'hausse'} de ${fmt(Math.abs(expenseDiff))} vs mois précédent.`);
+    insights.push(`Évolution revenus : ${incomeDiff >= 0 ? 'hausse' : 'baisse'} de ${fmt(Math.abs(incomeDiff))} vs mois précédent.`);
+    insights.push(`Évolution épargne : ${savingsDiff >= 0 ? 'progression' : 'recul'} de ${fmt(Math.abs(savingsDiff))}.`);
+  }
+
+  if (last3.length === 3) {
+    const decreasingGroup = EXPENSE_GROUPS.find(group => {
+      const values = last3.map(item => getGroupTotalForMonth(group, item.month, { fromDom: item.month === getMonth() }));
+      return values[0] > values[1] && values[1] > values[2] && values[0] > 0;
+    });
+    if (decreasingGroup) {
+      insights.push(`Vos dépenses ${decreasingGroup.name.toLowerCase()} baissent depuis 3 mois.`);
+    }
+  }
+
+  return insights;
+}
+
+function renderFinancialHistoryInsights(entries) {
+  const insights = buildFinancialHistoryInsights(entries);
+  const html = insights.map(text => `<div class="history-insight-row">${text}</div>`).join('');
+  const analyticsContainer = document.getElementById('analytics-history-insights');
+  if (analyticsContainer) analyticsContainer.innerHTML = html;
+
+  const historyPanel = document.getElementById('history-intelligence-panel');
+  if (historyPanel) {
+    historyPanel.style.display = entries.length ? 'block' : 'none';
+    historyPanel.innerHTML = `
+      <div class="history-comparison-title">Mémoire financière</div>
+      <div class="history-insights-list">${html}</div>
+    `;
+  }
+}
+
 function getAnalyticsGoals() {
   const defaults = [
     { name: 'Voyage de noces', target: 5000, current: 0 },
@@ -2262,6 +2346,11 @@ function updatePremiumAnalytics() {
   renderExpenseDonut(getExpenseBreakdown());
   renderTopExpenses();
   renderComparisons(current, previous);
+  renderFinancialHistoryInsights(months.map(item => ({
+    month: item.month,
+    label: monthShortLabel(item.month),
+    metrics: item
+  })));
   renderAnalyticsGoals();
   updateForecast(current);
 }
@@ -4086,10 +4175,12 @@ function buildHistory(){
     const chartBlock = document.getElementById('history-chart-block');
     if (chartBlock) chartBlock.style.display = 'none';
     if (comparison) comparison.style.display = 'none';
+    renderFinancialHistoryInsights([]);
     return;
   }
 
   renderHistoryChart(entries);
+  renderFinancialHistoryInsights(entries);
 
   grid.innerHTML = entries.slice().reverse().map(item => {
     const m = item.metrics;
