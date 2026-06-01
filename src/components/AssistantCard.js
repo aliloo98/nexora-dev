@@ -529,6 +529,7 @@ async function renderAssistantCard() {
   const trajectoryEl = existing.querySelector('#assistant-trajectory')
   const vigilanceList = existing.querySelector('#assistant-vigilance-list')
   const actionList = existing.querySelector('#assistant-action-list')
+  const isSimpleMode = document.body?.classList?.contains('mode-simple')
 
   if (trajectoryEl) {
     trajectoryEl.textContent = result.trajectoryLabel || 'Analyse en cours'
@@ -536,7 +537,8 @@ async function renderAssistantCard() {
   }
 
   if (situationEl) {
-    situationEl.textContent = result.currentSituation || 'Les tendances financières seront affichées ici.'
+    const situation = result.currentSituation || 'Les tendances financières seront affichées ici.'
+    situationEl.textContent = isSimpleMode ? situation.split(/[.!?]/).filter(Boolean)[0].trim() + '.' : situation
   }
 
   // Populate formatted structured bullet points for Analysis
@@ -595,7 +597,6 @@ async function renderAssistantCard() {
   }
 
   // Vigilance -> show natural alert phrases
-  const isSimpleMode = document.body?.classList?.contains('mode-simple')
   renderItems(vigilanceList, result.alertDisplay || result.alerts, isSimpleMode ? 1 : 3)
   // Action -> show recommendations
   renderItems(actionList, result.recommendations, isSimpleMode ? 1 : 3)
