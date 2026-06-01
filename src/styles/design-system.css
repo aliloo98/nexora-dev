@@ -1,0 +1,27 @@
+:root {
+  --bg: #07070a;
+  --panel: #0f1113;
+  --text: #ffffff;
+  --text2: #bfc4c8;
+  --gold: #e5c060;
+  --green: #37d67a;
+  --red: #ff6b6b;
+  --accent: #8fb1ff;
+  --glass: rgba(255,255,255,0.03);
+}
+
+* { box-sizing: border-box; }
+html,body { height:100%; background:var(--bg); color:var(--text); font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+
+.fade-in { animation: fadeIn 360ms ease both }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px) } to { opacity:1; transform:none } }
+
+.dash-mini-card { background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent); border:1px solid rgba(255,255,255,0.03); padding:10px; border-radius:10px }
+
+/* Responsive tweaks */
+@media (max-width: 520px) {
+  .wow-grid { grid-template-columns: 1fr; gap:12px }
+  .kpi-grid { grid-template-columns: 1fr 1fr }
+}
+
+.action-highlight { background: rgba(229,192,96,0.06); border-left: 4px solid var(--gold); padding:8px; border-radius:6px }
