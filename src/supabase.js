@@ -13,14 +13,39 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Initialize Supabase client using Vite environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const env = typeof import.meta !== 'undefined' ? import.meta.env || {} : {}
+const supabaseUrl = env.VITE_SUPABASE_URL
+const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY
+
+const noOpQuery = () => {
+  const chain = {
+    select: async () => ({ data: [], error: null }),
+    eq() {
+      return this
+    },
+    or() {
+      return this
+    },
+    single: async () => ({ data: null, error: null }),
+    update: async () => ({ data: null, error: null }),
+    insert: async () => ({ data: null, error: null })
+  }
+  return chain
+}
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('⚠️ Supabase credentials not configured in .env file')
 }
 
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
+export const supabase = (supabaseUrl && supabaseAnonKey)
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : {
+      auth: {
+        getUser: async () => ({ data: { user: null }, error: null }),
+        getSession: async () => ({ data: { session: null }, error: null })
+      },
+      from: noOpQuery
+    }
 
 /**
  * Test Supabase Connection

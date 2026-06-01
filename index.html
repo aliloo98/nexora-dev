@@ -28,7 +28,6 @@
   <a href="#section-saisie" class="nav-btn" data-section="saisie" onclick="showSection('saisie'); return false;" title="Saisie du mois" aria-label="Saisie du mois">✏️</a>
   <a href="#section-historique" class="nav-btn" data-section="historique" onclick="showSection('historique'); return false;" title="Historique" aria-label="Historique">📚</a>
   <a href="#section-objectifs" class="nav-btn" data-section="objectifs" onclick="showSection('objectifs'); return false;" title="Objectifs" aria-label="Objectifs">🎯</a>
-  <a href="#section-couple" class="nav-btn" data-section="couple" onclick="showSection('couple'); return false;" title="Mode couple" aria-label="Mode couple">❤️</a>
   <a href="#section-dettes" class="nav-btn" data-section="dettes" onclick="showSection('dettes'); return false;" title="Dettes" aria-label="Dettes">💳</a>
   <a href="#section-parametres" class="nav-btn" data-section="parametres" onclick="showSection('parametres'); return false;" title="Paramètres" aria-label="Paramètres">⚙️</a>
 </nav>
@@ -919,6 +918,9 @@
   <!-- PARAMETRES -->
   <div id="section-parametres" class="section">
     <h2 style="margin-bottom:24px;font-size:22px;font-weight:700">Paramètres</h2>
+    <div id="couple-fallback-message" style="display:none;margin-bottom:20px;padding:16px;border-radius:12px;background:rgba(231,84,128,0.12);color:#f9edf2;font-size:14px;line-height:1.5;">
+      Mode couple bientôt disponible / activez-le depuis les réglages
+    </div>
 
     <div class="param-block">
       <div class="param-title">Objectifs & Cibles</div>
@@ -6052,7 +6054,9 @@ window.onload=async ()=>{
     await renderNexoraNotificationCenter();
   }
   const initialHash = window.location.hash.replace('#section-', '') || 'dashboard';
-  showSection(initialHash);
+  window.addEventListener('load', () => {
+    showSection(initialHash)
+  })
 };
 
 window.addEventListener('hashchange', () => {

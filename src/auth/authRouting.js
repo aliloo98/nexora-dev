@@ -61,6 +61,14 @@ export const RouteGuard = {
       AuthPages.showLoginPage()
       return false
     }
+
+    if (sectionName === 'couple' && AuthContext.isAuthenticated() && window.__isCoupleTabVisible === false) {
+      if (typeof window.setCoupleFallbackMessage === 'function') {
+        window.setCoupleFallbackMessage('Mode couple bientôt disponible / activez-le depuis les réglages')
+      }
+      return false
+    }
+
     return true
   },
 
@@ -102,6 +110,10 @@ export const NavigationMiddleware = {
       const section = RouteGuard.getCurrentSection()
 
       if (!RouteGuard.navigateTo(section)) {
+        if (section === 'couple' && AuthContext.isAuthenticated() && window.__isCoupleTabVisible === false) {
+          window.location.hash = '#section-parametres'
+          return
+        }
         // Reset hash to dashboard if navigation failed
         window.location.hash = '#section-dashboard'
       }

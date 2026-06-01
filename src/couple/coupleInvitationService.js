@@ -14,12 +14,14 @@
  */
 
 import { supabase } from '../supabase.js'
-import { crypto as nodeCrypto } from 'crypto'
-import { v4 as uuidv4 } from 'uuid'
 
 // Generate invitation code
 const generateInvitationCode = () => {
-  return uuidv4().replace(/-/g, '').substring(0, 16).toUpperCase()
+  const rawCode = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+    ? crypto.randomUUID()
+    : Math.random().toString(36).repeat(3)
+
+  return String(rawCode).replace(/-/g, '').substring(0, 16).toUpperCase()
 }
 
 export const CoupleInvitationService = {

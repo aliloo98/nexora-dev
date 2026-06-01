@@ -118,6 +118,14 @@ const initApp = async () => {
 
     // Initialize authentication routing (handles login/register/dashboard)
     await initAuthRouting()
+    await updateCoupleNavigation()
+    AuthContext.subscribe(() => {
+      if (typeof window.updateCoupleNavigation === 'function') {
+        window.updateCoupleNavigation().catch((err) => {
+          console.warn('[Couple] update navigation failed', err)
+        })
+      }
+    })
 
     // Hydrate goals before the first render so cloud-only goals appear on a fresh device.
     if (typeof UserAppSettingsService !== 'undefined' && UserAppSettingsService?.syncCloudSettingToLocal) {

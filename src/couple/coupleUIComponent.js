@@ -7,14 +7,35 @@
  * - Routes to couple budget view
  */
 
+import { CoupleInvitationService } from './coupleInvitationService.js'
+
 export const CoupleUIComponent = {
   /**
    * Determine if couple tab should be visible
-   * @param {Object} couple - Couple data or null
-   * @returns {boolean}
+   * @param {Object} user - Authenticated user object or couple object
+   * @returns {Promise<boolean>}
    */
-  shouldShowCoupleTab(couple) {
-    return couple && couple.status === 'active'
+  async shouldShowCoupleTab(user) {
+    if (!user) {
+      return false
+    }
+
+    // Backward compatibility for couple object checks
+    if (user.status) {
+      return user.status === 'active'
+    }
+
+    if (!user.id) {
+      return false
+    }
+
+    try {
+      const coupleStatus = await CoupleInvitationService.getCoupleStatus(user.id)
+      return coupleStatus?.status === 'couple_actif' && coupleStatus.details?.couple?.status === 'active'
+    } catch (error) {
+      console.warn('⚠️ Couple status load failed:', error)
+      return false
+    }
   },
 
   /**
@@ -23,7 +44,7 @@ export const CoupleUIComponent = {
    * @returns {string} HTML for navigation item
    */
   renderCoupleNavItem(couple) {
-    if (!this.shouldShowCoupleTab(couple)) {
+    if (!couple || couple.status !== 'active') {
       return ''
     }
 
