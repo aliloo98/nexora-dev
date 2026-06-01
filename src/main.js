@@ -37,6 +37,7 @@ import { UserAppSettingsService } from '../js/userAppSettingsService.js'
 import { STORAGE_KEYS } from './constants/storageKeys.js'
 import { renderAssistantCard } from './components/AssistantCard.js'
 import CoupleUIComponent from './couple/coupleUIComponent.js'
+import { renderTreasuryTimeline } from './components/TreasuryTimeline.js'
 
 // Expose modules globally for HTML event handlers and old code
 window.StorageManager = StorageManager
@@ -216,6 +217,20 @@ const initApp = async () => {
       if (typeof renderAssistantCard === 'function') await renderAssistantCard()
     } catch (e) {
       console.warn('[Assistant] render failed', e)
+    }
+
+    // Render treasury timeline if container exists (lightweight)
+    try {
+      if (typeof renderTreasuryTimeline === 'function' && document.getElementById('treasury-timeline-root')) {
+        // Minimal example: build a 14-day timeline from sample data (real app will pass real data)
+        const sampleRevenues = [{ amount: 1700, frequency: 'monthly', day: 5 }]
+        const sampleCharges = [{ amount: 65, date: '2026-05-29', title: 'Internet', priority: 'importante' }, { amount: 850, date: 2, title: 'Loyer', priority: 'critique' }]
+        const TreasuryService = (await import('./treasury/treasuryService.js')).default
+        const { timeline } = TreasuryService.buildTimeline({ baseBalance: 2085, revenues: sampleRevenues, charges: sampleCharges, fromDate: new Date('2026-05-28'), days: 14 })
+        renderTreasuryTimeline('treasury-timeline-root', timeline)
+      }
+    } catch (err) {
+      console.warn('[Treasury] render failed', err)
     }
   } catch (err) {
     console.error('❌ App initialization error:', err)
