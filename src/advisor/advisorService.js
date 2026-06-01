@@ -41,7 +41,8 @@ export const AdvisorService = {
       const price = Number(priceRaw)
       if (!Number.isFinite(price)) return { verdict: 'unknown', advice: 'Montant introuvable' }
       const res = await this.evaluatePurchase({ price, baseBalance, revenues, charges, fromDate, days })
-      return { intent: 'purchase', ...res }
+      // return structured purchase response
+      return { intent: 'purchase', verdict: res.verdict || (res.canAfford ? 'ok' : 'no'), impact: res.impact, risk: res.risk, advice: res.advice || res.rationale, endingBalance: res.endingBalance }
     }
 
     // Simple budget health check

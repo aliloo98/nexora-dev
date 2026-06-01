@@ -24,6 +24,29 @@ html,body { height:100%; background:var(--bg); color:var(--text); font-family: '
   .kpi-grid { grid-template-columns: 1fr 1fr }
 }
 
+/* Mobile 390px tweaks */
+@media (max-width: 420px) {
+  html,body { font-size: 14px }
+  .sidebar { display:flex; gap:6px; padding:8px }
+  .sidebar .nav-btn { padding:8px; font-size:18px }
+  .treasury-row { padding:10px; gap:8px; flex-wrap:wrap }
+  .t-date { width:72px }
+  .t-amount, .t-balance { width:86px }
+  .dash-mini-card { padding:12px }
+  #treasury-planner-root { left:8px; right:8px; bottom:8px }
+  .wow-grid { gap:10px }
+  .kpi-grid { grid-template-columns: 1fr 1fr }
+  .treasury-timeline { font-size:13px }
+}
+
+/* Prevent horizontal overflow globally */
+html,body,#app-root { overflow-x: hidden }
+
+/* CTA primary */
+.btn-gold { background: linear-gradient(180deg,var(--gold), #d4b059); color:#07070a; padding:8px 12px; border-radius:10px; border:none }
+.btn-outline { background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 10px;border-radius:10px;color:var(--text) }
+
+
 .action-highlight { background: rgba(229,192,96,0.06); border-left: 4px solid var(--gold); padding:8px; border-radius:6px }
 
 /* Treasury timeline */

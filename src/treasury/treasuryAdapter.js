@@ -20,10 +20,11 @@ const mapBudgetEntriesToFlows = (budgetData = {}) => {
   Object.keys(budgetData).forEach(k => {
     const val = budgetData[k]
     if (k.startsWith('rev_') || k.toLowerCase().includes('revenu') || k.toLowerCase().includes('salary')) {
-      revenues.push({ amount: safeNumber(val), frequency: 'monthly', day: 5, title: k })
+      // mark dateEstimated when no explicit payday metadata
+      revenues.push({ amount: safeNumber(val), frequency: 'monthly', day: 5, title: k, dateEstimated: true })
     } else {
       // treat as charge
-      charges.push({ amount: safeNumber(val), date: 5, title: k, priority: 'normale' })
+      charges.push({ amount: safeNumber(val), date: 5, title: k, priority: 'standard', dateEstimated: true })
     }
   })
 
