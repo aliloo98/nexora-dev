@@ -75,6 +75,13 @@ const normalizePdfText = (value) => String(value ?? '')
   .trim();
 
 const getPdfMonthLabel = () => {
+  const period = getPdfPeriod();
+  return period.cycleLabel
+    ? `${period.monthLabel} (Cycle du ${period.cycleLabel})`
+    : period.monthLabel;
+};
+
+const getPdfPeriod = () => {
   const select = document.getElementById('monthSelect');
   const month = select?.value;
   if (month && typeof window.getBudgetCycleRange === 'function') {
@@ -85,16 +92,25 @@ const getPdfMonthLabel = () => {
         const end = new Date(range.end);
         const startLabel = start.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
         const endLabel = end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-        return `${range.monthLabel} (Cycle du ${startLabel} au ${endLabel})`;
+        return {
+          monthLabel: range.monthLabel,
+          cycleLabel: `${startLabel} au ${endLabel}`
+        };
       }
       if (range?.monthLabel && range?.rangeLabel) {
-        return `${range.monthLabel} (Cycle du ${range.rangeLabel.replace(/\s*→\s*/g, ' au ')})`;
+        return {
+          monthLabel: range.monthLabel,
+          cycleLabel: range.rangeLabel.replace(/\s*→\s*/g, ' au ')
+        };
       }
     } catch (err) {
       console.warn('[PdfExport] failed to build month label from budget cycle range', err);
     }
   }
-  return sanitize(select?.selectedOptions?.[0]?.textContent || select?.value || 'Mois en cours');
+  return {
+    monthLabel: sanitize(select?.selectedOptions?.[0]?.textContent || select?.value || 'Mois en cours'),
+    cycleLabel: ''
+  };
 };
 
 const winAnsiBytes = (value) => {
@@ -238,10 +254,12 @@ const collectBudgetData = () => {
   };
   totals.balance = totals.income - totals.fixed - totals.variable;
 
-  const monthLabel = getPdfMonthLabel();
+  const period = getPdfPeriod();
 
   return {
-    monthLabel,
+    monthLabel: period.cycleLabel ? `${period.monthLabel} (Cycle du ${period.cycleLabel})` : period.monthLabel,
+    reportMonthLabel: period.monthLabel,
+    cycleLabel: period.cycleLabel,
     generatedAt: new Date(),
     sections,
     totals
@@ -304,6 +322,11 @@ class PdfDocument {
     this.text(value, x - estimatedWidth, y, options);
   }
 
+  centerText(value, x, y, options = {}) {
+    const estimatedWidth = sanitize(value).length * (options.size || 11) * 0.48;
+    this.text(value, x - (estimatedWidth / 2), y, options);
+  }
+
   addImage(name, image) {
     if (image) this.images[name] = image;
   }
@@ -330,19 +353,25 @@ class PdfDocument {
 }
 
 const addHeader = (pdf, data) => {
-  pdf.rect(0, PAGE_HEIGHT - 138, PAGE_WIDTH, 138, NAVY);
-  pdf.rect(0, PAGE_HEIGHT - 140, PAGE_WIDTH, 4, GOLD);
+  const centerX = PAGE_WIDTH / 2;
+  pdf.rect(0, PAGE_HEIGHT - 178, PAGE_WIDTH, 178, NAVY);
+  pdf.rect(0, PAGE_HEIGHT - 180, PAGE_WIDTH, 4, GOLD);
   if (pdf.images.Logo) {
-    pdf.image('Logo', MARGIN, PAGE_HEIGHT - 94, 46, 46);
+    pdf.image('Logo', centerX - 18, PAGE_HEIGHT - 58, 36, 36);
   } else {
-    pdf.rect(MARGIN, PAGE_HEIGHT - 94, 46, 46, GOLD);
-    pdf.text('N', MARGIN + 14, PAGE_HEIGHT - 76, { size: 21, bold: true, fillColor: NAVY });
+    pdf.rect(centerX - 18, PAGE_HEIGHT - 58, 36, 36, GOLD);
+    pdf.centerText('N', centerX, PAGE_HEIGHT - 45, { size: 17, bold: true, fillColor: NAVY });
   }
-  pdf.text('NEXORA', MARGIN + 60, PAGE_HEIGHT - 60, { size: 24, bold: true, fillColor: [255, 255, 255] });
-  pdf.text('Rapport premium du budget mensuel', MARGIN + 60, PAGE_HEIGHT - 82, { size: 10, fillColor: [203, 213, 225] });
-  pdf.rightText(data.monthLabel, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - 58, { size: 14, bold: true, fillColor: [255, 255, 255] });
-  pdf.rightText(`Généré le ${data.generatedAt.toLocaleDateString('fr-FR')}`, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - 80, { size: 9, fillColor: [203, 213, 225] });
-  pdf.y = PAGE_HEIGHT - 166;
+  pdf.centerText('NEXORA', centerX, PAGE_HEIGHT - 82, { size: 24, bold: true, fillColor: [255, 255, 255] });
+  pdf.centerText('Rapport Premium Budget Mensuel', centerX, PAGE_HEIGHT - 105, { size: 12, fillColor: [226, 232, 240] });
+  pdf.centerText(data.reportMonthLabel || data.monthLabel, centerX, PAGE_HEIGHT - 126, { size: 15, bold: true, fillColor: [255, 255, 255] });
+
+  if (data.cycleLabel) {
+    pdf.centerText('Cycle budgétaire', centerX, PAGE_HEIGHT - 148, { size: 9, bold: true, fillColor: GOLD });
+    pdf.centerText(data.cycleLabel, centerX, PAGE_HEIGHT - 162, { size: 9, fillColor: [226, 232, 240] });
+  }
+  pdf.centerText(`Généré le ${data.generatedAt.toLocaleDateString('fr-FR')}`, centerX, PAGE_HEIGHT - 174, { size: 8, fillColor: [203, 213, 225] });
+  pdf.y = PAGE_HEIGHT - 206;
 };
 
 const addSummary = (pdf, totals) => {
