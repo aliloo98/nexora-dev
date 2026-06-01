@@ -141,14 +141,17 @@ export const AuthContext = {
 
       // Try to restore session from placeholder storage
       const { user } = await AuthService.getCurrentUser()
+      const { session } = await AuthService.getSession()
 
       if (user) {
         this._state.user = user
+        this._state.session = session || null
         this._state.isAuthenticated = true
         this._state.error = null
         this._syncSupabaseToLocalAfterLogin()
       } else {
         this._state.user = null
+        this._state.session = null
         this._state.isAuthenticated = false
       }
     } catch (error) {

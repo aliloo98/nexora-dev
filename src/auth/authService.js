@@ -14,6 +14,37 @@ const isSupabaseConfigured = Boolean(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 )
 
+const AUTH_USER_KEY = 'nexora_auth_user'
+const AUTH_SESSION_KEY = 'nexora_auth_session'
+
+const isOnline = () => typeof navigator === 'undefined' || navigator.onLine !== false
+
+const readStoredJson = (key) => {
+  const rawValue =
+    localStorage.getItem(key) ||
+    sessionStorage.getItem(key)
+
+  if (!rawValue) return null
+
+  try {
+    return JSON.parse(rawValue)
+  } catch (error) {
+    console.warn(`⚠️ Stored auth value ignored for ${key}:`, error)
+    return null
+  }
+}
+
+const writeStoredJson = (key, value) => {
+  const serializedValue = JSON.stringify(value)
+  localStorage.setItem(key, serializedValue)
+  sessionStorage.setItem(key, serializedValue)
+}
+
+const removeStoredValue = (key) => {
+  localStorage.removeItem(key)
+  sessionStorage.removeItem(key)
+}
+
 /**
  * Authentication Service
  * All functions designed to work with real Supabase once credentials are configured
@@ -198,9 +229,18 @@ export const AuthService = {
    */
   async getCurrentUser() {
     try {
+      const storedUser = readStoredJson(AUTH_USER_KEY)
+
       if (isSupabaseConfigured) {
+        if (!isOnline() && storedUser) {
+          return { user: storedUser, error: null }
+        }
+
         const { data: { user }, error } = await supabase.auth.getUser()
         if (error) throw error
+        if (user) {
+          writeStoredJson(AUTH_USER_KEY, user)
+        }
         return { user, error: null }
       }
 
@@ -209,17 +249,17 @@ export const AuthService = {
       // if (error) throw error
       // return { user, error: null }
 
-      // PLACEHOLDER: Simulate retrieving current user from session storage
-
-      // Try to get user from sessionStorage (set during login)
-      const storedUser = sessionStorage.getItem('nexora_auth_user')
-
       if (storedUser) {
-        const user = JSON.parse(storedUser)
-        return { user, error: null }
+        return { user: storedUser, error: null }
       }
       return { user: null, error: null }
     } catch (error) {
+      const storedUser = readStoredJson(AUTH_USER_KEY)
+      if (storedUser) {
+        console.warn('⚠️ Auth cloud restore unavailable, using local session:', error.message)
+        return { user: storedUser, error: null }
+      }
+
       console.error('❌ [PLACEHOLDER] getCurrentUser error:', error.message)
       return { user: null, error }
     }
@@ -235,9 +275,21 @@ export const AuthService = {
    */
   async getSession() {
     try {
+      const storedSession = readStoredJson(AUTH_SESSION_KEY)
+
       if (isSupabaseConfigured) {
+        if (!isOnline() && storedSession) {
+          return { session: storedSession, error: null }
+        }
+
         const { data: { session }, error } = await supabase.auth.getSession()
         if (error) throw error
+        if (session) {
+          writeStoredJson(AUTH_SESSION_KEY, session)
+          if (session.user) {
+            writeStoredJson(AUTH_USER_KEY, session.user)
+          }
+        }
         return { session, error: null }
       }
 
@@ -246,16 +298,17 @@ export const AuthService = {
       // if (error) throw error
       // return { session, error: null }
 
-      // PLACEHOLDER: Simulate retrieving session from sessionStorage
-
-      const storedSession = sessionStorage.getItem('nexora_auth_session')
-
       if (storedSession) {
-        const session = JSON.parse(storedSession)
-        return { session, error: null }
+        return { session: storedSession, error: null }
       }
       return { session: null, error: null }
     } catch (error) {
+      const storedSession = readStoredJson(AUTH_SESSION_KEY)
+      if (storedSession) {
+        console.warn('⚠️ Auth cloud session unavailable, using local session:', error.message)
+        return { session: storedSession, error: null }
+      }
+
       console.error('❌ [PLACEHOLDER] getSession error:', error.message)
       return { session: null, error }
     }
@@ -271,9 +324,9 @@ export const AuthService = {
    * @param {object} session - Session object
    */
   storeSessionPlaceholder(user, session) {
-    sessionStorage.setItem('nexora_auth_user', JSON.stringify(user))
+    writeStoredJson(AUTH_USER_KEY, user)
     if (session) {
-      sessionStorage.setItem('nexora_auth_session', JSON.stringify(session))
+      writeStoredJson(AUTH_SESSION_KEY, session)
     }
   },
 
@@ -283,8 +336,8 @@ export const AuthService = {
    * TODO: Remove this when using real Supabase Auth
    */
   clearSessionPlaceholder() {
-    sessionStorage.removeItem('nexora_auth_user')
-    sessionStorage.removeItem('nexora_auth_session')
+    removeStoredValue(AUTH_USER_KEY)
+    removeStoredValue(AUTH_SESSION_KEY)
   }
 }
 

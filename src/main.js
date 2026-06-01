@@ -97,8 +97,12 @@ const initApp = async () => {
     // Initialize local notifications layer
     await NotificationsService.init()
 
-    // Keep the connection check for early failure visibility without production noise.
-    await testSupabaseConnection()
+    // Keep the connection check for early failure visibility without blocking offline usage.
+    if (navigator.onLine !== false) {
+      await testSupabaseConnection()
+    } else {
+      console.info('📴 Supabase connection check skipped while offline')
+    }
 
     // Initialize authentication routing (handles login/register/dashboard)
     await initAuthRouting()
