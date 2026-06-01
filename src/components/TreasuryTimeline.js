@@ -10,7 +10,8 @@ export function renderTreasuryTimeline(containerId, timeline = []) {
   timeline.forEach(item => {
     const row = document.createElement('div')
     row.className = 'treasury-row'
-    row.innerHTML = `<div class="t-date">${item.date}</div><div class="t-title">${item.title}</div><div class="t-amount">${item.amount>0?'+':''}${item.amount}€</div><div class="t-balance">${item.balance}€</div>`
+    const badge = item.priority ? `<span class="t-badge">${item.priority}</span>` : ''
+    row.innerHTML = `<div class="t-date">${item.date}</div><div class="t-title">${item.title} ${badge}</div><div class="t-amount">${item.amount>0?'+':''}${item.amount}€</div><div class="t-balance">${item.balance}€</div>`
     list.appendChild(row)
   })
   container.appendChild(list)

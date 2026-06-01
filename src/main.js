@@ -38,6 +38,11 @@ import { STORAGE_KEYS } from './constants/storageKeys.js'
 import { renderAssistantCard } from './components/AssistantCard.js'
 import CoupleUIComponent from './couple/coupleUIComponent.js'
 import { renderTreasuryTimeline } from './components/TreasuryTimeline.js'
+import './styles/design-system.css'
+import { renderDashboardMaster } from './components/DashboardMaster.js'
+import { renderAdvisorUI } from './advisor/AdvisorUI.js'
+import CoupleOverlay from './couple/coupleOverlay.js'
+import { renderTreasuryPlanner } from './components/TreasuryPlannerUI.js'
 
 // Expose modules globally for HTML event handlers and old code
 window.StorageManager = StorageManager
@@ -61,6 +66,12 @@ window.GoalsPage = GoalsPage
 window.UserAppSettingsService = UserAppSettingsService
 window.NexoraStorageKeys = STORAGE_KEYS
 window.CoupleUIComponent = CoupleUIComponent
+window.CoupleOverlay = CoupleOverlay
+window.openTreasuryPlanner = async (opts = {}) => {
+  try {
+    await renderTreasuryPlanner('treasury-planner-root', opts)
+  } catch (e) { console.warn('openTreasuryPlanner failed', e) }
+}
 
 // Expose helper functions globally (for HTML onclick handlers)
 window.showToast = (msg) => Utils.showToast(msg)
@@ -228,6 +239,16 @@ const initApp = async () => {
         const TreasuryService = (await import('./treasury/treasuryService.js')).default
         const { timeline } = TreasuryService.buildTimeline({ baseBalance: 2085, revenues: sampleRevenues, charges: sampleCharges, fromDate: new Date('2026-05-28'), days: 14 })
         renderTreasuryTimeline('treasury-timeline-root', timeline)
+      }
+      // Render Dashboard Master component if present
+      if (typeof renderDashboardMaster === 'function' && document.getElementById('dashboard-master-root')) {
+        const TreasuryService = (await import('./treasury/treasuryService.js')).default
+        renderDashboardMaster('dashboard-master-root', TreasuryService)
+      }
+      // Render Advisor UI if present
+      if (typeof renderAdvisorUI === 'function' && document.getElementById('advisor-root')) {
+        const AdvisorService = (await import('./advisor/advisorService.js')).default
+        renderAdvisorUI('advisor-root', AdvisorService)
       }
     } catch (err) {
       console.warn('[Treasury] render failed', err)

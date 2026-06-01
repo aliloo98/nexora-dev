@@ -51,6 +51,9 @@
   </div>
 </div>
 
+<!-- TREASURY PLANNER PANEL -->
+<div id="treasury-planner-root" style="position:fixed;left:12px;right:12px;bottom:12px;z-index:1200;max-width:720px;margin:0 auto;pointer-events:auto"></div>
+
 <!-- NEXORA ACTION MODAL -->
 <div class="modal-overlay" id="nexora-action-modal" aria-hidden="true">
   <div class="modal-card nexora-action-modal-card">
@@ -141,6 +144,7 @@
           <button type="button" class="btn btn-outline" onclick="showSection('objectifs')">Affecter à un objectif</button>
           <button type="button" class="btn btn-outline" onclick="showSection('dettes')">Affecter à une dette</button>
           <button type="button" class="btn btn-outline" onclick="showToast('Montant gardé disponible')">Garder disponible</button>
+          <button type="button" class="btn btn-gold" onclick="openTreasuryPlanner()">Voir le plan</button>
         </div>
       </section>
       <section class="wow-card wins-card" id="wins-card">
@@ -155,6 +159,8 @@
           <li>Mettre à jour le budget.</li>
         </ol>
       </section>
+      <div id="dashboard-master-root" style="grid-column:1/-1;margin-top:12px"></div>
+      <div id="advisor-root" style="grid-column:1/-1;margin-top:12px"></div>
       <section class="wow-card human-summary-card" id="human-summary-card">
         <span>Assistant humain</span>
         <div class="human-summary-lines">
@@ -263,6 +269,9 @@
         </div>
       </div>
       <p class="couple-roadmap-text">Partage partenaire, budget foyer et objectifs communs arriveront dans une version dédiée.</p>
+      <div style="margin-top:8px">
+        <button class="btn btn-outline" onclick="window.CoupleOverlay?.show()">Ouvrir Mode Couple (scaffold)</button>
+      </div>
     </div>
 
     <div class="dashboard-primary-goal" id="dashboard-primary-goal">
