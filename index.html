@@ -121,6 +121,13 @@
       <div class="simple-card"><span>Argent restant</span><strong id="simple-left">0 €</strong></div>
       <div class="simple-card"><span>Objectif principal</span><strong id="simple-goal">Aucun objectif</strong><em id="simple-goal-detail">Aucun objectif configuré</em></div>
     </div>
+    <div class="wow-grid">
+      <section class="wow-card priority-action-card" id="priority-action-card">
+        <span>🎯 Action recommandée</span>
+        <strong id="priority-action-title">Aucun risque détecté</strong>
+        <p id="priority-action-detail">Le budget ne demande pas d’action urgente.</p>
+      </section>
+    </div>
     <div class="kpi-grid">
       <div class="kpi-card" id="card-revenus">
         <div class="kpi-icon">💵</div>
@@ -3380,6 +3387,12 @@ function updateAll(){
     fixesPct,
     variablesPct
   });
+  updatePriorityAction({
+    revReel,
+    solde,
+    totalDepRestant,
+    variablesPct
+  });
   if (typeof updateDashboardPrimaryGoal === 'function') {
     updateDashboardPrimaryGoal().catch(err => console.warn('[Goals] dashboard primary goal update failed', err));
   }
@@ -3493,6 +3506,69 @@ function updateAll(){
 function setDashboardGuidanceText(id, value) {
   const el = document.getElementById(id);
   if (el) el.textContent = value;
+}
+
+function getPendingFixedExpenseRows() {
+  const fixedBlock = Array.from(document.querySelectorAll('#section-saisie .budget-block'))[1];
+  if (!fixedBlock) return [];
+  return Array.from(fixedBlock.querySelectorAll('.budget-row'))
+    .map(row => {
+      const amountInput = row.querySelector('input.budget-input[data-key]:not(.paid-input):not(.note-input)');
+      const paidInput = row.querySelector('input.paid-input');
+      const label = row.querySelector('.budget-row-label');
+      const amount = parseBudgetNumber(amountInput?.value || 0);
+      const paid = parseBudgetNumber(paidInput?.value || 0);
+      return {
+        name: (label?.textContent || 'Facture').replace(/[✎×💬✓]/g, '').trim(),
+        amount,
+        paid,
+        remaining: Math.max(0, amount - paid)
+      };
+    })
+    .filter(item => item.amount > 0 && item.remaining > 0);
+}
+
+function updatePriorityAction(metrics = {}) {
+  const card = document.getElementById('priority-action-card');
+  const titleEl = document.getElementById('priority-action-title');
+  const detailEl = document.getElementById('priority-action-detail');
+  if (!card || !titleEl || !detailEl) return;
+
+  const debts = getDebtSummary();
+  const urgentBill = getPendingFixedExpenseRows().sort((a, b) => b.remaining - a.remaining)[0];
+  const goalName = document.getElementById('dashboard-primary-goal-name')?.textContent?.replace(/^🎯\s*/, '').trim() || 'objectif';
+  const goalPct = parseBudgetNumber(document.getElementById('dashboard-primary-goal-pct')?.textContent || 0);
+
+  let state = 'neutral';
+  let title = 'Aucun risque détecté';
+  let detail = 'Le budget ne demande pas d’action urgente.';
+
+  if (debts.debtRate >= 30 || (metrics.solde <= 0 && debts.monthly > 0)) {
+    state = 'negative';
+    title = 'Stabiliser les dettes';
+    detail = `Les mensualités représentent ${debts.debtRate}% des revenus. Priorité au remboursement.`;
+  } else if (urgentBill && urgentBill.remaining >= 50) {
+    state = 'warning';
+    title = `Régler ${urgentBill.name}`;
+    detail = `Il reste ${fmt(urgentBill.remaining)} à payer sur cette charge.`;
+  } else if (goalPct === 0 && goalName && goalName !== 'Aucun objectif configuré') {
+    state = 'warning';
+    title = `Ajouter 50 € à ${goalName}`;
+    detail = 'L’objectif principal n’a pas encore de contribution.';
+  } else if (metrics.solde > 100 && metrics.variablesPct <= 40) {
+    state = 'positive';
+    title = `Ajouter 50 € à ${goalName && goalName !== 'Aucun objectif configuré' ? goalName : 'un objectif'}`;
+    detail = `Le solde prévu reste positif : ${fmt(metrics.solde)}.`;
+  } else if (metrics.variablesPct > 40) {
+    state = 'warning';
+    title = 'Réduire les dépenses variables';
+    detail = `Elles représentent ${metrics.variablesPct}% des revenus.`;
+  }
+
+  card.classList.remove('is-positive', 'is-warning', 'is-negative', 'is-neutral');
+  card.classList.add(`is-${state}`);
+  titleEl.textContent = title;
+  detailEl.textContent = detail;
 }
 
 function updateDashboardGuidance(metrics) {

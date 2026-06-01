@@ -340,6 +340,49 @@ body,
   overflow-wrap: anywhere;
 }
 
+.wow-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin-bottom: 16px;
+}
+
+.wow-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  min-width: 0;
+  padding: 16px;
+}
+
+.wow-card span {
+  color: var(--gold);
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.wow-card strong {
+  color: var(--text);
+  display: block;
+  font-size: 18px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.wow-card p {
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 7px 0 0;
+}
+
+.wow-card.is-positive { border-color: rgba(16,185,129,0.28); }
+.wow-card.is-warning { border-color: rgba(245,158,11,0.28); }
+.wow-card.is-negative { border-color: rgba(244,63,94,0.3); }
+
 .kpi-card {
   background: var(--bg2);
   border: 1px solid var(--border);
