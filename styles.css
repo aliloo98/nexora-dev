@@ -808,6 +808,71 @@ body.mode-simple .goal-card-meta {
 .goal-actions { display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end }
 .goal-actions .btn { flex:0 1 auto; min-width:0; white-space:normal }
 
+.debt-summary-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 16px;
+}
+
+.debt-summary-grid div,
+.debt-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.debt-summary-grid span,
+.debt-card span {
+  color: var(--text2);
+  display: block;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.debt-summary-grid strong,
+.debt-card strong {
+  color: var(--text);
+  display: block;
+  font-size: 18px;
+}
+
+.debts-list {
+  display: grid;
+  gap: 10px;
+  padding: 0 16px 16px;
+}
+
+.debt-card {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.2fr) auto;
+}
+
+.debt-card-meta,
+.debt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.debt-actions {
+  justify-content: flex-end;
+}
+
+.debt-form {
+  border-top: 1px dashed rgba(255,255,255,0.08);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px;
+}
+
+.debt-form .budget-input {
+  min-width: 140px;
+}
+
 .notification-settings-row {
   align-items: center;
   gap: 16px;
@@ -2658,6 +2723,21 @@ body.mode-simple .goal-card-meta {
 
   .couple-insights-grid {
     grid-template-columns: 1fr;
+  }
+
+  .debt-summary-grid,
+  .debt-card {
+    grid-template-columns: 1fr;
+  }
+
+  .debt-actions {
+    justify-content: stretch;
+  }
+
+  .debt-actions .btn,
+  .debt-form .btn {
+    max-width: none;
+    width: 100%;
   }
 
   .action-center-head {

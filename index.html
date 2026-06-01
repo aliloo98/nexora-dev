@@ -28,6 +28,7 @@
   <a href="#section-saisie" class="nav-btn" data-section="saisie" onclick="showSection('saisie'); return false;" title="Saisie du mois" aria-label="Saisie du mois">✏️</a>
   <a href="#section-historique" class="nav-btn" data-section="historique" onclick="showSection('historique'); return false;" title="Historique" aria-label="Historique">📚</a>
   <a href="#section-objectifs" class="nav-btn" data-section="objectifs" onclick="showSection('objectifs'); return false;" title="Objectifs" aria-label="Objectifs">🎯</a>
+  <a href="#section-dettes" class="nav-btn" data-section="dettes" onclick="showSection('dettes'); return false;" title="Dettes" aria-label="Dettes">💳</a>
   <a href="#section-parametres" class="nav-btn" data-section="parametres" onclick="showSection('parametres'); return false;" title="Paramètres" aria-label="Paramètres">⚙️</a>
 </nav>
 
@@ -179,6 +180,12 @@
         <div class="kpi-value" id="kpi-taux">0%</div>
         <div class="kpi-sub">Fixes + variables</div>
         <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-taux-bar"></div></div>
+      </div>
+      <div class="kpi-card" id="card-dettes">
+        <div class="kpi-icon">💳</div>
+        <div class="kpi-label">Dettes restantes</div>
+        <div class="kpi-value" id="kpi-dettes">0 €</div>
+        <div class="kpi-sub" id="kpi-dettes-sub">Aucune dette active</div>
       </div>
     </div>
 
@@ -563,6 +570,30 @@
             <button type="button" id="goal-create-btn" class="btn btn-gold">Créer</button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETTES -->
+  <div id="section-dettes" class="section">
+    <div class="budget-block">
+      <div class="budget-block-header">
+        <span class="budget-block-title">💳 Dettes</span>
+        <span class="budget-block-total" id="debts-total-label">0 €</span>
+      </div>
+      <div class="debt-summary-grid">
+        <div><span>Total dettes</span><strong id="debt-summary-total">0 €</strong></div>
+        <div><span>Mensualités</span><strong id="debt-summary-monthly">0 €</strong></div>
+        <div><span>Taux d'endettement</span><strong id="debt-summary-rate">0%</strong></div>
+      </div>
+      <div id="debts-list" class="debts-list"></div>
+      <div class="debt-form">
+        <input type="text" id="debt-new-name" class="budget-input" placeholder="Nom (ex: Crédit voiture)" aria-label="Nom de la dette">
+        <input type="number" id="debt-new-initial" class="budget-input" placeholder="Montant initial" aria-label="Montant initial">
+        <input type="number" id="debt-new-remaining" class="budget-input" placeholder="Restant" aria-label="Montant restant">
+        <input type="number" id="debt-new-monthly" class="budget-input" placeholder="Mensualité" aria-label="Mensualité">
+        <input type="number" id="debt-new-rate" class="budget-input" placeholder="Taux %" aria-label="Taux optionnel">
+        <button type="button" class="btn btn-gold" onclick="addDebt()">Ajouter</button>
       </div>
     </div>
   </div>
@@ -1347,6 +1378,7 @@ function saveBudgetCycleSettingsFromUI() {
 }
 
 const UX_MODE_KEY = 'nexora_ux_mode_v1';
+const DEBTS_STORAGE_KEY = 'nexora_debts_v1';
 
 function getNexoraUxMode() {
   try {
@@ -1371,6 +1403,19 @@ function setNexoraUxMode(mode) {
   try { SafeStorage.setItem(UX_MODE_KEY, nextMode); } catch {}
   applyNexoraUxMode(nextMode);
   if (typeof updateAll === 'function') updateAll();
+}
+
+function readDebts() {
+  try {
+    const parsed = JSON.parse(SafeStorage.getItem(DEBTS_STORAGE_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveDebts(debts) {
+  SafeStorage.setItem(DEBTS_STORAGE_KEY, JSON.stringify(Array.isArray(debts) ? debts : []));
 }
 
 async function refreshNexoraNotificationSettingsUI() {
@@ -3442,6 +3487,7 @@ function updateAll(){
 
   if (typeof updatePremiumAnalytics === 'function') updatePremiumAnalytics();
   if (typeof renderCoupleInsights === 'function') renderCoupleInsights();
+  if (typeof renderDebts === 'function') renderDebts();
   if (typeof renderCagnottes === 'function') renderCagnottes();
   if (typeof updateTrendIndicators === 'function') updateTrendIndicators();
   // Refresh Assistant Nexora card (debounced, non-blocking)
@@ -3574,6 +3620,106 @@ function renderCoupleInsights() {
   setDashboardGuidanceText('couple-income-share', totalIncome > 0 ? `${Math.round(current.income / totalIncome * 100)}% des revenus` : 'revenus à saisir');
   setDashboardGuidanceText('couple-expense-share', totalExpenses > 0 ? `${Math.round(current.expenses / totalExpenses * 100)}% des dépenses` : 'aucune dépense');
   setDashboardGuidanceText('couple-note', totalIncome > 0 ? (net >= 0 ? 'Contribution positive' : 'À surveiller') : 'À compléter');
+}
+
+function getDebtSummary() {
+  const debts = readDebts();
+  const total = debts.reduce((sum, debt) => sum + (Number(debt.remaining) || 0), 0);
+  const monthly = debts.reduce((sum, debt) => sum + (Number(debt.monthly) || 0), 0);
+  const income = getBudgetKeysByType('income').reduce((sum, key) => sum + getVal(key), 0);
+  const debtRate = income > 0 ? Math.round(monthly / income * 100) : 0;
+  return { debts, total, monthly, debtRate, income };
+}
+
+function estimateDebtEndDate(debt, extraMonthly = 0) {
+  const remaining = Number(debt.remaining) || 0;
+  const monthly = (Number(debt.monthly) || 0) + extraMonthly;
+  if (remaining <= 0) return 'Terminée';
+  if (monthly <= 0) return 'Non définie';
+  const months = Math.ceil(remaining / monthly);
+  const date = new Date();
+  date.setMonth(date.getMonth() + months);
+  return `${months} mois · ${date.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}`;
+}
+
+function renderDebts() {
+  const summary = getDebtSummary();
+  const listEl = document.getElementById('debts-list');
+  setDashboardGuidanceText('debts-total-label', fmt(summary.total));
+  setDashboardGuidanceText('debt-summary-total', fmt(summary.total));
+  setDashboardGuidanceText('debt-summary-monthly', fmt(summary.monthly));
+  setDashboardGuidanceText('debt-summary-rate', `${summary.debtRate}%`);
+  setDashboardGuidanceText('kpi-dettes', fmt(summary.total));
+  setDashboardGuidanceText('kpi-dettes-sub', summary.total > 0 ? `${fmt(summary.monthly)}/mois · ${summary.debtRate}% des revenus` : 'Aucune dette active');
+  if (!listEl) return;
+  if (summary.debts.length === 0) {
+    listEl.innerHTML = '<div class="analytics-empty compact">Aucune dette enregistrée.</div>';
+    return;
+  }
+  listEl.innerHTML = summary.debts.map(debt => `
+    <div class="debt-card">
+      <div>
+        <strong>${escapeHtml(debt.name || 'Dette')}</strong>
+        <span>Restant ${fmt(Number(debt.remaining) || 0)} sur ${fmt(Number(debt.initial) || 0)}</span>
+      </div>
+      <div class="debt-card-meta">
+        <span>${fmt(Number(debt.monthly) || 0)}/mois</span>
+        <span>${debt.rate ? `${Number(debt.rate)}%` : 'Taux non renseigné'}</span>
+        <span>Fin estimée : ${estimateDebtEndDate(debt)}</span>
+      </div>
+      <div class="debt-actions">
+        <button type="button" class="btn btn-outline" onclick="editDebt('${escapeHtml(debt.id)}')">Éditer</button>
+        <button type="button" class="btn btn-outline" onclick="deleteDebt('${escapeHtml(debt.id)}')">Supprimer</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addDebt() {
+  const nameEl = document.getElementById('debt-new-name');
+  const initialEl = document.getElementById('debt-new-initial');
+  const remainingEl = document.getElementById('debt-new-remaining');
+  const monthlyEl = document.getElementById('debt-new-monthly');
+  const rateEl = document.getElementById('debt-new-rate');
+  const name = nameEl?.value.trim() || '';
+  const initial = parseBudgetNumber(initialEl?.value);
+  const remaining = parseBudgetNumber(remainingEl?.value || initial);
+  const monthly = parseBudgetNumber(monthlyEl?.value);
+  const rate = parseBudgetNumber(rateEl?.value);
+  if (!name || remaining <= 0 || monthly < 0) {
+    showToast('⚠️ Nom, montant restant et mensualité sont requis');
+    return;
+  }
+  const debts = readDebts();
+  debts.push({ id: `debt_${Date.now()}`, name, initial: initial || remaining, remaining, monthly, rate });
+  saveDebts(debts);
+  [nameEl, initialEl, remainingEl, monthlyEl, rateEl].forEach(el => { if (el) el.value = ''; });
+  renderDebts();
+  showToast('Dette ajoutée');
+}
+
+async function editDebt(id) {
+  const debts = readDebts();
+  const debt = debts.find(item => item.id === id);
+  if (!debt) return;
+  const name = await openNexoraActionModal({ title: 'Modifier la dette', message: 'Nom', input: true, defaultValue: debt.name || '', required: true, confirmLabel: 'Continuer' });
+  if (name === null) return;
+  const remaining = await openNexoraActionModal({ title: 'Modifier la dette', message: 'Montant restant', input: true, inputType: 'number', defaultValue: String(debt.remaining || 0), required: true, confirmLabel: 'Continuer' });
+  if (remaining === null) return;
+  const monthly = await openNexoraActionModal({ title: 'Modifier la dette', message: 'Mensualité', input: true, inputType: 'number', defaultValue: String(debt.monthly || 0), required: true, confirmLabel: 'Enregistrer' });
+  if (monthly === null) return;
+  debt.name = name.trim();
+  debt.remaining = parseBudgetNumber(remaining);
+  debt.monthly = parseBudgetNumber(monthly);
+  saveDebts(debts);
+  renderDebts();
+}
+
+function deleteDebt(id) {
+  customConfirm('Supprimer la dette', 'Supprimer cette dette ?', () => {
+    saveDebts(readDebts().filter(debt => debt.id !== id));
+    renderDebts();
+  });
 }
 
 async function updateDashboardPrimaryGoal() {
