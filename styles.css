@@ -589,7 +589,7 @@ body.mode-simple .kpi-grid,
 body.mode-simple .dash-row,
 body.mode-simple .dashboard-action-center,
 body.mode-simple .couple-insights-card,
-body.mode-simple .dashboard-primary-goal,
+body.mode-simple .week-plan-card,
 body.mode-simple .analytics-premium,
 body.mode-simple .simulator-block,
 body.mode-simple .print-actions-container,
@@ -2160,14 +2160,22 @@ body.mode-simple .goal-card-meta {
   display: none;
 }
 
+.save-bar.save-bar-clean {
+  display: none;
+}
+
 .save-bar.save-bar-dirty .save-bar-submit {
   display: inline-flex;
 }
 
 .save-bar-spacer {
-  display: block;
+  display: none;
   height: var(--save-bar-clearance);
   width: 100%;
+}
+
+body.has-unsaved-budget-changes .save-bar-spacer {
+  display: block;
 }
 /* Compact save button */
 .save-bar .save-bar-submit.compact {

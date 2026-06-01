@@ -9,7 +9,7 @@ export async function renderTreasuryPlanner(rootId, options = {}) {
   root.querySelector('#tp-close').addEventListener('click', () => { root.innerHTML = '' })
 
   const monthKey = options.monthKey || (new Date().toISOString().slice(0,7))
-  const baseBalance = (window?.MonthlyBudgetStateService?.getCurrentBalance && typeof window.MonthlyBudgetStateService.getCurrentBalance === 'function') ? window.MonthlyBudgetStateService.getCurrentBalance() : 0
+  const baseBalance = (window?.MonthlyBudgetStateService?.getCurrentBalanceSync && typeof window.MonthlyBudgetStateService.getCurrentBalanceSync === 'function') ? window.MonthlyBudgetStateService.getCurrentBalanceSync(monthKey) : 0
 
   const { timeline, endingBalance } = await TreasuryService.buildTimelineFromCurrentMonth({ monthKey, baseBalance, fromDate: new Date(), days: 30 })
 

@@ -5,7 +5,7 @@ export function renderDashboardMaster(rootId, TreasuryService) {
   if (!root) return
   root.classList.add('dash-mini-card', 'fade-in')
   // gather minimal inputs from global services if available
-  const baseBalance = (window?.MonthlyBudgetStateService?.getCurrentBalance && typeof window.MonthlyBudgetStateService.getCurrentBalance === 'function') ? window.MonthlyBudgetStateService.getCurrentBalance() : 0
+  const baseBalance = (window?.MonthlyBudgetStateService?.getCurrentBalanceSync && typeof window.MonthlyBudgetStateService.getCurrentBalanceSync === 'function') ? window.MonthlyBudgetStateService.getCurrentBalanceSync() : 0
   const revenues = []
   const charges = []
   const plan = DashboardService.get7DayPlan({ fromDate: new Date(), baseBalance, revenues, charges })

@@ -1,5 +1,6 @@
 import { MonthlyBudgetStateService } from '../../js/monthlyBudgetStateService.js'
 import { TransactionsService } from '../../js/transactionsService.js'
+import { DEFAULT_BUDGET_CATEGORIES } from '../../js/budgetCategoriesService.js'
 
 const safeNumber = (v) => {
   const n = Number(v)
@@ -13,19 +14,56 @@ const guessDayFromMetadata = (meta) => {
   return 5
 }
 
+const categoriesById = new Map(DEFAULT_BUDGET_CATEGORIES.map((category) => [category.id, category]))
+const incomeKeys = DEFAULT_BUDGET_CATEGORIES.filter((category) => category.type === 'income').map((category) => category.id)
+const expenseKeys = DEFAULT_BUDGET_CATEGORIES.filter((category) => category.type === 'fixed_expense' || category.type === 'variable_expense').map((category) => category.id)
+
+const readAmount = (budgetData, key) => {
+  if (Object.prototype.hasOwnProperty.call(budgetData, key)) return safeNumber(budgetData[key])
+  if (Object.prototype.hasOwnProperty.call(budgetData, `${key}_reel`)) return safeNumber(budgetData[`${key}_reel`])
+  return 0
+}
+
+const readPaidAmount = (budgetData, key) => {
+  const total = readAmount(budgetData, key)
+  const paid = budgetData[`${key}_paye`]
+  if (paid === true) return total
+  if (paid === false) return 0
+  return Math.min(total, Math.max(0, safeNumber(paid)))
+}
+
 const mapBudgetEntriesToFlows = (budgetData = {}) => {
   const revenues = []
   const charges = []
 
-  Object.keys(budgetData).forEach(k => {
-    const val = budgetData[k]
-    if (k.startsWith('rev_') || k.toLowerCase().includes('revenu') || k.toLowerCase().includes('salary')) {
-      // mark dateEstimated when no explicit payday metadata
-      revenues.push({ amount: safeNumber(val), frequency: 'monthly', day: 5, title: k, dateEstimated: true })
-    } else {
-      // treat as charge
-      charges.push({ amount: safeNumber(val), date: 5, title: k, priority: 'standard', dateEstimated: true })
-    }
+  incomeKeys.forEach((key) => {
+    const amount = readAmount(budgetData, key)
+    if (amount <= 0) return
+    const category = categoriesById.get(key)
+    revenues.push({
+      amount,
+      frequency: 'monthly',
+      day: guessDayFromMetadata(budgetData[`${key}_meta`]),
+      title: category?.name || key,
+      sourceKey: key,
+      dateEstimated: true
+    })
+  })
+
+  expenseKeys.forEach((key) => {
+    const amount = readAmount(budgetData, key)
+    if (amount <= 0) return
+    const remaining = Math.max(0, amount - readPaidAmount(budgetData, key))
+    if (remaining <= 0) return
+    const category = categoriesById.get(key)
+    charges.push({
+      amount: remaining,
+      date: guessDayFromMetadata(budgetData[`${key}_meta`]),
+      title: category?.name || key,
+      sourceKey: key,
+      priority: 'standard',
+      dateEstimated: true
+    })
   })
 
   return { revenues, charges }

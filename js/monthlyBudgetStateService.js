@@ -98,6 +98,61 @@ const normalizeSnapshot = (data) => {
   }
 }
 
+const DEFAULT_CATEGORY_GROUPS = {
+  income: ['rev_ali', 'rev_megane', 'rev_excep'],
+  fixed_expense: [
+    'loyer', 'credit', 'assauto', 'gasoil', 'elec', 'eau', 'psy', 'diete',
+    'itou', 'sante', 'impots', 'box', 'tel_ali', 'tel_meg', 'stream', 'ps',
+    'cb', 'impfix'
+  ],
+  variable_expense: ['courses', 'tabac', 'sport', 'ongles', 'cadeaux', 'impvar']
+}
+
+const parseAmount = (value) => {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0
+  if (typeof value !== 'string') return 0
+  const normalized = value.replace(/\s/g, '').replace(',', '.')
+  const amount = Number(normalized)
+  return Number.isFinite(amount) ? amount : 0
+}
+
+const readAmount = (budgetData, key) => {
+  if (!budgetData || typeof budgetData !== 'object') return 0
+  if (Object.prototype.hasOwnProperty.call(budgetData, key)) return parseAmount(budgetData[key])
+  if (Object.prototype.hasOwnProperty.call(budgetData, `${key}_reel`)) return parseAmount(budgetData[`${key}_reel`])
+  return 0
+}
+
+const readPaidAmount = (budgetData, key) => {
+  if (!budgetData || typeof budgetData !== 'object') return 0
+  const value = budgetData[`${key}_paye`]
+  if (value === true) return readAmount(budgetData, key)
+  if (value === false) return 0
+  return Math.min(readAmount(budgetData, key), Math.max(0, parseAmount(value)))
+}
+
+const getBudgetSummary = (budgetData) => {
+  const incomeKeys = DEFAULT_CATEGORY_GROUPS.income || []
+  const expenseKeys = [
+    ...(DEFAULT_CATEGORY_GROUPS.fixed_expense || []),
+    ...(DEFAULT_CATEGORY_GROUPS.variable_expense || [])
+  ]
+
+  const totalIncome = incomeKeys.reduce((sum, key) => sum + readAmount(budgetData, key), 0)
+  const totalExpenses = expenseKeys.reduce((sum, key) => sum + readAmount(budgetData, key), 0)
+  const paidExpenses = expenseKeys.reduce((sum, key) => sum + readPaidAmount(budgetData, key), 0)
+  const remainingExpenses = Math.max(0, totalExpenses - paidExpenses)
+
+  return {
+    totalIncome,
+    totalExpenses,
+    paidExpenses,
+    remainingExpenses,
+    currentBalance: totalIncome - paidExpenses,
+    projectedBalance: totalIncome - totalExpenses
+  }
+}
+
 const getMonthlyBudgetState = async (monthKey) => {
   const localData = readLocalMonth(monthKey)
   const localUpdatedAt = getLocalUpdatedAt(monthKey)
@@ -267,8 +322,62 @@ const deleteMonthlyBudgetState = async (monthKey) => {
   }
 }
 
+/**
+ * Calculate current balance from budget data
+ * @param {Object} budgetData - The budget snapshot with all fields
+ * @returns {number} Current balance (revenues - expenses)
+ */
+const calculateBalance = (budgetData) => {
+  if (!budgetData || typeof budgetData !== 'object') return 0
+  return getBudgetSummary(budgetData).currentBalance
+}
+
+/**
+ * Get current balance synchronously from localStorage (fallback for components)
+ * @returns {number} Current balance or 0 if unable to calculate
+ */
+const getCurrentBalanceSync = (monthKey) => {
+  try {
+    const selectedMonth = monthKey || (typeof window !== 'undefined' && window.getMonth ? window.getMonth?.() : null)
+    if (!selectedMonth) return 0
+
+    const storage = getStorageClient()
+    if (!storage) return 0
+
+    const key = storageKey(selectedMonth)
+    const raw = storage.getItem(key)
+    const data = raw ? JSON.parse(raw) : {}
+
+    return calculateBalance(data)
+  } catch (err) {
+    console.warn('[MonthlyBudgetStateService] getCurrentBalanceSync failed:', err)
+    return 0
+  }
+}
+
+/**
+ * Get current balance for the current month (if month is available)
+ * @returns {number} Current balance or 0 if unable to calculate
+ */
+const getCurrentBalance = async (monthKey) => {
+  try {
+    const selectedMonth = monthKey || (typeof window !== 'undefined' && window.getMonth ? window.getMonth?.() : null)
+    if (!selectedMonth) return 0
+
+    const result = await getMonthlyBudgetState(selectedMonth)
+    return calculateBalance(result?.data || {})
+  } catch (err) {
+    console.warn('[MonthlyBudgetStateService] getCurrentBalance failed:', err)
+    return 0
+  }
+}
+
 export const MonthlyBudgetStateService = {
   getMonthlyBudgetState,
   saveMonthlyBudgetState,
-  deleteMonthlyBudgetState
+  deleteMonthlyBudgetState,
+  calculateBalance,
+  getBudgetSummary,
+  getCurrentBalance,
+  getCurrentBalanceSync
 }

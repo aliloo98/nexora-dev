@@ -8,7 +8,8 @@ const quickQuestions = [
 const getField = (outcome, keys, fallback) => {
   for (const key of keys) {
     if (outcome?.[key] !== undefined && outcome?.[key] !== null && outcome?.[key] !== '') {
-      return String(outcome[key])
+      const value = String(outcome[key])
+      if (!/^(NaN|undefined|null)$/i.test(value.trim())) return value
     }
   }
   return fallback

@@ -46,7 +46,7 @@ const createBillScheduleCard = (bill, index) => {
           <input type="number" class="budget-input bill-schedule-input" data-index="${index}" data-key="amount" value="${bill.amount || 0}" placeholder="Montant" aria-label="Montant de la charge" />
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          <input type="number" class="budget-input bill-schedule-input" data-index="${index}" data-key="date" value="${bill.date || ''}" min="1" max="31" placeholder="Jour du mois" aria-label="Jour de facturation" />
+          <input type="number" class="budget-input bill-schedule-input" data-index="${index}" data-key="day" value="${bill.day || bill.date || ''}" min="1" max="31" placeholder="Jour du mois" aria-label="Jour de facturation" />
           <select class="budget-input bill-schedule-input" data-index="${index}" data-key="priority" aria-label="Priorité de la charge">
             <option value="standard" ${bill.priority === 'standard' ? 'selected' : ''}>Standard</option>
             <option value="importante" ${bill.priority === 'importante' ? 'selected' : ''}>Importante</option>
@@ -119,7 +119,7 @@ export async function renderBillScheduleSettings() {
   `
 
   root.querySelector('#add-bill-schedule-btn')?.addEventListener('click', async () => {
-    bills.push({ name: 'Loyer', amount: 0, date: 1, priority: 'standard' })
+    bills.push({ name: 'Loyer', amount: 0, day: 1, priority: 'standard' })
     await SettingsService.saveBillSchedules(bills)
     await renderBillScheduleSettings()
   })
@@ -158,14 +158,15 @@ export async function renderCoupleModeSettings() {
       <div class="settings-card couple-mode-card is-active">
         <div class="couple-mode-head">
           <div>
-            <strong>Mode couple activé</strong>
-            <div style="font-size:12px;color:var(--text2);margin-top:4px">Partenaire : ${localHousehold?.partnerEmail || status.details?.couple?.partnerEmail || 'inconnu'}</div>
+            <strong>Mode couple local</strong>
+            <div style="font-size:12px;color:var(--text2);margin-top:4px">Préparation locale du foyer. Le partage réel des données reste à venir.</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:4px">Partenaire saisi : ${localHousehold?.partnerEmail || status.details?.couple?.partnerEmail || 'non renseigné'}</div>
           </div>
-          <span class="plan-status-pill success">Actif</span>
+          <span class="plan-status-pill warning">Local</span>
         </div>
         <div class="couple-code-box">${invitationCode}</div>
         <div class="couple-mode-actions">
-          <button class="btn btn-outline" type="button" id="invite-partner-btn">Inviter un partenaire</button>
+          <button class="btn btn-outline" type="button" id="invite-partner-btn" disabled>Invitation réelle à venir</button>
           <button class="btn btn-outline" type="button" id="join-household-btn" disabled>Rejoindre un foyer</button>
           <button class="btn btn-outline" type="button" id="disable-couple-btn">Quitter le foyer</button>
           <button class="btn btn-danger" type="button" id="dissolve-couple-btn">Dissoudre le foyer</button>
@@ -173,11 +174,8 @@ export async function renderCoupleModeSettings() {
       </div>
     `
 
-    root.querySelector('#invite-partner-btn')?.addEventListener('click', () => {
-      window.showToast(`Code invitation : ${invitationCode}`)
-    })
     root.querySelector('#join-household-btn')?.addEventListener('click', () => {
-      window.showToast('Foyer déjà actif')
+      window.showToast('Fonction à venir')
     })
     root.querySelector('#disable-couple-btn')?.addEventListener('click', async () => {
       CoupleService.disableLocalCouple()
@@ -201,13 +199,13 @@ export async function renderCoupleModeSettings() {
   root.innerHTML = `
     <div class="settings-card couple-mode-card">
       <div class="couple-premium-empty">
-        <strong>Mode couple premium</strong>
-        <p>Activez le mode couple pour créer un foyer partagé, inviter un partenaire et gérer le budget à deux.</p>
+        <strong>Mode couple à venir</strong>
+        <p>Le partage complet du budget à deux n’est pas encore disponible. Vous pouvez seulement préparer un foyer local.</p>
       </div>
       <div class="couple-mode-actions">
         <input type="email" id="couple-partner-email" class="budget-input" placeholder="Email du partenaire" aria-label="Email du partenaire" />
-        <button class="btn btn-gold" type="button" id="create-couple-btn">Activer</button>
-        <button class="btn btn-outline" type="button" disabled title="Activez le mode couple pour inviter un partenaire">Inviter un partenaire</button>
+        <button class="btn btn-gold" type="button" id="create-couple-btn">Préparer localement</button>
+        <button class="btn btn-outline" type="button" disabled title="Fonction à venir">Invitation réelle à venir</button>
         <button class="btn btn-outline" type="button" disabled title="Invitation partenaire requise">Rejoindre un foyer</button>
         <button class="btn btn-outline" type="button" disabled title="Aucun foyer actif">Quitter le foyer</button>
         <button class="btn btn-danger" type="button" disabled title="Aucun foyer actif">Dissoudre le foyer</button>
@@ -226,6 +224,6 @@ export async function renderCoupleModeSettings() {
     if (typeof window.updateCoupleNavigation === 'function') {
       await window.updateCoupleNavigation()
     }
-    window.showToast('Mode couple activé localement')
+    window.showToast('Foyer local préparé')
   })
 }

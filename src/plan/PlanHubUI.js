@@ -56,7 +56,7 @@ const buildPlanRows = (items, options = {}) => {
       <div class="plan-row">
         <div>
           <strong>${item.title || (positive ? 'Revenu' : 'Charge')}</strong>
-          <span>${item.date || item.priority || 'date estimée'}</span>
+          <span>${item.date ? `${item.date}${item.dateEstimated ? ' · estimée' : ''}` : item.priority || 'date estimée'}</span>
         </div>
         <em class="${positive ? 'positive' : 'negative'}">${positive ? '+' : '-'}${formatCurrency(amount)}</em>
       </div>
@@ -294,7 +294,17 @@ const attachPlanEditors = (root, planData) => {
 const buildPlanData = async () => {
   const monthKey = typeof window.getMonth === 'function' ? window.getMonth() : new Date().toISOString().slice(0, 7)
   const fromDate = /^\d{4}-\d{2}$/.test(monthKey) ? new Date(`${monthKey}-01T00:00:00`) : new Date()
-  const baseBalance = window.MonthlyBudgetStateService?.getCurrentBalance?.() || 0
+
+  // Calculate current balance from budget data
+  let baseBalance = 0
+  try {
+    if (window.MonthlyBudgetStateService?.getCurrentBalance && typeof window.MonthlyBudgetStateService.getCurrentBalance === 'function') {
+      baseBalance = await window.MonthlyBudgetStateService.getCurrentBalance(monthKey)
+    }
+  } catch (err) {
+    console.warn('[PlanHubUI] calculateBalance failed, using 0:', err)
+  }
+
   const [recurringIncomes, billSchedules, goals] = await Promise.all([
     SettingsService.loadRecurringIncomes(),
     SettingsService.loadBillSchedules(),
@@ -303,25 +313,57 @@ const buildPlanData = async () => {
 
   const { revenues: fetchedRevenues, charges: fetchedCharges } = await TreasuryAdapter.fetchCurrentMonthBudget(monthKey)
 
-  const revenues = [
-    ...(fetchedRevenues || []),
-    ...(recurringIncomes || []).map((income) => ({
+  const normalizedRecurringIncomes = (recurringIncomes || []).map((income) => ({
       title: income.name || 'Revenu récurrent',
       amount: Number(income.amount) || 0,
       frequency: income.frequency || 'monthly',
       day: Number(income.day) || 1
     }))
-  ]
 
-  const charges = [
-    ...(fetchedCharges || []),
-    ...(billSchedules || []).map((bill) => ({
+  const revenues = normalizedRecurringIncomes.length > 0
+    ? normalizedRecurringIncomes
+    : (fetchedRevenues || [])
+
+  const scheduleByKey = new Map()
+  const scheduleByName = new Map()
+  ;(billSchedules || []).forEach((bill) => {
+    const normalized = {
       title: bill.name || 'Charge',
       amount: Number(bill.amount) || 0,
-      date: bill.date || 1,
+      date: Number(bill.day || bill.date) || 1,
+      priority: bill.priority || 'standard',
+      linkedCharge: bill.linkedCharge || ''
+    }
+    if (normalized.linkedCharge) scheduleByKey.set(normalized.linkedCharge, normalized)
+    scheduleByName.set(normalized.title.toLowerCase(), normalized)
+  })
+
+  const linkedScheduleNames = new Set()
+  const charges = (fetchedCharges || []).map((charge) => {
+    const schedule = scheduleByKey.get(charge.sourceKey) || scheduleByName.get(String(charge.title || '').toLowerCase())
+    if (!schedule) return charge
+    linkedScheduleNames.add(schedule.title.toLowerCase())
+    return {
+      ...charge,
+      date: schedule.date,
+      priority: schedule.priority,
+      dateEstimated: false
+    }
+  })
+
+  ;(billSchedules || []).forEach((bill) => {
+    const title = bill.name || 'Charge'
+    const key = title.toLowerCase()
+    const linkedCharge = bill.linkedCharge || ''
+    if (linkedCharge && (fetchedCharges || []).some((charge) => charge.sourceKey === linkedCharge)) return
+    if (linkedScheduleNames.has(key)) return
+    charges.push({
+      title,
+      amount: Number(bill.amount) || 0,
+      date: Number(bill.day || bill.date) || 1,
       priority: bill.priority || 'standard'
-    }))
-  ]
+    })
+  })
 
   const { timeline, endingBalance } = TreasuryService.buildTimeline({
     baseBalance,

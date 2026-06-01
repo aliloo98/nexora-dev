@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import assert from 'assert'
 import TreasuryService from './treasuryService.js'
+import { MonthlyBudgetStateService } from '../../js/monthlyBudgetStateService.js'
 
 const tests = [
   {
@@ -26,6 +27,37 @@ const tests = [
       const res = TreasuryService.suggestPayments({ baseBalance: 100, revenues, charges, fromDate: from, days: 14 })
       assert(Array.isArray(res.toPayNow))
       assert(res.toPayNow.some(p => p.name === 'Internet'))
+    }
+  },
+  {
+    name: 'calculate selected month current balance from paid expenses',
+    fn: async () => {
+      const balance = MonthlyBudgetStateService.calculateBalance({
+        rev_ali: '1700',
+        rev_megane: '1300',
+        loyer: '850',
+        loyer_paye: '850',
+        courses: '400',
+        courses_paye: '125',
+        note_loyer: 'payé début de mois'
+      })
+      assert.strictEqual(balance, 2025)
+    }
+  },
+  {
+    name: 'timeline clamps missing or impossible dates safely',
+    fn: async () => {
+      const { timeline, endingBalance } = TreasuryService.buildTimeline({
+        baseBalance: 1000,
+        revenues: [{ amount: 1300, frequency: 'monthly', day: 31, title: 'Salaire' }],
+        charges: [{ amount: 850, date: 31, title: 'Loyer', priority: 'critique', dateEstimated: true }],
+        fromDate: new Date('2026-02-01T00:00:00'),
+        days: 30
+      })
+      assert(timeline.length > 0)
+      assert(timeline.every((item) => Number.isFinite(item.balance)))
+      assert(Number.isFinite(endingBalance))
+      assert(timeline.every((item) => !String(item.date).includes('NaN')))
     }
   }
 ]

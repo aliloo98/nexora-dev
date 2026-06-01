@@ -264,7 +264,7 @@
   <div id="section-couple" class="section" style="padding: 2rem;">
     <div class="budget-block" style="padding: 24px; background: rgba(255,255,255,0.05); border-radius: 16px;">
       <div class="budget-block-header">
-        <span class="budget-block-title">Mode Couple</span>
+        <span class="budget-block-title">Mode couple</span>
         <span style="font-size:13px;color:var(--text2)">Espace partenaire</span>
       </div>
       <div style="padding-top:16px;">
@@ -605,6 +605,16 @@
         </div>
       </div>
       <div class="budget-cycle-summary" id="budget-cycle-summary">Mai 2026</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Mode d’affichage</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Le mode simplifié garde seulement les informations essentielles.</div>
+        </div>
+        <div class="mode-toggle" aria-label="Mode d’affichage">
+          <button type="button" id="mode-complete-btn" class="mode-toggle-btn" onclick="setNexoraUxMode('complete')">Mode complet</button>
+          <button type="button" id="mode-simple-btn" class="mode-toggle-btn" onclick="setNexoraUxMode('simple')">Mode simplifié</button>
+        </div>
+      </div>
       <div class="param-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
         <div>
           <div class="param-label">Thème de l'application</div>
@@ -1529,6 +1539,7 @@ let hasUnsavedBudgetChanges = false;
 
 function setSaveBarDirty(isDirty) {
   hasUnsavedBudgetChanges = Boolean(isDirty);
+  document.body.classList.toggle('has-unsaved-budget-changes', hasUnsavedBudgetChanges);
   const saveBar = document.querySelector('.save-bar');
   if (!saveBar) return;
   saveBar.classList.toggle('save-bar-dirty', hasUnsavedBudgetChanges);
@@ -3971,7 +3982,22 @@ async function exportData(){
       }
     }
 
-    const storageKeys = ['budget_app_theme'];
+    const storageKeys = [
+      'budget_app_theme',
+      'nexora_goals_v1',
+      'nexora_debts_v1',
+      'nexora_budget_cycle_settings_v1',
+      'nexora_monthly_history_snapshots_v1',
+      'nexora_notifications_settings_v1',
+      'nexora_notifications_history_v1',
+      'nexora_recurring_incomes',
+      'nexora_bill_schedules',
+      'nexora_ux_mode_v1',
+      'nexora_budget_categories_v1',
+      'nexora_csv_learning_v1',
+      'nexora_csv_import_drafts_v1',
+      'budget_cagnottes'
+    ];
     if (typeof StorageManager !== 'undefined') {
       for (const key of storageKeys) {
         if (!(key in all)) {
@@ -4005,6 +4031,27 @@ async function exportData(){
 
 function isBudgetMonthStorageKey(key) {
   return /^budget_\d{4}-\d{2}$/.test(key);
+}
+
+const NEXORA_IMPORTABLE_STORAGE_KEYS = new Set([
+  'budget_app_theme',
+  'nexora_goals_v1',
+  'nexora_debts_v1',
+  'nexora_budget_cycle_settings_v1',
+  'nexora_monthly_history_snapshots_v1',
+  'nexora_notifications_settings_v1',
+  'nexora_notifications_history_v1',
+  'nexora_recurring_incomes',
+  'nexora_bill_schedules',
+  'nexora_ux_mode_v1',
+  'nexora_budget_categories_v1',
+  'nexora_csv_learning_v1',
+  'nexora_csv_import_drafts_v1',
+  'budget_cagnottes'
+]);
+
+function isImportableStorageKey(key) {
+  return isBudgetMonthStorageKey(key) || NEXORA_IMPORTABLE_STORAGE_KEYS.has(key);
 }
 
 function normalizeImportedStorageValue(value) {
@@ -4131,7 +4178,7 @@ async function importData(e){
       for (const key of Object.keys(parsed)) {
         const value = parsed[key];
         if (typeof value === 'undefined' || value === null) continue;
-        if (!key.startsWith('budget_')) continue;
+        if (!isImportableStorageKey(key)) continue;
 
         if (isBudgetMonthStorageKey(key)) {
           const month = key.replace('budget_', '');

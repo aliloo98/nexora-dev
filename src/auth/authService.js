@@ -9,9 +9,10 @@
 
 import { supabase } from '../supabase.js'
 
+const env = typeof import.meta !== 'undefined' ? import.meta.env || {} : {}
 const isSupabaseConfigured = Boolean(
-  import.meta.env.VITE_SUPABASE_URL &&
-  import.meta.env.VITE_SUPABASE_ANON_KEY
+  env.VITE_SUPABASE_URL &&
+  env.VITE_SUPABASE_ANON_KEY
 )
 
 const AUTH_USER_KEY = 'nexora_auth_user'

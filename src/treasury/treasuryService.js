@@ -3,6 +3,18 @@
  * Produces a timeline of upcoming cash flows and a running projection balance
  */
 export const TreasuryService = {
+  normalizeDay(day, fallback = 1) {
+    const value = Number(day)
+    if (!Number.isFinite(value)) return fallback
+    return Math.max(1, Math.min(31, Math.trunc(value)))
+  },
+
+  makeMonthDate(baseDate, day) {
+    const normalizedDay = this.normalizeDay(day, 1)
+    const lastDay = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 0).getDate()
+    return new Date(baseDate.getFullYear(), baseDate.getMonth(), Math.min(normalizedDay, lastDay))
+  },
+
   /**
    * Normalize an entry to events within the next N days
    * revenue: {amount, frequency, day, startDate}
@@ -20,40 +32,42 @@ export const TreasuryService = {
     // Charges: date can be ISO or day-of-month number
     charges.forEach(ch => {
       if (!ch) return
+      const amount = Math.abs(Number(ch.amount) || 0)
+      if (amount <= 0) return
+
       if (ch.date instanceof Date) {
         const d = new Date(ch.date)
-        if (d >= fromDate && d <= end) addEvent(d, -Math.abs(ch.amount), ch.title || ch.name || 'Charge', { priority: ch.priority })
+        if (d >= fromDate && d <= end) addEvent(d, -amount, ch.title || ch.name || 'Charge', { priority: ch.priority, dateEstimated: ch.dateEstimated === true })
       } else if (typeof ch.date === 'number') {
-        // day of month
-        const candidate = new Date(fromDate.getFullYear(), fromDate.getMonth(), ch.date)
+        const candidate = this.makeMonthDate(fromDate, ch.date)
         if (candidate < fromDate) candidate.setMonth(candidate.getMonth() + 1)
-        if (candidate >= fromDate && candidate <= end) addEvent(candidate, -Math.abs(ch.amount), ch.title || ch.name || 'Charge', { priority: ch.priority })
+        if (candidate >= fromDate && candidate <= end) addEvent(candidate, -amount, ch.title || ch.name || 'Charge', { priority: ch.priority, dateEstimated: ch.dateEstimated === true })
       } else if (typeof ch.date === 'string') {
         const d = new Date(ch.date)
-        if (!isNaN(d) && d >= fromDate && d <= end) addEvent(d, -Math.abs(ch.amount), ch.title || ch.name || 'Charge', { priority: ch.priority })
+        if (!isNaN(d) && d >= fromDate && d <= end) addEvent(d, -amount, ch.title || ch.name || 'Charge', { priority: ch.priority, dateEstimated: ch.dateEstimated === true })
       }
     })
 
     // Revenues: frequency support monthly, weekly, biweekly, once
     revenues.forEach(r => {
       if (!r) return
+      const amount = Math.abs(Number(r.amount) || 0)
+      if (amount <= 0) return
       const freq = (r.frequency || 'monthly')
       if (freq === 'once' && r.date) {
         const d = new Date(r.date)
-        if (!isNaN(d) && d >= fromDate && d <= end) addEvent(d, Math.abs(r.amount), r.title || 'Revenu')
+        if (!isNaN(d) && d >= fromDate && d <= end) addEvent(d, amount, r.title || 'Revenu', { dateEstimated: r.dateEstimated === true })
         return
       }
 
       if (freq === 'monthly') {
-        // day can be number
-        const day = typeof r.day === 'number' ? r.day : (new Date().getDate())
-        const candidate = new Date(fromDate.getFullYear(), fromDate.getMonth(), day)
+        const day = this.normalizeDay(r.day, 1)
+        const candidate = this.makeMonthDate(fromDate, day)
         if (candidate < fromDate) candidate.setMonth(candidate.getMonth() + 1)
-        // add occurrences while <= end
         let cur = new Date(candidate)
         while (cur <= end) {
-          addEvent(cur, Math.abs(r.amount), r.title || r.name || 'Revenu')
-          cur = new Date(cur.getFullYear(), cur.getMonth() + 1, day)
+          addEvent(cur, amount, r.title || r.name || 'Revenu', { dateEstimated: r.dateEstimated === true })
+          cur = this.makeMonthDate(new Date(cur.getFullYear(), cur.getMonth() + 1, 1), day)
         }
         return
       }
@@ -63,7 +77,7 @@ export const TreasuryService = {
         const start = r.startDate ? new Date(r.startDate) : new Date(fromDate)
         let cur = new Date(start)
         while (cur <= end) {
-          if (cur >= fromDate) addEvent(cur, Math.abs(r.amount), r.title || r.name || 'Revenu')
+          if (cur >= fromDate) addEvent(cur, amount, r.title || r.name || 'Revenu', { dateEstimated: r.dateEstimated === true })
           cur.setDate(cur.getDate() + 7)
         }
         return
@@ -73,7 +87,7 @@ export const TreasuryService = {
         const start = r.startDate ? new Date(r.startDate) : new Date(fromDate)
         let cur = new Date(start)
         while (cur <= end) {
-          if (cur >= fromDate) addEvent(cur, Math.abs(r.amount), r.title || r.name || 'Revenu')
+          if (cur >= fromDate) addEvent(cur, amount, r.title || r.name || 'Revenu', { dateEstimated: r.dateEstimated === true })
           cur.setDate(cur.getDate() + 14)
         }
         return
@@ -93,7 +107,7 @@ export const TreasuryService = {
     let balance = Number(baseBalance) || 0
     const timeline = events.map(ev => {
       balance += Number(ev.amount)
-      return { date: ev.date.toISOString().slice(0,10), amount: ev.amount, title: ev.title, balance }
+      return { date: ev.date.toISOString().slice(0,10), amount: ev.amount, title: ev.title, balance, dateEstimated: ev.dateEstimated === true, priority: ev.priority }
     })
     return { timeline, endingBalance: balance }
   },
