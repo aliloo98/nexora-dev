@@ -38,6 +38,17 @@ const amountFromValue = (value) => {
 
 const formatCurrency = (value) => normalizePdfSpaces(euroFormatter.format(amountFromValue(value)));
 
+const readLocalJson = (key, fallback) => {
+  try {
+    const raw = window.SafeStorage?.getItem?.(key) || localStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    return parsed ?? fallback;
+  } catch {
+    return fallback;
+  }
+};
+
 const color = ([r, g, b]) => `${(r / 255).toFixed(3)} ${(g / 255).toFixed(3)} ${(b / 255).toFixed(3)}`;
 
 const WIN_ANSI_EXTRA = {
@@ -285,6 +296,40 @@ const collectBudgetData = () => {
   };
   totals.balance = totals.income - totals.fixed - totals.variable;
 
+  const debts = typeof window.readDebts === 'function'
+    ? window.readDebts()
+    : readLocalJson('nexora_debts_v1', []);
+  const debtRows = Array.isArray(debts)
+    ? debts.filter(debt => amountFromValue(debt?.remaining) > 0).map(debt => ({
+      name: sanitize(debt.name || 'Dette'),
+      amount: amountFromValue(debt.remaining),
+      monthly: amountFromValue(debt.monthly)
+    }))
+    : [];
+  const debtSummary = {
+    total: debtRows.reduce((sum, debt) => sum + debt.amount, 0),
+    monthly: debtRows.reduce((sum, debt) => sum + debt.monthly, 0)
+  };
+
+  const goals = readLocalJson('nexora_goals_v1', []);
+  const goalRows = Array.isArray(goals)
+    ? goals.filter(goal => amountFromValue(goal?.target) > 0).map(goal => {
+      const target = amountFromValue(goal.target);
+      const current = amountFromValue(goal.current);
+      return {
+        name: sanitize(goal.name || 'Objectif'),
+        amount: Math.max(0, target - current),
+        current,
+        target
+      };
+    })
+    : [];
+  const goalsSummary = {
+    remaining: goalRows.reduce((sum, goal) => sum + goal.amount, 0),
+    current: goalRows.reduce((sum, goal) => sum + goal.current, 0),
+    target: goalRows.reduce((sum, goal) => sum + goal.target, 0)
+  };
+
   const period = getPdfPeriod();
 
   return {
@@ -293,7 +338,11 @@ const collectBudgetData = () => {
     cycleLabel: period.cycleLabel,
     generatedAt: new Date(),
     sections,
-    totals
+    totals,
+    debts: debtRows,
+    debtSummary,
+    goals: goalRows,
+    goalsSummary
   };
 };
 
@@ -415,6 +464,26 @@ const addExecutiveSummary = (pdf, totals) => {
   pdf.y -= 82;
 };
 
+const addFinalOverview = (pdf, data) => {
+  const cards = [
+    ['Revenus', data.totals.income, GREEN],
+    ['Charges', data.totals.fixed + data.totals.variable, RED],
+    ['Dettes', data.debtSummary.total, RED],
+    ['Épargne', data.totals.balance, data.totals.balance >= 0 ? GREEN : RED],
+    ['Objectifs restants', data.goalsSummary.remaining, GOLD]
+  ];
+  const gap = 8;
+  const width = (PAGE_WIDTH - MARGIN * 2 - gap * 4) / 5;
+  pdf.ensure(76);
+  cards.forEach(([label, value, valueColor], index) => {
+    const x = MARGIN + index * (width + gap);
+    pdf.rect(x, pdf.y - 56, width, 56, LIGHT_BG, BORDER);
+    pdf.text(label, x + 8, pdf.y - 20, { size: 7, bold: true, fillColor: MUTED });
+    pdf.rightText(formatCurrency(value), x + width - 8, pdf.y - 40, { size: 8, bold: true, fillColor: valueColor });
+  });
+  pdf.y -= 82;
+};
+
 const addSummary = (pdf, totals) => {
   const cards = [
     ['Revenus', totals.income, GREEN],
@@ -466,6 +535,31 @@ const addSection = (pdf, section) => {
   pdf.rightText(formatCurrency(section.total), PAGE_WIDTH - MARGIN - 12, pdf.y - 13, { size: 10, bold: true, fillColor: NAVY });
   pdf.y -= 32;
 
+  pdf.y -= 16;
+};
+
+const addSimpleRowsSection = (pdf, title, rows, emptyLabel = 'Aucune donnée') => {
+  pdf.ensure(58);
+  pdf.text(title, MARGIN, pdf.y, { size: 13, bold: true, fillColor: NAVY });
+  pdf.y -= 18;
+  if (!rows.length) {
+    pdf.rect(MARGIN, pdf.y - 22, PAGE_WIDTH - MARGIN * 2, 24, LIGHT_BG, BORDER);
+    pdf.text(emptyLabel, MARGIN + 12, pdf.y - 14, { size: 9, fillColor: MUTED });
+    pdf.y -= 38;
+    return;
+  }
+  rows.forEach((row, index) => {
+    const nameLines = wrapText(row.name, 54, 2);
+    const rowHeight = Math.max(24, 14 + nameLines.length * 11);
+    pdf.ensure(rowHeight + 6);
+    if (index % 2 === 1) pdf.rect(MARGIN, pdf.y - rowHeight + 4, PAGE_WIDTH - MARGIN * 2, rowHeight, LIGHT_BG);
+    nameLines.forEach((line, lineIndex) => {
+      pdf.text(line, MARGIN + 12, pdf.y - 10 - (lineIndex * 11), { size: 9, fillColor: TEXT });
+    });
+    pdf.rightText(formatCurrency(row.amount), PAGE_WIDTH - MARGIN - 12, pdf.y - 10, { size: 9, bold: true, fillColor: TEXT });
+    pdf.line(MARGIN, pdf.y - rowHeight, PAGE_WIDTH - MARGIN, pdf.y - rowHeight, BORDER);
+    pdf.y -= rowHeight + 2;
+  });
   pdf.y -= 16;
 };
 
@@ -543,8 +637,11 @@ const generateMonthlyBudgetPdf = () => {
   const pdf = new PdfDocument();
   addHeader(pdf, data);
   addExecutiveSummary(pdf, data.totals);
+  addFinalOverview(pdf, data);
   addSummary(pdf, data.totals);
   data.sections.forEach(section => addSection(pdf, section));
+  addSimpleRowsSection(pdf, 'Dettes', data.debts, 'Aucune dette active');
+  addSimpleRowsSection(pdf, 'Objectifs', data.goals, 'Aucun objectif actif');
   return {
     data,
     blob: new Blob([pdf.finish()], { type: 'application/pdf' })
@@ -557,8 +654,11 @@ const generateMonthlyBudgetPdfPremium = async () => {
   pdf.addImage('Logo', await loadLogoForPdf());
   addHeader(pdf, data);
   addExecutiveSummary(pdf, data.totals);
+  addFinalOverview(pdf, data);
   addSummary(pdf, data.totals);
   data.sections.forEach(section => addSection(pdf, section));
+  addSimpleRowsSection(pdf, 'Dettes', data.debts, 'Aucune dette active');
+  addSimpleRowsSection(pdf, 'Objectifs', data.goals, 'Aucun objectif actif');
   return {
     data,
     blob: new Blob([pdf.finish()], { type: 'application/pdf' })
