@@ -427,6 +427,30 @@ body,
   font-weight: 800;
 }
 
+.human-summary-lines {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.human-summary-lines p {
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.human-summary-lines strong {
+  color: var(--text);
+  display: inline;
+  font-size: 13px;
+}
+
+.human-summary-lines em {
+  color: var(--text2);
+  font-style: normal;
+}
+
 .kpi-card {
   background: var(--bg2);
   border: 1px solid var(--border);

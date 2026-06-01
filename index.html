@@ -154,6 +154,14 @@
           <li>Mettre à jour le budget.</li>
         </ol>
       </section>
+      <section class="wow-card human-summary-card" id="human-summary-card">
+        <span>Assistant humain</span>
+        <div class="human-summary-lines">
+          <p><strong>Situation :</strong> <em id="human-summary-situation">Budget à compléter.</em></p>
+          <p><strong>Attention :</strong> <em id="human-summary-attention">Aucun point sensible.</em></p>
+          <p><strong>Action :</strong> <em id="human-summary-action">Mettre à jour le budget.</em></p>
+        </div>
+      </section>
     </div>
     <div class="kpi-grid">
       <div class="kpi-card" id="card-revenus">
@@ -3437,6 +3445,12 @@ function updateAll(){
     variablesPct,
     totalDepRestant
   });
+  updateHumanSummary({
+    revReel,
+    solde,
+    tauxCh,
+    variablesPct
+  });
   if (typeof updateDashboardPrimaryGoal === 'function') {
     updateDashboardPrimaryGoal().catch(err => console.warn('[Goals] dashboard primary goal update failed', err));
   }
@@ -3693,6 +3707,27 @@ function updateWeekPlan(metrics = {}) {
   if (getDebtSummary().total > 0) actions.push('Vérifier les dettes restantes');
   if (actions.length === 0) actions.push('Mettre à jour le budget en fin de semaine');
   listEl.innerHTML = actions.slice(0, 3).map(action => `<li>${escapeHtml(action)}</li>`).join('');
+}
+
+function updateHumanSummary(metrics = {}) {
+  const situationEl = document.getElementById('human-summary-situation');
+  const attentionEl = document.getElementById('human-summary-attention');
+  const actionEl = document.getElementById('human-summary-action');
+  if (!situationEl || !attentionEl || !actionEl) return;
+
+  situationEl.textContent = metrics.revReel <= 0
+    ? 'Le budget est à compléter.'
+    : metrics.solde >= 0
+      ? 'Le budget reste positif.'
+      : 'Le budget risque de finir négatif.';
+  attentionEl.textContent = metrics.revReel <= 0
+    ? 'Les revenus ne sont pas encore saisis.'
+    : metrics.tauxCh > 85
+      ? `Les charges représentent ${metrics.tauxCh}% des revenus.`
+      : metrics.variablesPct > 40
+        ? `Les dépenses variables atteignent ${metrics.variablesPct}% des revenus.`
+        : 'Aucun point sensible majeur.';
+  actionEl.textContent = document.getElementById('priority-action-title')?.textContent || 'Mettre à jour le budget.';
 }
 
 function updateDashboardGuidance(metrics) {
