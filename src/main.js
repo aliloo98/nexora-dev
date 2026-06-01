@@ -36,6 +36,7 @@ import { GoalsService } from './goals/goalsService.js'
 import { UserAppSettingsService } from '../js/userAppSettingsService.js'
 import { STORAGE_KEYS } from './constants/storageKeys.js'
 import { renderAssistantCard } from './components/AssistantCard.js'
+import CoupleUIComponent from './couple/coupleUIComponent.js'
 
 // Expose modules globally for HTML event handlers and old code
 window.StorageManager = StorageManager
@@ -58,6 +59,7 @@ window.GoalsService = GoalsService
 window.GoalsPage = GoalsPage
 window.UserAppSettingsService = UserAppSettingsService
 window.NexoraStorageKeys = STORAGE_KEYS
+window.CoupleUIComponent = CoupleUIComponent
 
 // Expose helper functions globally (for HTML onclick handlers)
 window.showToast = (msg) => Utils.showToast(msg)
@@ -93,6 +95,16 @@ const initApp = async () => {
 
     // Inject auth styles
     injectAuthStyles()
+
+    // Inject couple UI styles so partner page is styled when activated
+    try {
+      const styleElement = document.createElement('style')
+      styleElement.id = 'nexora-couple-styles'
+      styleElement.textContent = CoupleUIComponent.getCoupleCSS()
+      document.head.appendChild(styleElement)
+    } catch (err) {
+      console.warn('⚠️ Couple UI styles injection failed', err)
+    }
 
     // Initialize local notifications layer
     await NotificationsService.init()
