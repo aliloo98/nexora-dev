@@ -132,6 +132,16 @@
         <strong id="month-forecast-title">Prévision indisponible</strong>
         <p id="month-forecast-detail">Ajoutez vos revenus et dépenses pour calculer la projection.</p>
       </section>
+      <section class="wow-card available-money-card" id="available-money-card">
+        <span>💰 Argent disponible</span>
+        <strong id="available-money-value">0 €</strong>
+        <p id="available-money-detail">Aucun montant disponible non affecté.</p>
+        <div class="wow-actions">
+          <button type="button" class="btn btn-outline" onclick="showSection('objectifs')">Affecter à un objectif</button>
+          <button type="button" class="btn btn-outline" onclick="showSection('dettes')">Affecter à une dette</button>
+          <button type="button" class="btn btn-outline" onclick="showToast('Montant gardé disponible')">Garder disponible</button>
+        </div>
+      </section>
     </div>
     <div class="kpi-grid">
       <div class="kpi-card" id="card-revenus">
@@ -3402,6 +3412,9 @@ function updateAll(){
     revReel,
     solde
   });
+  updateAvailableMoney({
+    solde
+  });
   if (typeof updateDashboardPrimaryGoal === 'function') {
     updateDashboardPrimaryGoal().catch(err => console.warn('[Goals] dashboard primary goal update failed', err));
   }
@@ -3604,6 +3617,23 @@ function updateMonthForecast(metrics = {}) {
   detailEl.textContent = metrics.revReel > 0
     ? `Si rien ne change, il restera ${fmt(forecast)} au ${endLabel}.`
     : 'Ajoutez vos revenus et dépenses pour calculer la projection.';
+}
+
+function updateAvailableMoney(metrics = {}) {
+  const card = document.getElementById('available-money-card');
+  const valueEl = document.getElementById('available-money-value');
+  const detailEl = document.getElementById('available-money-detail');
+  if (!card || !valueEl || !detailEl) return;
+
+  const debtMonthly = getDebtSummary().monthly;
+  const goalMonthly = parseBudgetNumber(document.getElementById('goal-monthly-contrib')?.value || 0);
+  const available = Math.max(0, Number(metrics.solde || 0) - debtMonthly - goalMonthly);
+  valueEl.textContent = fmt(available);
+  detailEl.textContent = available > 0
+    ? `${fmt(debtMonthly)} déjà prévu pour les dettes, ${fmt(goalMonthly)} pour les objectifs.`
+    : 'Tout le solde prévu est déjà absorbé par les dépenses, dettes ou objectifs.';
+  card.classList.remove('is-positive', 'is-warning', 'is-negative', 'is-neutral');
+  card.classList.add(available > 100 ? 'is-positive' : available > 0 ? 'is-warning' : 'is-neutral');
 }
 
 function updateDashboardGuidance(metrics) {

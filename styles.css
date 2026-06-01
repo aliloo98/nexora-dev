@@ -383,6 +383,19 @@ body,
 .wow-card.is-warning { border-color: rgba(245,158,11,0.28); }
 .wow-card.is-negative { border-color: rgba(244,63,94,0.3); }
 
+.wow-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.wow-actions .btn {
+  font-size: 11px;
+  min-height: 30px;
+  padding: 6px 9px;
+}
+
 .kpi-card {
   background: var(--bg2);
   border: 1px solid var(--border);
