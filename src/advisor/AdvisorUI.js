@@ -15,6 +15,29 @@ const getField = (outcome, keys, fallback) => {
   return fallback
 }
 
+const formatCurrencyImpact = (value) => {
+  const amount = Number(value)
+  if (!Number.isFinite(amount)) return value
+  const sign = amount > 0 ? '+' : ''
+  return `${sign}${amount.toLocaleString('fr-FR')} €`
+}
+
+const normalizeVerdict = (value) => {
+  const normalized = String(value || '').trim().toLowerCase()
+  if (['ok', 'yes', 'possible', 'go'].includes(normalized)) return 'Possible'
+  if (['no', 'blocked', 'non', 'refus'].includes(normalized)) return 'Non recommandé'
+  if (['recommend', 'recommandation'].includes(normalized)) return 'À prioriser'
+  return value
+}
+
+const normalizeRisk = (value) => {
+  const normalized = String(value || '').trim().toLowerCase()
+  if (normalized === 'haut' || normalized === 'high') return 'Élevé'
+  if (normalized === 'moyen' || normalized === 'medium') return 'Modéré'
+  if (normalized === 'bas' || normalized === 'low') return 'Faible'
+  return value
+}
+
 export function renderAdvisorUI(rootId, AdvisorService) {
   const root = document.getElementById(rootId)
   if (!root) return
@@ -78,9 +101,9 @@ export function renderAdvisorUI(rootId, AdvisorService) {
 
   const renderResult = (outcome = {}) => {
     resultDiv.hidden = false
-    const verdict = getField(outcome, ['verdict'], outcome.canAfford ? 'Possible' : 'Non recommandé')
-    const impact = getField(outcome, ['impact', 'endingBalance'], 'Aucun impact clair détecté')
-    const risk = getField(outcome, ['risk'], 'Modéré')
+    const verdict = normalizeVerdict(getField(outcome, ['verdict'], outcome.canAfford ? 'Possible' : 'Non recommandé'))
+    const impact = formatCurrencyImpact(getField(outcome, ['impact', 'endingBalance'], 'Aucun impact clair détecté'))
+    const risk = normalizeRisk(getField(outcome, ['risk'], 'Modéré'))
     const advice = getField(outcome, ['recommendation', 'advice', 'rationale'], 'Vérifiez le plan avant de confirmer.')
 
     root.querySelector('#advisor-result-verdict').textContent = verdict

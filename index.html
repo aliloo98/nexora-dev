@@ -997,7 +997,7 @@ function getBudgetCycleRange(month) {
 
   const end = makeClampedDate(year, endMonthIndex, settings.endDay);
   let start = makeClampedDate(year, endMonthIndex, settings.startDay);
-  if (start > end || settings.startDay > settings.endDay) {
+  if (start >= end || settings.startDay >= settings.endDay) {
     start = makeClampedDate(year, endMonthIndex - 1, settings.startDay);
   }
   const includeYear = start.getFullYear() !== end.getFullYear();
@@ -3156,7 +3156,7 @@ function updateAll(){
   updateWeekPlan({
     solde,
     variablesPct,
-    totalDepRestant
+    totalDepRestant,
     revReel
   });
   updateHumanSummary({

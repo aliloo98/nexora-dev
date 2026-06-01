@@ -82,7 +82,7 @@ export const CoupleService = {
 
       return { couple: data, partnerId }
     } catch (error) {
-      console.error('❌ Error fetching couple:', error)
+      console.warn('[CoupleService] Mode couple indisponible, affichage local/à venir utilisé:', error?.message || error)
       return { couple: null, partnerId: null }
     }
   },
