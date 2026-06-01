@@ -1,61 +1,106 @@
+const quickQuestions = [
+  { label: 'Can I make a purchase?', query: 'Can I make a purchase?' },
+  { label: 'Will I finish the month positive?', query: 'Will I finish the month positive?' },
+  { label: 'Which debt should I repay?', query: 'Which debt should I repay?' },
+  { label: 'Can I fund a goal?', query: 'Can I fund a goal?' }
+]
+
+const getField = (outcome, keys, fallback) => {
+  for (const key of keys) {
+    if (outcome?.[key] !== undefined && outcome?.[key] !== null && outcome?.[key] !== '') {
+      return String(outcome[key])
+    }
+  }
+  return fallback
+}
+
 export function renderAdvisorUI(rootId, AdvisorService) {
   const root = document.getElementById(rootId)
   if (!root) return
-  root.classList.add('dash-mini-card', 'fade-in')
+
   root.innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <label style="font-size:13px;color:var(--text2)">Conseiller Nexora</label>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input id="advisor-input" placeholder="Ex: Puis-je acheter un vélo à 400€ ?" style="flex:1;min-width:160px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--text)" />
-        <button id="advisor-btn" class="btn btn-outline">Analyser</button>
+    <section class="advisor-page">
+      <div class="advisor-input-panel">
+        <label for="advisor-input">Ask Nexora</label>
+        <div class="advisor-input-row">
+          <input id="advisor-input" type="text" placeholder="Can I spend 200 € this week?" autocomplete="off" />
+          <button id="advisor-btn" class="btn btn-gold" type="button">Analyze</button>
+        </div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
-        <button class="btn btn-outline" data-q="Puis-je acheter un vélo à 200€ ?">Puis-je faire un achat ?</button>
-        <button class="btn btn-outline" data-q="Vais-je finir le mois dans le vert ?">Finir le mois dans le vert ?</button>
-        <button class="btn btn-outline" data-q="Quelle dette rembourser ?">Quelle dette rembourser ?</button>
-        <button class="btn btn-outline" data-q="Puis-je alimenter un objectif ?">Alimenter un objectif ?</button>
+
+      <div class="advisor-quick-grid" aria-label="Questions rapides">
+        ${quickQuestions.map((item) => `
+          <button class="btn btn-outline" type="button" data-q="${item.query}">${item.label}</button>
+        `).join('')}
       </div>
-      <div id="advisor-result" style="font-size:13px;color:var(--text2);display:flex;flex-direction:column;gap:6px;margin-top:8px"></div>
-    </div>
+
+      <div id="advisor-result" class="advisor-result" hidden>
+        <div class="advisor-result-card advisor-verdict">
+          <span>Verdict</span>
+          <strong id="advisor-result-verdict">-</strong>
+        </div>
+        <div class="advisor-result-grid">
+          <div class="advisor-result-card">
+            <span>Impact</span>
+            <strong id="advisor-result-impact">-</strong>
+          </div>
+          <div class="advisor-result-card">
+            <span>Risk</span>
+            <strong id="advisor-result-risk">-</strong>
+          </div>
+          <div class="advisor-result-card advisor-recommendation">
+            <span>Recommendation</span>
+            <p id="advisor-result-advice">-</p>
+          </div>
+        </div>
+      </div>
+    </section>
   `
 
   const input = root.querySelector('#advisor-input')
   const btn = root.querySelector('#advisor-btn')
-  const res = root.querySelector('#advisor-result')
-  const renderStructured = (outcome) => {
-    res.innerHTML = ''
-    const verdict = document.createElement('div')
-    verdict.innerHTML = `<strong>Verdict:</strong> ${outcome.verdict || outcome.canAfford ? (outcome.verdict || (outcome.canAfford ? 'ok' : 'no')) : 'N/A'}`
-    const impact = document.createElement('div')
-    impact.innerHTML = `<strong>Impact:</strong> ${typeof outcome.impact !== 'undefined' ? outcome.impact : (typeof outcome.endingBalance !== 'undefined' ? outcome.endingBalance : 'N/A')}`
-    const risk = document.createElement('div')
-    risk.innerHTML = `<strong>Risque:</strong> ${outcome.risk || 'N/A'}`
-    const advice = document.createElement('div')
-    advice.innerHTML = `<strong>Conseil:</strong> ${outcome.advice || outcome.rationale || 'Aucun conseil'}`
-    res.appendChild(verdict)
-    res.appendChild(impact)
-    res.appendChild(risk)
-    res.appendChild(advice)
+  const resultDiv = root.querySelector('#advisor-result')
+
+  const renderResult = (outcome = {}) => {
+    resultDiv.hidden = false
+    const verdict = getField(outcome, ['verdict'], outcome.canAfford ? 'Possible' : 'Not recommended')
+    const impact = getField(outcome, ['impact', 'endingBalance'], 'No clear impact detected')
+    const risk = getField(outcome, ['risk'], 'Moderate')
+    const advice = getField(outcome, ['recommendation', 'advice', 'rationale'], 'Check the plan before committing.')
+
+    root.querySelector('#advisor-result-verdict').textContent = verdict
+    root.querySelector('#advisor-result-impact').textContent = impact
+    root.querySelector('#advisor-result-risk').textContent = risk
+    root.querySelector('#advisor-result-advice').textContent = advice
   }
 
-  btn.addEventListener('click', async () => {
-    const q = input.value || ''
+  const runQuery = async (query) => {
+    const normalizedQuery = String(query || '').trim()
+    if (!normalizedQuery) return
+    input.value = normalizedQuery
+    btn.disabled = true
+    btn.textContent = 'Analyzing'
     try {
-      const outcome = await AdvisorService.evaluateQuery({ query: q })
-      renderStructured(outcome)
+      const outcome = await AdvisorService.evaluateQuery({ query: normalizedQuery })
+      renderResult(outcome)
     } catch (e) {
-      res.textContent = 'Erreur lors de l’analyse'
+      resultDiv.hidden = false
+      root.querySelector('#advisor-result-verdict').textContent = 'Analysis unavailable'
+      root.querySelector('#advisor-result-impact').textContent = 'No budget change applied'
+      root.querySelector('#advisor-result-risk').textContent = 'Unknown'
+      root.querySelector('#advisor-result-advice').textContent = 'Try again after updating the budget.'
+    } finally {
+      btn.disabled = false
+      btn.textContent = 'Analyze'
     }
+  }
+
+  btn.addEventListener('click', () => runQuery(input.value))
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') runQuery(input.value)
   })
 
-  // Quick question buttons
-  Array.from(root.querySelectorAll('button[data-q]')).forEach(b => {
-    b.addEventListener('click', async () => {
-      const q = b.getAttribute('data-q') || ''
-      try {
-        const outcome = await AdvisorService.evaluateQuery({ query: q })
-        renderStructured(outcome)
-      } catch (e) { res.textContent = 'Erreur lors de l’analyse' }
-    })
+  root.querySelectorAll('button[data-q]').forEach((button) => {
+    button.addEventListener('click', () => runQuery(button.getAttribute('data-q')))
   })
 }

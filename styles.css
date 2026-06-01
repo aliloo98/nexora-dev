@@ -5,6 +5,83 @@
   box-sizing: border-box;
 }
 
+@media(max-width: 430px) {
+  body {
+    width: 100%;
+  }
+
+  .main,
+  .section,
+  .budget-block,
+  .param-block,
+  .settings-card,
+  .plan-card,
+  .wow-card {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .dashboard-clean-grid,
+  .plan-hub-grid,
+  .advisor-result-grid,
+  .advisor-quick-grid,
+  .plan-metric-row,
+  .couple-mode-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-clean-header h2,
+  .settings-page-header h2 {
+    font-size: 20px;
+  }
+
+  .wow-card,
+  .plan-card,
+  .settings-card,
+  .param-block {
+    padding: 14px;
+  }
+
+  .wow-actions,
+  .advisor-input-row,
+  .couple-mode-head {
+    align-items: stretch;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .wow-actions .btn,
+  .advisor-input-row .btn,
+  .advisor-quick-grid .btn,
+  .couple-mode-actions .btn {
+    max-width: none;
+    width: 100%;
+  }
+
+  .plan-balance-card {
+    grid-row: auto;
+  }
+
+  .plan-balance-value {
+    font-size: 28px;
+  }
+
+  .dashboard-primary-goal-meta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .budget-block-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  #plan-root,
+  #nexora-page-root {
+    padding: 12px !important;
+  }
+}
+
 :root {
   --bg-gradient: radial-gradient(circle at top right, #121225 0%, #07070d 60%, #030306 100%);
   --bg: #07070d;
@@ -340,6 +417,30 @@ body,
   overflow-wrap: anywhere;
 }
 
+.dashboard-clean-header,
+.settings-page-header {
+  margin-bottom: 18px;
+}
+
+.dashboard-clean-header span,
+.settings-page-header span {
+  color: var(--gold);
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.dashboard-clean-header h2,
+.settings-page-header h2 {
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.dashboard-clean-grid,
 .wow-grid {
   display: grid;
   gap: 12px;
@@ -350,7 +451,7 @@ body,
 .wow-card {
   background: var(--bg2);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 8px;
   box-shadow: var(--card-shadow);
   min-width: 0;
   padding: 16px;
@@ -377,6 +478,10 @@ body,
   font-size: 13px;
   line-height: 1.45;
   margin: 7px 0 0;
+}
+
+.dashboard-clean-grid .dashboard-primary-goal {
+  margin: 0;
 }
 
 .wow-card.is-positive { border-color: rgba(16,185,129,0.28); }
@@ -2352,15 +2457,15 @@ body.mode-simple .goal-card-meta {
 .kpi-card {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  padding: 18px;
+  border-radius: 8px;
+  padding: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
 }
 
 .plan-hub-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .plan-card-header,
@@ -2369,14 +2474,58 @@ body.mode-simple .goal-card-meta {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
+}
+
+.plan-card-header h3 {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.plan-status-pill {
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 999px;
+  color: var(--text2);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 5px 9px;
+}
+
+.plan-status-pill.success { color: var(--green); border-color: rgba(16,185,129,0.28); }
+.plan-status-pill.warning { color: var(--orange); border-color: rgba(245,158,11,0.28); }
+.plan-status-pill.danger { color: var(--red); border-color: rgba(244,63,94,0.32); }
+
+.plan-balance-card {
+  grid-row: span 2;
+}
+
+.plan-balance-value {
+  display: block;
+  font-size: 32px;
+  line-height: 1.05;
+  margin-bottom: 14px;
+  overflow-wrap: anywhere;
+}
+
+.plan-balance-value.success,
+.positive {
+  color: var(--green);
+}
+
+.plan-balance-value.warning {
+  color: var(--orange);
+}
+
+.plan-balance-value.danger,
+.negative {
+  color: var(--red);
 }
 
 .plan-metric-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 12px;
+  gap: 10px;
 }
 
 .metric-label {
@@ -2402,29 +2551,70 @@ body.mode-simple .goal-card-meta {
 .plan-risk-danger { border-color: rgba(244, 63, 94, 0.22); }
 
 .plan-action-row,
-.plan-event-row {
+.plan-event-row,
+.plan-row {
   display: flex;
   justify-content: space-between;
   gap: 10px;
   padding: 12px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  min-width: 0;
 }
 
 .plan-action-row:last-child,
-.plan-event-row:last-child {
+.plan-event-row:last-child,
+.plan-row:last-child {
   border-bottom: none;
+}
+
+.plan-row strong,
+.plan-row span {
+  display: block;
+}
+
+.plan-row strong {
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.plan-row span,
+.plan-empty-line {
+  color: var(--text2);
+  font-size: 12px;
+  line-height: 1.35;
+  margin-top: 3px;
+}
+
+.plan-row em {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 800;
 }
 
 .plan-timeline-card {
   grid-column: 1/-1;
 }
 
+.plan-timeline-root {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
 .empty-state {
   padding: 18px;
-  border-radius: 14px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px dashed rgba(255, 255, 255, 0.08);
   color: var(--text2);
+}
+
+.plan-empty-state {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
 }
 
 .recurring-income-row,
@@ -2432,9 +2622,145 @@ body.mode-simple .goal-card-meta {
   display: grid;
   gap: 12px;
   padding: 14px;
-  border-radius: 14px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.advisor-page {
+  display: grid;
+  gap: 14px;
+}
+
+.advisor-input-panel {
+  display: grid;
+  gap: 8px;
+}
+
+.advisor-input-panel label,
+.advisor-result-card span {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.advisor-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.advisor-input-row input {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  min-width: 0;
+  padding: 12px 13px;
+}
+
+.advisor-quick-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.advisor-quick-grid .btn {
+  min-height: 42px;
+  padding: 9px 11px;
+  white-space: normal;
+}
+
+.advisor-result {
+  display: grid;
+  gap: 10px;
+}
+
+.advisor-result[hidden] {
+  display: none;
+}
+
+.advisor-result-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.advisor-result-card {
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.advisor-verdict strong {
+  font-size: 22px;
+}
+
+.advisor-result-card strong,
+.advisor-result-card p {
+  color: var(--text);
+  display: block;
+  font-size: 15px;
+  line-height: 1.4;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+
+.advisor-recommendation {
+  grid-column: 1 / -1;
+}
+
+.couple-mode-card,
+.couple-mode-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.couple-mode-head {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.couple-code-box {
+  background: rgba(229,192,96,0.08);
+  border: 1px solid rgba(229,192,96,0.2);
+  border-radius: 8px;
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 800;
+  padding: 12px;
+}
+
+.couple-mode-actions {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.couple-mode-actions .budget-input {
+  grid-column: 1 / -1;
+}
+
+.couple-premium-empty {
+  background: rgba(229,192,96,0.06);
+  border: 1px dashed rgba(229,192,96,0.24);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.couple-premium-empty strong {
+  color: var(--text);
+}
+
+.couple-premium-empty p {
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.45;
+  margin-top: 5px;
 }
 
 @media (max-width: 900px) {

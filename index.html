@@ -114,30 +114,23 @@
 
   <!-- DASHBOARD -->
   <div id="section-dashboard" class="section active">
-    <div class="mode-toggle">
-      <span>Mode</span>
-      <button type="button" id="mode-complete-btn" class="mode-toggle-btn active" onclick="setNexoraUxMode('complete')">Complet</button>
-      <button type="button" id="mode-simple-btn" class="mode-toggle-btn" onclick="setNexoraUxMode('simple')">Simplifié</button>
+    <div class="dashboard-clean-header">
+      <span>Vue essentielle</span>
+      <h2>Tableau de bord</h2>
     </div>
-    <div class="simple-dashboard-grid" id="simple-dashboard-grid">
-      <div class="simple-card"><span>Argent qui rentre</span><strong id="simple-income">0 €</strong></div>
-      <div class="simple-card"><span>Argent qui sort</span><strong id="simple-out">0 €</strong></div>
-      <div class="simple-card"><span>Argent restant</span><strong id="simple-left">0 €</strong></div>
-      <div class="simple-card"><span>Objectif principal</span><strong id="simple-goal">Aucun objectif</strong><em id="simple-goal-detail">Aucun objectif configuré</em></div>
-    </div>
-    <div class="wow-grid">
+    <div class="dashboard-clean-grid">
       <section class="wow-card priority-action-card" id="priority-action-card">
-        <span>🎯 Action recommandée</span>
+        <span>Action recommandée</span>
         <strong id="priority-action-title">Aucun risque détecté</strong>
         <p id="priority-action-detail">Le budget ne demande pas d’action urgente.</p>
       </section>
       <section class="wow-card month-forecast-card" id="month-forecast-card">
-        <span>📅 Prévision de fin de mois</span>
+        <span>Prévision du mois</span>
         <strong id="month-forecast-title">Prévision indisponible</strong>
         <p id="month-forecast-detail">Ajoutez vos revenus et dépenses pour calculer la projection.</p>
       </section>
       <section class="wow-card available-money-card" id="available-money-card">
-        <span>💰 Argent disponible</span>
+        <span>Argent disponible</span>
         <strong id="available-money-value">0 €</strong>
         <p id="available-money-detail">Aucun montant disponible non affecté.</p>
         <div class="wow-actions">
@@ -147,134 +140,13 @@
           <button type="button" class="btn btn-gold" onclick="openTreasuryPlanner()">Voir le plan</button>
         </div>
       </section>
-      <section class="wow-card wins-card" id="wins-card">
-        <span>🏆 Réussites</span>
-        <div class="wins-list" id="wins-list">
-          <p>Aucune réussite détectée pour le moment.</p>
-        </div>
-      </section>
       <section class="wow-card week-plan-card" id="week-plan-card">
-        <span>📋 Cette semaine</span>
+        <span>Plan rapide</span>
         <ol class="week-plan-list" id="week-plan-list">
           <li>Mettre à jour le budget.</li>
         </ol>
       </section>
-      <div id="dashboard-master-root" style="grid-column:1/-1;margin-top:12px"></div>
-      <div id="advisor-root" style="grid-column:1/-1;margin-top:12px"></div>
-      <section class="wow-card human-summary-card" id="human-summary-card">
-        <span>Assistant humain</span>
-        <div class="human-summary-lines">
-          <p><strong>Situation :</strong> <em id="human-summary-situation">Budget à compléter.</em></p>
-          <p><strong>Attention :</strong> <em id="human-summary-attention">Aucun point sensible.</em></p>
-          <p><strong>Action :</strong> <em id="human-summary-action">Mettre à jour le budget.</em></p>
-        </div>
-      </section>
-    </div>
-    <div class="kpi-grid">
-      <div class="kpi-card" id="card-revenus">
-        <div class="kpi-icon">💵</div>
-        <div class="kpi-label">Revenus totaux</div>
-        <div class="kpi-value" id="kpi-revenus">0 €</div>
-        <div class="kpi-sub">Ce mois</div>
-      </div>
-      <div class="kpi-card" id="card-fixes">
-        <div class="kpi-icon">📌</div>
-        <div class="kpi-label">Charges fixes</div>
-        <div class="kpi-value" id="kpi-fixes">0 €</div>
-        <div class="kpi-sub" id="kpi-fixes-pct">0% des revenus</div>
-        <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-fixes-bar"></div></div>
-      </div>
-      <div class="kpi-card" id="card-variables">
-        <div class="kpi-icon">🛒</div>
-        <div class="kpi-label">Dépenses variables</div>
-        <div class="kpi-value" id="kpi-variables">0 €</div>
-        <div class="kpi-sub" id="kpi-variables-pct">0% des revenus</div>
-        <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-variables-bar"></div></div>
-      </div>
-      <div class="kpi-card" id="card-solde">
-        <div class="kpi-icon">💎</div>
-        <div class="kpi-label">Solde actuel</div>
-        <div class="kpi-value" id="kpi-solde">0 €</div>
-        <div class="kpi-sub" id="kpi-solde-status">Revenus − Payés</div>
-      </div>
-      <div class="kpi-card" id="card-dep-payes">
-        <div class="kpi-icon">✅</div>
-        <div class="kpi-label">Dépenses payées</div>
-        <div class="kpi-value" id="kpi-dep-payes">0 €</div>
-        <div class="kpi-sub" id="kpi-dep-payes-sub">0% payé</div>
-        <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-dep-payes-bar"></div></div>
-      </div>
-      <div class="kpi-card" id="card-solde-est">
-        <div class="kpi-icon">🛡️</div>
-        <div class="kpi-label">Solde prévisionnel</div>
-        <div class="kpi-value" id="kpi-solde-est-kpi">0 €</div>
-        <div class="kpi-sub">Revenus − Dépenses totales</div>
-      </div>
-      <div class="kpi-card" id="card-epargne" style="position: relative;">
-        <div class="kpi-gauge-container">
-          <svg width="48" height="48" viewBox="0 0 48 48">
-            <circle cx="24" cy="24" r="22" stroke="rgba(255, 255, 255, 0.05)" stroke-width="3" fill="transparent"></circle>
-            <circle id="epargne-circle-gauge" cx="24" cy="24" r="22" stroke="var(--gold)" stroke-width="3" fill="transparent" stroke-linecap="round"></circle>
-          </svg>
-        </div>
-        <div class="kpi-icon">📈</div>
-        <div class="kpi-label">Taux d'épargne <span class="celebrate-btn" onclick="triggerConfetti()" style="cursor:pointer;margin-left:4px;display:none;" id="epargne-celebrate-star" title="Lancer la célébration !">🌟</span></div>
-        <div class="kpi-value" id="kpi-epargne">0%</div>
-        <div class="kpi-sub" id="kpi-epargne-sub">Objectif: 500 € — 0% atteint</div>
-        <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-epargne-bar"></div></div>
-      </div>
-      <div class="kpi-card" id="card-taux">
-        <div class="kpi-icon">⚡</div>
-        <div class="kpi-label">Taux de charges</div>
-        <div class="kpi-value" id="kpi-taux">0%</div>
-        <div class="kpi-sub">Fixes + variables</div>
-        <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-taux-bar"></div></div>
-      </div>
-      <div class="kpi-card" id="card-dettes">
-        <div class="kpi-icon">💳</div>
-        <div class="kpi-label">Dettes restantes</div>
-        <div class="kpi-value" id="kpi-dettes">0 €</div>
-        <div class="kpi-sub" id="kpi-dettes-sub">Aucune dette active</div>
-      </div>
-    </div>
-
-    <div class="dashboard-action-center">
-      <div class="action-center-head">
-        <span>Centre d'action</span>
-        <strong id="dashboard-situation-title">À compléter</strong>
-      </div>
-      <div class="action-center-grid">
-        <div>
-          <span>Situation</span>
-          <p id="dashboard-situation-text">Saisis tes revenus et tes dépenses pour obtenir une lecture rapide.</p>
-        </div>
-        <div>
-          <span>À surveiller</span>
-          <strong id="dashboard-watch-title">Aucune alerte</strong>
-          <p id="dashboard-watch-text">Les points sensibles apparaîtront ici automatiquement.</p>
-        </div>
-        <div>
-          <span>Prochaine action</span>
-          <strong id="dashboard-action-title">Commencer la saisie</strong>
-          <p id="dashboard-action-text">Renseigne les montants du mois puis sauvegarde.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="couple-insights-card">
-      <div class="couple-insights-head">
-        <div>
-          <span>❤️ Mode Couple</span>
-          <strong>Bientôt disponible</strong>
-        </div>
-      </div>
-      <p class="couple-roadmap-text">Partage partenaire, budget foyer et objectifs communs arriveront dans une version dédiée.</p>
-      <div style="margin-top:8px">
-        <button class="btn btn-outline" onclick="window.CoupleOverlay?.show()">Ouvrir Mode Couple (scaffold)</button>
-      </div>
-    </div>
-
-    <div class="dashboard-primary-goal" id="dashboard-primary-goal">
+      <section class="dashboard-primary-goal wow-card" id="dashboard-primary-goal">
       <div class="dashboard-primary-goal-head">
         <div>
           <span>Objectif principal</span>
@@ -292,296 +164,7 @@
         <div><span>Échéance</span><strong id="dashboard-primary-goal-date">Non définie</strong></div>
         <div><span>Rythme</span><strong id="dashboard-primary-goal-estimate">Non défini</strong></div>
       </div>
-    </div>
-
-    <!-- RESUME RAPIDE & CHART -->
-    <div class="dash-row">
-      <div class="budget-block" style="margin-bottom:0">
-        <div class="budget-block-header">
-          <span class="budget-block-title">Résumé du mois</span>
-          <span style="font-size:13px;color:var(--text2)" id="dash-mois">Mai 2026</span>
-        </div>
-        <div style="padding:24px">
-          <!-- Row 1: Totals -->
-          <div class="budget-row" style="grid-template-columns:1fr 1fr; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:16px; margin-bottom:16px">
-            <div><div style="font-size:12px;color:var(--text2);margin-bottom:6px">Total Revenus</div><div style="font-size:22px;font-weight:700;color:var(--green)" id="dash-rev">0 €</div></div>
-            <div><div style="font-size:12px;color:var(--text2);margin-bottom:6px">Total Dépenses</div><div style="font-size:22px;font-weight:700;color:var(--red)" id="dash-dep">0 €</div></div>
-          </div>
-
-          <!-- Row 2: Paid vs Unpaid -->
-          <div class="budget-row" style="grid-template-columns:1fr 1fr; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:16px; margin-bottom:16px">
-            <div><div style="font-size:12px;color:var(--text2);margin-bottom:6px">Dépenses payées</div><div style="font-size:18px;font-weight:600;color:var(--accent)" id="dash-dep-payees">0 €</div></div>
-            <div><div style="font-size:12px;color:var(--text2);margin-bottom:6px">Restant à payer</div><div style="font-size:18px;font-weight:600;color:var(--orange)" id="dash-dep-restantes">0 €</div></div>
-          </div>
-
-          <!-- Row 3: Available Current Balance -->
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-            <span style="font-size:14px;color:var(--text2);font-weight:500">Solde disponible actuel</span>
-            <span style="font-size:18px;font-weight:700" id="dash-solde2">0 €</span>
-          </div>
-
-          <!-- Highlight Box: Previsional Balance -->
-          <div style="background: rgba(229, 192, 96, 0.05); border: 1px solid rgba(229, 192, 96, 0.2); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 4px; align-items: center; text-align: center;">
-            <span style="font-size: 11px; color: var(--gold); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Solde prévisionnel de fin de mois</span>
-            <span style="font-size: 26px; font-weight: 800; color: #ffffff; text-shadow: 0 0 10px rgba(229, 192, 96, 0.2);" id="dash-solde-est">0 €</span>
-            <span style="font-size: 11px; color: var(--text2);">Revenus − Dépenses totales</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- DONUT CHART -->
-      <div class="chart-container">
-        <svg width="180" height="180" viewBox="0 0 200 200" class="donut-chart">
-          <circle cx="100" cy="100" r="70" class="donut-bg" />
-          <circle cx="100" cy="100" r="70" class="donut-segment segment-fixes" />
-          <circle cx="100" cy="100" r="70" class="donut-segment segment-variables" />
-          <circle cx="100" cy="100" r="70" class="donut-segment segment-epargne" />
-          <g class="donut-text">
-            <text x="100" y="95" class="donut-text-label">Dépenses</text>
-            <text x="100" y="120" class="donut-text-val" id="donut-total">0 €</text>
-          </g>
-        </svg>
-        <div class="chart-legend">
-          <div class="legend-item">
-            <span class="legend-color fixes"></span>
-            <span>Fixes</span>
-            <span class="legend-pct" id="legend-fixes-pct">0%</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-color variables"></span>
-            <span>Variables</span>
-            <span class="legend-pct" id="legend-variables-pct">0%</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-color epargne"></span>
-            <span>Épargne</span>
-            <span class="legend-pct" id="legend-epargne-pct">0%</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ANALYTICS PREMIUM -->
-    <div class="analytics-premium">
-      <div class="analytics-header">
-        <div>
-          <div class="analytics-eyebrow">Analytics Premium</div>
-          <h2>Santé financière</h2>
-        </div>
-        <div class="analytics-period-toggle" aria-label="Période du graphique">
-          <button type="button" class="analytics-period-btn active" data-period="3" onclick="setAnalyticsPeriod(3)">3 mois</button>
-          <button type="button" class="analytics-period-btn" data-period="6" onclick="setAnalyticsPeriod(6)">6 mois</button>
-          <button type="button" class="analytics-period-btn" data-period="12" onclick="setAnalyticsPeriod(12)">12 mois</button>
-        </div>
-      </div>
-
-      <div class="analytics-grid">
-        <section class="analytics-card analytics-health-card">
-          <div class="analytics-card-title">Santé financière</div>
-          <div class="health-score-wrap">
-            <svg class="health-score-ring" viewBox="0 0 120 120" aria-hidden="true">
-              <circle cx="60" cy="60" r="50" class="health-score-bg"></circle>
-              <circle cx="60" cy="60" r="50" class="health-score-fill" id="analytics-score-ring"></circle>
-            </svg>
-            <div class="health-score-value">
-              <strong id="analytics-score">0</strong>
-              <span id="analytics-score-label">Aucune donnée</span>
-            </div>
-          </div>
-          <div class="health-metrics">
-            <div><span>Revenus</span><strong id="analytics-health-income">0 €</strong></div>
-            <div><span>Dépenses</span><strong id="analytics-health-expenses">0 €</strong></div>
-            <div><span>Épargne</span><strong id="analytics-health-savings">0 €</strong></div>
-            <div><span>Taux</span><strong id="analytics-health-rate">0%</strong></div>
-          </div>
-        </section>
-
-        <section class="analytics-card analytics-trend-card">
-          <div class="analytics-card-title">Évolution mensuelle</div>
-          <div class="analytics-chart-shell" id="analytics-trend-chart"></div>
-          <div class="analytics-legend">
-            <span><i class="legend-income"></i>Revenus</span>
-            <span><i class="legend-expense"></i>Dépenses</span>
-            <span><i class="legend-balance"></i>Solde</span>
-          </div>
-        </section>
-
-        <section class="analytics-card">
-          <div class="analytics-card-title">Répartition des dépenses</div>
-          <div class="expense-split">
-            <div class="expense-donut" id="analytics-expense-donut"></div>
-            <div class="expense-list" id="analytics-expense-list"></div>
-          </div>
-        </section>
-
-        <section class="analytics-card">
-          <div class="analytics-card-title">Top dépenses</div>
-          <div class="top-expenses-list" id="analytics-top-expenses"></div>
-        </section>
-
-        <section class="analytics-card">
-          <div class="analytics-card-title">Comparaison mois précédent</div>
-          <div class="comparison-list" id="analytics-comparisons"></div>
-        </section>
-
-        <section class="analytics-card">
-          <div class="analytics-card-title">Mémoire financière</div>
-          <div class="history-insights-list" id="analytics-history-insights"></div>
-        </section>
-
-        <section class="analytics-card">
-          <div class="analytics-card-title">Objectifs financiers</div>
-          <div class="goals-list" id="analytics-goals"></div>
-        </section>
-
-        <section class="analytics-card analytics-forecast-card">
-          <div class="analytics-card-title">Prévisions simples</div>
-          <div class="forecast-list">
-            <div><span>Solde estimé fin de mois</span><strong id="analytics-forecast-balance">0 €</strong></div>
-            <div><span>Dépenses estimées</span><strong id="analytics-forecast-expenses">0 €</strong></div>
-            <div><span>Épargne estimée</span><strong id="analytics-forecast-savings">0 €</strong></div>
-          </div>
-        </section>
-      </div>
-    </div>
-
-    <!-- ANALYSE 50/30/20 -->
-    <div class="budget-block" style="margin-top: 32px;">
-      <div class="budget-block-header">
-        <span class="budget-block-title">📊 Règle Budgétaire 50/30/20</span>
-        <span style="font-size:12px;color:var(--text2)">Santé financière réelle</span>
-      </div>
-      <div class="rule-container" style="padding: 24px;">
-        <div style="font-size: 13px; color: var(--text2); margin-bottom: 20px; line-height: 1.6;">
-          La règle <strong>50/30/20</strong> recommande d'allouer <strong>50%</strong> de vos revenus réels aux Besoins (charges fixes), <strong>30%</strong> aux Envies (dépenses variables) et <strong>20%</strong> à l'Épargne. Voici votre répartition ce mois :
-        </div>
-
-        <div class="rule-bars">
-          <!-- Needs (Charges Fixes) -->
-          <div class="rule-bar-group" style="margin-bottom: 16px;">
-            <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:6px">
-              <span>📌 Besoins (Charges fixes)</span>
-              <span>Réel : <span id="rule-needs-actual">0%</span> vs Cible : 50%</span>
-            </div>
-            <div class="kpi-progress" style="height: 8px; margin-top: 0;">
-              <div class="kpi-progress-fill" id="rule-needs-bar" style="background: var(--gold);"></div>
-            </div>
-          </div>
-
-          <!-- Wants (Dépenses Variables) -->
-          <div class="rule-bar-group" style="margin-bottom: 16px;">
-            <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:6px">
-              <span>🛒 Envies (Dépenses variables)</span>
-              <span>Réel : <span id="rule-wants-actual">0%</span> vs Cible : 30%</span>
-            </div>
-            <div class="kpi-progress" style="height: 8px; margin-top: 0;">
-              <div class="kpi-progress-fill" id="rule-wants-bar" style="background: var(--orange);"></div>
-            </div>
-          </div>
-
-          <!-- Savings -->
-          <div class="rule-bar-group" style="margin-bottom: 20px;">
-            <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:6px">
-              <span>📈 Épargne & Solde</span>
-              <span>Réel : <span id="rule-savings-actual">0%</span> vs Cible : 20%</span>
-            </div>
-            <div class="kpi-progress" style="height: 8px; margin-top: 0;">
-              <div class="kpi-progress-fill" id="rule-savings-bar" style="background: var(--green);"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Custom recommendation alert -->
-        <div class="rule-recommendation" id="rule-recommendation-box" style="padding: 14px 18px; border-radius: 12px; border: 1px solid var(--border); background: rgba(255, 255, 255, 0.02); font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 10px; transition: all 0.3s ease;">
-          💡 <span id="rule-recommendation-text">Calcul en cours...</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- SIMULATEUR DE SCÉNARIOS -->
-    <div class="budget-block simulator-block" style="margin-top: 32px;">
-      <div class="budget-block-header" style="cursor: pointer;" onclick="toggleSimulator()">
-        <span class="budget-block-title">🔮 Simulateur Interactif « Et Si ? »</span>
-        <span style="font-size:12px;color:var(--text2)" id="simulator-toggle-indicator">Afficher ▾</span>
-      </div>
-      <div class="simulator-grid" id="simulator-content" style="display: none;">
-        <div class="sim-sliders-side">
-          <div style="font-size: 13px; color: var(--text2); margin-bottom: 8px; line-height: 1.5;">
-            Ajustez ces curseurs virtuels pour simuler des variations budgétaires et voir immédiatement l'impact sur vos finances :
-          </div>
-
-          <!-- Revenus virtuels -->
-          <div class="sim-control-group">
-            <div class="sim-label-container">
-              <span>💵 Revenus additionnels</span>
-              <span id="sim-val-rev" style="color: var(--green); font-weight: 700;">+0 €</span>
-            </div>
-            <input type="range" id="sim-slider-rev" class="sim-slider" min="-1000" max="2000" step="50" value="0" oninput="updateSimulation()">
-          </div>
-
-          <!-- Charges Fixes virtuelles -->
-          <div class="sim-control-group">
-            <div class="sim-label-container">
-              <span>📌 Réduction Charges fixes</span>
-              <span id="sim-val-fix" style="color: var(--gold); font-weight: 700;">-0 €</span>
-            </div>
-            <input type="range" id="sim-slider-fix" class="sim-slider" min="-500" max="1000" step="20" value="0" oninput="updateSimulation()">
-          </div>
-
-          <!-- Dépenses Variables virtuelles -->
-          <div class="sim-control-group">
-            <div class="sim-label-container">
-              <span>🛒 Réduction Dépenses variables</span>
-              <span id="sim-val-var" style="color: var(--gold); font-weight: 700;">-0 €</span>
-            </div>
-            <input type="range" id="sim-slider-var" class="sim-slider" min="-500" max="1000" step="20" value="0" oninput="updateSimulation()">
-          </div>
-        </div>
-
-        <div class="sim-results">
-          <div style="font-size: 14px; font-weight: 700; margin-bottom: 4px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">Projection Virtuelle</div>
-
-          <div class="sim-result-row">
-            <span>Solde mensuel projeté :</span>
-            <span id="sim-res-solde" style="font-weight: 700;">0 €</span>
-          </div>
-          <div class="sim-result-row">
-            <span>Impact sur le solde :</span>
-            <span id="sim-res-impact" class="sim-impact-badge neutral">Aucun impact</span>
-          </div>
-          <div class="sim-result-row">
-            <span>Taux d'épargne projeté :</span>
-            <span id="sim-res-epargne" style="font-weight: 700;">0%</span>
-          </div>
-          <div class="sim-result-row">
-            <span>Ratios 50/30/20 projetés :</span>
-            <span id="sim-res-ratio" style="font-size:12px;color:var(--text2)">0% / 0% / 0%</span>
-          </div>
-
-          <button type="button" class="btn" style="margin-top: 10px; width: 100%; border: 1px solid var(--border);" onclick="resetSimulation()">Réinitialiser le simulateur</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="simulator-card home-goal-summary" style="margin-top: 24px;" id="home-goal-summary">
-      <div>
-        <span>Objectif principal</span>
-        <strong id="home-goal-summary-text">Aucun objectif configuré</strong>
-      </div>
-      <button type="button" class="btn btn-outline" onclick="showSection('objectifs')">Voir objectifs</button>
-    </div>
-
-    <!-- OPTIONS RAPIDES (PRINT RAPPORT) -->
-    <div style="display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap; margin-top: 24px;" class="print-actions-container">
-      <button type="button" class="btn btn-gold" onclick="exportMonthlyPdf()" style="display: flex; align-items: center; gap: 8px; font-weight: 700; padding: 12px 24px;">
-        Exporter PDF
-      </button>
-      <button type="button" class="btn btn-outline" onclick="exportBudgetCsv()" style="display: flex; align-items: center; gap: 8px; font-weight: 700; padding: 12px 24px;">
-        Exporter Excel
-      </button>
-      <button type="button" class="btn" onclick="window.print()" style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 12px 24px; border: 1px solid var(--border); background: rgba(255,255,255,0.02);">
-        📄 Imprimer le rapport mensuel
-      </button>
+      </section>
     </div>
   </div>
 
@@ -947,13 +530,16 @@
 
   <!-- PARAMETRES -->
   <div id="section-parametres" class="section">
-    <h2 style="margin-bottom:24px;font-size:22px;font-weight:700">Paramètres</h2>
+    <div class="settings-page-header">
+      <span>Configuration</span>
+      <h2>Paramètres</h2>
+    </div>
     <div id="couple-fallback-message" style="display:none;margin-bottom:20px;padding:16px;border-radius:12px;background:rgba(231,84,128,0.12);color:#f9edf2;font-size:14px;line-height:1.5;">
       Mode couple bientôt disponible / activez-le depuis les réglages
     </div>
 
     <div class="param-block">
-      <div class="param-title">Objectifs & Cibles</div>
+      <div class="param-title">Profile</div>
       <div class="param-row">
         <div>
           <div class="param-label">Objectif d'épargne mensuel</div>
@@ -964,10 +550,6 @@
           <span style="font-weight:600;color:var(--text)">€</span>
         </div>
       </div>
-    </div>
-
-    <div class="param-block">
-      <div class="param-title">Cycle budgétaire</div>
       <div class="param-row budget-cycle-row">
         <div>
           <div class="param-label">Mode du budget</div>
@@ -994,6 +576,48 @@
         </div>
       </div>
       <div class="budget-cycle-summary" id="budget-cycle-summary">Mai 2026</div>
+      <div class="param-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+        <div>
+          <div class="param-label">Thème de l'application</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Choisissez la couleur d'accentuation de l'interface</div>
+        </div>
+        <div class="theme-grid">
+          <div class="theme-option" id="theme-gold" onclick="ThemeManager.selectTheme('gold')" style="background: var(--gold-gradient); --gold-glow: rgba(229, 192, 96, 0.25);" title="Or Royal"></div>
+          <div class="theme-option" id="theme-emerald" onclick="ThemeManager.selectTheme('emerald')" style="background: linear-gradient(135deg, #34d399 0%, #059669 50%, #047857 100%); --gold-glow: rgba(16, 185, 129, 0.25);" title="Émeraude Cyber"></div>
+          <div class="theme-option" id="theme-amethyst" onclick="ThemeManager.selectTheme('amethyst')" style="background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 50%, #5b21b6 100%); --gold-glow: rgba(139, 92, 246, 0.25);" title="Améthyste Rêve"></div>
+          <div class="theme-option" id="theme-ruby" onclick="ThemeManager.selectTheme('ruby')" style="background: linear-gradient(135deg, #fb7185 0%, #e11d48 50%, #be123c 100%); --gold-glow: rgba(244, 63, 94, 0.25);" title="Rubis Feu"></div>
+          <div class="theme-option" id="theme-ocean" onclick="ThemeManager.selectTheme('ocean')" style="background: linear-gradient(135deg, #22d3ee 0%, #0891b2 50%, #0e7490 100%); --gold-glow: rgba(6, 182, 212, 0.25);" title="Bleu Océan"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="param-block">
+      <div class="param-title">Recurring income</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Revenus récurrents</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Configure les revenus qui reviennent chaque mois.</div>
+        </div>
+        <button class="btn btn-outline" type="button" onclick="renderRecurringIncomeSettings()">Gérer</button>
+      </div>
+      <div id="recurring-incomes-root" style="margin-top:14px"></div>
+    </div>
+
+    <div class="param-block">
+      <div class="param-title">Bill due dates</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Échéances de charges</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Ajoute des dates et des priorités pour améliorer ton plan de trésorerie.</div>
+        </div>
+        <button class="btn btn-outline" type="button" onclick="renderBillScheduleSettings()">Gérer</button>
+      </div>
+      <div id="bill-schedule-root" style="margin-top:14px"></div>
+    </div>
+
+    <div class="param-block">
+      <div class="param-title">❤️ Couple Mode</div>
+      <div id="couple-mode-settings-root" style="margin-top:12px"></div>
     </div>
 
     <div class="param-block">
@@ -1038,53 +662,7 @@
     </div>
 
     <div class="param-block">
-      <div class="param-title">Revenus récurrents & échéances</div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">Revenus récurrents</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px">Configure les revenus qui reviennent chaque mois.</div>
-        </div>
-        <button class="btn btn-outline" type="button" onclick="renderRecurringIncomeSettings()">Gérer</button>
-      </div>
-      <div id="recurring-incomes-root" style="margin-top:14px"></div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">Échéances de charges</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px">Ajoute des dates et des priorités pour améliorer ton plan de trésorerie.</div>
-        </div>
-        <button class="btn btn-outline" type="button" onclick="renderBillScheduleSettings()">Gérer</button>
-      </div>
-      <div id="bill-schedule-root" style="margin-top:14px"></div>
-    </div>
-
-    <div class="param-block">
-      <div class="param-title">Mode couple</div>
-      <div id="couple-mode-settings-root" style="margin-top:12px"></div>
-    </div>
-
-    <!-- PERSONNALISATION -->
-    <div class="param-block">
-      <div class="param-title">Personnalisation de l'application</div>
-
-      <!-- Thème de Couleur -->
-      <div class="param-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
-        <div>
-          <div class="param-label">Thème de l'application</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px">Choisissez la couleur d'accentuation de l'interface</div>
-        </div>
-        <div class="theme-grid">
-          <div class="theme-option" id="theme-gold" onclick="ThemeManager.selectTheme('gold')" style="background: var(--gold-gradient); --gold-glow: rgba(229, 192, 96, 0.25);" title="Or Royal"></div>
-          <div class="theme-option" id="theme-emerald" onclick="ThemeManager.selectTheme('emerald')" style="background: linear-gradient(135deg, #34d399 0%, #059669 50%, #047857 100%); --gold-glow: rgba(16, 185, 129, 0.25);" title="Émeraude Cyber"></div>
-          <div class="theme-option" id="theme-amethyst" onclick="ThemeManager.selectTheme('amethyst')" style="background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 50%, #5b21b6 100%); --gold-glow: rgba(139, 92, 246, 0.25);" title="Améthyste Rêve"></div>
-          <div class="theme-option" id="theme-ruby" onclick="ThemeManager.selectTheme('ruby')" style="background: linear-gradient(135deg, #fb7185 0%, #e11d48 50%, #be123c 100%); --gold-glow: rgba(244, 63, 94, 0.25);" title="Rubis Feu"></div>
-          <div class="theme-option" id="theme-ocean" onclick="ThemeManager.selectTheme('ocean')" style="background: linear-gradient(135deg, #22d3ee 0%, #0891b2 50%, #0e7490 100%); --gold-glow: rgba(6, 182, 212, 0.25);" title="Bleu Océan"></div>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="param-block">
-      <div class="param-title">Sauvegarde & transfert</div>
+      <div class="param-title">Data</div>
       <div class="param-row">
         <div>
           <div class="param-label">Exporter le budget mensuel en PDF</div>
@@ -1115,6 +693,13 @@
           <div style="font-size:12px;color:var(--text2);margin-top:4px">Prépare un brouillon CSV sans modifier le budget</div>
         </div>
         <button class="btn btn-outline" onclick="document.getElementById('csv-importer-block')?.scrollIntoView({behavior:'smooth', block:'start'})">Ouvrir</button>
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Réinitialiser le mois en cours</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Efface toutes les valeurs du mois sélectionné</div>
+        </div>
+        <button class="btn btn-danger" onclick="resetMonth()">Réinitialiser</button>
       </div>
     </div>
 
@@ -1205,17 +790,6 @@
         <button class="btn btn-outline" onclick="resetCSVImporter()">Annuler</button>
         <button class="btn btn-outline" onclick="applyCSVToBudget()">Appliquer au budget</button>
         <button class="btn btn-gold" onclick="applyCSVTransactions()">Enregistrer le brouillon</button>
-      </div>
-    </div>
-
-    <div class="param-block">
-      <div class="param-title">Données</div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">Réinitialiser le mois en cours</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px">Efface toutes les valeurs du mois sélectionné</div>
-        </div>
-        <button class="btn btn-danger" onclick="resetMonth()">Réinitialiser</button>
       </div>
     </div>
   </div>
@@ -3322,16 +2896,16 @@ function updateAll(){
   setDashboardGuidanceText('simple-left', fmt(solde));
 
   // Saisie Page Header Totals
-  document.getElementById('total-revenus').textContent=fmt(revReel);
-  document.getElementById('total-fixes').textContent=fmt(fixReel);
-  document.getElementById('total-variables').textContent=fmt(varReel);
+  setDashboardGuidanceText('total-revenus', fmt(revReel));
+  setDashboardGuidanceText('total-fixes', fmt(fixReel));
+  setDashboardGuidanceText('total-variables', fmt(varReel));
 
   // Dashboard Cards
-  document.getElementById('kpi-revenus').textContent=fmt(revReel);
-  document.getElementById('kpi-fixes').textContent=fmt(fixReel);
+  setDashboardGuidanceText('kpi-revenus', fmt(revReel));
+  setDashboardGuidanceText('kpi-fixes', fmt(fixReel));
 
   const fixesPct = revReel>0?Math.round(fixReel/revReel*100):0;
-  document.getElementById('kpi-fixes-pct').textContent = revReel > 0 ? fixesPct+'% des revenus' : 'Ajoutez vos revenus pour commencer';
+  setDashboardGuidanceText('kpi-fixes-pct', revReel > 0 ? fixesPct+'% des revenus' : 'Ajoutez vos revenus pour commencer');
 
   const cardFixes = document.getElementById('card-fixes');
   if (cardFixes) {
@@ -3340,9 +2914,9 @@ function updateAll(){
     else if (fixesPct > 50) cardFixes.classList.add('warning-status');
   }
 
-  document.getElementById('kpi-variables').textContent=fmt(varReel);
+  setDashboardGuidanceText('kpi-variables', fmt(varReel));
   const variablesPct = revReel>0?Math.round(varReel/revReel*100):0;
-  document.getElementById('kpi-variables-pct').textContent = revReel > 0 ? variablesPct+'% des revenus' : 'Données insuffisantes';
+  setDashboardGuidanceText('kpi-variables-pct', revReel > 0 ? variablesPct+'% des revenus' : 'Données insuffisantes');
 
   const cardVars = document.getElementById('card-variables');
   if (cardVars) {
@@ -3353,9 +2927,11 @@ function updateAll(){
 
   // Solde actuel card
   const soldeEl=document.getElementById('kpi-solde');
-  soldeEl.textContent=fmt(soldeEstime);
-  soldeEl.className='kpi-value '+(soldeEstime>0?'positive':soldeEstime<0?'negative':'');
-  document.getElementById('kpi-solde-status').textContent=soldeEstime>0?'Bilan positif':soldeEstime<0?'Attention déficit':'Équilibré';
+  if (soldeEl) {
+    soldeEl.textContent=fmt(soldeEstime);
+    soldeEl.className='kpi-value '+(soldeEstime>0?'positive':soldeEstime<0?'negative':'');
+  }
+  setDashboardGuidanceText('kpi-solde-status', soldeEstime>0?'Bilan positif':soldeEstime<0?'Attention déficit':'Équilibré');
 
   const cardSolde = document.getElementById('card-solde');
   if (cardSolde) {
@@ -3384,32 +2960,32 @@ function updateAll(){
   const pctObjectif = targetEp > 0 ? Math.round((solde / targetEp) * 100) : 0;
 
   const epEl=document.getElementById('kpi-epargne');
-  epEl.textContent = revReel > 0 ? tauxEp+'%' : '—';
+  if (epEl) epEl.textContent = revReel > 0 ? tauxEp+'%' : '—';
 
   const cardEpargne = document.getElementById('card-epargne');
   const celebrateStar = document.getElementById('epargne-celebrate-star');
   if (cardEpargne) {
     cardEpargne.classList.remove('success-status', 'warning-status', 'danger-status');
     if (revReel <= 0) {
-      epEl.className = 'kpi-value';
+      if (epEl) epEl.className = 'kpi-value';
       if (celebrateStar) celebrateStar.style.display = 'none';
     } else if (pctObjectif >= 100) {
       cardEpargne.classList.add('success-status');
-      epEl.className = 'kpi-value positive';
+      if (epEl) epEl.className = 'kpi-value positive';
       if (celebrateStar) celebrateStar.style.display = 'inline-block';
     } else if (pctObjectif >= 50) {
       cardEpargne.classList.add('warning-status');
-      epEl.className = 'kpi-value warning';
+      if (epEl) epEl.className = 'kpi-value warning';
       if (celebrateStar) celebrateStar.style.display = 'none';
     } else {
       cardEpargne.classList.add('danger-status');
-      epEl.className = 'kpi-value negative';
+      if (epEl) epEl.className = 'kpi-value negative';
       if (celebrateStar) celebrateStar.style.display = 'none';
     }
   }
-  document.getElementById('kpi-epargne-sub').textContent = revReel > 0
+  setDashboardGuidanceText('kpi-epargne-sub', revReel > 0
     ? `Objectif : ${fmt(targetEp)} — ${pctObjectif}% atteint`
-    : 'Budget à compléter';
+    : 'Budget à compléter');
   updateCircularGauge(revReel > 0 ? pctObjectif : 0);
   if (typeof updateSimulation === 'function') updateSimulation();
 
@@ -3421,7 +2997,7 @@ function updateAll(){
 
   // Taux de charges card
   const tauxEl=document.getElementById('kpi-taux');
-  tauxEl.textContent = revReel > 0 ? tauxCh+'%' : '—';
+  if (tauxEl) tauxEl.textContent = revReel > 0 ? tauxCh+'%' : '—';
   const tauxSub = document.querySelector('#card-taux .kpi-sub');
   if (tauxSub) tauxSub.textContent = revReel > 0 ? 'Fixes + variables' : 'Données insuffisantes';
 
@@ -3429,16 +3005,16 @@ function updateAll(){
   if (cardTaux) {
     cardTaux.classList.remove('success-status', 'warning-status', 'danger-status');
     if (revReel <= 0) {
-      tauxEl.className = 'kpi-value';
+      if (tauxEl) tauxEl.className = 'kpi-value';
     } else if (tauxCh <= 70) {
       cardTaux.classList.add('success-status');
-      tauxEl.className = 'kpi-value positive';
+      if (tauxEl) tauxEl.className = 'kpi-value positive';
     } else if (tauxCh <= 85) {
       cardTaux.classList.add('warning-status');
-      tauxEl.className = 'kpi-value warning';
+      if (tauxEl) tauxEl.className = 'kpi-value warning';
     } else {
       cardTaux.classList.add('danger-status');
-      tauxEl.className = 'kpi-value negative';
+      if (tauxEl) tauxEl.className = 'kpi-value negative';
     }
   }
 
@@ -3462,8 +3038,8 @@ function updateAll(){
   }
 
   // Dashboard Table Summary
-  document.getElementById('dash-rev').textContent=fmt(revReel);
-  document.getElementById('dash-dep').textContent=fmt(totalDepReel);
+  setDashboardGuidanceText('dash-rev', fmt(revReel));
+  setDashboardGuidanceText('dash-dep', fmt(totalDepReel));
 
   const dPayees = document.getElementById('dash-dep-payees');
   if (dPayees) dPayees.textContent = fmt(totalDepPayee);
@@ -3475,10 +3051,12 @@ function updateAll(){
   if (dSoldeEst) dSoldeEst.textContent = fmt(solde);
 
   const s2=document.getElementById('dash-solde2');
-  s2.textContent=fmt(soldeEstime);
-  s2.style.color=soldeEstime>=0?'var(--green)':'var(--red)';
+  if (s2) {
+    s2.textContent=fmt(soldeEstime);
+    s2.style.color=soldeEstime>=0?'var(--green)':'var(--red)';
+  }
 
-  document.getElementById('dash-mois').textContent = getBudgetCycleRange(getMonth()).fullLabel;
+  setDashboardGuidanceText('dash-mois', getBudgetCycleRange(getMonth()).fullLabel);
 
   updateDashboardGuidance({
     revReel,
@@ -3548,9 +3126,9 @@ function updateAll(){
   const pctWants = revReel > 0 ? Math.round(varReel / revReel * 100) : 0;
   const pctSavings = revReel > 0 ? Math.round(Math.max(0, solde) / revReel * 100) : 0;
 
-  document.getElementById('rule-needs-actual').textContent = pctNeeds + '%';
-  document.getElementById('rule-wants-actual').textContent = pctWants + '%';
-  document.getElementById('rule-savings-actual').textContent = pctSavings + '%';
+  setDashboardGuidanceText('rule-needs-actual', pctNeeds + '%');
+  setDashboardGuidanceText('rule-wants-actual', pctWants + '%');
+  setDashboardGuidanceText('rule-savings-actual', pctSavings + '%');
 
   const ruleNeedsBar = document.getElementById('rule-needs-bar');
   if (ruleNeedsBar) {
@@ -4096,6 +3674,7 @@ function updateDonutChart(fix, vari, soldeVal, rev) {
   const segFixes = document.querySelector('.segment-fixes');
   const segVariables = document.querySelector('.segment-variables');
   const segEpargne = document.querySelector('.segment-epargne');
+  if (!donutTotal || !segFixes || !segVariables || !segEpargne) return;
 
   const totalExpenses = fix + vari;
   donutTotal.textContent = fmt(totalExpenses);
@@ -4119,9 +3698,9 @@ function updateDonutChart(fix, vari, soldeVal, rev) {
     pctEp = 0;
   }
 
-  document.getElementById('legend-fixes-pct').textContent = Math.round(pctFix) + '%';
-  document.getElementById('legend-variables-pct').textContent = Math.round(pctVar) + '%';
-  document.getElementById('legend-epargne-pct').textContent = Math.round(pctEp) + '%';
+  setDashboardGuidanceText('legend-fixes-pct', Math.round(pctFix) + '%');
+  setDashboardGuidanceText('legend-variables-pct', Math.round(pctVar) + '%');
+  setDashboardGuidanceText('legend-epargne-pct', Math.round(pctEp) + '%');
 
   segFixes.style.strokeDashoffset = C - (pctFix / 100) * C;
   segVariables.style.strokeDashoffset = C - (pctVar / 100) * C;

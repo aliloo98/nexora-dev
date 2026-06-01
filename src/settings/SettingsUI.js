@@ -153,18 +153,32 @@ export async function renderCoupleModeSettings() {
   const active = status.status === 'couple_actif'
 
   if (active) {
+    const invitationCode = localHousehold?.invitationCode || 'NEXORA'
     root.innerHTML = `
-      <div class="settings-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div class="settings-card couple-mode-card is-active">
+        <div class="couple-mode-head">
           <div>
             <strong>Mode couple activé</strong>
             <div style="font-size:12px;color:var(--text2);margin-top:4px">Partenaire : ${localHousehold?.partnerEmail || status.details?.couple?.partnerEmail || 'inconnu'}</div>
           </div>
-          <button class="btn btn-outline" type="button" id="disable-couple-btn">Quitter le foyer</button>
+          <span class="plan-status-pill success">Actif</span>
+        </div>
+        <div class="couple-code-box">${invitationCode}</div>
+        <div class="couple-mode-actions">
+          <button class="btn btn-outline" type="button" id="invite-partner-btn">Invite partner</button>
+          <button class="btn btn-outline" type="button" id="join-household-btn">Join household</button>
+          <button class="btn btn-outline" type="button" id="disable-couple-btn">Leave household</button>
+          <button class="btn btn-danger" type="button" id="dissolve-couple-btn">Dissolve household</button>
         </div>
       </div>
     `
 
+    root.querySelector('#invite-partner-btn')?.addEventListener('click', () => {
+      window.showToast(`Code invitation : ${invitationCode}`)
+    })
+    root.querySelector('#join-household-btn')?.addEventListener('click', () => {
+      window.showToast('Foyer déjà actif')
+    })
     root.querySelector('#disable-couple-btn')?.addEventListener('click', async () => {
       CoupleService.disableLocalCouple()
       await renderCoupleModeSettings()
@@ -173,15 +187,30 @@ export async function renderCoupleModeSettings() {
       }
       window.showToast('Mode couple désactivé')
     })
+    root.querySelector('#dissolve-couple-btn')?.addEventListener('click', async () => {
+      CoupleService.disableLocalCouple()
+      await renderCoupleModeSettings()
+      if (typeof window.updateCoupleNavigation === 'function') {
+        await window.updateCoupleNavigation()
+      }
+      window.showToast('Foyer dissous localement')
+    })
     return
   }
 
   root.innerHTML = `
-    <div class="settings-card">
-      <div style="display:grid;gap:12px;">
-        <p>Active le mode couple pour partager ton budget localement.</p>
+    <div class="settings-card couple-mode-card">
+      <div class="couple-premium-empty">
+        <strong>Premium empty state</strong>
+        <p>Active Couple Mode pour créer un foyer partagé, inviter un partenaire et gérer le budget à deux.</p>
+      </div>
+      <div class="couple-mode-actions">
         <input type="email" id="couple-partner-email" class="budget-input" placeholder="Email du partenaire" aria-label="Email du partenaire" />
-        <button class="btn btn-gold" type="button" id="create-couple-btn">Activer le mode couple</button>
+        <button class="btn btn-gold" type="button" id="create-couple-btn">Activate</button>
+        <button class="btn btn-outline" type="button" id="invite-partner-btn">Invite partner</button>
+        <button class="btn btn-outline" type="button" id="join-household-btn">Join household</button>
+        <button class="btn btn-outline" type="button" id="leave-household-btn">Leave household</button>
+        <button class="btn btn-danger" type="button" id="dissolve-couple-btn">Dissolve household</button>
       </div>
     </div>
   `
@@ -198,5 +227,18 @@ export async function renderCoupleModeSettings() {
       await window.updateCoupleNavigation()
     }
     window.showToast('Mode couple activé localement')
+  })
+
+  root.querySelector('#invite-partner-btn')?.addEventListener('click', () => {
+    window.showToast('Active le mode couple pour générer une invitation')
+  })
+  root.querySelector('#join-household-btn')?.addEventListener('click', () => {
+    window.showToast('Invitation partenaire requise')
+  })
+  root.querySelector('#leave-household-btn')?.addEventListener('click', () => {
+    window.showToast('Aucun foyer actif')
+  })
+  root.querySelector('#dissolve-couple-btn')?.addEventListener('click', () => {
+    window.showToast('Aucun foyer actif à dissoudre')
   })
 }

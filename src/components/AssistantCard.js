@@ -505,15 +505,13 @@ function createAssistantCard() {
 }
 
 async function renderAssistantCard() {
-  const grid = document.querySelector('.analytics-grid') || document.querySelector('.kpi-grid') || document.body
+  const grid = document.querySelector('.analytics-grid') || document.querySelector('.kpi-grid')
   if (!grid) return
 
   let existing = document.getElementById('assistant-card')
   if (!existing) {
     const el = createAssistantCard()
-    const first = grid.querySelector('section')
-    if (first) grid.insertBefore(el, first)
-    else grid.appendChild(el)
+    grid.appendChild(el)
     existing = document.getElementById('assistant-card')
   }
 
