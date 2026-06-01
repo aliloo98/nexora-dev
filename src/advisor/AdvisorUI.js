@@ -20,8 +20,14 @@ export function renderAdvisorUI(rootId, AdvisorService) {
   btn.addEventListener('click', async () => {
     const q = input.value || ''
     try {
-      const outcome = await AdvisorService.evaluatePurchase({ query: q })
-      res.textContent = outcome?.message || 'Aucun résultat'
+      const outcome = await AdvisorService.evaluateQuery({ query: q })
+      const lines = []
+      if (outcome.intent) lines.push(`Intent: ${outcome.intent}`)
+      if (outcome.verdict) lines.push(`Verdict: ${outcome.verdict}`)
+      if (typeof outcome.endingBalance !== 'undefined') lines.push(`Solde estimé: ${outcome.endingBalance}€`)
+      if (outcome.risk) lines.push(`Risque: ${outcome.risk}`)
+      if (outcome.advice) lines.push(`Conseil: ${outcome.advice}`)
+      res.textContent = lines.join(' — ')
     } catch (e) {
       res.textContent = 'Erreur lors de l’analyse'
     }
