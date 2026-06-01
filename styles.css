@@ -360,6 +360,7 @@ body.mode-simple .simple-dashboard-grid {
 body.mode-simple .kpi-grid,
 body.mode-simple .dash-row,
 body.mode-simple .dashboard-action-center,
+body.mode-simple .couple-insights-card,
 body.mode-simple .dashboard-primary-goal,
 body.mode-simple .analytics-premium,
 body.mode-simple .simulator-block,
@@ -671,6 +672,89 @@ body.mode-simple .goal-card-meta {
   align-self: flex-start;
   margin-top: 10px;
   max-width: 220px;
+}
+
+.couple-insights-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 18px;
+  padding: 18px;
+}
+
+.couple-insights-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.couple-insights-head span,
+.couple-insights-grid span {
+  color: var(--text2);
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.couple-insights-head strong,
+.couple-insights-grid strong {
+  color: var(--text);
+  display: block;
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.couple-view-toggle {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  padding: 4px;
+}
+
+.couple-view-btn {
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--text2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 8px 10px;
+}
+
+.couple-view-btn.active {
+  background: rgba(229,192,96,0.12);
+  color: var(--gold);
+}
+
+.couple-insights-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.couple-insights-grid div {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.couple-insights-grid em {
+  color: var(--text2);
+  display: block;
+  font-size: 12px;
+  font-style: normal;
+  margin-top: 5px;
 }
 
 @media(max-width: 992px) {
@@ -2523,8 +2607,26 @@ body.mode-simple .goal-card-meta {
   }
 
   .dashboard-action-center,
+  .couple-insights-card,
   .dashboard-primary-goal {
     padding: 14px;
+  }
+
+  .couple-insights-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .couple-view-toggle {
+    width: 100%;
+  }
+
+  .couple-view-btn {
+    flex: 1;
+  }
+
+  .couple-insights-grid {
+    grid-template-columns: 1fr;
   }
 
   .action-center-head {

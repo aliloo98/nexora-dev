@@ -205,6 +205,25 @@
       </div>
     </div>
 
+    <div class="couple-insights-card">
+      <div class="couple-insights-head">
+        <div>
+          <span>Mode couple</span>
+          <strong id="couple-view-title">Vue globale</strong>
+        </div>
+        <div class="couple-view-toggle" aria-label="Vue couple">
+          <button type="button" class="couple-view-btn active" data-couple-view="global" onclick="setCoupleView('global')">Global</button>
+          <button type="button" class="couple-view-btn" data-couple-view="ali" onclick="setCoupleView('ali')">Ali</button>
+          <button type="button" class="couple-view-btn" data-couple-view="megane" onclick="setCoupleView('megane')">Mégane</button>
+        </div>
+      </div>
+      <div class="couple-insights-grid">
+        <div><span>Revenus</span><strong id="couple-income">0 €</strong><em id="couple-income-share">0%</em></div>
+        <div><span>Dépenses identifiées</span><strong id="couple-expenses">0 €</strong><em id="couple-expense-share">0%</em></div>
+        <div><span>Contribution nette</span><strong id="couple-net">0 €</strong><em id="couple-note">À compléter</em></div>
+      </div>
+    </div>
+
     <div class="dashboard-primary-goal" id="dashboard-primary-goal">
       <div class="dashboard-primary-goal-head">
         <div>
@@ -3384,6 +3403,7 @@ function updateAll(){
   }
 
   if (typeof updatePremiumAnalytics === 'function') updatePremiumAnalytics();
+  if (typeof renderCoupleInsights === 'function') renderCoupleInsights();
   if (typeof renderCagnottes === 'function') renderCagnottes();
   if (typeof updateTrendIndicators === 'function') updateTrendIndicators();
   // Refresh Assistant Nexora card (debounced, non-blocking)
@@ -3461,6 +3481,61 @@ function updateDashboardGuidance(metrics) {
   setDashboardGuidanceText('dashboard-watch-text', watchText);
   setDashboardGuidanceText('dashboard-action-title', actionTitle);
   setDashboardGuidanceText('dashboard-action-text', actionText);
+}
+
+let coupleView = 'global';
+
+function getBudgetOwner(key) {
+  const label = getBudgetLabel(key).toLowerCase();
+  if (key.includes('ali') || label.includes('ali')) return 'ali';
+  if (key.includes('meg') || label.includes('megane') || label.includes('mégane')) return 'megane';
+  return 'shared';
+}
+
+function getCoupleMetrics() {
+  const aliIncome = getVal('rev_ali');
+  const meganeIncome = getVal('rev_meg');
+  const globalIncome = getBudgetKeysByType('income').reduce((sum, key) => sum + getVal(key), 0);
+  const totals = {
+    global: { income: globalIncome, expenses: 0 },
+    ali: { income: aliIncome, expenses: 0 },
+    megane: { income: meganeIncome, expenses: 0 }
+  };
+
+  getAllExpenseKeys().forEach(key => {
+    const amount = getVal(key);
+    const owner = getBudgetOwner(key);
+    totals.global.expenses += amount;
+    if (owner === 'ali') totals.ali.expenses += amount;
+    else if (owner === 'megane') totals.megane.expenses += amount;
+  });
+
+  return totals;
+}
+
+function setCoupleView(view) {
+  coupleView = ['global', 'ali', 'megane'].includes(view) ? view : 'global';
+  renderCoupleInsights();
+}
+
+function renderCoupleInsights() {
+  const metrics = getCoupleMetrics();
+  const current = metrics[coupleView] || metrics.global;
+  const totalIncome = metrics.global.income || 0;
+  const totalExpenses = metrics.global.expenses || 0;
+  const net = current.income - current.expenses;
+  const label = coupleView === 'ali' ? 'Ali' : coupleView === 'megane' ? 'Mégane' : 'globale';
+
+  document.querySelectorAll('.couple-view-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.coupleView === coupleView);
+  });
+  setDashboardGuidanceText('couple-view-title', `Vue ${label}`);
+  setDashboardGuidanceText('couple-income', fmt(current.income));
+  setDashboardGuidanceText('couple-expenses', fmt(current.expenses));
+  setDashboardGuidanceText('couple-net', fmt(net));
+  setDashboardGuidanceText('couple-income-share', totalIncome > 0 ? `${Math.round(current.income / totalIncome * 100)}% des revenus` : 'revenus à saisir');
+  setDashboardGuidanceText('couple-expense-share', totalExpenses > 0 ? `${Math.round(current.expenses / totalExpenses * 100)}% des dépenses` : 'aucune dépense');
+  setDashboardGuidanceText('couple-note', totalIncome > 0 ? (net >= 0 ? 'Contribution positive' : 'À surveiller') : 'À compléter');
 }
 
 async function updateDashboardPrimaryGoal() {
