@@ -2156,10 +2156,39 @@ body.mode-simple .goal-card-meta {
   min-height: var(--save-bar-height);
 }
 
+.save-bar.save-bar-clean .save-bar-submit {
+  display: none;
+}
+
+.save-bar.save-bar-dirty .save-bar-submit {
+  display: inline-flex;
+}
+
 .save-bar-spacer {
   display: block;
   height: var(--save-bar-clearance);
   width: 100%;
+}
+/* Compact save button */
+.save-bar .save-bar-submit.compact {
+  padding: 6px 10px;
+  font-size: 14px;
+  border-radius: 10px;
+  min-width: 40px;
+  width: 40px;
+  justify-content: center;
+}
+
+/* Coming soon badge for disabled actions */
+.badge-coming {
+  display: inline-block;
+  background: rgba(255,255,255,0.04);
+  color: var(--text2);
+  border: 1px solid rgba(255,255,255,0.04);
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  margin-left: 8px;
 }
 
 .btn {

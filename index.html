@@ -118,6 +118,19 @@
       <span>Vue essentielle</span>
       <h2>Tableau de bord</h2>
     </div>
+      <div class="wow-card dashboard-greeting-card">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div>
+            <span id="dashboard-greeting-hello" style="font-size:13px;color:var(--text2);">Bonjour Ali 👋</span>
+            <h3 id="dashboard-greeting-title" style="margin:8px 0 6px;font-size:18px;">Je suis Nexora. Situation actuelle</h3>
+            <p id="dashboard-greeting-subtitle" style="margin:0;color:var(--text2);">Analyse ton budget et trouve la priorité du moment.</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
+            <button type="button" class="btn btn-outline" onclick="showSection('saisie')">Mettre à jour le budget</button>
+            <button type="button" class="btn btn-gold" onclick="showSection('plan')">Voir le plan financier</button>
+          </div>
+        </div>
+      </div>
     <div class="dashboard-clean-grid">
       <section class="wow-card priority-action-card" id="priority-action-card">
         <span>Action recommandée</span>
@@ -141,10 +154,28 @@
         </div>
       </section>
       <section class="wow-card week-plan-card" id="week-plan-card">
-        <span>Plan rapide</span>
-        <ol class="week-plan-list" id="week-plan-list">
-          <li>Mettre à jour le budget.</li>
-        </ol>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div>
+            <span>📈 Plan financier</span>
+            <strong id="week-plan-title" style="display:block;margin-top:8px;font-size:16px;">Aperçu essentiel</strong>
+          </div>
+          <button type="button" class="btn btn-gold" onclick="showSection('plan')">Ouvrir le plan</button>
+        </div>
+        <div class="week-plan-summary" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px;">
+          <div style="padding:14px;background:rgba(255,255,255,0.03);border-radius:12px;">
+            <span>Solde prévu</span>
+            <strong id="week-plan-balance">0 €</strong>
+          </div>
+          <div style="padding:14px;background:rgba(255,255,255,0.03);border-radius:12px;">
+            <span>Prochain revenu</span>
+            <strong id="week-plan-next-income">--/--</strong>
+          </div>
+          <div style="padding:14px;background:rgba(255,255,255,0.03);border-radius:12px;">
+            <span>Charges à payer</span>
+            <strong id="week-plan-to-pay">0</strong>
+          </div>
+        </div>
+        <p id="week-plan-description" style="margin-top:14px;color:var(--text2);">Suivez le solde, les prochains revenus et les paiements urgents en un coup d’œil.</p>
       </section>
       <section class="dashboard-primary-goal wow-card" id="dashboard-primary-goal">
       <div class="dashboard-primary-goal-head">
@@ -173,6 +204,16 @@
       <div class="budget-block-header">
         <span class="budget-block-title">📈 Plan financier</span>
         <span style="font-size:12px;color:var(--text2)">Regarde tes objectifs, échéances et priorités en un seul endroit</span>
+      </div>
+      <div class="param-row" style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <div class="param-label">Objectif d'épargne mensuel</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Ce montant aide Nexora à estimer ta capacité d'épargne.</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input class="budget-input" type="number" placeholder="500" data-key="target_epargne" oninput="updateAll()" style="width:120px">
+          <span style="font-weight:600;color:var(--text)">€</span>
+        </div>
       </div>
       <div id="plan-root" style="padding:16px"></div>
     </div>
@@ -220,7 +261,7 @@
     </div>
   </div>
 
-  <div id="section-couple" class="section" style="display:none; padding: 2rem;">
+  <div id="section-couple" class="section" style="padding: 2rem;">
     <div class="budget-block" style="padding: 24px; background: rgba(255,255,255,0.05); border-radius: 16px;">
       <div class="budget-block-header">
         <span class="budget-block-title">Mode Couple</span>
@@ -534,37 +575,25 @@
       <span>Configuration</span>
       <h2>Paramètres</h2>
     </div>
-    <div id="couple-fallback-message" style="display:none;margin-bottom:20px;padding:16px;border-radius:12px;background:rgba(231,84,128,0.12);color:#f9edf2;font-size:14px;line-height:1.5;">
-      Mode couple bientôt disponible / activez-le depuis les réglages
+    <div id="couple-fallback-message" style="display:none;margin-bottom:20px;padding:16px;border-radius:12px;background:rgba(16,185,129,0.12);color:var(--text);font-size:14px;line-height:1.5;">
+      Mode couple activable depuis les paramètres pour partager le budget du foyer.
     </div>
 
-    <div class="param-block">
-      <div class="param-title">Profil</div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">Objectif d'épargne mensuel</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px">Définit le montant cible en euros à mettre de côté ce mois</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <input class="budget-input" type="number" placeholder="500" data-key="target_epargne" oninput="updateAll()" style="width:110px">
-          <span style="font-weight:600;color:var(--text)">€</span>
-        </div>
+    <div class="param-row budget-cycle-row">
+      <div>
+        <div class="param-label">📅 Période du budget</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px">Choisis entre le mois civil ou une période de salaire récurrente.</div>
       </div>
-      <div class="param-row budget-cycle-row">
-        <div>
-          <div class="param-label">Mode du budget</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px">Choisis si le mois suit le calendrier ou une période réelle de revenus</div>
-        </div>
-        <select id="budget-cycle-mode" class="budget-cycle-select" onchange="handleBudgetCycleModeChange()">
-          <option value="calendar">Calendaire classique</option>
-          <option value="custom">Personnalisé</option>
-        </select>
+      <select id="budget-cycle-mode" class="budget-cycle-select" onchange="handleBudgetCycleModeChange()">
+        <option value="calendar">Mois civil</option>
+        <option value="custom">Période salaire</option>
+      </select>
+    </div>
+    <div class="param-row budget-cycle-row" id="budget-cycle-custom-row">
+      <div>
+        <div class="param-label">Période salaire</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px">Paramètres de début et de fin pour adapter le cycle à ta paie.</div>
       </div>
-      <div class="param-row budget-cycle-row" id="budget-cycle-custom-row">
-        <div>
-          <div class="param-label">Période personnalisée</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px">Exemples : 28 → 27, 5 → 4, 15 → 14</div>
-        </div>
         <div class="budget-cycle-fields">
           <label for="budget-cycle-start-day">Début
             <input id="budget-cycle-start-day" class="budget-input budget-cycle-input" type="number" min="1" max="31" value="28" onchange="saveBudgetCycleSettingsFromUI()">
@@ -798,9 +827,9 @@
 </main>
 
 <!-- SAVE BAR -->
-<div class="save-bar">
+<div class="save-bar save-bar-clean">
   <button class="btn btn-outline" onclick="showSection('parametres')" title="Paramètres">⚙️</button>
-  <button class="btn btn-gold" onclick="saveData()">✓ Sauvegarder</button>
+  <button class="btn btn-gold save-bar-submit compact" onclick="saveData()" aria-label="Sauvegarder le mois" title="Sauvegarder le mois">✓</button>
 </div>
 
 <script>
@@ -1496,6 +1525,29 @@ if ('ResizeObserver' in window) {
 }
 
 let loadMonthRequestId = 0;
+let hasUnsavedBudgetChanges = false;
+
+function setSaveBarDirty(isDirty) {
+  hasUnsavedBudgetChanges = Boolean(isDirty);
+  const saveBar = document.querySelector('.save-bar');
+  if (!saveBar) return;
+  saveBar.classList.toggle('save-bar-dirty', hasUnsavedBudgetChanges);
+  saveBar.classList.toggle('save-bar-clean', !hasUnsavedBudgetChanges);
+}
+
+function markBudgetChanges() {
+  if (!hasUnsavedBudgetChanges) setSaveBarDirty(true);
+}
+
+document.addEventListener('input', (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  if (target.closest('#section-saisie') || target.closest('#section-parametres') || target.closest('#section-objectifs') || target.closest('#section-dettes')) {
+    if (target.matches('[data-key], input[type="number"], input[type="text"], select, textarea')) {
+      markBudgetChanges();
+    }
+  }
+});
 
 async function readMonthData(m) {
   if (window.MonthlyBudgetStateService?.getMonthlyBudgetState) {
@@ -1599,6 +1651,7 @@ async function saveData(){
 
   showToast('✅ Sauvegardé avec succès !');
   buildHistory();
+  setSaveBarDirty(false);
 }
 
 // Phase 2B: Sync monthly budget data to Supabase as transactions
@@ -3093,12 +3146,17 @@ function updateAll(){
     solde,
     variablesPct,
     totalDepRestant
+    revReel
   });
   updateHumanSummary({
     revReel,
     solde,
     tauxCh,
     variablesPct
+  });
+  updateDashboardGreeting({
+    revReel,
+    solde
   });
   if (typeof updateDashboardPrimaryGoal === 'function') {
     updateDashboardPrimaryGoal().catch(err => console.warn('[Goals] dashboard primary goal update failed', err));
@@ -3342,20 +3400,28 @@ function updateWinsCard(metrics = {}) {
 }
 
 function updateWeekPlan(metrics = {}) {
-  const listEl = document.getElementById('week-plan-list');
-  if (!listEl) return;
-  const actions = [];
-  const urgentBill = getPendingFixedExpenseRows().sort((a, b) => b.remaining - a.remaining)[0];
-  if (urgentBill) actions.push(`Régler ${urgentBill.name}`);
-  const goalName = document.getElementById('dashboard-primary-goal-name')?.textContent?.replace(/^🎯\s*/, '').trim();
-  const goalPct = parseBudgetNumber(document.getElementById('dashboard-primary-goal-pct')?.textContent || 0);
-  if (goalName && goalName !== 'Aucun objectif configuré' && goalPct < 100 && metrics.solde > 30) {
-    actions.push(`Ajouter 30 € à ${goalName}`);
+  const titleEl = document.getElementById('week-plan-title');
+  const balanceEl = document.getElementById('week-plan-balance');
+  const nextIncomeEl = document.getElementById('week-plan-next-income');
+  const toPayEl = document.getElementById('week-plan-to-pay');
+  const descEl = document.getElementById('week-plan-description');
+  const range = getBudgetCycleRange(getMonth());
+  const dueCount = getPendingFixedExpenseRows().length;
+  if (titleEl) titleEl.textContent = metrics.revReel > 0 ? 'Aperçu essentiel' : 'Plan financier';
+  if (balanceEl) balanceEl.textContent = fmt(metrics.solde || 0);
+  if (nextIncomeEl) nextIncomeEl.textContent = range.start ? formatShortDate(range.start) : '--/--';
+  if (toPayEl) toPayEl.textContent = `${dueCount} charge${dueCount !== 1 ? 's' : ''}`;
+  if (descEl) {
+    descEl.textContent = metrics.revReel > 0
+      ? dueCount > 0
+        ? `Il y a ${dueCount} charge${dueCount !== 1 ? 's' : ''} à surveiller avant le prochain revenu.`
+        : 'Aucune charge urgente à prévoir pour le moment.'
+      : 'Commence par saisir tes revenus pour lancer l’analyse.';
   }
-  if (metrics.variablesPct > 35) actions.push('Vérifier les dépenses variables');
-  if (getDebtSummary().total > 0) actions.push('Vérifier les dettes restantes');
-  if (actions.length === 0) actions.push('Mettre à jour le budget en fin de semaine');
-  listEl.innerHTML = actions.slice(0, 3).map(action => `<li>${escapeHtml(action)}</li>`).join('');
+}
+
+function formatShortDate(date) {
+  return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
 }
 
 function updateHumanSummary(metrics = {}) {
@@ -3377,6 +3443,29 @@ function updateHumanSummary(metrics = {}) {
         ? `Les dépenses variables atteignent ${metrics.variablesPct}% des revenus.`
         : 'Aucun point sensible majeur.';
   actionEl.textContent = document.getElementById('priority-action-title')?.textContent || 'Mettre à jour le budget.';
+}
+
+function updateDashboardGreeting({ revReel = 0, solde = 0 } = {}) {
+  const helloEl = document.getElementById('dashboard-greeting-hello');
+  const titleEl = document.getElementById('dashboard-greeting-title');
+  const subtitleEl = document.getElementById('dashboard-greeting-subtitle');
+  if (!titleEl) return;
+  if (helloEl) helloEl.textContent = 'Bonjour Ali 👋';
+
+  if (revReel === 0) {
+    titleEl.textContent = 'Je suis Nexora. Situation actuelle';
+    if (subtitleEl) subtitleEl.textContent = 'Analyse ton budget et trouve la priorité du moment.';
+    return;
+  }
+
+  const balanceText = fmt(solde);
+  if (solde >= 0) {
+    titleEl.textContent = `Je suis Nexora. Situation : solde ${balanceText}`;
+    if (subtitleEl) subtitleEl.textContent = 'Ton budget est en bonne voie.';
+  } else {
+    titleEl.textContent = `Je suis Nexora. Situation : solde ${balanceText}`;
+    if (subtitleEl) subtitleEl.textContent = 'Le budget est en déficit — examine les dépenses.';
+  }
 }
 
 function updateDashboardGuidance(metrics) {
@@ -3528,7 +3617,11 @@ function renderDebts() {
   setDashboardGuidanceText('kpi-dettes-sub', summary.total > 0 ? `${fmt(summary.monthly)}/mois · ${summary.debtRate}% des revenus` : 'Aucune dette active');
   if (!listEl) return;
   if (summary.debts.length === 0) {
-    listEl.innerHTML = '<div class="analytics-empty compact">Aucune dette enregistrée.</div>';
+    listEl.innerHTML = `
+      <div style="padding:18px;border-radius:16px;border:1px dashed rgba(255,255,255,0.12);background:rgba(255,255,255,0.03);color:var(--text2);text-align:center;">
+        <strong>Aucune dette enregistrée</strong>
+        <div style="margin-top:8px;font-size:13px;">Ajoute une dette pour suivre tes remboursements et mensualités.</div>
+      </div>`;
     return;
   }
   listEl.innerHTML = summary.debts.map(debt => `

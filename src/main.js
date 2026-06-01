@@ -132,7 +132,24 @@ window.renderCoupleSection = async () => {
       </div>
     `
   } else {
-    section.style.display = 'none'
+    section.style.display = 'block'
+    section.innerHTML = `
+      <div class="budget-block">
+        <div class="budget-block-header">
+          <span class="budget-block-title">❤️ Mode couple</span>
+          <span style="font-size:12px;color:var(--text2)">Partage le budget de ton foyer</span>
+        </div>
+        <div style="padding:16px;display:grid;gap:12px;">
+          <p>Le mode couple permet de synchroniser et visualiser les finances du foyer. Activez-le pour partager les revenus et charges.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:flex-start;">
+            <button class="btn btn-outline" type="button" onclick="showSection('parametres')">Ouvrir les paramètres</button>
+            <button class="btn btn-outline" type="button" disabled>Inviter un partenaire <span class="badge-coming">À venir</span></button>
+            <button class="btn btn-outline" type="button" disabled>Fusionner les budgets <span class="badge-coming">À venir</span></button>
+            <button class="btn btn-outline" type="button" onclick="showSection('plan')">Retour au Plan</button>
+          </div>
+        </div>
+      </div>
+    `
   }
 }
 
@@ -153,7 +170,7 @@ window.updateCoupleNavigation = async () => {
 
     window.__isCoupleTabVisible = isVisible
     if (!isVisible) {
-      window.setCoupleFallbackMessage('Mode couple bientôt disponible / activez-le depuis les réglages')
+      window.setCoupleFallbackMessage('Mode couple activable depuis les paramètres pour partager le budget du foyer.')
     }
     return isVisible
   } catch (error) {

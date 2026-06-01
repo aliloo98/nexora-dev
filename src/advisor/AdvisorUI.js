@@ -20,10 +20,24 @@ export function renderAdvisorUI(rootId, AdvisorService) {
 
   root.innerHTML = `
     <section class="advisor-page">
+      <div class="advisor-greeting" style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+          <div>
+            <span style="font-size:13px;color:var(--text2);">Bonjour Ali 👋</span>
+            <h3 style="margin:6px 0 4px;font-size:18px;">Je suis Nexora. Situation actuelle</h3>
+            <div id="advisor-human-summary" style="font-size:13px;color:var(--text2);">Analyse ton budget et dis-moi ce que tu souhaites analyser.</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn btn-outline" onclick="showSection('saisie')">Mettre à jour le budget</button>
+            <button class="btn btn-gold" onclick="showSection('plan')">Ouvrir le plan</button>
+          </div>
+        </div>
+      </div>
+
       <div class="advisor-input-panel">
-        <label for="advisor-input">Demander à Nexora</label>
+        <label for="advisor-input">Que souhaitez-vous analyser ?</label>
         <div class="advisor-input-row">
-          <input id="advisor-input" type="text" placeholder="Puis-je dépenser 200 € cette semaine ?" autocomplete="off" />
+          <input id="advisor-input" type="text" placeholder="Que souhaitez-vous analyser ?" autocomplete="off" />
           <button id="advisor-btn" class="btn btn-gold" type="button">Analyser</button>
         </div>
       </div>
