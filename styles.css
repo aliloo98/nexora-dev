@@ -757,6 +757,13 @@ body.mode-simple .goal-card-meta {
   margin-top: 5px;
 }
 
+.couple-roadmap-text {
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 0;
+}
+
 @media(max-width: 992px) {
   .dash-row {
     grid-template-columns: 1fr;
