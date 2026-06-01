@@ -245,12 +245,17 @@ const collectBudgetData = () => {
     { title: 'Revenus', rows: collectSectionRows(blocks[0], 'income') },
     { title: 'Charges fixes', rows: collectSectionRows(blocks[1], 'fixed_expense') },
     { title: 'Dépenses variables', rows: collectSectionRows(blocks[2], 'variable_expense') }
-  ].filter(section => section.rows.length > 0);
+  ]
+    .filter(section => section.rows.length > 0)
+    .map(section => ({
+      ...section,
+      total: section.rows.reduce((sum, row) => sum + amountFromValue(row.amount), 0)
+    }));
 
   const totals = {
-    income: sections.find(section => section.title === 'Revenus')?.rows.reduce((sum, row) => sum + row.amount, 0) || 0,
-    fixed: sections.find(section => section.title === 'Charges fixes')?.rows.reduce((sum, row) => sum + row.amount, 0) || 0,
-    variable: sections.find(section => section.title === 'Dépenses variables')?.rows.reduce((sum, row) => sum + row.amount, 0) || 0
+    income: sections.find(section => section.title === 'Revenus')?.total || 0,
+    fixed: sections.find(section => section.title === 'Charges fixes')?.total || 0,
+    variable: sections.find(section => section.title === 'Dépenses variables')?.total || 0
   };
   totals.balance = totals.income - totals.fixed - totals.variable;
 
@@ -387,7 +392,7 @@ const addSummary = (pdf, totals) => {
     const x = MARGIN + index * (width + gap);
     pdf.rect(x, pdf.y - 64, width, 64, LIGHT_BG, BORDER);
     pdf.text(label, x + 12, pdf.y - 24, { size: 8, bold: true, fillColor: MUTED });
-    pdf.text(formatCurrency(value), x + 12, pdf.y - 48, { size: 13, bold: true, fillColor: valueColor });
+    pdf.rightText(formatCurrency(value), x + width - 12, pdf.y - 48, { size: 11, bold: true, fillColor: valueColor });
   });
   pdf.y -= 92;
 };
@@ -409,6 +414,13 @@ const addSection = (pdf, section) => {
     pdf.line(MARGIN, pdf.y - 20, PAGE_WIDTH - MARGIN, pdf.y - 20, BORDER);
     pdf.y -= 22;
   });
+
+  pdf.ensure(30);
+  pdf.rect(MARGIN, pdf.y - 22, PAGE_WIDTH - MARGIN * 2, 24, SOFT_GOLD, BORDER);
+  pdf.text(`Sous-total ${section.title.toLowerCase()}`, MARGIN + 12, pdf.y - 13, { size: 9, bold: true, fillColor: NAVY });
+  pdf.rightText(formatCurrency(section.total), PAGE_WIDTH - MARGIN - 12, pdf.y - 13, { size: 10, bold: true, fillColor: NAVY });
+  pdf.y -= 32;
+
   pdf.y -= 16;
 };
 
