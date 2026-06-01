@@ -115,6 +115,22 @@ export const TreasuryService = {
     })
     return { toPayNow, timeline }
   }
+
+  ,
+
+  /**
+   * Build timeline directly from current month real data (adapter)
+   */
+  async buildTimelineFromCurrentMonth({ monthKey, fromDate = new Date(), days = 30, baseBalance = 0 } = {}) {
+    try {
+      const adapter = (await import('./treasuryAdapter.js')).default
+      const { revenues, charges } = await adapter.fetchCurrentMonthBudget(monthKey)
+      return this.buildTimeline({ baseBalance, revenues, charges, fromDate, days })
+    } catch (e) {
+      console.warn('[TreasuryService] buildTimelineFromCurrentMonth failed', e)
+      return this.buildTimeline({ baseBalance, revenues: [], charges: [], fromDate, days })
+    }
+  }
 }
 
 export default TreasuryService
