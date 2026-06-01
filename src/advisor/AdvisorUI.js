@@ -1,8 +1,8 @@
 const quickQuestions = [
-  { label: 'Can I make a purchase?', query: 'Puis-je acheter un PC à 600 € ?' },
-  { label: 'Will I finish the month positive?', query: 'Vais-je finir le mois dans le vert ?' },
-  { label: 'Which debt should I repay?', query: 'Quelle dette rembourser ?' },
-  { label: 'Can I fund a goal?', query: 'Puis-je alimenter un objectif ?' }
+  { label: 'Puis-je faire un achat ?', query: 'Puis-je acheter un PC à 600 € ?' },
+  { label: 'Vais-je finir le mois positif ?', query: 'Vais-je finir le mois dans le vert ?' },
+  { label: 'Quelle dette rembourser ?', query: 'Quelle dette rembourser ?' },
+  { label: 'Puis-je financer un objectif ?', query: 'Puis-je alimenter un objectif ?' }
 ]
 
 const getField = (outcome, keys, fallback) => {
@@ -21,10 +21,10 @@ export function renderAdvisorUI(rootId, AdvisorService) {
   root.innerHTML = `
     <section class="advisor-page">
       <div class="advisor-input-panel">
-        <label for="advisor-input">Ask Nexora</label>
+        <label for="advisor-input">Demander à Nexora</label>
         <div class="advisor-input-row">
-          <input id="advisor-input" type="text" placeholder="Can I spend 200 € this week?" autocomplete="off" />
-          <button id="advisor-btn" class="btn btn-gold" type="button">Analyze</button>
+          <input id="advisor-input" type="text" placeholder="Puis-je dépenser 200 € cette semaine ?" autocomplete="off" />
+          <button id="advisor-btn" class="btn btn-gold" type="button">Analyser</button>
         </div>
       </div>
 
@@ -45,11 +45,11 @@ export function renderAdvisorUI(rootId, AdvisorService) {
             <strong id="advisor-result-impact">-</strong>
           </div>
           <div class="advisor-result-card">
-            <span>Risk</span>
+            <span>Risque</span>
             <strong id="advisor-result-risk">-</strong>
           </div>
           <div class="advisor-result-card advisor-recommendation">
-            <span>Recommendation</span>
+            <span>Conseil</span>
             <p id="advisor-result-advice">-</p>
           </div>
         </div>
@@ -63,10 +63,10 @@ export function renderAdvisorUI(rootId, AdvisorService) {
 
   const renderResult = (outcome = {}) => {
     resultDiv.hidden = false
-    const verdict = getField(outcome, ['verdict'], outcome.canAfford ? 'Possible' : 'Not recommended')
-    const impact = getField(outcome, ['impact', 'endingBalance'], 'No clear impact detected')
-    const risk = getField(outcome, ['risk'], 'Moderate')
-    const advice = getField(outcome, ['recommendation', 'advice', 'rationale'], 'Check the plan before committing.')
+    const verdict = getField(outcome, ['verdict'], outcome.canAfford ? 'Possible' : 'Non recommandé')
+    const impact = getField(outcome, ['impact', 'endingBalance'], 'Aucun impact clair détecté')
+    const risk = getField(outcome, ['risk'], 'Modéré')
+    const advice = getField(outcome, ['recommendation', 'advice', 'rationale'], 'Vérifiez le plan avant de confirmer.')
 
     root.querySelector('#advisor-result-verdict').textContent = verdict
     root.querySelector('#advisor-result-impact').textContent = impact
@@ -79,19 +79,19 @@ export function renderAdvisorUI(rootId, AdvisorService) {
     if (!normalizedQuery) return
     input.value = normalizedQuery
     btn.disabled = true
-    btn.textContent = 'Analyzing'
+    btn.textContent = 'Analyse'
     try {
       const outcome = await AdvisorService.evaluateQuery({ query: normalizedQuery })
       renderResult(outcome)
     } catch (e) {
       resultDiv.hidden = false
-      root.querySelector('#advisor-result-verdict').textContent = 'Analysis unavailable'
-      root.querySelector('#advisor-result-impact').textContent = 'No budget change applied'
-      root.querySelector('#advisor-result-risk').textContent = 'Unknown'
-      root.querySelector('#advisor-result-advice').textContent = 'Try again after updating the budget.'
+      root.querySelector('#advisor-result-verdict').textContent = 'Analyse indisponible'
+      root.querySelector('#advisor-result-impact').textContent = 'Aucun changement appliqué au budget'
+      root.querySelector('#advisor-result-risk').textContent = 'Inconnu'
+      root.querySelector('#advisor-result-advice').textContent = 'Réessayez après avoir mis le budget à jour.'
     } finally {
       btn.disabled = false
-      btn.textContent = 'Analyze'
+      btn.textContent = 'Analyser'
     }
   }
 

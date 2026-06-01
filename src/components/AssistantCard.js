@@ -74,7 +74,7 @@ function createAssistantCard() {
 
       <!-- Visual Timeline Section -->
       <div class="assistant-block assistant-timeline-section" id="assistant-timeline-block" style="display:none;">
-        <strong>Timeline des Objectifs</strong>
+        <strong>Ligne de temps des objectifs</strong>
         <div class="assistant-timeline-wrap">
           <div class="vertical-timeline-line"></div>
           <div class="assistant-timeline-items" id="assistant-timeline-items"></div>

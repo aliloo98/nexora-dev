@@ -165,10 +165,10 @@ export async function renderCoupleModeSettings() {
         </div>
         <div class="couple-code-box">${invitationCode}</div>
         <div class="couple-mode-actions">
-          <button class="btn btn-outline" type="button" id="invite-partner-btn">Invite partner</button>
-          <button class="btn btn-outline" type="button" id="join-household-btn" disabled>Join household</button>
-          <button class="btn btn-outline" type="button" id="disable-couple-btn">Leave household</button>
-          <button class="btn btn-danger" type="button" id="dissolve-couple-btn">Dissolve household</button>
+          <button class="btn btn-outline" type="button" id="invite-partner-btn">Inviter un partenaire</button>
+          <button class="btn btn-outline" type="button" id="join-household-btn" disabled>Rejoindre un foyer</button>
+          <button class="btn btn-outline" type="button" id="disable-couple-btn">Quitter le foyer</button>
+          <button class="btn btn-danger" type="button" id="dissolve-couple-btn">Dissoudre le foyer</button>
         </div>
       </div>
     `
@@ -201,16 +201,16 @@ export async function renderCoupleModeSettings() {
   root.innerHTML = `
     <div class="settings-card couple-mode-card">
       <div class="couple-premium-empty">
-        <strong>Premium empty state</strong>
-        <p>Active Couple Mode pour créer un foyer partagé, inviter un partenaire et gérer le budget à deux.</p>
+        <strong>Mode couple premium</strong>
+        <p>Activez le mode couple pour créer un foyer partagé, inviter un partenaire et gérer le budget à deux.</p>
       </div>
       <div class="couple-mode-actions">
         <input type="email" id="couple-partner-email" class="budget-input" placeholder="Email du partenaire" aria-label="Email du partenaire" />
-        <button class="btn btn-gold" type="button" id="create-couple-btn">Activate</button>
-        <button class="btn btn-outline" type="button" disabled title="Activez Couple Mode pour inviter un partenaire">Invite partner</button>
-        <button class="btn btn-outline" type="button" disabled title="Invitation partenaire requise">Join household</button>
-        <button class="btn btn-outline" type="button" disabled title="Aucun foyer actif">Leave household</button>
-        <button class="btn btn-danger" type="button" disabled title="Aucun foyer actif">Dissolve household</button>
+        <button class="btn btn-gold" type="button" id="create-couple-btn">Activer</button>
+        <button class="btn btn-outline" type="button" disabled title="Activez le mode couple pour inviter un partenaire">Inviter un partenaire</button>
+        <button class="btn btn-outline" type="button" disabled title="Invitation partenaire requise">Rejoindre un foyer</button>
+        <button class="btn btn-outline" type="button" disabled title="Aucun foyer actif">Quitter le foyer</button>
+        <button class="btn btn-danger" type="button" disabled title="Aucun foyer actif">Dissoudre le foyer</button>
       </div>
     </div>
   `
