@@ -207,7 +207,11 @@ const GoalsPage = {
       const card = createGoalCard(g, { onEdit: GoalsPage.handleEdit, onDelete: GoalsPage.handleDelete, onSetPrimary: GoalsPage.handleSetPrimary })
       GoalsPage.listEl.appendChild(card)
     })
-    if (goals.length === 0) GoalsPage.listEl.innerHTML = '<div style="color:var(--text2);">Aucun objectif pour l\'instant.</div>'
+    if (goals.length === 0) GoalsPage.listEl.innerHTML = `
+      <div style="padding:20px;border-radius:16px;border:1px dashed rgba(229,192,96,0.3);background:rgba(255,255,255,0.03);color:var(--text2);text-align:center;">
+        <strong>Pas encore d'objectif</strong>
+        <div style="margin-top:8px;font-size:13px;">Commence par créer ton premier objectif pour suivre ton épargne.</div>
+      </div>`
   },
 
   renderAnalytics: async () => {
@@ -215,7 +219,10 @@ const GoalsPage = {
     if (!GoalsPage.analyticsTarget) return
     GoalsPage.analyticsTarget.innerHTML = ''
     if (goals.length === 0) {
-      GoalsPage.analyticsTarget.innerHTML = '<div style="color:var(--text2)">Aucun objectif</div>'
+      GoalsPage.analyticsTarget.innerHTML = `
+        <div style="padding:16px;border-radius:16px;background:rgba(255,255,255,0.04);color:var(--text2);min-height:80px;display:flex;align-items:center;justify-content:center;">
+          Aucune cible d'épargne définie pour le moment.
+        </div>`
       return
     }
     const primary = await GoalsService.getPrimaryGoal()
