@@ -14,7 +14,7 @@ export function renderDashboardMaster(rootId, TreasuryService) {
   root.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:8px">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <strong>Action du jour</strong>
+        <div style="display:flex;align-items:center;gap:8px"><span style="font-size:18px">✨</span><strong>Action du jour</strong></div>
         <em style="font-size:12px;color:var(--text2)">${new Date().toLocaleDateString()}</em>
       </div>
       <div class="action-highlight">
