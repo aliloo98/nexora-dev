@@ -166,7 +166,7 @@ export async function renderCoupleModeSettings() {
         <div class="couple-code-box">${invitationCode}</div>
         <div class="couple-mode-actions">
           <button class="btn btn-outline" type="button" id="invite-partner-btn">Invite partner</button>
-          <button class="btn btn-outline" type="button" id="join-household-btn">Join household</button>
+          <button class="btn btn-outline" type="button" id="join-household-btn" disabled>Join household</button>
           <button class="btn btn-outline" type="button" id="disable-couple-btn">Leave household</button>
           <button class="btn btn-danger" type="button" id="dissolve-couple-btn">Dissolve household</button>
         </div>
@@ -207,10 +207,10 @@ export async function renderCoupleModeSettings() {
       <div class="couple-mode-actions">
         <input type="email" id="couple-partner-email" class="budget-input" placeholder="Email du partenaire" aria-label="Email du partenaire" />
         <button class="btn btn-gold" type="button" id="create-couple-btn">Activate</button>
-        <button class="btn btn-outline" type="button" id="invite-partner-btn">Invite partner</button>
-        <button class="btn btn-outline" type="button" id="join-household-btn">Join household</button>
-        <button class="btn btn-outline" type="button" id="leave-household-btn">Leave household</button>
-        <button class="btn btn-danger" type="button" id="dissolve-couple-btn">Dissolve household</button>
+        <button class="btn btn-outline" type="button" disabled title="Activez Couple Mode pour inviter un partenaire">Invite partner</button>
+        <button class="btn btn-outline" type="button" disabled title="Invitation partenaire requise">Join household</button>
+        <button class="btn btn-outline" type="button" disabled title="Aucun foyer actif">Leave household</button>
+        <button class="btn btn-danger" type="button" disabled title="Aucun foyer actif">Dissolve household</button>
       </div>
     </div>
   `
@@ -227,18 +227,5 @@ export async function renderCoupleModeSettings() {
       await window.updateCoupleNavigation()
     }
     window.showToast('Mode couple activé localement')
-  })
-
-  root.querySelector('#invite-partner-btn')?.addEventListener('click', () => {
-    window.showToast('Active le mode couple pour générer une invitation')
-  })
-  root.querySelector('#join-household-btn')?.addEventListener('click', () => {
-    window.showToast('Invitation partenaire requise')
-  })
-  root.querySelector('#leave-household-btn')?.addEventListener('click', () => {
-    window.showToast('Aucun foyer actif')
-  })
-  root.querySelector('#dissolve-couple-btn')?.addEventListener('click', () => {
-    window.showToast('Aucun foyer actif à dissoudre')
   })
 }

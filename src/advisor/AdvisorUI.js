@@ -1,8 +1,8 @@
 const quickQuestions = [
-  { label: 'Can I make a purchase?', query: 'Can I make a purchase?' },
-  { label: 'Will I finish the month positive?', query: 'Will I finish the month positive?' },
-  { label: 'Which debt should I repay?', query: 'Which debt should I repay?' },
-  { label: 'Can I fund a goal?', query: 'Can I fund a goal?' }
+  { label: 'Can I make a purchase?', query: 'Puis-je acheter un PC à 600 € ?' },
+  { label: 'Will I finish the month positive?', query: 'Vais-je finir le mois dans le vert ?' },
+  { label: 'Which debt should I repay?', query: 'Quelle dette rembourser ?' },
+  { label: 'Can I fund a goal?', query: 'Puis-je alimenter un objectif ?' }
 ]
 
 const getField = (outcome, keys, fallback) => {

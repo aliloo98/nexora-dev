@@ -59,6 +59,22 @@ export const AdvisorService = {
       return { intent: 'debt', verdict: 'recommend', advice: 'Remboursez la dette avec le taux d’intérêt le plus élevé en priorité.' }
     }
 
+    // Goal funding
+    if (/(objectif|alimenter|financer|épargner|epargner)/.test(q)) {
+      const { endingBalance } = TreasuryService.buildTimeline({ baseBalance, revenues, charges, fromDate, days })
+      const verdict = endingBalance > 0 ? 'ok' : 'no'
+      const risk = endingBalance <= 0 ? 'haut' : endingBalance < 100 ? 'moyen' : 'faible'
+      return {
+        intent: 'goal',
+        verdict,
+        impact: endingBalance > 0 ? `Marge disponible estimée: ${Number(endingBalance.toFixed(2))} €` : 'Aucune marge disponible estimée',
+        risk,
+        advice: verdict === 'ok'
+          ? 'Alimentez un objectif avec une petite somme en gardant une marge de sécurité.'
+          : 'Attendez de sécuriser le solde du mois avant de financer un objectif.'
+      }
+    }
+
     // Default fallback
     return { intent: 'unknown', verdict: 'unknown', advice: "Je n'ai pas compris la demande. Essaye: 'Puis-je acheter un vélo à 200€ ?'" }
   }

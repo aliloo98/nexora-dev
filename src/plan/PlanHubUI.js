@@ -16,6 +16,16 @@ const buildEmptyState = () => `
   </div>
 `
 
+const readDebts = () => {
+  try {
+    const raw = localStorage.getItem('nexora_debts_v1') || '[]'
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
 const buildPlanRows = (items, options = {}) => {
   const {
     emptyLabel = 'Aucun mouvement prévu',
@@ -43,11 +53,7 @@ const buildPlanRows = (items, options = {}) => {
 }
 
 const buildPlanContent = (data) => {
-  const { timeline, endingBalance, baseBalance, totalRevenue, totalCharges, toPayNow } = data
-
-  if (!timeline || timeline.length === 0) {
-    return buildEmptyState()
-  }
+  const { timeline = [], endingBalance, baseBalance, totalRevenue, totalCharges, toPayNow, goals = [], debts = [] } = data
 
   const minBalance = timeline.reduce((min, item) => Math.min(min, Number(item.balance) || 0), baseBalance)
   const upcomingCharges = timeline.filter((item) => item.amount < 0)
@@ -89,18 +95,53 @@ const buildPlanContent = (data) => {
 
       <section class="plan-card plan-timeline-card">
         <div class="plan-card-header"><h3>Timeline</h3></div>
-        <div id="plan-timeline-root" class="plan-timeline-root"></div>
+        <div id="plan-timeline-root" class="plan-timeline-root">
+          ${timeline.length ? '' : '<div class="plan-empty-line">Aucun mouvement daté pour ce mois.</div>'}
+        </div>
+      </section>
+
+      <section class="plan-card">
+        <div class="plan-card-header"><h3>Objectifs</h3></div>
+        ${goals.length ? goals.slice(0, 3).map((goal) => {
+          const current = Number(goal.current) || 0
+          const target = Number(goal.target) || 0
+          const remaining = Math.max(0, target - current)
+          return `
+            <div class="plan-row">
+              <div>
+                <strong>${goal.name || 'Objectif'}</strong>
+                <span>${target > 0 ? `${formatCurrency(remaining)} restants` : 'Montant cible non défini'}</span>
+              </div>
+              <em>${target > 0 ? `${Math.min(100, Math.round(current / target * 100))}%` : '—'}</em>
+            </div>
+          `
+        }).join('') : '<div class="plan-empty-line">Aucun objectif configuré.</div>'}
+      </section>
+
+      <section class="plan-card">
+        <div class="plan-card-header"><h3>Dettes</h3></div>
+        ${debts.length ? debts.slice(0, 3).map((debt) => `
+          <div class="plan-row">
+            <div>
+              <strong>${debt.name || 'Dette'}</strong>
+              <span>${Number(debt.monthly) > 0 ? `${formatCurrency(debt.monthly)} / mois` : 'Mensualité non définie'}</span>
+            </div>
+            <em class="negative">${formatCurrency(debt.remaining || 0)}</em>
+          </div>
+        `).join('') : '<div class="plan-empty-line">Aucune dette enregistrée.</div>'}
       </section>
     </div>
   `
 }
 
 const buildPlanData = async () => {
-  const monthKey = new Date().toISOString().slice(0, 7)
+  const monthKey = typeof window.getMonth === 'function' ? window.getMonth() : new Date().toISOString().slice(0, 7)
+  const fromDate = /^\d{4}-\d{2}$/.test(monthKey) ? new Date(`${monthKey}-01T00:00:00`) : new Date()
   const baseBalance = window.MonthlyBudgetStateService?.getCurrentBalance?.() || 0
-  const [recurringIncomes, billSchedules] = await Promise.all([
+  const [recurringIncomes, billSchedules, goals] = await Promise.all([
     SettingsService.loadRecurringIncomes(),
-    SettingsService.loadBillSchedules()
+    SettingsService.loadBillSchedules(),
+    window.GoalsService?.listGoals ? window.GoalsService.listGoals().catch(() => []) : []
   ])
 
   const { revenues: fetchedRevenues, charges: fetchedCharges } = await TreasuryAdapter.fetchCurrentMonthBudget(monthKey)
@@ -129,7 +170,7 @@ const buildPlanData = async () => {
     baseBalance,
     revenues,
     charges,
-    fromDate: new Date(),
+    fromDate,
     days: 30
   })
 
@@ -139,11 +180,11 @@ const buildPlanData = async () => {
     baseBalance,
     revenues,
     charges,
-    fromDate: new Date(),
+    fromDate,
     days: 30
   })
 
-  return { timeline, endingBalance, baseBalance, totalRevenue, totalCharges, toPayNow }
+  return { timeline, endingBalance, baseBalance, totalRevenue, totalCharges, toPayNow, goals, debts: readDebts() }
 }
 
 export async function renderPlanHub(rootId) {
@@ -155,7 +196,7 @@ export async function renderPlanHub(rootId) {
   try {
     const planData = await buildPlanData()
     root.innerHTML = buildPlanContent(planData)
-    renderTreasuryTimeline('plan-timeline-root', planData.timeline)
+    if (planData.timeline.length) renderTreasuryTimeline('plan-timeline-root', planData.timeline)
   } catch (error) {
     console.warn('[PlanHub] render failed', error)
     root.innerHTML = buildEmptyState()
