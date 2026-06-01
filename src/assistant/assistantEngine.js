@@ -35,12 +35,50 @@ async function analyzeBudget(monthKey) {
   const savingsRate = rev > 0 ? Math.round((savings / rev) * 100) : 0
   const chargesRate = totalChargesRate
   const chargesRateMeta = rev > 0 ? totalChargesRate : null
+  const readRuntimeDebts = () => {
+    try {
+      const runtime = typeof window !== 'undefined' ? window : globalThis
+      return typeof runtime.readDebts === 'function' ? runtime.readDebts() : []
+    } catch {
+      return []
+    }
+  }
+  const debts = readRuntimeDebts().filter(debt => Number(debt?.remaining || 0) > 0)
+  const debtTotal = debts.reduce((sum, debt) => sum + Number(debt.remaining || 0), 0)
+  const debtMonthlyTotal = debts.reduce((sum, debt) => sum + Number(debt.monthly || 0), 0)
+  const debtRate = rev > 0 ? Math.round((debtMonthlyTotal / rev) * 100) : 0
 
   // For UI/metadata: if revenue is zero, present rates as null to avoid misleading 0% values
   const metaFixedRate = rev > 0 ? fixedRate : null
   const metaVariableRate = rev > 0 ? variableRate : null
   const metaTotalChargesRate = chargesRateMeta
   const metaSavingsRate = rev > 0 ? savingsRate : null
+  const debtStrategy = (() => {
+    if (debts.length === 0) {
+      return {
+        debtTotal: 0,
+        debtMonthlyTotal: 0,
+        debtRate: 0,
+        remainingAvailable: Math.max(0, savings),
+        recommendation: 'Aucune dette active : la marge disponible peut aller vers les objectifs.'
+      }
+    }
+    const mainDebt = debts.slice().sort((a, b) => Number(b.remaining || 0) - Number(a.remaining || 0))[0]
+    const baseMonthly = Number(mainDebt?.monthly || 0)
+    const currentMonths = baseMonthly > 0 ? Math.ceil(Number(mainDebt.remaining || 0) / baseMonthly) : null
+    const plus50Months = baseMonthly + 50 > 0 ? Math.ceil(Number(mainDebt.remaining || 0) / (baseMonthly + 50)) : null
+    const monthsSaved = currentMonths !== null && plus50Months !== null ? Math.max(0, currentMonths - plus50Months) : null
+    const remainingAvailable = Math.max(0, savings - debtMonthlyTotal)
+    let recommendation = debtRate >= 30
+      ? 'Priorité recommandée : rembourser les dettes avant d’augmenter l’épargne.'
+      : remainingAvailable > 0
+        ? 'Vous pouvez équilibrer remboursement de dette et objectifs.'
+        : 'Priorité recommandée : sécuriser les mensualités avant les objectifs.'
+    if (monthsSaved && monthsSaved > 0) {
+      recommendation = `En ajoutant 50 €/mois à ${mainDebt.name || 'la dette principale'}, elle serait terminée environ ${monthsSaved} mois plus tôt.`
+    }
+    return { debtTotal, debtMonthlyTotal, debtRate, remainingAvailable, mainDebt, monthsSavedWith50: monthsSaved, recommendation }
+  })()
 
   // Goals: prefer any runtime-provided GoalsService (window or globalThis). Avoid static imports so tests can mock easily.
   const G = (typeof window !== 'undefined' && window.GoalsService) ? window.GoalsService : (typeof globalThis !== 'undefined' ? globalThis.GoalsService : null)
@@ -206,6 +244,9 @@ async function analyzeBudget(monthKey) {
     if (rev > 0 && totalCharges > 0 && totalChargesRate > 70 && !seenIndicators.total) {
       budgetObservations.push(`Les charges totales atteignent ${totalChargesRate}% des revenus.`)
       seenIndicators.total = true
+    }
+    if (rev > 0 && debtMonthlyTotal > 0) {
+      budgetObservations.push(`Votre taux d’endettement est de ${debtRate}%.`)
     }
 
   const goalInsights = []
@@ -464,6 +505,18 @@ async function analyzeBudget(monthKey) {
       }
     }
 
+    if (debts.length > 0) {
+      insights.push(`Dettes restantes : ${debtTotal} € — mensualités ${debtMonthlyTotal} €.`)
+      if (debtRate >= 30) {
+        pushAlert('debt_rate', `Votre taux d’endettement est de ${debtRate}%.`, 'Taux d’endettement élevé', 95, 'Réduisez ou stabilisez les dettes avant d’augmenter les objectifs.')
+      }
+      if (primaryGoal && debtStrategy.remainingAvailable <= 0) {
+        recommendations.push('Priorité recommandée : terminer la dette principale avant d’augmenter l’épargne objectif.')
+      } else {
+        recommendations.push(debtStrategy.recommendation)
+      }
+    }
+
     // Negative balance - highest priority
     if (savings < 0) {
       pushAlert('deficit', `Attention, ce cycle risque de se terminer avec un déficit estimé de ${Math.abs(savings)} €.`, 'Solde prévisionnel négatif', 100, 'Priorisez la réduction des dépenses variables et des charges fixes avant de financer des objectifs.')
@@ -566,6 +619,7 @@ async function analyzeBudget(monthKey) {
     advancedAlerts: advancedAlerts || [],
     timeline: timelineEntries,
     kpis: kpis || null,
+    debtStrategy,
     metadata: {
       month: month || null,
       chargesRate,
@@ -579,7 +633,9 @@ async function analyzeBudget(monthKey) {
       vari,
       savings,
       primaryGoal: primaryGoal || null,
-      goalsSummary: goalsSummary || null
+      goalsSummary: goalsSummary || null,
+      debts: debts || [],
+      debtStrategy
     }
     }
   } catch (err) {
