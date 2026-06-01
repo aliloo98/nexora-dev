@@ -142,6 +142,12 @@
           <button type="button" class="btn btn-outline" onclick="showToast('Montant gardé disponible')">Garder disponible</button>
         </div>
       </section>
+      <section class="wow-card wins-card" id="wins-card">
+        <span>🏆 Réussites</span>
+        <div class="wins-list" id="wins-list">
+          <p>Aucune réussite détectée pour le moment.</p>
+        </div>
+      </section>
     </div>
     <div class="kpi-grid">
       <div class="kpi-card" id="card-revenus">
@@ -3415,6 +3421,11 @@ function updateAll(){
   updateAvailableMoney({
     solde
   });
+  updateWinsCard({
+    solde,
+    totalDepReel,
+    totalDepPayee
+  });
   if (typeof updateDashboardPrimaryGoal === 'function') {
     updateDashboardPrimaryGoal().catch(err => console.warn('[Goals] dashboard primary goal update failed', err));
   }
@@ -3634,6 +3645,26 @@ function updateAvailableMoney(metrics = {}) {
     : 'Tout le solde prévu est déjà absorbé par les dépenses, dettes ou objectifs.';
   card.classList.remove('is-positive', 'is-warning', 'is-negative', 'is-neutral');
   card.classList.add(available > 100 ? 'is-positive' : available > 0 ? 'is-warning' : 'is-neutral');
+}
+
+function updateWinsCard(metrics = {}) {
+  const listEl = document.getElementById('wins-list');
+  if (!listEl) return;
+  const wins = [];
+  if (metrics.solde > 0) wins.push('Budget positif');
+  const paidFixedCount = getPendingFixedExpenseRows().length;
+  const totalFixedRows = Array.from(Array.from(document.querySelectorAll('#section-saisie .budget-block'))[1]?.querySelectorAll('.budget-row') || [])
+    .filter(row => parseBudgetNumber(row.querySelector('input.budget-input[data-key]:not(.paid-input):not(.note-input)')?.value || 0) > 0).length;
+  const settledCount = Math.max(0, totalFixedRows - paidFixedCount);
+  if (settledCount > 0) wins.push(`${settledCount} charge${settledCount > 1 ? 's' : ''} réglée${settledCount > 1 ? 's' : ''}`);
+  if (readDebts().some(debt => Number(debt.initial || 0) > Number(debt.remaining || 0))) wins.push('Dette réduite');
+  const goalCurrent = parseBudgetNumber(document.getElementById('dashboard-primary-goal-current')?.textContent || 0);
+  if (goalCurrent > 0) wins.push('Objectif alimenté');
+
+  const visibleWins = wins.slice(0, 3);
+  listEl.innerHTML = visibleWins.length
+    ? visibleWins.map(win => `<div class="win-item">${escapeHtml(win)}</div>`).join('')
+    : '<p>Aucune réussite détectée pour le moment.</p>';
 }
 
 function updateDashboardGuidance(metrics) {
