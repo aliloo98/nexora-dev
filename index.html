@@ -148,6 +148,12 @@
           <p>Aucune réussite détectée pour le moment.</p>
         </div>
       </section>
+      <section class="wow-card week-plan-card" id="week-plan-card">
+        <span>📋 Cette semaine</span>
+        <ol class="week-plan-list" id="week-plan-list">
+          <li>Mettre à jour le budget.</li>
+        </ol>
+      </section>
     </div>
     <div class="kpi-grid">
       <div class="kpi-card" id="card-revenus">
@@ -3426,6 +3432,11 @@ function updateAll(){
     totalDepReel,
     totalDepPayee
   });
+  updateWeekPlan({
+    solde,
+    variablesPct,
+    totalDepRestant
+  });
   if (typeof updateDashboardPrimaryGoal === 'function') {
     updateDashboardPrimaryGoal().catch(err => console.warn('[Goals] dashboard primary goal update failed', err));
   }
@@ -3665,6 +3676,23 @@ function updateWinsCard(metrics = {}) {
   listEl.innerHTML = visibleWins.length
     ? visibleWins.map(win => `<div class="win-item">${escapeHtml(win)}</div>`).join('')
     : '<p>Aucune réussite détectée pour le moment.</p>';
+}
+
+function updateWeekPlan(metrics = {}) {
+  const listEl = document.getElementById('week-plan-list');
+  if (!listEl) return;
+  const actions = [];
+  const urgentBill = getPendingFixedExpenseRows().sort((a, b) => b.remaining - a.remaining)[0];
+  if (urgentBill) actions.push(`Régler ${urgentBill.name}`);
+  const goalName = document.getElementById('dashboard-primary-goal-name')?.textContent?.replace(/^🎯\s*/, '').trim();
+  const goalPct = parseBudgetNumber(document.getElementById('dashboard-primary-goal-pct')?.textContent || 0);
+  if (goalName && goalName !== 'Aucun objectif configuré' && goalPct < 100 && metrics.solde > 30) {
+    actions.push(`Ajouter 30 € à ${goalName}`);
+  }
+  if (metrics.variablesPct > 35) actions.push('Vérifier les dépenses variables');
+  if (getDebtSummary().total > 0) actions.push('Vérifier les dettes restantes');
+  if (actions.length === 0) actions.push('Mettre à jour le budget en fin de semaine');
+  listEl.innerHTML = actions.slice(0, 3).map(action => `<li>${escapeHtml(action)}</li>`).join('');
 }
 
 function updateDashboardGuidance(metrics) {
