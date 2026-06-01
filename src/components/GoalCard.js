@@ -58,10 +58,26 @@ export default function createGoalCard(goal, handlers = {}) {
     : deadlineInfo.status === 'reached'
       ? 'Terminé'
       : '—'
+  const forecast = goal.__forecast || {}
+  const forecastTone = forecast.status === 'reached' || forecast.status === 'ahead'
+    ? 'good'
+    : forecast.status === 'late' || forecast.status === 'behind'
+      ? 'warning'
+      : 'neutral'
+  const recommendedText = forecast.monthlyEffort
+    ? `${forecast.monthlyEffort.toLocaleString()} €/mois recommandés`
+    : 'Rythme recommandé non défini'
   footer.innerHTML = `
     <div class="goal-remaining"><span>Reste</span><strong>${remaining.toLocaleString()} €</strong></div>
     <div class="goal-date"><span>Échéance</span><strong>${targetDate}</strong><small>${deadlineText}</small></div>
     <div class="goal-est"><span>Effort</span><strong>${effortText}</strong><small>Rythme ${est}</small></div>
+  `
+
+  const forecastBlock = document.createElement('div')
+  forecastBlock.className = `goal-forecast ${forecastTone}`
+  forecastBlock.innerHTML = `
+    <strong>${forecast.projectedLabel || 'Projection indisponible'}</strong>
+    <span>${recommendedText}</span>
   `
 
   const actions = document.createElement('div')
@@ -87,6 +103,7 @@ export default function createGoalCard(goal, handlers = {}) {
   card.appendChild(meta)
   card.appendChild(barWrap)
   card.appendChild(footer)
+  card.appendChild(forecastBlock)
   card.appendChild(actions)
 
   return card

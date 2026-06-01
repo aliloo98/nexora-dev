@@ -3507,7 +3507,12 @@ async function updateDashboardPrimaryGoal() {
   const monthlyInput = document.getElementById('goal-monthly-contrib');
   const monthly = monthlyInput ? Number(monthlyInput.value) || 0 : 0;
   const estimatedMonths = window.GoalsService?.estimateMonthsToTarget?.(goal, monthly);
-  const estimateLabel = estimatedMonths ? `${estimatedMonths} mois` : 'Non défini';
+  const forecast = window.GoalsService?.getGoalForecast?.(goal, monthly);
+  const estimateLabel = forecast?.status === 'reached'
+    ? 'Objectif atteint'
+    : estimatedMonths
+      ? `${estimatedMonths} mois · ${forecast?.monthlyEffort ? Math.round(forecast.monthlyEffort).toLocaleString('fr-FR') + ' €/mois conseillé' : 'rythme actuel'}`
+      : 'Non défini';
   const bar = document.getElementById('dashboard-primary-goal-bar');
 
   setDashboardGuidanceText('dashboard-primary-goal-name', `${goal.icon || '🎯'} ${goal.name || 'Objectif'}`);

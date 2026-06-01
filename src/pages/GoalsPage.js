@@ -201,6 +201,9 @@ const GoalsPage = {
       if (typeof GoalsService.getDeadlineInfo === 'function') {
         g.__deadlineInfo = GoalsService.getDeadlineInfo(g, monthly)
       }
+      if (typeof GoalsService.getGoalForecast === 'function') {
+        g.__forecast = GoalsService.getGoalForecast(g, monthly)
+      }
       const card = createGoalCard(g, { onEdit: GoalsPage.handleEdit, onDelete: GoalsPage.handleDelete, onSetPrimary: GoalsPage.handleSetPrimary })
       GoalsPage.listEl.appendChild(card)
     })

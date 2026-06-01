@@ -44,6 +44,45 @@ const getDeadlineInfo = (goal, monthlyContribution = 0) => {
   return { remaining, targetDate, monthsRemaining, monthlyEffort, projectedMonths, status }
 }
 
+const getGoalForecast = (goal, monthlyContribution = 0) => {
+  const current = Number(goal?.current) || 0
+  const target = Number(goal?.target) || 0
+  const remaining = Math.max(0, target - current)
+  const deadline = getDeadlineInfo(goal, monthlyContribution)
+  const estimatedMonths = GoalsService.estimateMonthsToTarget(goal, monthlyContribution)
+  const reached = target > 0 && current >= target
+  const empty = target > 0 && current <= 0
+  let projectedDate = null
+
+  if (estimatedMonths !== null) {
+    projectedDate = new Date()
+    projectedDate.setMonth(projectedDate.getMonth() + estimatedMonths)
+  }
+
+  let status = 'on_track'
+  if (reached) status = 'reached'
+  else if (empty) status = 'empty'
+  else if (deadline.status === 'past') status = 'late'
+  else if (deadline.monthlyEffort && monthlyContribution > 0 && deadline.monthlyEffort > monthlyContribution * 1.15) status = 'behind'
+  else if (deadline.monthlyEffort && monthlyContribution > 0 && monthlyContribution >= deadline.monthlyEffort) status = 'ahead'
+
+  const projectedLabel = reached
+    ? 'Objectif atteint'
+    : estimatedMonths
+      ? `À ce rythme vous atteindrez ${goal?.name || 'cet objectif'} dans ${estimatedMonths} mois.`
+      : 'Ajoutez une contribution mensuelle pour calculer la projection.'
+
+  return {
+    remaining,
+    estimatedMonths,
+    projectedDate: projectedDate ? projectedDate.toISOString().slice(0, 10) : null,
+    monthlyEffort: deadline.monthlyEffort,
+    monthsRemaining: deadline.monthsRemaining,
+    status,
+    projectedLabel
+  }
+}
+
 const getGoals = async () => {
   const { value } = await UserAppSettingsService.getSetting(STORAGE_KEY)
   if (Array.isArray(value)) {
@@ -140,6 +179,8 @@ const GoalsService = {
   },
 
   getDeadlineInfo,
+
+  getGoalForecast,
 
   getSummary: async () => {
     const goals = await GoalsService.listGoals()
