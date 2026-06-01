@@ -134,8 +134,24 @@ const initApp = async () => {
           .replace(/\.+/g, '.')
           .trim()
 
+        const isAmountInput = (input) => {
+          if (!input || input.classList.contains('note-input')) return false
+          if (input.type === 'date' || input.type === 'color') return false
+          if (input.dataset?.key) return true
+          if (input.type === 'number') return true
+          return [
+            'goal-monthly-contrib',
+            'goal-new-target',
+            'goal-new-current',
+            'notification-expense-threshold',
+            'budget-cycle-start-day',
+            'budget-cycle-end-day'
+          ].includes(input.id)
+        }
+
         const inputs = document.querySelectorAll('.budget-input')
         inputs.forEach(input => {
+          if (!isAmountInput(input)) return
           if (input.__amountHandlerAttached) return
           input.__amountHandlerAttached = true
 
