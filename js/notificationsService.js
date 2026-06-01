@@ -164,12 +164,76 @@ const normalizeNotification = (notification = {}) => {
 
 const getNotificationSignature = (notification) => [
   notification.type,
-  notification.priority,
   notification.source,
   notification.title,
-  notification.message,
   notification.actionTarget || ''
 ].join('|')
+
+const toNumber = (value) => {
+  const parsed = Number.parseFloat(String(value || '').replace(/\s/g, '').replace(',', '.'))
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+const getPendingFixedBills = () => {
+  if (typeof document === 'undefined') return []
+  const fixedBlock = Array.from(document.querySelectorAll('#section-saisie .budget-block'))[1]
+  if (!fixedBlock) return []
+
+  return Array.from(fixedBlock.querySelectorAll('.budget-row'))
+    .map(row => {
+      const amountInput = row.querySelector('input.budget-input[data-key]:not(.paid-input):not(.note-input)')
+      const paidInput = row.querySelector('input.paid-input')
+      const label = row.querySelector('.budget-row-label')
+      const expected = toNumber(amountInput?.value)
+      const paid = toNumber(paidInput?.value)
+      return {
+        name: String(label?.textContent || 'Facture').replace(/[✎×💬✓]/g, '').trim(),
+        expected,
+        paid,
+        remaining: Math.max(0, expected - paid)
+      }
+    })
+    .filter(item => item.expected > 0 && item.remaining > 0.01)
+}
+
+const getCycleTiming = (monthKey) => {
+  if (typeof window === 'undefined' || typeof window.getBudgetCycleRange !== 'function') return null
+  try {
+    const range = window.getBudgetCycleRange(monthKey)
+    if (!range?.end) return null
+    const end = new Date(range.end)
+    if (!Number.isFinite(end.getTime())) return null
+    const now = new Date()
+    const daysToEnd = Math.ceil((end.setHours(23, 59, 59, 999) - now.getTime()) / 86400000)
+    return { daysToEnd }
+  } catch {
+    return null
+  }
+}
+
+const readHistoricalSavings = (currentMonth) => {
+  if (typeof SafeStorage === 'undefined' || typeof window === 'undefined') return []
+  const months = Array.from({ length: 12 }, (_, index) => {
+    if (typeof window.monthShift !== 'function') return null
+    return window.monthShift(currentMonth, -index - 1)
+  }).filter(Boolean)
+
+  return months.map(month => {
+    try {
+      const data = JSON.parse(SafeStorage.getItem(`budget_${month}`) || 'null')
+      const values = data?.values || data
+      if (!values || typeof values !== 'object') return null
+      const read = key => toNumber(values[key])
+      const income = ['rev_ali', 'rev_megane', 'rev_excep'].reduce((sum, key) => sum + read(key), 0)
+      const expenses = Object.entries(values).reduce((sum, [key, value]) => (
+        key.startsWith('rev_') || key.endsWith('_paid') || key.endsWith('_note') ? sum : sum + toNumber(value)
+      ), 0)
+      return income - expenses
+    } catch {
+      return null
+    }
+  }).filter(value => Number.isFinite(value))
+}
 
 const NotificationsService = {
   SETTINGS_KEY,
@@ -306,10 +370,7 @@ const NotificationsService = {
     const next = normalizeNotification(notification)
     const signature = getNotificationSignature(next)
     const lastSame = history.notifications.find(item => getNotificationSignature(item) === signature && !item.archivedAt)
-    if (!lastSame) return { duplicate: false, notification: next }
-    const lastAt = new Date(lastSame.createdAt).getTime()
-    const freshWindowMs = 6 * 60 * 60 * 1000
-    if (Date.now() - lastAt < freshWindowMs) return { duplicate: true, notification: lastSame }
+    if (lastSame) return { duplicate: true, notification: lastSame }
     return { duplicate: false, notification: next }
   },
 
@@ -380,6 +441,7 @@ const NotificationsService = {
     const periodKey = monthKey || 'current'
     const revenue = Number(metrics.revReel || metrics.income || 0)
     const solde = Number(metrics.solde || 0)
+    const tauxEp = Number(metrics.tauxEp || 0)
     const totalDepRestant = Number(metrics.totalDepRestant || 0)
 
     if (revenue <= 0) {
@@ -449,6 +511,60 @@ const NotificationsService = {
       })
     }
 
+    const pendingBills = getPendingFixedBills()
+    const cycleTiming = getCycleTiming(periodKey)
+    if (pendingBills.length > 0 && cycleTiming) {
+      const pendingTotal = pendingBills.reduce((sum, item) => sum + item.remaining, 0)
+      const firstNames = pendingBills.slice(0, 3).map(item => item.name).join(', ')
+      const moreLabel = pendingBills.length > 3 ? ` et ${pendingBills.length - 3} autre(s)` : ''
+      if (cycleTiming.daysToEnd < 0) {
+        await NotificationsService.createNotification({
+          type: 'facture',
+          priority: 'critical',
+          title: 'Factures en retard',
+          message: `${pendingBills.length} facture(s) restent à régler (${Math.round(pendingTotal).toLocaleString('fr-FR')} €) : ${firstNames}${moreLabel}.`,
+          source: `bills:${periodKey}:late`,
+          actionLabel: 'Voir budget',
+          actionTarget: 'saisie'
+        })
+      } else if (cycleTiming.daysToEnd <= 5) {
+        await NotificationsService.createNotification({
+          type: 'facture',
+          priority: 'warning',
+          title: 'Factures bientôt dues',
+          message: `${pendingBills.length} facture(s) à finaliser avant la fin du cycle (${Math.round(pendingTotal).toLocaleString('fr-FR')} €).`,
+          source: `bills:${periodKey}:soon`,
+          actionLabel: 'Voir budget',
+          actionTarget: 'saisie'
+        })
+      }
+    }
+
+    if (revenue > 0 && solde > 0 && tauxEp >= 20) {
+      await NotificationsService.createNotification({
+        type: 'réussite',
+        priority: 'success',
+        title: 'Épargne réalisée',
+        message: `Votre taux d’épargne atteint ${Math.round(tauxEp)}% ce mois-ci.`,
+        source: `success:${periodKey}:savings`,
+        actionLabel: 'Voir tableau de bord',
+        actionTarget: 'dashboard'
+      })
+    }
+
+    const previousSavings = readHistoricalSavings(periodKey)
+    if (solde > 0 && previousSavings.length >= 2 && solde > Math.max(...previousSavings)) {
+      await NotificationsService.createNotification({
+        type: 'réussite',
+        priority: 'success',
+        title: 'Record d’épargne',
+        message: `C’est votre meilleur solde prévisionnel sur les derniers mois : ${Math.round(solde).toLocaleString('fr-FR')} €.`,
+        source: `success:${periodKey}:record-savings`,
+        actionLabel: 'Voir historique',
+        actionTarget: 'historique'
+      })
+    }
+
     const goals = await window.GoalsService?.listGoals?.().catch(() => [])
     if (!Array.isArray(goals)) return
     for (const goal of goals) {
@@ -456,6 +572,18 @@ const NotificationsService = {
       const target = Number(goal.target) || 0
       if (target <= 0) continue
       const pct = current / target * 100
+      const targetDate = goal.targetDate ? new Date(goal.targetDate) : null
+      const daysRemaining = targetDate && Number.isFinite(targetDate.getTime())
+        ? Math.ceil((targetDate - new Date()) / 86400000)
+        : null
+      const remaining = Math.max(0, target - current)
+      const monthlyReference = Number(
+        savingsTarget ||
+        (typeof document !== 'undefined' ? document.getElementById('goal-monthly-contrib')?.value : 0) ||
+        0
+      )
+      const monthsRemaining = daysRemaining !== null ? Math.max(0, daysRemaining / 30.4) : null
+      const requiredMonthly = monthsRemaining && monthsRemaining > 0 ? remaining / monthsRemaining : null
       if (current <= 0) {
         await NotificationsService.createNotification({
           type: 'objectif',
@@ -473,6 +601,26 @@ const NotificationsService = {
           title: 'Objectif atteint',
           message: `Objectif atteint : ${goal.name || 'objectif financier'}.`,
           source: `goal:${goal.id}:reached`,
+          actionLabel: 'Voir objectifs',
+          actionTarget: 'objectifs'
+        })
+      } else if (daysRemaining !== null && daysRemaining < 0) {
+        await NotificationsService.createNotification({
+          type: 'objectif',
+          priority: 'warning',
+          title: 'Objectif en retard',
+          message: `${goal.name || 'Objectif financier'} a dépassé son échéance avec ${Math.round(pct)}% atteint.`,
+          source: `goal:${goal.id}:late`,
+          actionLabel: 'Voir objectifs',
+          actionTarget: 'objectifs'
+        })
+      } else if (requiredMonthly && monthlyReference > 0 && requiredMonthly > monthlyReference * 1.25) {
+        await NotificationsService.createNotification({
+          type: 'objectif',
+          priority: 'warning',
+          title: 'Rythme à ajuster',
+          message: `${goal.name || 'Objectif financier'} demande environ ${Math.ceil(requiredMonthly).toLocaleString('fr-FR')} €/mois pour rester dans les temps.`,
+          source: `goal:${goal.id}:behind-pace`,
           actionLabel: 'Voir objectifs',
           actionTarget: 'objectifs'
         })
