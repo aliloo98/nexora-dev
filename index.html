@@ -127,6 +127,11 @@
         <strong id="priority-action-title">Aucun risque détecté</strong>
         <p id="priority-action-detail">Le budget ne demande pas d’action urgente.</p>
       </section>
+      <section class="wow-card month-forecast-card" id="month-forecast-card">
+        <span>📅 Prévision de fin de mois</span>
+        <strong id="month-forecast-title">Prévision indisponible</strong>
+        <p id="month-forecast-detail">Ajoutez vos revenus et dépenses pour calculer la projection.</p>
+      </section>
     </div>
     <div class="kpi-grid">
       <div class="kpi-card" id="card-revenus">
@@ -3393,6 +3398,10 @@ function updateAll(){
     totalDepRestant,
     variablesPct
   });
+  updateMonthForecast({
+    revReel,
+    solde
+  });
   if (typeof updateDashboardPrimaryGoal === 'function') {
     updateDashboardPrimaryGoal().catch(err => console.warn('[Goals] dashboard primary goal update failed', err));
   }
@@ -3569,6 +3578,32 @@ function updatePriorityAction(metrics = {}) {
   card.classList.add(`is-${state}`);
   titleEl.textContent = title;
   detailEl.textContent = detail;
+}
+
+function updateMonthForecast(metrics = {}) {
+  const card = document.getElementById('month-forecast-card');
+  const titleEl = document.getElementById('month-forecast-title');
+  const detailEl = document.getElementById('month-forecast-detail');
+  if (!card || !titleEl || !detailEl) return;
+
+  const range = getBudgetCycleRange(getMonth());
+  const endDate = range?.end ? new Date(range.end) : null;
+  const endLabel = endDate && !Number.isNaN(endDate.getTime())
+    ? endDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
+    : 'fin du cycle';
+  const forecast = Number(metrics.solde || 0);
+  let state = 'neutral';
+  if (metrics.revReel > 0 && forecast < 0) state = 'negative';
+  else if (metrics.revReel > 0 && forecast > 100) state = 'positive';
+
+  card.classList.remove('is-positive', 'is-warning', 'is-negative', 'is-neutral');
+  card.classList.add(state === 'negative' ? 'is-negative' : state === 'positive' ? 'is-positive' : 'is-neutral');
+  titleEl.textContent = metrics.revReel > 0
+    ? `Il restera ${fmt(forecast)}`
+    : 'Prévision indisponible';
+  detailEl.textContent = metrics.revReel > 0
+    ? `Si rien ne change, il restera ${fmt(forecast)} au ${endLabel}.`
+    : 'Ajoutez vos revenus et dépenses pour calculer la projection.';
 }
 
 function updateDashboardGuidance(metrics) {
