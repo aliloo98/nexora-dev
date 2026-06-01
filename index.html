@@ -911,8 +911,17 @@
       </div>
       <div class="notification-center" id="notification-center">
         <div class="notification-center-head">
-          <div class="param-label">Centre de notifications <span id="notification-unread-badge" class="notification-unread-badge">0</span></div>
-          <button class="btn btn-outline notification-action-btn" type="button" onclick="markAllNexoraNotificationsRead()">Tout marquer comme lu</button>
+          <div class="param-label">Notifications (<span id="notification-total-count">0</span>) <span id="notification-unread-badge" class="notification-unread-badge">0</span></div>
+          <div class="notification-center-actions">
+            <button class="btn btn-outline notification-action-btn" type="button" onclick="markAllNexoraNotificationsRead()">Tout marquer comme lu</button>
+            <button class="btn btn-outline notification-action-btn" type="button" onclick="archiveAllNexoraNotifications()">Tout archiver</button>
+          </div>
+        </div>
+        <div class="notification-filter-tabs" aria-label="Filtres notifications">
+          <button type="button" class="notification-filter-btn active" data-filter="all" onclick="setNexoraNotificationFilter('all')">Toutes</button>
+          <button type="button" class="notification-filter-btn" data-filter="unread" onclick="setNexoraNotificationFilter('unread')">Non lues</button>
+          <button type="button" class="notification-filter-btn" data-filter="read" onclick="setNexoraNotificationFilter('read')">Lues</button>
+          <button type="button" class="notification-filter-btn" data-filter="archived" onclick="setNexoraNotificationFilter('archived')">Archivées</button>
         </div>
         <div id="notification-list" class="notification-list">Aucune notification pour le moment</div>
       </div>
@@ -1516,21 +1525,37 @@ async function renderNexoraNotificationCenter() {
   if (!window.NotificationsService?.listNotifications) return;
   const listEl = document.getElementById('notification-list');
   const badgeEl = document.getElementById('notification-unread-badge');
+  const totalEl = document.getElementById('notification-total-count');
   if (!listEl) return;
-  const notifications = await window.NotificationsService.listNotifications();
-  const unreadCount = await window.NotificationsService.getUnreadCount();
+  const filter = window.__nexoraNotificationFilter || 'all';
+  const counts = await window.NotificationsService.getCounts?.() || {};
+  const allNotifications = await window.NotificationsService.listNotifications({ includeArchived: filter === 'archived' });
+  const notifications = allNotifications.filter(notification => {
+    if (filter === 'unread') return !notification.readAt && !notification.archivedAt;
+    if (filter === 'read') return notification.readAt && !notification.archivedAt;
+    if (filter === 'archived') return Boolean(notification.archivedAt);
+    return !notification.archivedAt;
+  });
+  const unreadCount = counts.unread ?? await window.NotificationsService.getUnreadCount();
+  document.querySelectorAll('.notification-filter-btn').forEach(btn => {
+    const key = btn.dataset.filter;
+    const count = key === 'all' ? counts.total : counts[key];
+    btn.classList.toggle('active', key === filter);
+    btn.textContent = `${key === 'all' ? 'Toutes' : key === 'unread' ? 'Non lues' : key === 'read' ? 'Lues' : 'Archivées'}${Number.isFinite(count) ? ` (${count})` : ''}`;
+  });
+  if (totalEl) totalEl.textContent = String(counts.total ?? notifications.length);
   if (badgeEl) {
-    badgeEl.textContent = String(unreadCount);
+    badgeEl.textContent = `Non lues ${unreadCount}`;
     badgeEl.style.display = unreadCount > 0 ? 'inline-flex' : 'none';
   }
   if (notifications.length === 0) {
-    listEl.innerHTML = '<div class="notification-empty">Aucune notification pour le moment</div>';
+    listEl.innerHTML = `<div class="notification-empty">Aucune notification ${filter === 'archived' ? 'archivée' : filter === 'unread' ? 'non lue' : filter === 'read' ? 'lue' : 'pour le moment'}</div>`;
     return;
   }
   listEl.innerHTML = '';
   notifications.slice(0, 12).forEach(notification => {
     const item = document.createElement('div');
-    item.className = `notification-item priority-${notification.priority}${notification.readAt ? ' is-read' : ''}`;
+    item.className = `notification-item priority-${notification.priority}${notification.readAt ? ' is-read' : ''}${notification.archivedAt ? ' is-archived' : ''}`;
     const date = new Date(notification.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
     item.innerHTML = `
       <div class="notification-item-main">
@@ -1540,8 +1565,7 @@ async function renderNexoraNotificationCenter() {
       </div>
       <div class="notification-item-actions">
         ${notification.actionTarget ? `<button class="btn btn-outline" type="button" data-action-target="${escapeHtml(notification.actionTarget)}">${escapeHtml(notification.actionLabel || 'Ouvrir')}</button>` : ''}
-        <button class="btn btn-outline" type="button" data-read-id="${escapeHtml(notification.id)}">${notification.readAt ? 'Lu' : 'Marquer lu'}</button>
-        <button class="btn btn-outline" type="button" data-archive-id="${escapeHtml(notification.id)}">Archiver</button>
+        ${notification.archivedAt ? `<button class="btn btn-outline" type="button" data-restore-id="${escapeHtml(notification.id)}">Restaurer</button>` : `<button class="btn btn-outline" type="button" data-read-id="${escapeHtml(notification.id)}">${notification.readAt ? 'Lu' : 'Marquer lu'}</button><button class="btn btn-outline" type="button" data-archive-id="${escapeHtml(notification.id)}">Archiver</button>`}
       </div>
     `;
     item.querySelector('[data-action-target]')?.addEventListener('click', (event) => {
@@ -1555,12 +1579,26 @@ async function renderNexoraNotificationCenter() {
       await window.NotificationsService.archiveNotification(event.currentTarget.dataset.archiveId);
       await renderNexoraNotificationCenter();
     });
+    item.querySelector('[data-restore-id]')?.addEventListener('click', async (event) => {
+      await window.NotificationsService.restoreNotification(event.currentTarget.dataset.restoreId);
+      await renderNexoraNotificationCenter();
+    });
     listEl.appendChild(item);
   });
 }
 
+function setNexoraNotificationFilter(filter) {
+  window.__nexoraNotificationFilter = ['all', 'unread', 'read', 'archived'].includes(filter) ? filter : 'all';
+  renderNexoraNotificationCenter().catch(err => console.warn('[Notifications] render failed', err));
+}
+
 async function markAllNexoraNotificationsRead() {
   await window.NotificationsService?.markAllNotificationsRead?.();
+  await renderNexoraNotificationCenter();
+}
+
+async function archiveAllNexoraNotifications() {
+  await window.NotificationsService?.archiveAllNotifications?.();
   await renderNexoraNotificationCenter();
 }
 

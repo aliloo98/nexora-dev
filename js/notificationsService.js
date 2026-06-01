@@ -365,6 +365,16 @@ const NotificationsService = {
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   },
 
+  getCounts: async () => {
+    const notifications = await NotificationsService.listNotifications({ includeArchived: true })
+    return {
+      total: notifications.filter(notification => !notification.archivedAt).length,
+      unread: notifications.filter(notification => !notification.readAt && !notification.archivedAt).length,
+      read: notifications.filter(notification => notification.readAt && !notification.archivedAt).length,
+      archived: notifications.filter(notification => notification.archivedAt).length
+    }
+  },
+
   dedupeNotification: async (notification) => {
     const history = await NotificationsService.getHistory()
     const next = normalizeNotification(notification)
@@ -410,6 +420,25 @@ const NotificationsService = {
     const now = new Date().toISOString()
     history.notifications = history.notifications.map(notification => (
       notification.id === id ? { ...notification, readAt: notification.readAt || now, archivedAt: notification.archivedAt || now } : notification
+    ))
+    await writeJson(HISTORY_KEY, history)
+    if (typeof window !== 'undefined') window.dispatchEvent?.(new CustomEvent('nexora:notifications-updated'))
+  },
+
+  archiveAllNotifications: async () => {
+    const history = await NotificationsService.getHistory()
+    const now = new Date().toISOString()
+    history.notifications = history.notifications.map(notification => (
+      notification.archivedAt ? notification : { ...notification, readAt: notification.readAt || now, archivedAt: now }
+    ))
+    await writeJson(HISTORY_KEY, history)
+    if (typeof window !== 'undefined') window.dispatchEvent?.(new CustomEvent('nexora:notifications-updated'))
+  },
+
+  restoreNotification: async (id) => {
+    const history = await NotificationsService.getHistory()
+    history.notifications = history.notifications.map(notification => (
+      notification.id === id ? { ...notification, archivedAt: null } : notification
     ))
     await writeJson(HISTORY_KEY, history)
     if (typeof window !== 'undefined') window.dispatchEvent?.(new CustomEvent('nexora:notifications-updated'))
@@ -567,6 +596,24 @@ const NotificationsService = {
 
     const goals = await window.GoalsService?.listGoals?.().catch(() => [])
     if (!Array.isArray(goals)) return
+    const emptyGoals = goals.filter(goal => {
+      const current = Number(goal.current) || 0
+      const target = Number(goal.target) || 0
+      return target > 0 && current <= 0
+    })
+    if (emptyGoals.length > 0) {
+      await NotificationsService.createNotification({
+        type: 'objectif',
+        priority: 'info',
+        title: emptyGoals.length === 1 ? 'Objectif non alimenté' : `${emptyGoals.length} objectifs non alimentés`,
+        message: emptyGoals.length === 1
+          ? `L’objectif ${emptyGoals[0].name || 'objectif financier'} n’a pas encore de contribution.`
+          : `Plusieurs objectifs attendent une première contribution : ${emptyGoals.slice(0, 3).map(goal => goal.name || 'objectif').join(', ')}.`,
+        source: `goals:${periodKey}:empty-group`,
+        actionLabel: 'Voir objectifs',
+        actionTarget: 'objectifs'
+      })
+    }
     for (const goal of goals) {
       const current = Number(goal.current) || 0
       const target = Number(goal.target) || 0
@@ -585,15 +632,7 @@ const NotificationsService = {
       const monthsRemaining = daysRemaining !== null ? Math.max(0, daysRemaining / 30.4) : null
       const requiredMonthly = monthsRemaining && monthsRemaining > 0 ? remaining / monthsRemaining : null
       if (current <= 0) {
-        await NotificationsService.createNotification({
-          type: 'objectif',
-          priority: 'info',
-          title: 'Objectif non alimenté',
-          message: `L’objectif ${goal.name || 'objectif financier'} n’a pas encore de contribution.`,
-          source: `goal:${goal.id}:empty`,
-          actionLabel: 'Voir objectifs',
-          actionTarget: 'objectifs'
-        })
+        continue
       } else if (pct >= 100) {
         await NotificationsService.createNotification({
           type: 'réussite',

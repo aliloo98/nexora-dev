@@ -872,6 +872,36 @@ body.mode-simple .goal-card-meta {
   justify-content: space-between;
 }
 
+.notification-center-actions,
+.notification-filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.notification-filter-tabs {
+  margin-top: 12px;
+}
+
+.notification-filter-btn {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  min-height: 34px;
+  padding: 7px 11px;
+}
+
+.notification-filter-btn.active {
+  background: rgba(229,192,96,0.12);
+  border-color: rgba(229,192,96,0.28);
+  color: var(--gold);
+}
+
 .notification-unread-badge {
   align-items: center;
   background: rgba(229,192,96,0.16);
@@ -906,6 +936,7 @@ body.mode-simple .goal-card-meta {
 }
 
 .notification-item.is-read { opacity: 0.68; }
+.notification-item.is-archived { border-style: dashed; opacity: 0.78; }
 .notification-item.priority-critical { border-color: rgba(244,63,94,0.3); }
 .notification-item.priority-warning { border-color: rgba(245,158,11,0.28); }
 .notification-item.priority-success { border-color: rgba(34,197,94,0.25); }
