@@ -1,5 +1,6 @@
 import { StorageManager } from './storage.js'
 import { STORAGE_KEYS, SYNCED_APP_SETTING_KEYS } from '../src/constants/storageKeys.js'
+import { getNamespacedStorageKey } from './userStorage.js'
 
 const META_SUFFIX = '::meta'
 
@@ -18,10 +19,11 @@ const isEmptyArray = (value) => Array.isArray(value) && value.length === 0
 const isNonEmptyArray = (value) => Array.isArray(value) && value.length > 0
 
 const getLocalItem = async (key) => {
-  const storageRaw = await StorageManager.getItem(key)
+  const namespacedKey = getNamespacedStorageKey(key)
+  const storageRaw = await StorageManager.getItem(namespacedKey)
   let safeRaw = null
   if (typeof SafeStorage !== 'undefined') {
-    safeRaw = SafeStorage.getItem(key)
+    safeRaw = SafeStorage.getItem(namespacedKey)
   }
 
   if (storageRaw === null || storageRaw === undefined) return safeRaw
@@ -35,24 +37,25 @@ const getLocalItem = async (key) => {
 }
 
 const setLocalItem = async (key, value) => {
-  await StorageManager.setItem(key, value)
+  const namespacedKey = getNamespacedStorageKey(key)
+  await StorageManager.setItem(namespacedKey, value)
   if (typeof SafeStorage !== 'undefined') {
     try {
-      SafeStorage.setItem(key, value)
+      SafeStorage.setItem(namespacedKey, value)
     } catch (err) {
       // Keep going even if SafeStorage is unavailable
     }
   }
   if (typeof window !== 'undefined' && window.SafeStorage) {
     try {
-      window.SafeStorage.setItem(key, value)
+      window.SafeStorage.setItem(namespacedKey, value)
     } catch {
       // Keep going even if window.SafeStorage is unavailable
     }
   }
   if (typeof window !== 'undefined' && window.localStorage) {
     try {
-      window.localStorage.setItem(key, value)
+      window.localStorage.setItem(namespacedKey, value)
     } catch {
       // Keep going even if localStorage is unavailable
     }

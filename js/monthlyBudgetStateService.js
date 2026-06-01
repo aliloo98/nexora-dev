@@ -7,12 +7,16 @@
  */
 
 import { supabase } from '../src/supabase.js'
+import { getNamespacedStorageKey, getCurrentUserId } from './userStorage.js'
 
 const TABLE_NAME = 'monthly_budget_states'
 const META_KEY = 'nexora_monthly_budget_states_meta_v1'
 
 const isOnline = () => typeof navigator === 'undefined' || navigator.onLine
-const storageKey = (monthKey) => `budget_${monthKey}`
+const storageKey = (monthKey, userId) => {
+  const ownerId = userId || getCurrentUserId()
+  return ownerId ? `budget_${ownerId}_${monthKey}` : `budget_${monthKey}`
+}
 
 const getStorageClient = () => {
   if (typeof SafeStorage !== 'undefined') return SafeStorage
@@ -56,7 +60,7 @@ const writeJson = (key, value) => {
 const readLocalMonth = (monthKey) => readJson(storageKey(monthKey), {})
 const writeLocalMonth = (monthKey, data) => writeJson(storageKey(monthKey), data)
 
-const readMeta = () => readJson(META_KEY, {})
+const readMeta = () => readJson(getNamespacedStorageKey(META_KEY), {})
 
 const writeMeta = (monthKey, meta) => {
   const current = readMeta()

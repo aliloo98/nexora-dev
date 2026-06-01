@@ -1,5 +1,6 @@
 import { StorageManager } from '../../js/storage.js'
 import { UserAppSettingsService } from '../../js/userAppSettingsService.js'
+import { getNamespacedStorageKey } from '../../js/userStorage.js'
 import { STORAGE_KEYS } from '../constants/storageKeys.js'
 
 const STORAGE_KEY = STORAGE_KEYS.goals
@@ -89,7 +90,8 @@ const getGoals = async () => {
     return normalizeGoals(value)
   }
 
-  const raw = await StorageManager.getItem(STORAGE_KEY)
+  const namespacedKey = getNamespacedStorageKey(STORAGE_KEY)
+  const raw = await StorageManager.getItem(namespacedKey)
   if (!raw) {
     return []
   }

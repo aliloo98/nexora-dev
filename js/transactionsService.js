@@ -14,6 +14,7 @@
 
 import { supabase } from '../src/supabase.js'
 import AuthContext from '../src/auth/authContext.js'
+import { getCurrentUserId } from './userStorage.js'
 
 const log = () => {}
 
@@ -31,9 +32,18 @@ const getCurrentUser = () => {
   }
 }
 
-const storageKey = (month) => `budget_${month}`
-const transactionFallbackKey = 'nexora_transactions_fallback_v2'
-const supabaseToLocalMetaKey = 'nexora_supabase_to_local_meta_v1'
+const storageKey = (month, userId) => {
+  const ownerId = userId || getCurrentUserId()
+  return ownerId ? `budget_${ownerId}_${month}` : `budget_${month}`
+}
+const transactionFallbackKey = (userId) => {
+  const ownerId = userId || getCurrentUserId()
+  return ownerId ? `nexora_transactions_fallback_v2::user:${ownerId}` : 'nexora_transactions_fallback_v2'
+}
+const supabaseToLocalMetaKey = (userId) => {
+  const ownerId = userId || getCurrentUserId()
+  return ownerId ? `nexora_supabase_to_local_meta_v1::user:${ownerId}` : 'nexora_supabase_to_local_meta_v1'
+}
 
 // ─────────────────────────────────────────────
 // LECTURE DEPUIS LOCALSTORAGE (SafeStorage)
@@ -57,11 +67,13 @@ const readFromLocal = (month) => {
 const readAllMonthsFromLocal = () => {
   try {
     const storage = (typeof SafeStorage !== 'undefined') ? SafeStorage : localStorage
+    const ownerId = getCurrentUserId()
+    const prefix = ownerId ? `budget_${ownerId}_` : 'budget_'
     const months = []
     for (let i = 0; i < storage.length; i++) {
       const k = storage.key(i)
-      if (k && k.startsWith('budget_')) {
-        months.push(k.replace('budget_', ''))
+      if (k && k.startsWith(prefix)) {
+        months.push(k.replace(prefix, ''))
       }
     }
     log('local', `Mois disponibles en local: ${months.length}`, months)
@@ -82,7 +94,7 @@ const readTransactionFallback = () => {
   try {
     const storage = getStorageClient()
     if (!storage) return []
-    const raw = storage.getItem(transactionFallbackKey)
+    const raw = storage.getItem(transactionFallbackKey())
     const parsed = raw ? JSON.parse(raw) : null
     return Array.isArray(parsed?.transactions) ? parsed.transactions : []
   } catch (err) {
@@ -95,7 +107,7 @@ const writeTransactionFallback = (transactions) => {
   try {
     const storage = getStorageClient()
     if (!storage) return false
-    storage.setItem(transactionFallbackKey, JSON.stringify({
+    storage.setItem(transactionFallbackKey(), JSON.stringify({
       version: 2,
       updated_at: new Date().toISOString(),
       transactions
@@ -111,7 +123,7 @@ const readSupabaseToLocalMeta = () => {
   try {
     const storage = getStorageClient()
     if (!storage) return {}
-    const raw = storage.getItem(supabaseToLocalMetaKey)
+    const raw = storage.getItem(supabaseToLocalMetaKey())
     const parsed = raw ? JSON.parse(raw) : {}
     return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}
   } catch (err) {
@@ -124,7 +136,7 @@ const writeSupabaseToLocalMeta = (meta) => {
   try {
     const storage = getStorageClient()
     if (!storage) return false
-    storage.setItem(supabaseToLocalMetaKey, JSON.stringify(meta))
+    storage.setItem(supabaseToLocalMetaKey(), JSON.stringify(meta))
     return true
   } catch (err) {
     log('error', 'Erreur ecriture meta sync Supabase vers local', err.message)

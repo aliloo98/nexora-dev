@@ -1,5 +1,6 @@
 import { StorageManager } from './storage.js'
 import { STORAGE_KEYS } from '../src/constants/storageKeys.js'
+import { getNamespacedStorageKey } from './userStorage.js'
 
 const SETTINGS_KEY = STORAGE_KEYS.notificationsSettings
 const HISTORY_KEY = STORAGE_KEYS.notificationsHistory
@@ -21,8 +22,9 @@ const isStandalonePwa = () => {
 }
 
 const readJson = async (key, fallback) => {
+  const namespacedKey = getNamespacedStorageKey(key)
   try {
-    const raw = await StorageManager.getItem(key)
+    const raw = await StorageManager.getItem(namespacedKey)
     if (raw) return JSON.parse(raw)
   } catch {
     // Fallback below
@@ -30,7 +32,7 @@ const readJson = async (key, fallback) => {
 
   try {
     if (typeof SafeStorage !== 'undefined') {
-      const raw = SafeStorage.getItem(key)
+      const raw = SafeStorage.getItem(namespacedKey)
       if (raw) return JSON.parse(raw)
     }
   } catch {
@@ -41,10 +43,11 @@ const readJson = async (key, fallback) => {
 }
 
 const writeJson = async (key, value) => {
+  const namespacedKey = getNamespacedStorageKey(key)
   const serialized = JSON.stringify(value)
-  await StorageManager.setItem(key, serialized)
+  await StorageManager.setItem(namespacedKey, serialized)
   try {
-    if (typeof SafeStorage !== 'undefined') SafeStorage.setItem(key, serialized)
+    if (typeof SafeStorage !== 'undefined') SafeStorage.setItem(namespacedKey, serialized)
   } catch {
     // Keep StorageManager as source if SafeStorage is unavailable.
   }

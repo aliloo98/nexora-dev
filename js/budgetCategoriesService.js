@@ -163,10 +163,8 @@ const mergeWithDefaults = (categories, ownerId) => {
 
 const readLocalCategories = (ownerId) => {
   const store = readLocalStore()
-  const ownerCategories = Array.isArray(store[ownerId]) ? store[ownerId] : null
-  const localCategories = Array.isArray(store[LOCAL_USER_ID]) ? store[LOCAL_USER_ID] : []
-  const categories = ownerCategories || localCategories
-  const merged = mergeWithDefaults(categories, ownerId)
+  const ownerCategories = Array.isArray(store[ownerId]) ? store[ownerId] : []
+  const merged = mergeWithDefaults(ownerCategories, ownerId)
   store[ownerId] = merged
   writeLocalStore(store)
   return merged
@@ -176,9 +174,6 @@ const writeLocalCategories = (ownerId, categories) => {
   const store = readLocalStore()
   const normalized = sortCategories(categories.map(category => normalizeCategory(category, ownerId)))
   store[ownerId] = normalized
-  if (ownerId !== LOCAL_USER_ID) {
-    store[LOCAL_USER_ID] = normalized.map(category => normalizeCategory(category, LOCAL_USER_ID))
-  }
   writeLocalStore(store)
   return normalized
 }
