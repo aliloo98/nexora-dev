@@ -6,6 +6,12 @@ const STORAGE_KEYS = {
   csvImportDrafts: 'nexora_csv_import_drafts_v1',
   notificationsSettings: 'nexora_notifications_settings_v1',
   notificationsHistory: 'nexora_notifications_history_v1',
+  aiSettings: 'nexora_ai_settings_v1',
+  financialMemory: 'nexora_financial_memory_v1',
+  recurringIncomes: 'nexora_recurring_incomes',
+  billSchedules: 'nexora_bill_schedules',
+  debts: 'nexora_debts_v1',
+  syncConflictLog: 'nexora_sync_conflicts_v1',
   monthlyBudgetStatesMeta: 'nexora_monthly_budget_states_meta_v1',
   budgetMonthPrefix: 'budget_',
   cagnottes: 'budget_cagnottes',
@@ -17,7 +23,14 @@ const SYNCED_APP_SETTING_KEYS = [
   STORAGE_KEYS.monthlyHistorySnapshots,
   STORAGE_KEYS.budgetCycleSettings,
   STORAGE_KEYS.csvLearning,
-  STORAGE_KEYS.csvImportDrafts
+  STORAGE_KEYS.csvImportDrafts,
+  STORAGE_KEYS.aiSettings,
+  STORAGE_KEYS.financialMemory,
+  STORAGE_KEYS.recurringIncomes,
+  STORAGE_KEYS.billSchedules,
+  STORAGE_KEYS.debts,
+  STORAGE_KEYS.notificationsSettings,
+  STORAGE_KEYS.notificationsHistory
 ]
 
 export { STORAGE_KEYS, SYNCED_APP_SETTING_KEYS }

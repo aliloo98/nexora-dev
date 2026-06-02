@@ -18,6 +18,65 @@ const parseJson = (raw) => {
 const isEmptyArray = (value) => Array.isArray(value) && value.length === 0
 const isNonEmptyArray = (value) => Array.isArray(value) && value.length > 0
 
+const itemTimestamp = (item) => {
+  const value = item?.updated_at || item?.updatedAt || item?.modified_at || item?.created_at || item?.createdAt || 0
+  const time = value ? new Date(value).getTime() : 0
+  return Number.isFinite(time) ? time : 0
+}
+
+const identityForItem = (item, index) => {
+  if (!item || typeof item !== 'object') return `primitive:${String(item)}:${index}`
+  const id = item.id || item.local_id || item.key || item.categoryKey
+  if (id) return `id:${String(id).toLowerCase()}`
+  const name = item.name || item.title || item.label
+  const type = item.type || item.frequency || item.priority || ''
+  if (name) return `name:${String(name).trim().toLowerCase()}::${String(type).trim().toLowerCase()}`
+  return `index:${index}`
+}
+
+const mergeArrayByIdentity = (localValue = [], cloudValue = []) => {
+  const conflicts = []
+  const merged = new Map()
+  const add = (item, source, index) => {
+    const identity = identityForItem(item, index)
+    const existing = merged.get(identity)
+    if (!existing) {
+      merged.set(identity, { item, source })
+      return
+    }
+
+    const existingTime = itemTimestamp(existing.item)
+    const incomingTime = itemTimestamp(item)
+    if (incomingTime > existingTime) {
+      conflicts.push({ identity, kept: source, replaced: existing.source })
+      merged.set(identity, { item, source })
+      return
+    }
+    if (incomingTime === existingTime && JSON.stringify(existing.item) !== JSON.stringify(item)) {
+      conflicts.push({ identity, kept: existing.source, replaced: source, reason: 'same-timestamp' })
+    }
+  }
+
+  localValue.forEach((item, index) => add(item, 'local', index))
+  cloudValue.forEach((item, index) => add(item, 'cloud', index))
+  return {
+    value: Array.from(merged.values()).map(entry => entry.item),
+    conflicts
+  }
+}
+
+const appendConflictLog = async (key, conflicts = []) => {
+  if (!conflicts.length) return
+  const { value } = await UserAppSettingsService.getSetting(STORAGE_KEYS.syncConflictLog)
+  const current = Array.isArray(value) ? value : []
+  const entries = conflicts.map(conflict => ({
+    key,
+    ...conflict,
+    at: new Date().toISOString()
+  }))
+  await forceWriteLocalSetting(STORAGE_KEYS.syncConflictLog, current.concat(entries).slice(-100), new Date().toISOString())
+}
+
 const getLocalItem = async (key) => {
   const namespacedKey = getNamespacedStorageKey(key)
   const storageRaw = await StorageManager.getItem(namespacedKey)
@@ -58,6 +117,16 @@ const setLocalItem = async (key, value) => {
       window.localStorage.setItem(namespacedKey, value)
     } catch {
       // Keep going even if localStorage is unavailable
+    }
+  }
+  if (DEFAULT_KEYS.includes(key) && namespacedKey !== key) {
+    try {
+      await StorageManager.setItem(key, value)
+      if (typeof SafeStorage !== 'undefined') SafeStorage.setItem(key, value)
+      if (typeof window !== 'undefined' && window.SafeStorage) window.SafeStorage.setItem(key, value)
+      if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem(key, value)
+    } catch {
+      // Legacy mirrors are best effort only; the namespaced key remains authoritative.
     }
   }
 }
@@ -126,11 +195,12 @@ const UserAppSettingsService = {
 
   // Push local value to Supabase user_app_settings row
   syncLocalSettingToCloud: async (key) => {
-    if (!window.supabase || !window.supabase.auth) {
+    const runtime = typeof window !== 'undefined' ? window : globalThis
+    if (!runtime.supabase || !runtime.supabase.auth) {
       UserAppSettingsService.log('Supabase not available, skipping cloud sync for', key)
       return { ok: false, reason: 'no-supabase' }
     }
-    const sessionResp = await window.supabase.auth.getSession().catch((err) => {
+    const sessionResp = await runtime.supabase.auth.getSession().catch((err) => {
       UserAppSettingsService.log('Failed to get Supabase session', err)
       return null
     })
@@ -146,7 +216,7 @@ const UserAppSettingsService = {
     if (meta && meta.updated_at) payload.updated_at = meta.updated_at
 
     try {
-      const result = await window.supabase
+      const result = await runtime.supabase
         .from('user_app_settings')
         .upsert(payload, { onConflict: 'user_id,key', returning: 'minimal' })
       const { error } = result
@@ -163,11 +233,12 @@ const UserAppSettingsService = {
 
   // Pull cloud row and merge to local using last-write-wins on updated_at
   syncCloudSettingToLocal: async (key) => {
-    if (!window.supabase || !window.supabase.auth) {
+    const runtime = typeof window !== 'undefined' ? window : globalThis
+    if (!runtime.supabase || !runtime.supabase.auth) {
       UserAppSettingsService.log('Supabase not available, skipping cloud pull for', key)
       return { ok: false, reason: 'no-supabase' }
     }
-    const sessionResp = await window.supabase.auth.getSession().catch((err) => {
+    const sessionResp = await runtime.supabase.auth.getSession().catch((err) => {
       UserAppSettingsService.log('Failed to get Supabase session', err)
       return null
     })
@@ -179,7 +250,7 @@ const UserAppSettingsService = {
     let row = null
     let error = null
     try {
-      const result = await window.supabase
+      const result = await runtime.supabase
         .from('user_app_settings')
         .select('*')
         .eq('user_id', userId)
@@ -225,6 +296,20 @@ const UserAppSettingsService = {
       }
       UserAppSettingsService.log('Local non-empty setting kept over empty cloud', key)
       return { ok: true, action: 'local-to-cloud-empty-cloud-protected' }
+    }
+
+    if (isNonEmptyArray(localValue) && isNonEmptyArray(cloudValue)) {
+      const merged = mergeArrayByIdentity(localValue, cloudValue)
+      if (JSON.stringify(merged.value) !== JSON.stringify(localValue) || merged.conflicts.length) {
+        const newest = cloudUpdated > localUpdated ? row.updated_at : localMeta?.updated_at
+        await forceWriteLocalSetting(key, merged.value, newest || new Date().toISOString())
+        await appendConflictLog(key, merged.conflicts)
+        await UserAppSettingsService.syncLocalSettingToCloud(key)
+        if (key === STORAGE_KEYS.goals) await refreshGoalsUiAfterCloudMerge()
+        if (key === STORAGE_KEYS.budgetCycleSettings) await refreshBudgetCycleUiAfterCloudMerge()
+        UserAppSettingsService.log('Merged local/cloud array setting by identity', key)
+        return { ok: true, action: 'merged-array', conflicts: merged.conflicts.length }
+      }
     }
 
     if (!localValue && cloudValue) {

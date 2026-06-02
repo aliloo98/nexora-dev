@@ -49,6 +49,7 @@ import { renderSettingsPanels, renderRecurringIncomeSettings, renderBillSchedule
 import { readAiSettings, updateAiSettings } from './advisor/proactiveCoachService.js'
 import NexoraMotion from './ui/gsapMotion.js'
 import { parseFinancialExpression } from './finance/financialExpression.js'
+import NexoraRecurringResolver from './finance/recurringResolution.js'
 
 // Expose modules globally for HTML event handlers and old code
 window.StorageManager = StorageManager
@@ -60,7 +61,10 @@ window.NexoraPdfExport = NexoraPdfExport
 window.NotificationsService = NotificationsService
 window.NexoraAiSettingsService = { readAiSettings, updateAiSettings }
 window.NexoraMotion = NexoraMotion
+window.NexoraRecurringResolver = NexoraRecurringResolver
 window.parseFinancialExpression = parseFinancialExpression
+window.renderRecurringIncomeSettings = renderRecurringIncomeSettings
+window.renderBillScheduleSettings = renderBillScheduleSettings
 
 // Expose Supabase globally for future modules
 window.supabase = supabase

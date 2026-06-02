@@ -119,9 +119,9 @@ export const TreasuryService = {
     const { timeline } = this.buildTimeline({ baseBalance, revenues, charges, fromDate, days })
     // find negative dips and high priority charges with dates in next 7 days
     const toPayNow = []
-    const nowISO = fromDate.toISOString().slice(0,10)
     charges.forEach(ch => {
-      const chDate = ch.date instanceof Date ? ch.date : (typeof ch.date === 'number' ? new Date(fromDate.getFullYear(), fromDate.getMonth(), ch.date) : new Date(ch.date))
+      const chDate = ch.date instanceof Date ? new Date(ch.date) : (typeof ch.date === 'number' ? this.makeMonthDate(fromDate, ch.date) : new Date(ch.date))
+      if (typeof ch.date === 'number' && chDate < fromDate) chDate.setMonth(chDate.getMonth() + 1)
       const daysDiff = Math.ceil((chDate - fromDate) / (1000*60*60*24))
       if (daysDiff >=0 && daysDiff <= 7 && (ch.priority === 'critique' || ch.priority === 'importante')) {
         toPayNow.push({ name: ch.title || ch.name || 'Charge', amount: ch.amount, date: chDate.toISOString().slice(0,10), priority: ch.priority })

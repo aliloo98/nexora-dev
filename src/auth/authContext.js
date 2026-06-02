@@ -103,6 +103,11 @@ export const AuthContext = {
         if (window.GoalsPage && typeof window.GoalsPage.renderAnalytics === 'function') {
           await window.GoalsPage.renderAnalytics()
         }
+        if (typeof window.renderRecurringIncomeSettings === 'function') await window.renderRecurringIncomeSettings()
+        if (typeof window.renderBillScheduleSettings === 'function') await window.renderBillScheduleSettings()
+        if (typeof window.renderDebts === 'function') window.renderDebts()
+        if (typeof window.loadMonth === 'function') await window.loadMonth()
+        if (typeof window.updateAll === 'function') window.updateAll()
       } catch (error) {
         console.error('[Phase2D] sync error:', error)
       }
@@ -283,19 +288,29 @@ export const AuthContext = {
    * Get user display name (username)
    */
   getUserDisplayName() {
-    if (!this._state.user) return null
+    if (!this._state.user) return 'Vous'
 
-    // Try to get username from user_metadata
-    if (this._state.user.user_metadata?.username) {
-      return this._state.user.user_metadata.username
+    const metadata = this._state.user.user_metadata || {}
+    const candidates = [
+      metadata.firstName,
+      metadata.first_name,
+      metadata.given_name,
+      metadata.displayName,
+      metadata.display_name,
+      metadata.full_name,
+      metadata.name,
+      metadata.username
+    ]
+
+    for (const candidate of candidates) {
+      const value = String(candidate || '').trim()
+      if (!value) continue
+      if (/^[a-z0-9_-]{12,}$/i.test(value)) continue
+      if (/^[0-9a-f-]{16,}$/i.test(value)) continue
+      return value.split(/\s+/)[0] || value
     }
 
-    // Fall back to email username
-    if (this._state.user.email) {
-      return this._state.user.email.split('@')[0]
-    }
-
-    return 'Utilisateur'
+    return 'Vous'
   }
 }
 

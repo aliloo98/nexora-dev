@@ -186,6 +186,19 @@
         <div class="kpi-icon">💳</div>
       </div>
     </div>
+    <section class="nexora-orb-panel wow-card" id="nexora-orb-panel" aria-label="Signature financière Nexora">
+      <div class="nexora-orb-copy">
+        <span>Signature Nexora</span>
+        <strong id="nexora-orb-title">Sphère financière</strong>
+        <p id="nexora-orb-detail">La stabilité, le risque et les objectifs se reflètent dans une seule lecture.</p>
+      </div>
+      <div class="nexora-orb-stage" aria-hidden="true">
+        <div class="nexora-orb" id="nexora-finance-orb">
+          <i></i><i></i><i></i>
+          <span></span>
+        </div>
+      </div>
+    </section>
     <div class="dashboard-clean-grid">
       <section class="wow-card dashboard-coach-card" id="dashboard-coach-card">
         <div id="dashboard-master-root"></div>
@@ -247,12 +260,20 @@
       <div class="dashboard-primary-goal-track">
         <i id="dashboard-primary-goal-bar"></i>
       </div>
+      <div class="dashboard-primary-goal-focus">
+        <div>
+          <span>Montant restant</span>
+          <strong id="dashboard-primary-goal-remaining">0 €</strong>
+        </div>
+        <div>
+          <span>Rythme conseillé</span>
+          <strong id="dashboard-primary-goal-estimate">Non défini</strong>
+        </div>
+      </div>
       <div class="dashboard-primary-goal-meta">
         <div><span>Actuel</span><strong id="dashboard-primary-goal-current">0 €</strong></div>
         <div><span>Cible</span><strong id="dashboard-primary-goal-target">0 €</strong></div>
-        <div><span>Reste</span><strong id="dashboard-primary-goal-remaining">0 €</strong></div>
         <div><span>Échéance</span><strong id="dashboard-primary-goal-date">Non définie</strong></div>
-        <div><span>Rythme</span><strong id="dashboard-primary-goal-estimate">Non défini</strong></div>
       </div>
       </section>
     </div>
@@ -1413,7 +1434,16 @@ function readDebts() {
 }
 
 function saveDebts(debts) {
-  SafeStorage.setItem(DEBTS_STORAGE_KEY, JSON.stringify(Array.isArray(debts) ? debts : []));
+  const now = new Date().toISOString();
+  const normalized = Array.isArray(debts)
+    ? debts.map(debt => ({ ...debt, updated_at: debt.updated_at || now }))
+    : [];
+  SafeStorage.setItem(DEBTS_STORAGE_KEY, JSON.stringify(normalized));
+  if (window.UserAppSettingsService?.saveSetting) {
+    window.UserAppSettingsService.saveSetting(DEBTS_STORAGE_KEY, normalized)
+      .then(() => window.UserAppSettingsService.syncLocalSettingToCloud?.(DEBTS_STORAGE_KEY))
+      .catch(err => console.warn('[DebtSync] cloud sync failed', err));
+  }
 }
 
 async function refreshNexoraNotificationSettingsUI() {
@@ -1930,6 +1960,7 @@ async function saveData(){
   }
   const m=getMonth();
   normalizeFormulaInputs();
+  if (hasInvalidFinancialInputs()) return;
   // Load existing month data and merge current DOM values into it so
   // hiding inputs doesn't remove stored keys for hidden custom rows.
   const data = {};
@@ -2033,6 +2064,36 @@ function getVal(key){
 
 function fmt(n){return n.toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:0})+' €'}
 
+function readLocalJsonArray(key) {
+  try {
+    const parsed = JSON.parse(SafeStorage.getItem(key) || localStorage.getItem(key) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function getResolvedBudgetSnapshot() {
+  const budgetData = {};
+  document.querySelectorAll('[data-key]').forEach(el => {
+    budgetData[el.dataset.key] = el.value;
+  });
+  const incomeKeys = getBudgetKeysByType('income');
+  const expenseKeys = getAllExpenseKeys();
+  const categoriesById = new Map(budgetCategoriesCache.map(category => [category.id, category]));
+  if (window.NexoraRecurringResolver?.resolveBudgetWithRecurring) {
+    return window.NexoraRecurringResolver.resolveBudgetWithRecurring({
+      budgetData,
+      incomeKeys,
+      expenseKeys,
+      categoriesById,
+      recurringIncomes: readLocalJsonArray('nexora_recurring_incomes'),
+      billSchedules: readLocalJsonArray('nexora_bill_schedules')
+    }).resolved || {};
+  }
+  return {};
+}
+
 const BUDGET_KEYS_BY_TYPE = {
   income: ['rev_ali','rev_megane','rev_excep'],
   fixed_expense: ['loyer','credit','assauto','gasoil','elec','eau','psy','diete','itou','sante','impots','box','tel_ali','tel_meg','stream','ps','cb','impfix'],
@@ -2115,10 +2176,14 @@ function getAllExpenseKeys() {
 
 function getMonthMetrics(month, { fromDom = false } = {}) {
   const data = fromDom ? null : readStoredMonthData(month);
-  const read = (key) => fromDom ? getVal(key) : getAmountFromData(data, key);
   const incomeKeys = getBudgetKeysByType('income');
   const fixedKeys = getBudgetKeysByType('fixed_expense');
   const variableKeys = getBudgetKeysByType('variable_expense');
+  const resolved = fromDom ? getResolvedBudgetSnapshot() : {};
+  const read = (key) => {
+    if (fromDom && Object.prototype.hasOwnProperty.call(resolved, key)) return parseBudgetNumber(resolved[key]);
+    return fromDom ? getVal(key) : getAmountFromData(data, key);
+  };
   const income = incomeKeys.reduce((sum, key) => sum + read(key), 0);
   const fixed = fixedKeys.reduce((sum, key) => sum + read(key), 0);
   const variable = variableKeys.reduce((sum, key) => sum + read(key), 0);
@@ -2611,6 +2676,32 @@ function parseBudgetNumber(value) {
   return Number.isFinite(result) ? result : 0;
 }
 
+function parseBudgetNumberStrict(value) {
+  if (typeof window.parseFinancialExpression === 'function') {
+    return window.parseFinancialExpression(value, { fallback: null });
+  }
+  if (value === null || value === undefined) return null;
+  const normalized = String(value).trim().replace(/\u202F/g, ' ').replace(/\u00A0/g, ' ');
+  if (!normalized || !/^[0-9+\-.,\s]+$/.test(normalized)) return null;
+  const compact = normalized.replace(/\s+/g, '').replace(/,/g, '.');
+  if (!/^[+-]?\d+(?:\.\d+)?(?:[+-]\d+(?:\.\d+)?)*$/.test(compact)) return null;
+  const tokens = compact.match(/[+-]?\d+(?:\.\d+)?/g);
+  if (!tokens || tokens.join('') !== compact) return null;
+  const result = tokens.reduce((sum, token) => sum + Number(token), 0);
+  return Number.isFinite(result) ? result : null;
+}
+
+function validateStrictMoneyFields(fields) {
+  for (const [label, value] of fields) {
+    const parsed = parseBudgetNumberStrict(value);
+    if (parsed === null) {
+      showToast(`Expression invalide pour ${label}`);
+      return null;
+    }
+  }
+  return Object.fromEntries(fields.map(([label, value]) => [label, parseBudgetNumberStrict(value)]));
+}
+
 function formatFormulaResult(value) {
   const rounded = Math.round(value * 100) / 100;
   if (Number.isInteger(rounded)) return String(rounded);
@@ -2673,6 +2764,21 @@ function normalizeFormulaInputs() {
   document.querySelectorAll('input.budget-input[data-key]').forEach(input => {
     if (shouldEnableFormulaInput(input)) evaluateFormula(input);
   });
+}
+
+function hasInvalidFinancialInputs() {
+  const invalidInput = Array.from(document.querySelectorAll('input.budget-input[data-key]')).find(input => {
+    if (!shouldEnableFormulaInput(input)) return false;
+    const value = String(input.value || '').trim();
+    return value !== '' && parseBudgetNumberStrict(value) === null;
+  });
+  if (invalidInput) {
+    invalidInput.classList.add('input-error');
+    invalidInput.focus();
+    showToast('Expression financière invalide : sauvegarde annulée');
+    return true;
+  }
+  return false;
 }
 
 // Dynamic notes container creation
@@ -3205,13 +3311,15 @@ async function refreshCategoryLabels() {
 }
 
 function updateAll(){
-  const revReel = getBudgetKeysByType('income').reduce((total, key) => total + getVal(key), 0);
+  const resolvedBudget = getResolvedBudgetSnapshot();
+  const readResolved = (key) => Object.prototype.hasOwnProperty.call(resolvedBudget, key) ? parseBudgetNumber(resolvedBudget[key]) : getVal(key);
+  const revReel = getBudgetKeysByType('income').reduce((total, key) => total + readResolved(key), 0);
 
   const fixKeys = getBudgetKeysByType('fixed_expense');
   let fixReel = 0;
   let fixPaye = 0;
   fixKeys.forEach(k => {
-    const val = getVal(k);
+    const val = readResolved(k);
     fixReel += val;
     const paidVal = getVal(k + '_paye');
     fixPaye += paidVal;
@@ -3222,7 +3330,7 @@ function updateAll(){
   let varReel = 0;
   let varPaye = 0;
   varKeys.forEach(k => {
-    const val = getVal(k);
+    const val = readResolved(k);
     varReel += val;
     const paidVal = getVal(k + '_paye');
     varPaye += paidVal;
@@ -3444,6 +3552,12 @@ function updateAll(){
     variablesPct,
     totalDepRestant,
     revReel
+  });
+  updateNexoraSphere({
+    revReel,
+    solde,
+    tauxCh,
+    variablesPct
   });
   updateHumanSummary({
     revReel,
@@ -3698,6 +3812,30 @@ function updateWinsCard(metrics = {}) {
   listEl.innerHTML = visibleWins.length
     ? visibleWins.map(win => `<div class="win-item">${escapeHtml(win)}</div>`).join('')
     : '<p>Aucune réussite détectée pour le moment.</p>';
+}
+
+function updateNexoraSphere(metrics = {}) {
+  const orb = document.getElementById('nexora-finance-orb');
+  const title = document.getElementById('nexora-orb-title');
+  const detail = document.getElementById('nexora-orb-detail');
+  if (!orb || !title || !detail) return;
+
+  const income = Number(metrics.revReel || 0);
+  const balance = Number(metrics.solde || 0);
+  const chargesRate = Number(metrics.tauxCh || 0);
+  const variableRate = Number(metrics.variablesPct || 0);
+  const debtRate = Number(getDebtSummary?.().debtRate || 0);
+  const health = income > 0
+    ? clamp(100 - Math.max(0, chargesRate - 55) - Math.max(0, variableRate - 25) - Math.max(0, debtRate - 20) + Math.min(20, Math.max(0, balance / Math.max(1, income) * 100)), 12, 96)
+    : 24;
+  const risk = clamp(100 - health, 8, 88);
+
+  orb.style.setProperty('--orb-health', `${Math.round(health)}%`);
+  orb.style.setProperty('--orb-risk', `${Math.round(risk)}%`);
+  title.textContent = health >= 72 ? 'Sphère stable' : health >= 45 ? 'Sphère sous surveillance' : 'Sphère fragile';
+  detail.textContent = income > 0
+    ? `Santé ${Math.round(health)}%, charges ${chargesRate}%, solde fin de cycle ${fmt(balance)}.`
+    : 'Ajoutez revenus, charges et objectifs pour activer une lecture fiable.';
 }
 
 function updateWeekPlan(metrics = {}) {
@@ -3969,16 +4107,23 @@ function addDebt() {
   const monthlyEl = document.getElementById('debt-new-monthly');
   const rateEl = document.getElementById('debt-new-rate');
   const name = nameEl?.value.trim() || '';
-  const initial = parseBudgetNumber(initialEl?.value);
-  const remaining = parseBudgetNumber(remainingEl?.value || initial);
-  const monthly = parseBudgetNumber(monthlyEl?.value);
-  const rate = parseBudgetNumber(rateEl?.value);
+  const parsed = validateStrictMoneyFields([
+    ['montant initial', initialEl?.value || remainingEl?.value || 0],
+    ['montant restant', remainingEl?.value || initialEl?.value || 0],
+    ['mensualité', monthlyEl?.value || 0],
+    ['taux', rateEl?.value || 0]
+  ]);
+  if (!parsed) return;
+  const initial = parsed['montant initial'];
+  const remaining = parsed['montant restant'];
+  const monthly = parsed['mensualité'];
+  const rate = parsed['taux'];
   if (!name || remaining <= 0 || monthly < 0) {
     showToast('⚠️ Nom, montant restant et mensualité sont requis');
     return;
   }
   const debts = readDebts();
-  debts.push({ id: `debt_${Date.now()}`, name, initial: initial || remaining, remaining, monthly, rate });
+  debts.push({ id: `debt_${Date.now()}`, name, initial: initial || remaining, remaining, monthly, rate, updated_at: new Date().toISOString() });
   saveDebts(debts);
   [nameEl, initialEl, remainingEl, monthlyEl, rateEl].forEach(el => { if (el) el.value = ''; });
   renderDebts();
@@ -3995,9 +4140,15 @@ async function editDebt(id) {
   if (remaining === null) return;
   const monthly = await openNexoraActionModal({ title: 'Modifier la dette', message: 'Mensualité', input: true, inputType: 'text', defaultValue: String(debt.monthly || 0), required: true, confirmLabel: 'Enregistrer' });
   if (monthly === null) return;
+  const parsed = validateStrictMoneyFields([
+    ['montant restant', remaining],
+    ['mensualité', monthly]
+  ]);
+  if (!parsed) return;
   debt.name = name.trim();
-  debt.remaining = parseBudgetNumber(remaining);
-  debt.monthly = parseBudgetNumber(monthly);
+  debt.remaining = parsed['montant restant'];
+  debt.monthly = parsed['mensualité'];
+  debt.updated_at = new Date().toISOString();
   saveDebts(debts);
   renderDebts();
 }
@@ -4074,8 +4225,10 @@ async function updateDashboardPrimaryGoal() {
   setDashboardGuidanceText('simple-goal-detail', `${fmt(current)} mis · ${fmt(remaining)} restants`);
   setDashboardGuidanceText('home-goal-summary-text', `${goal.name || 'Objectif'} — ${pct}%`);
   if (bar) {
-    bar.style.width = `${pct}%`;
+    const barWidth = `${pct}%`;
+    bar.style.width = barWidth;
     bar.style.background = goal.color || 'var(--gold)';
+    window.NexoraMotion?.animateProgressBar?.(bar, barWidth);
   }
 
   if (pct === 0) {
@@ -4416,35 +4569,87 @@ function hasExistingBudgetData(month) {
 
 async function chooseImportMode(months) {
   const monthsWithData = months.filter(hasExistingBudgetData);
-  if (monthsWithData.length === 0) return 'replace';
+  if (monthsWithData.length === 0) return 'merge';
 
   const label = monthsWithData.length === 1
     ? `Le mois ${monthsWithData[0]} contient déjà des données.`
     : `${monthsWithData.length} mois importés contiennent déjà des données.`;
 
-  const replace = await openNexoraActionModal({
-    title: 'Importer une sauvegarde',
-    message: `${label} Remplacer écrase le mois importé avec le fichier JSON. Choisis Annuler pour voir l'option Fusionner.`,
-    confirmLabel: 'Remplacer'
-  });
-  if (replace) return 'replace';
-
   const merge = await openNexoraActionModal({
-    title: 'Fusionner la sauvegarde',
-    message: 'Fusionner conserve les clés existantes absentes du fichier, mais les valeurs du JSON importé restent prioritaires.',
+    title: 'Importer une sauvegarde',
+    message: `${label} Nexora va fusionner la sauvegarde sans supprimer les données absentes du fichier. Les valeurs plus récentes seront conservées.`,
     confirmLabel: 'Fusionner'
   });
   return merge ? 'merge' : null;
 }
 
+function getImportItemIdentity(item, index) {
+  if (!item || typeof item !== 'object') return `primitive:${String(item)}:${index}`;
+  if (item.id || item.local_id || item.key) return `id:${String(item.id || item.local_id || item.key).toLowerCase()}`;
+  if (item.name || item.title || item.label) return `name:${String(item.name || item.title || item.label).trim().toLowerCase()}`;
+  return `index:${index}`;
+}
+
+function getImportTimestamp(item) {
+  const raw = item?.updated_at || item?.updatedAt || item?.created_at || item?.createdAt || 0;
+  const time = raw ? new Date(raw).getTime() : 0;
+  return Number.isFinite(time) ? time : 0;
+}
+
+function mergeImportedArray(current, imported, summary) {
+  const map = new Map();
+  (Array.isArray(current) ? current : []).forEach((item, index) => {
+    map.set(getImportItemIdentity(item, index), item);
+  });
+  (Array.isArray(imported) ? imported : []).forEach((item, index) => {
+    const identity = getImportItemIdentity(item, index);
+    const existing = map.get(identity);
+    if (!existing) {
+      map.set(identity, item);
+      summary.added++;
+      return;
+    }
+    const importedTime = getImportTimestamp(item);
+    const existingTime = getImportTimestamp(existing);
+    if (importedTime >= existingTime && JSON.stringify(existing) !== JSON.stringify(item)) {
+      map.set(identity, { ...existing, ...item });
+      summary.updated++;
+    } else {
+      summary.unchanged++;
+    }
+  });
+  return Array.from(map.values());
+}
+
+function mergeImportedStorageValue(currentValue, importedValue, summary) {
+  if (Array.isArray(currentValue) || Array.isArray(importedValue)) {
+    return mergeImportedArray(Array.isArray(currentValue) ? currentValue : [], Array.isArray(importedValue) ? importedValue : [], summary);
+  }
+  if (currentValue && importedValue && typeof currentValue === 'object' && typeof importedValue === 'object') {
+    const merged = { ...currentValue };
+    Object.entries(importedValue).forEach(([key, value]) => {
+      if (!Object.prototype.hasOwnProperty.call(merged, key)) summary.added++;
+      else if (JSON.stringify(merged[key]) !== JSON.stringify(value)) summary.updated++;
+      else summary.unchanged++;
+      merged[key] = value;
+    });
+    return merged;
+  }
+  if (typeof currentValue === 'undefined' || currentValue === null || currentValue === '') {
+    summary.added++;
+    return importedValue;
+  }
+  if (JSON.stringify(currentValue) !== JSON.stringify(importedValue)) summary.updated++;
+  else summary.unchanged++;
+  return importedValue;
+}
+
 async function writeImportedBudgetMonth(month, importedData, mode) {
   let currentData = {};
-  if (mode === 'merge') {
-    try {
-      currentData = JSON.parse(SafeStorage.getItem(storageKey(month)) || '{}');
-    } catch {
-      currentData = {};
-    }
+  try {
+    currentData = JSON.parse(SafeStorage.getItem(storageKey(month)) || '{}');
+  } catch {
+    currentData = {};
   }
   const snapshot = {
     ...(currentData && typeof currentData === 'object' && !Array.isArray(currentData) ? currentData : {}),
@@ -4457,6 +4662,26 @@ async function writeImportedBudgetMonth(month, importedData, mode) {
   }
   await persistMonthSnapshot(month, snapshot);
   return snapshot;
+}
+
+async function writeImportedStorageKey(key, value, summary) {
+  let currentValue = null;
+  try {
+    const raw = SafeStorage.getItem(key);
+    currentValue = raw ? JSON.parse(raw) : null;
+  } catch {
+    currentValue = SafeStorage.getItem(key);
+  }
+  const nextValue = mergeImportedStorageValue(currentValue, value, summary);
+  const storeValue = normalizeImportedStorageValue(nextValue);
+  if (storeValue === null) return false;
+  SafeStorage.setItem(key, storeValue);
+  if (typeof StorageManager !== 'undefined') await StorageManager.setItem(key, storeValue);
+  if (window.UserAppSettingsService?.saveSetting && NEXORA_IMPORTABLE_STORAGE_KEYS.has(key)) {
+    await window.UserAppSettingsService.saveSetting(key, nextValue).catch(() => {});
+    await window.UserAppSettingsService.syncLocalSettingToCloud?.(key).catch(() => {});
+  }
+  return true;
 }
 
 function selectImportedMonth(months) {
@@ -4499,7 +4724,7 @@ async function importData(e){
       }
 
       let importedCount = 0;
-      const storagePromises = [];
+      const summary = { added: 0, updated: 0, unchanged: 0, deleted: 0 };
 
       for (const key of Object.keys(parsed)) {
         const value = parsed[key];
@@ -4509,21 +4734,14 @@ async function importData(e){
         if (isBudgetMonthStorageKey(key)) {
           const month = key.replace('budget_', '');
           await writeImportedBudgetMonth(month, readImportedMonthData(value), importMode);
+          summary.updated++;
           importedCount++;
           continue;
         }
 
-        const storeValue = normalizeImportedStorageValue(value);
-        if (storeValue === null) continue;
-        SafeStorage.setItem(key, storeValue);
-        importedCount++;
-
-        if (typeof StorageManager !== 'undefined') {
-          storagePromises.push(StorageManager.setItem(key, storeValue));
-        }
+        const written = await writeImportedStorageKey(key, value, summary);
+        if (written) importedCount++;
       }
-
-      await Promise.all(storagePromises);
 
       if (importedCount === 0) {
         showToast('❌ Aucune donnée valide trouvée dans le fichier');
@@ -4534,7 +4752,7 @@ async function importData(e){
         buildHistory();
         if (typeof ThemeManager !== 'undefined') await ThemeManager.init();
         loadPersonalization();
-        showToast('✅ Importation réussie ! (' + importedCount + ' entrées)');
+        showToast(`✅ Import fusionné : ${summary.added} ajout, ${summary.updated} mise à jour, ${summary.deleted} suppression`);
       }
     } catch (err) {
       showToast('❌ Erreur lors de l\'importation');

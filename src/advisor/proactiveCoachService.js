@@ -1,5 +1,8 @@
-export const FINANCIAL_MEMORY_KEY = 'nexora_financial_memory_v1'
-export const AI_SETTINGS_KEY = 'nexora_ai_settings_v1'
+import { UserAppSettingsService } from '../../js/userAppSettingsService.js'
+import { STORAGE_KEYS } from '../constants/storageKeys.js'
+
+export const FINANCIAL_MEMORY_KEY = STORAGE_KEYS.financialMemory
+export const AI_SETTINGS_KEY = STORAGE_KEYS.aiSettings
 
 export const DEFAULT_AI_SETTINGS = {
   cautionLevel: 'balanced',
@@ -53,6 +56,11 @@ const writeJson = (key, value) => {
     const serialized = JSON.stringify(value)
     if (runtime?.SafeStorage?.setItem) runtime.SafeStorage.setItem(key, serialized)
     else runtime?.localStorage?.setItem?.(key, serialized)
+    if (UserAppSettingsService?.saveSetting) {
+      UserAppSettingsService.saveSetting(key, value)
+        .then(() => UserAppSettingsService.syncLocalSettingToCloud?.(key))
+        .catch((err) => console.warn('[NexoraAdvisor] synced setting failed', key, err))
+    }
   } catch {
     // Local memory is helpful, not required.
   }

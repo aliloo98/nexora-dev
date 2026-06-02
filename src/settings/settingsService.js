@@ -1,4 +1,17 @@
 import { parseFinancialExpression } from '../finance/financialExpression.js'
+import { UserAppSettingsService } from '../../js/userAppSettingsService.js'
+import { STORAGE_KEYS } from '../constants/storageKeys.js'
+
+const nowIso = () => new Date().toISOString()
+const makeId = (prefix) => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return `${prefix}_${crypto.randomUUID()}`
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+}
+
+const parseStrictAmount = (value) => {
+  const parsed = parseFinancialExpression(value, { fallback: null })
+  return parsed === null ? null : parsed
+}
 
 export const SettingsService = {
   RECURRING_INCOMES_KEY: 'nexora_recurring_incomes',
@@ -6,31 +19,42 @@ export const SettingsService = {
 
   normalizeRecurringIncome(entry = {}) {
     const day = Math.max(1, Math.min(31, Number(entry.day || entry.payDay || entry.date) || 1))
+    const amount = parseStrictAmount(entry.amount)
     return {
+      id: entry.id || makeId('income'),
       name: String(entry.name || entry.title || 'Revenu récurrent').trim(),
-      amount: parseFinancialExpression(entry.amount, { fallback: 0 }),
+      amount: amount === null ? 0 : amount,
       day,
-      frequency: ['monthly', 'weekly', 'biweekly', 'once'].includes(entry.frequency) ? entry.frequency : 'monthly'
+      frequency: ['monthly', 'weekly', 'biweekly', 'once'].includes(entry.frequency) ? entry.frequency : 'monthly',
+      updated_at: entry.updated_at || entry.updatedAt || nowIso()
     }
   },
 
   normalizeBillSchedule(entry = {}) {
     const day = Math.max(1, Math.min(31, Number(entry.day || entry.dueDay || entry.date) || 1))
     const priority = ['critique', 'importante', 'standard'].includes(entry.priority) ? entry.priority : 'standard'
+    const amount = parseStrictAmount(entry.amount)
     return {
+      id: entry.id || makeId('bill'),
       name: String(entry.name || entry.title || 'Charge planifiée').trim(),
-      amount: parseFinancialExpression(entry.amount, { fallback: 0 }),
+      amount: amount === null ? 0 : amount,
       day,
       date: day,
       priority,
-      linkedCharge: entry.linkedCharge || entry.categoryKey || entry.key || ''
+      linkedCharge: entry.linkedCharge || entry.categoryKey || entry.key || '',
+      updated_at: entry.updated_at || entry.updatedAt || nowIso()
     }
+  },
+
+  parseAmountStrict(value) {
+    return parseStrictAmount(value)
   },
 
   async loadRecurringIncomes() {
     try {
-      const raw = localStorage.getItem(this.RECURRING_INCOMES_KEY)
-      const parsed = raw ? JSON.parse(raw) : []
+      const { value } = await UserAppSettingsService.getSetting(STORAGE_KEYS.recurringIncomes)
+      const raw = value === null ? localStorage.getItem(this.RECURRING_INCOMES_KEY) : null
+      const parsed = value !== null ? value : (raw ? JSON.parse(raw) : [])
       return Array.isArray(parsed) ? parsed.map((entry) => this.normalizeRecurringIncome(entry)) : []
     } catch (error) {
       console.warn('[SettingsService] failed to load recurring incomes', error)
@@ -40,8 +64,12 @@ export const SettingsService = {
 
   async saveRecurringIncomes(entries = []) {
     try {
-      const normalized = Array.isArray(entries) ? entries.map((entry) => this.normalizeRecurringIncome(entry)) : []
+      const normalized = Array.isArray(entries) ? entries.map((entry) => this.normalizeRecurringIncome({ ...entry, updated_at: entry.updated_at || nowIso() })) : []
+      await UserAppSettingsService.saveSetting(STORAGE_KEYS.recurringIncomes, normalized)
       localStorage.setItem(this.RECURRING_INCOMES_KEY, JSON.stringify(normalized))
+      await UserAppSettingsService.syncLocalSettingToCloud(STORAGE_KEYS.recurringIncomes).catch((err) => {
+        console.warn('[SettingsService] recurring incomes cloud sync failed', err)
+      })
       return normalized
     } catch (error) {
       console.warn('[SettingsService] failed to save recurring incomes', error)
@@ -51,8 +79,9 @@ export const SettingsService = {
 
   async loadBillSchedules() {
     try {
-      const raw = localStorage.getItem(this.BILL_SCHEDULES_KEY)
-      const parsed = raw ? JSON.parse(raw) : []
+      const { value } = await UserAppSettingsService.getSetting(STORAGE_KEYS.billSchedules)
+      const raw = value === null ? localStorage.getItem(this.BILL_SCHEDULES_KEY) : null
+      const parsed = value !== null ? value : (raw ? JSON.parse(raw) : [])
       return Array.isArray(parsed) ? parsed.map((entry) => this.normalizeBillSchedule(entry)) : []
     } catch (error) {
       console.warn('[SettingsService] failed to load bill schedules', error)
@@ -62,8 +91,12 @@ export const SettingsService = {
 
   async saveBillSchedules(entries = []) {
     try {
-      const normalized = Array.isArray(entries) ? entries.map((entry) => this.normalizeBillSchedule(entry)) : []
+      const normalized = Array.isArray(entries) ? entries.map((entry) => this.normalizeBillSchedule({ ...entry, updated_at: entry.updated_at || nowIso() })) : []
+      await UserAppSettingsService.saveSetting(STORAGE_KEYS.billSchedules, normalized)
       localStorage.setItem(this.BILL_SCHEDULES_KEY, JSON.stringify(normalized))
+      await UserAppSettingsService.syncLocalSettingToCloud(STORAGE_KEYS.billSchedules).catch((err) => {
+        console.warn('[SettingsService] bill schedules cloud sync failed', err)
+      })
       return normalized
     } catch (error) {
       console.warn('[SettingsService] failed to save bill schedules', error)

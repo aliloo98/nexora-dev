@@ -222,6 +222,21 @@ export function animateButtonPress(button) {
   )
 }
 
+export function animateProgressBar(bar, width) {
+  if (!bar || !canMotion()) return
+  gsap.fromTo(
+    bar,
+    { width: bar.dataset.motionWidth || '0%' },
+    {
+      width,
+      duration: 0.72,
+      ease: 'power3.out',
+      overwrite: 'auto',
+      onComplete: () => { bar.dataset.motionWidth = width }
+    }
+  )
+}
+
 const animateHoverIn = (element) => {
   if (!element || !canMotion()) return
   const isCard = element.matches(cardSelector)
@@ -307,6 +322,7 @@ export default {
   animateSectionTransition,
   animateNavigation,
   animateButtonPress,
+  animateProgressBar,
   bindButtonFeedback,
   initScrollReveal
 }

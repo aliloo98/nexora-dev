@@ -1,6 +1,8 @@
 import { MonthlyBudgetStateService } from '../../js/monthlyBudgetStateService.js'
 import { TransactionsService } from '../../js/transactionsService.js'
 import { DEFAULT_BUDGET_CATEGORIES } from '../../js/budgetCategoriesService.js'
+import { SettingsService } from '../settings/settingsService.js'
+import { resolveBudgetWithRecurring } from '../finance/recurringResolution.js'
 
 const safeNumber = (v) => {
   const n = Number(v)
@@ -35,9 +37,19 @@ const readPaidAmount = (budgetData, key) => {
 const mapBudgetEntriesToFlows = (budgetData = {}) => {
   const revenues = []
   const charges = []
+  const recurringIncomes = Array.isArray(budgetData.__recurringIncomes) ? budgetData.__recurringIncomes : []
+  const billSchedules = Array.isArray(budgetData.__billSchedules) ? budgetData.__billSchedules : []
+  const { resolved } = resolveBudgetWithRecurring({
+    budgetData,
+    incomeKeys,
+    expenseKeys,
+    categoriesById,
+    recurringIncomes,
+    billSchedules
+  })
 
   incomeKeys.forEach((key) => {
-    const amount = readAmount(budgetData, key)
+    const amount = safeNumber(resolved[key])
     if (amount <= 0) return
     const category = categoriesById.get(key)
     revenues.push({
@@ -51,7 +63,7 @@ const mapBudgetEntriesToFlows = (budgetData = {}) => {
   })
 
   expenseKeys.forEach((key) => {
-    const amount = readAmount(budgetData, key)
+    const amount = safeNumber(resolved[key])
     if (amount <= 0) return
     const remaining = Math.max(0, amount - readPaidAmount(budgetData, key))
     if (remaining <= 0) return
@@ -70,6 +82,12 @@ const mapBudgetEntriesToFlows = (budgetData = {}) => {
 }
 
 const fetchCurrentMonthBudget = async (monthKey) => {
+  const [recurringIncomes, billSchedules] = await Promise.all([
+    SettingsService.loadRecurringIncomes().catch(() => []),
+    SettingsService.loadBillSchedules().catch(() => [])
+  ])
+  const withRecurring = (budget = {}) => ({ ...budget, __recurringIncomes: recurringIncomes, __billSchedules: billSchedules })
+
   // Try MonthlyBudgetStateService first
   try {
     const res = await MonthlyBudgetStateService.getMonthlyBudgetState(monthKey)
@@ -94,7 +112,7 @@ const fetchCurrentMonthBudget = async (monthKey) => {
       }
       // Fallback: use generic budget entries
       if (data.budget_entries) {
-        return mapBudgetEntriesToFlows(data.budget_entries)
+        return mapBudgetEntriesToFlows(withRecurring(data.budget_entries))
       }
     }
   } catch (e) {
@@ -105,7 +123,7 @@ const fetchCurrentMonthBudget = async (monthKey) => {
   try {
     const budget = await TransactionsService.getBudgetMonth(monthKey)
     if (budget && Object.keys(budget).length > 0) {
-      return mapBudgetEntriesToFlows(budget)
+      return mapBudgetEntriesToFlows(withRecurring(budget))
     }
   } catch (e) {
     // final fallback

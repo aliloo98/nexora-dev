@@ -48,14 +48,34 @@ export function generateScenarios(context = {}) {
   if (income <= 0) {
     return [
       {
-        id: 'missing-data',
-        label: 'Données insuffisantes',
+        id: 'prudent',
+        label: 'Scénario prudent',
         projectedBalance: 0,
         possibleSaving: 0,
         primaryGoalImpact: 'Objectif non analysable',
         debtImpact: 'Dette non analysable',
         risk: 'indéfini',
-        advice: 'Je peux t’aider, mais il me manque encore tes revenus, tes charges ou ton objectif principal.'
+        advice: 'Complète les revenus avant de suivre une stratégie prudente.'
+      },
+      {
+        id: 'equilibre',
+        label: 'Scénario équilibré',
+        projectedBalance: 0,
+        possibleSaving: 0,
+        primaryGoalImpact: 'Objectif non analysable',
+        debtImpact: 'Dette non analysable',
+        risk: 'indéfini',
+        advice: 'Le scénario équilibré sera fiable dès que revenus et charges seront renseignés.'
+      },
+      {
+        id: 'agressif',
+        label: 'Scénario agressif',
+        projectedBalance: 0,
+        possibleSaving: 0,
+        primaryGoalImpact: 'Objectif non analysable',
+        debtImpact: 'Dette non analysable',
+        risk: 'indéfini',
+        advice: 'Aucune accélération conseillée sans données complètes.'
       }
     ]
   }

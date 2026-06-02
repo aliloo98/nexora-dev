@@ -7,6 +7,19 @@ const formatCurrency = (value) => {
   return `${amount.toLocaleString('fr-FR')} €`
 }
 
+const readInputValue = (event) => {
+  const key = event.target.dataset.key
+  if (key !== 'amount') return event.target.type === 'number' ? Number(event.target.value) : event.target.value
+  const amount = SettingsService.parseAmountStrict(event.target.value)
+  if (amount === null) {
+    event.target.classList.add('input-error')
+    window.showToast?.('Expression financière invalide : rien n’a été enregistré')
+    return null
+  }
+  event.target.classList.remove('input-error')
+  return amount
+}
+
 const createRecurringIncomeCard = (income, index) => {
   return `
     <div class="settings-card recurring-income-row" data-index="${index}">
@@ -88,8 +101,9 @@ export async function renderRecurringIncomeSettings() {
     input.addEventListener('change', async (event) => {
       const index = Number(event.target.dataset.index)
       const key = event.target.dataset.key
-      const value = event.target.type === 'number' ? Number(event.target.value) : event.target.value
-      incomes[index] = { ...incomes[index], [key]: value }
+      const value = readInputValue(event)
+      if (value === null) return
+      incomes[index] = { ...incomes[index], [key]: value, updated_at: new Date().toISOString() }
       await SettingsService.saveRecurringIncomes(incomes)
     })
   })
@@ -128,8 +142,9 @@ export async function renderBillScheduleSettings() {
     input.addEventListener('change', async (event) => {
       const index = Number(event.target.dataset.index)
       const key = event.target.dataset.key
-      const value = event.target.type === 'number' ? Number(event.target.value) : event.target.value
-      bills[index] = { ...bills[index], [key]: value }
+      const value = readInputValue(event)
+      if (value === null) return
+      bills[index] = { ...bills[index], [key]: value, updated_at: new Date().toISOString() }
       await SettingsService.saveBillSchedules(bills)
     })
   })
