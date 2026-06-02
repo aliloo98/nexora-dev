@@ -145,6 +145,11 @@ export function renderAdvisorUI(rootId, AdvisorService) {
       </div>
 
       <div id="advisor-result" class="advisor-result coach-result" hidden>
+        <div class="advisor-steps" aria-label="Réponse structurée">
+          <span>1. Décision</span>
+          <span>2. Impact</span>
+          <span>3. Action</span>
+        </div>
         <div class="advisor-result-card advisor-verdict">
           <span>🎯 Aujourd’hui</span>
           <strong id="advisor-result-today">-</strong>
@@ -194,6 +199,7 @@ export function renderAdvisorUI(rootId, AdvisorService) {
       </div>
       <section class="advisor-result-card advisor-memory-card" id="advisor-memory-card" hidden>
         <span>Mémoire Nexora</span>
+        <strong>Continuité du coaching</strong>
         <ul id="advisor-memory-list" class="advisor-memory-list"></ul>
       </section>
     </section>
@@ -281,6 +287,7 @@ export function renderAdvisorUI(rootId, AdvisorService) {
       }
       root.querySelector('#advisor-scenarios-list').innerHTML = renderScenarioCards(scenarios)
       window.NexoraMotion?.animateAdvisorResponse?.(root.querySelector('.advisor-proactive-grid'))
+      window.NexoraMotion?.animateAdvisorResponse?.(root.querySelector('#advisor-memory-card'))
     } catch (error) {
       root.querySelector('#advisor-proactive-advice').textContent = 'Je peux t’aider, mais il me manque encore tes revenus, tes charges ou ton objectif principal.'
       root.querySelector('#advisor-proactive-priority').textContent = 'Priorité : compléter les données'

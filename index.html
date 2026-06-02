@@ -4147,6 +4147,9 @@ function showSection(id){
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const activeButton = document.querySelector(`.sidebar .nav-btn[data-section="${id}"]`);
   if (activeButton) activeButton.classList.add('active');
+  window.NexoraMotion?.animateNavigation?.(activeButton);
+  window.NexoraMotion?.animateSectionTransition?.(nextSection);
+  window.NexoraMotion?.initScrollReveal?.(nextSection);
 
   const nextHash = '#section-' + id;
   if (window.location.hash !== nextHash) {
