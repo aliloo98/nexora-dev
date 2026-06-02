@@ -117,6 +117,13 @@
     <div class="dashboard-clean-header">
       <span>Vue essentielle</span>
       <h2>Tableau de bord</h2>
+      <div class="home-mode-switch" aria-label="Mode d’affichage">
+        <span>Mode</span>
+        <div class="mode-toggle compact">
+          <button type="button" id="home-mode-complete-btn" class="mode-toggle-btn" onclick="setNexoraUxMode('complete')">Complet</button>
+          <button type="button" id="home-mode-simple-btn" class="mode-toggle-btn" onclick="setNexoraUxMode('simple')">Simplifié</button>
+        </div>
+      </div>
     </div>
       <div class="wow-card dashboard-greeting-card">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -580,22 +587,22 @@
     </div>
 
     <div class="settings-group-title">Paramètres essentiels</div>
-
-    <div class="param-row budget-cycle-row">
-      <div>
-        <div class="param-label">📅 Période du budget</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:4px">Choisis entre le mois civil ou une période de salaire récurrente.</div>
+    <div class="param-block">
+      <div class="param-row budget-cycle-row">
+        <div>
+          <div class="param-label">📅 Période du budget</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Choisis entre le mois civil ou une période de salaire récurrente.</div>
+        </div>
+        <select id="budget-cycle-mode" class="budget-cycle-select" onchange="handleBudgetCycleModeChange()">
+          <option value="calendar">Mois civil</option>
+          <option value="custom">Période salaire</option>
+        </select>
       </div>
-      <select id="budget-cycle-mode" class="budget-cycle-select" onchange="handleBudgetCycleModeChange()">
-        <option value="calendar">Mois civil</option>
-        <option value="custom">Période salaire</option>
-      </select>
-    </div>
-    <div class="param-row budget-cycle-row" id="budget-cycle-custom-row">
-      <div>
-        <div class="param-label">Période salaire</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:4px">Paramètres de début et de fin pour adapter le cycle à ta paie.</div>
-      </div>
+      <div class="param-row budget-cycle-row" id="budget-cycle-custom-row">
+        <div>
+          <div class="param-label">Période salaire</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Paramètres de début et de fin pour adapter le cycle à ta paie.</div>
+        </div>
         <div class="budget-cycle-fields">
           <label for="budget-cycle-start-day">Début
             <input id="budget-cycle-start-day" class="budget-input budget-cycle-input" type="number" min="1" max="31" value="28" onchange="saveBudgetCycleSettingsFromUI()">
@@ -1175,8 +1182,13 @@ function getNexoraUxMode() {
 function applyNexoraUxMode(mode = getNexoraUxMode()) {
   const isSimple = mode === 'simple';
   document.body.classList.toggle('mode-simple', isSimple);
-  document.getElementById('mode-complete-btn')?.classList.toggle('active', !isSimple);
-  document.getElementById('mode-simple-btn')?.classList.toggle('active', isSimple);
+  document.body.classList.toggle('mode-complet', !isSimple);
+  ['mode-complete-btn', 'home-mode-complete-btn'].forEach((id) => {
+    document.getElementById(id)?.classList.toggle('active', !isSimple);
+  });
+  ['mode-simple-btn', 'home-mode-simple-btn'].forEach((id) => {
+    document.getElementById(id)?.classList.toggle('active', isSimple);
+  });
   if (typeof scheduleAssistantRefresh === 'function') {
     try { scheduleAssistantRefresh(); } catch (err) { console.warn('[Assistant] simplified refresh failed', err); }
   }
@@ -3902,8 +3914,13 @@ function showSection(id){
     if (!document.getElementById('section-dashboard')) return;
   }
 
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.getElementById('section-' + id).classList.add('active');
+  document.querySelectorAll('.section').forEach((s) => {
+    s.classList.remove('active');
+    s.hidden = true;
+  });
+  const nextSection = document.getElementById('section-' + id);
+  nextSection.hidden = false;
+  nextSection.classList.add('active');
 
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const activeButton = document.querySelector(`.sidebar .nav-btn[data-section="${id}"]`);

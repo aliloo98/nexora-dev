@@ -387,6 +387,24 @@ body,
   background: rgba(255,255,255,0.025);
 }
 
+.home-mode-switch {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.home-mode-switch > span {
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.mode-toggle.compact {
+  margin-bottom: 0;
+}
+
 .mode-toggle span {
   color: var(--text2);
   font-size: 12px;
@@ -601,6 +619,7 @@ body.mode-simple .simple-dashboard-grid {
 
 body.mode-simple .kpi-grid,
 body.mode-simple .dash-row,
+body.mode-simple .dashboard-greeting-card,
 body.mode-simple .dashboard-action-center,
 body.mode-simple .couple-insights-card,
 body.mode-simple .week-plan-card,
@@ -613,6 +632,10 @@ body.mode-simple .assistant-charts-section,
 body.mode-simple .assistant-projections-section,
 body.mode-simple .assistant-forecast-section,
 body.mode-simple .assistant-timeline-section {
+  display: none !important;
+}
+
+body.mode-simple .available-money-card .wow-actions {
   display: none !important;
 }
 
@@ -740,9 +763,12 @@ body.mode-simple .goal-card-meta {
   padding-bottom: 32px;
 }
 
-.section:target,
 .section.active {
   display: block;
+}
+
+.section[hidden] {
+  display: none !important;
 }
 
 .section.active {
