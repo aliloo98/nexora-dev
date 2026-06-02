@@ -539,6 +539,39 @@ body,
   margin-top: 12px;
 }
 
+.dashboard-coach-card {
+  border-color: rgba(229, 192, 96, 0.22);
+  background:
+    linear-gradient(135deg, rgba(229, 192, 96, 0.085), rgba(255, 255, 255, 0.022) 42%),
+    var(--bg2);
+}
+
+.dashboard-coach-card .action-highlight {
+  border-left: 3px solid rgba(229, 192, 96, 0.45);
+  padding-left: 12px;
+}
+
+.wow-card,
+.advisor-result-card,
+.plan-card,
+.kpi-card {
+  will-change: transform, opacity;
+}
+
+.wow-card:hover,
+.advisor-result-card:hover,
+.plan-card:hover {
+  border-color: rgba(229, 192, 96, 0.18);
+}
+
+.budget-input:focus,
+.advisor-input-row input:focus,
+.budget-cycle-select:focus {
+  border-color: rgba(229, 192, 96, 0.48);
+  box-shadow: 0 0 0 3px rgba(229, 192, 96, 0.08);
+  outline: none;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .kpi-card,
   .wow-card,
@@ -2870,6 +2903,15 @@ body.has-unsaved-budget-changes .save-bar-spacer {
   padding: 12px;
 }
 
+.treasury-row:has(.t-amount.positive) {
+  border-color: rgba(16, 185, 129, 0.18);
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.06), rgba(255,255,255,0.025));
+}
+
+.treasury-row:has(.t-amount.negative) {
+  border-color: rgba(244, 63, 94, 0.14);
+}
+
 .t-date {
   color: var(--text2);
   font-size: 12px;
@@ -3017,6 +3059,12 @@ body.has-unsaved-budget-changes .save-bar-spacer {
   padding: 14px;
 }
 
+.advisor-quick-grid .btn.is-analyzing,
+#advisor-btn.is-analyzing {
+  border-color: rgba(229, 192, 96, 0.42);
+  background: rgba(229, 192, 96, 0.12);
+}
+
 .advisor-verdict strong {
   font-size: 22px;
 }
@@ -3108,6 +3156,21 @@ body.has-unsaved-budget-changes .save-bar-spacer {
   border-radius: 8px;
   background: rgba(255,255,255,0.025);
   border: 1px solid rgba(255,255,255,0.06);
+}
+
+.advisor-scenario-card.scenario-prudent {
+  border-color: rgba(16, 185, 129, 0.22);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(255,255,255,0.022));
+}
+
+.advisor-scenario-card.scenario-equilibre {
+  border-color: rgba(229, 192, 96, 0.24);
+  background: linear-gradient(135deg, rgba(229, 192, 96, 0.07), rgba(255,255,255,0.022));
+}
+
+.advisor-scenario-card.scenario-agressif {
+  border-color: rgba(244, 63, 94, 0.2);
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.055), rgba(255,255,255,0.022));
 }
 
 .advisor-scenario-card > div {

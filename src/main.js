@@ -47,6 +47,7 @@ import { renderTreasuryPlanner } from './components/TreasuryPlannerUI.js'
 import { renderPlanHub } from './plan/PlanHubUI.js'
 import { renderSettingsPanels, renderRecurringIncomeSettings, renderBillScheduleSettings } from './settings/SettingsUI.js'
 import { readAiSettings, updateAiSettings } from './advisor/proactiveCoachService.js'
+import NexoraMotion from './ui/motion.js'
 
 // Expose modules globally for HTML event handlers and old code
 window.StorageManager = StorageManager
@@ -57,6 +58,7 @@ window.LogoManager = LogoManager
 window.NexoraPdfExport = NexoraPdfExport
 window.NotificationsService = NotificationsService
 window.NexoraAiSettingsService = { readAiSettings, updateAiSettings }
+window.NexoraMotion = NexoraMotion
 
 // Expose Supabase globally for future modules
 window.supabase = supabase
@@ -82,6 +84,7 @@ window.refreshDashboardCoach = async () => {
   if (typeof renderDashboardMaster === 'function' && document.getElementById('dashboard-master-root')) {
     const TreasuryService = (await import('./treasury/treasuryService.js')).default
     await renderDashboardMaster('dashboard-master-root', TreasuryService)
+    window.NexoraMotion?.animateCards?.(document.getElementById('section-dashboard'))
   }
 }
 
@@ -361,6 +364,8 @@ const initApp = async () => {
       await renderSettingsPanels()
     }
 
+    window.NexoraMotion?.bindButtonFeedback?.(document)
+
     if (typeof window.updateCoupleNavigation === 'function') {
       await window.updateCoupleNavigation()
     }
@@ -455,21 +460,26 @@ const initApp = async () => {
         const TreasuryService = (await import('./treasury/treasuryService.js')).default
         const { timeline } = TreasuryService.buildTimeline({ baseBalance: 2085, revenues: sampleRevenues, charges: sampleCharges, fromDate: new Date('2026-05-28'), days: 14 })
         renderTreasuryTimeline('treasury-timeline-root', timeline)
+        window.NexoraMotion?.animateTimeline?.(document.getElementById('treasury-timeline-root'))
       }
       // Render Dashboard Master component if present
       if (typeof renderDashboardMaster === 'function' && document.getElementById('dashboard-master-root')) {
         const TreasuryService = (await import('./treasury/treasuryService.js')).default
         await renderDashboardMaster('dashboard-master-root', TreasuryService)
+        window.NexoraMotion?.animatePageEnter?.(document.getElementById('section-dashboard'))
+        window.NexoraMotion?.animateCards?.(document.getElementById('section-dashboard'))
       }
       // Render Advisor UI if present in dashboard
       if (typeof renderAdvisorUI === 'function' && document.getElementById('advisor-root')) {
         const AdvisorService = (await import('./advisor/advisorService.js')).default
         renderAdvisorUI('advisor-root', AdvisorService)
+        window.NexoraMotion?.animateAdvisorResponse?.(document.getElementById('advisor-root'))
       }
       // Render Nexora page advisor if present
       if (typeof renderAdvisorUI === 'function' && document.getElementById('nexora-page-root')) {
         const AdvisorService = (await import('./advisor/advisorService.js')).default
         renderAdvisorUI('nexora-page-root', AdvisorService)
+        window.NexoraMotion?.animateAdvisorResponse?.(document.getElementById('nexora-page-root'))
       }
     } catch (err) {
       console.warn('[Treasury] render failed', err)

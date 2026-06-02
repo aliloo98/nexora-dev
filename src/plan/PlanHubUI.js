@@ -454,6 +454,9 @@ export async function renderPlanHub(rootId) {
     root.innerHTML = buildPlanContent(planData)
     if (planData.timeline.length) renderTreasuryTimeline('plan-timeline-root', planData.timeline)
     attachPlanEditors(root, planData)
+    window.NexoraMotion?.animateCards?.(root)
+    window.NexoraMotion?.animateTimeline?.(root)
+    window.NexoraMotion?.animateKpiNumbers?.(root)
   } catch (error) {
     console.warn('[PlanHub] render failed', error)
     root.innerHTML = buildEmptyState()

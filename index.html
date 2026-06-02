@@ -1319,6 +1319,7 @@ function applyNexoraUxMode(mode = getNexoraUxMode()) {
   if (typeof window.refreshDashboardCoach === 'function') {
     window.refreshDashboardCoach().catch(err => console.warn('[Dashboard coach] refresh failed', err));
   }
+  window.NexoraMotion?.animateModeSwitch?.(document.getElementById('section-dashboard'));
 }
 
 function setNexoraUxMode(mode) {
@@ -3556,6 +3557,10 @@ function updateAll(){
   if (typeof renderDebts === 'function') renderDebts();
   if (typeof renderCagnottes === 'function') renderCagnottes();
   if (typeof updateTrendIndicators === 'function') updateTrendIndicators();
+  if (window.NexoraMotion) {
+    window.NexoraMotion.animateKpiNumbers?.(document.getElementById('section-dashboard'));
+    window.NexoraMotion.animateModeSwitch?.(document.querySelector('.dashboard-clean-grid'));
+  }
   // Refresh Assistant Nexora card (debounced, non-blocking)
   if (typeof scheduleAssistantRefresh === 'function') {
     try { scheduleAssistantRefresh(); } catch (err) { console.warn('[Assistant] schedule failed', err) }

@@ -85,7 +85,7 @@ const renderScenarioCards = (scenarios = []) => {
   const visible = Array.isArray(scenarios) ? scenarios.slice(0, 3) : []
   if (!visible.length) return '<div class="advisor-muted">Scénarios indisponibles pour le moment.</div>'
   return visible.map((scenario) => `
-    <div class="advisor-scenario-card">
+    <div class="advisor-scenario-card scenario-${escapeHtml(scenario.id || 'default')}">
       <div>
         <strong>${escapeHtml(scenario.label || 'Scénario')}</strong>
         <span>Risque ${escapeHtml(scenario.risk || 'modéré')}</span>
@@ -217,6 +217,7 @@ export function renderAdvisorUI(rootId, AdvisorService) {
       nextBtn.textContent = coach.nextLabel
       nextBtn.onclick = () => window.showSection?.(coach.nextTarget)
     }
+    window.NexoraMotion?.animateAdvisorResponse?.(resultDiv)
   }
 
   const runQuery = async (query) => {
@@ -224,6 +225,7 @@ export function renderAdvisorUI(rootId, AdvisorService) {
     if (!normalizedQuery) return
     input.value = normalizedQuery
     btn.disabled = true
+    btn.classList.add('is-analyzing')
     btn.textContent = 'Analyse'
     try {
       const outcome = await AdvisorService.evaluateQuery({ query: normalizedQuery })
@@ -240,6 +242,7 @@ export function renderAdvisorUI(rootId, AdvisorService) {
       }
     } finally {
       btn.disabled = false
+      btn.classList.remove('is-analyzing')
       btn.textContent = 'Analyser'
     }
   }
@@ -277,6 +280,7 @@ export function renderAdvisorUI(rootId, AdvisorService) {
         }
       }
       root.querySelector('#advisor-scenarios-list').innerHTML = renderScenarioCards(scenarios)
+      window.NexoraMotion?.animateAdvisorResponse?.(root.querySelector('.advisor-proactive-grid'))
     } catch (error) {
       root.querySelector('#advisor-proactive-advice').textContent = 'Je peux t’aider, mais il me manque encore tes revenus, tes charges ou ton objectif principal.'
       root.querySelector('#advisor-proactive-priority').textContent = 'Priorité : compléter les données'
@@ -289,4 +293,5 @@ export function renderAdvisorUI(rootId, AdvisorService) {
   }
 
   hydrateProactive()
+  window.NexoraMotion?.animateCards?.(root)
 }

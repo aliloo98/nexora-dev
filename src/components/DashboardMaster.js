@@ -53,4 +53,5 @@ export async function renderDashboardMaster(rootId, TreasuryService) {
 
   const coachAction = root.querySelector('#dashboard-coach-action')
   if (coachAction) coachAction.onclick = () => window.showSection?.(actionTarget)
+  window.NexoraMotion?.animateCards?.(root)
 }
