@@ -167,7 +167,7 @@ const buildPlanContent = (data) => {
             <div class="plan-edit-item" data-goal-id="${escapeAttr(goal.id)}">
               <div class="plan-edit-summary">
                 <strong>${escapeAttr(goal.name || 'Objectif')}</strong>
-                <span>${target > 0 ? `${formatCurrency(remaining)} restants` : 'Montant cible non défini'}</span>
+                <span>${goal.isPrimary ? 'Objectif principal · ' : ''}${target > 0 ? `${formatCurrency(remaining)} restants` : 'Montant cible non défini'}</span>
                 <em>${target > 0 ? `${Math.min(100, Math.round(current / target * 100))}%` : '—'}</em>
               </div>
               <div class="plan-edit-grid">
@@ -177,6 +177,7 @@ const buildPlanContent = (data) => {
                 <label>Échéance<input class="budget-input plan-goal-input" data-field="targetDate" value="${escapeAttr(goal.targetDate || '')}" type="date"></label>
               </div>
               <div class="plan-edit-actions">
+                <button class="${goal.isPrimary ? 'btn btn-gold' : 'btn btn-outline'} plan-goal-primary" type="button" ${goal.isPrimary ? 'disabled' : ''}>${goal.isPrimary ? 'Objectif principal' : 'Définir comme principal'}</button>
                 <button class="btn btn-gold plan-goal-save" type="button">Enregistrer</button>
                 <button class="btn btn-outline plan-goal-complete" type="button" ${target > 0 && current < target ? '' : 'disabled'}>Marquer atteint</button>
                 <button class="btn btn-danger plan-goal-delete" type="button">Supprimer</button>
@@ -245,6 +246,12 @@ const attachPlanEditors = (root, planData) => {
     item.querySelector('.plan-goal-save')?.addEventListener('click', async () => {
       await window.GoalsService?.updateGoal?.(goalId, readPatch())
       window.showToast?.('Objectif mis à jour')
+      await renderPlanHub(root.id)
+    })
+    item.querySelector('.plan-goal-primary')?.addEventListener('click', async () => {
+      await window.GoalsService?.setPrimaryGoal?.(goalId)
+      window.showToast?.('Objectif principal mis à jour')
+      if (typeof window.updateDashboardPrimaryGoal === 'function') await window.updateDashboardPrimaryGoal()
       await renderPlanHub(root.id)
     })
     item.querySelector('.plan-goal-complete')?.addEventListener('click', async () => {
