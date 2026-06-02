@@ -22,6 +22,13 @@ const formatCurrencyImpact = (value) => {
   return `${sign}${amount.toLocaleString('fr-FR')} €`
 }
 
+const escapeHtml = (value) => String(value ?? '')
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#039;')
+
 const normalizeVerdict = (value) => {
   const normalized = String(value || '').trim().toLowerCase()
   if (['ok', 'yes', 'possible', 'go'].includes(normalized)) return 'Possible'
@@ -40,29 +47,67 @@ const normalizeRisk = (value) => {
 
 const buildCoachMessage = (outcome = {}, query = '') => {
   const verdict = normalizeVerdict(getField(outcome, ['verdict'], outcome.canAfford ? 'Possible' : 'Non recommandé'))
-  const impact = formatCurrencyImpact(getField(outcome, ['impact', 'endingBalance'], 'Aucun impact clair détecté'))
+  const impact = getField(outcome, ['impact', 'endingBalance'], 'Aucun impact clair détecté')
+  const formattedImpact = typeof impact === 'number' ? formatCurrencyImpact(impact) : impact
   const risk = normalizeRisk(getField(outcome, ['risk'], 'Modéré'))
   const advice = getField(outcome, ['recommendation', 'advice', 'rationale'], 'Vérifie le Plan avant de décider.')
   const loweredQuery = String(query || '').toLowerCase()
 
-  let today = verdict === 'Non recommandé'
+  let today = getField(outcome, ['today'], verdict === 'Non recommandé'
     ? 'N’engage pas cette dépense maintenant.'
     : verdict === 'À prioriser'
       ? 'Concentre-toi sur cette priorité aujourd’hui.'
-      : 'Tu peux avancer, mais garde une marge.'
+      : 'Tu peux avancer, mais garde une marge.')
 
   if (loweredQuery.includes('objectif')) today = verdict === 'Non recommandé' ? 'Garde ton argent disponible pour le moment.' : 'Tu peux alimenter ton objectif prudemment.'
   if (loweredQuery.includes('dette')) today = 'Priorise la dette la plus coûteuse ou la plus urgente.'
   if (loweredQuery.includes('vert') || loweredQuery.includes('positif')) today = verdict === 'Non recommandé' ? 'Surveille tes paiements avant la fin du mois.' : 'Le mois semble tenir si tu gardes le cap.'
 
-  const why = impact === 'Aucun impact clair détecté'
+  const why = getField(outcome, ['why'], formattedImpact === 'Aucun impact clair détecté'
     ? `Risque estimé : ${risk}.`
-    : `Impact estimé : ${impact}. Risque : ${risk}.`
+    : `Impact estimé : ${formattedImpact}. Risque : ${risk}.`)
+  const alternative = getField(outcome, ['alternative'], 'Option plus sûre : garde une marge avant de décider.')
+  const action = getField(outcome, ['action', 'recommendation', 'advice'], advice)
 
   const nextTarget = loweredQuery.includes('objectif') ? 'objectifs' : loweredQuery.includes('budget') ? 'saisie' : 'plan'
   const nextLabel = nextTarget === 'objectifs' ? 'Voir l’objectif' : nextTarget === 'saisie' ? 'Voir le Budget' : 'Voir le Plan'
 
-  return { today, why, advice, nextTarget, nextLabel }
+  return { today, why, impact: formattedImpact, alternative, advice: action, nextTarget, nextLabel }
+}
+
+const renderList = (items = [], emptyText = 'Aucun point détecté') => {
+  const list = Array.isArray(items) ? items.filter(Boolean) : []
+  if (!list.length) return `<li>${emptyText}</li>`
+  return list.slice(0, 3).map((item) => `<li>${escapeHtml(item)}</li>`).join('')
+}
+
+const renderScenarioCards = (scenarios = []) => {
+  const visible = Array.isArray(scenarios) ? scenarios.slice(0, 3) : []
+  if (!visible.length) return '<div class="advisor-muted">Scénarios indisponibles pour le moment.</div>'
+  return visible.map((scenario) => `
+    <div class="advisor-scenario-card">
+      <div>
+        <strong>${escapeHtml(scenario.label || 'Scénario')}</strong>
+        <span>Risque ${escapeHtml(scenario.risk || 'modéré')}</span>
+      </div>
+      <p>Solde prévu : ${(Number(scenario.projectedBalance) || 0).toLocaleString('fr-FR')} €</p>
+      <p>Épargne possible : ${(Number(scenario.possibleSaving) || 0).toLocaleString('fr-FR')} €</p>
+      <em>${escapeHtml(scenario.advice || 'Garde une marge de sécurité.')}</em>
+    </div>
+  `).join('')
+}
+
+const renderMemoryItems = (memory = {}) => {
+  const items = []
+  if (memory.lastRecommendation) items.push(`La dernière fois, je t’avais conseillé : ${memory.lastRecommendation}`)
+  if (memory.lastPrimaryGoal) items.push(`Ton objectif principal reste ${memory.lastPrimaryGoal}.`)
+  if (memory.recentProgress) items.push(`Progression récente : ${memory.recentProgress}.`)
+  if (Array.isArray(memory.lastImportantAlerts) && memory.lastImportantAlerts[0]) {
+    items.push(`Point déjà repéré : ${memory.lastImportantAlerts[0]}.`)
+  }
+  const uniqueItems = Array.from(new Set(items.filter(Boolean))).slice(0, 3)
+  if (!uniqueItems.length) return ''
+  return uniqueItems.map((item) => `<li>${escapeHtml(item)}</li>`).join('')
 }
 
 export function renderAdvisorUI(rootId, AdvisorService) {
@@ -109,6 +154,14 @@ export function renderAdvisorUI(rootId, AdvisorService) {
             <span>Pourquoi ?</span>
             <strong id="advisor-result-why">-</strong>
           </div>
+          <div class="advisor-result-card">
+            <span>Impact</span>
+            <strong id="advisor-result-impact">-</strong>
+          </div>
+          <div class="advisor-result-card">
+            <span>Alternative</span>
+            <strong id="advisor-result-alternative">-</strong>
+          </div>
           <div class="advisor-result-card advisor-recommendation">
             <span>Action recommandée</span>
             <p id="advisor-result-action">-</p>
@@ -116,6 +169,33 @@ export function renderAdvisorUI(rootId, AdvisorService) {
         </div>
         <button class="btn btn-gold advisor-next-btn" id="advisor-next-action" type="button">Voir le Plan</button>
       </div>
+
+      <div class="advisor-proactive-grid">
+        <section class="advisor-result-card advisor-proactive-card">
+          <span>Analyse proactive</span>
+          <strong id="advisor-proactive-advice">Analyse en cours...</strong>
+          <p id="advisor-proactive-priority">Priorité : -</p>
+          <div class="advisor-proactive-columns">
+            <div>
+              <em>Risques</em>
+              <ul id="advisor-proactive-risks"></ul>
+            </div>
+            <div>
+              <em>Opportunités</em>
+              <ul id="advisor-proactive-opportunities"></ul>
+            </div>
+          </div>
+          <button class="btn btn-outline" id="advisor-proactive-action" type="button">Voir le Plan</button>
+        </section>
+        <section class="advisor-result-card advisor-scenarios-card">
+          <span>Scénarios automatiques</span>
+          <div id="advisor-scenarios-list" class="advisor-scenarios-list"></div>
+        </section>
+      </div>
+      <section class="advisor-result-card advisor-memory-card" id="advisor-memory-card" hidden>
+        <span>Mémoire Nexora</span>
+        <ul id="advisor-memory-list" class="advisor-memory-list"></ul>
+      </section>
     </section>
   `
 
@@ -129,6 +209,8 @@ export function renderAdvisorUI(rootId, AdvisorService) {
 
     root.querySelector('#advisor-result-today').textContent = coach.today
     root.querySelector('#advisor-result-why').textContent = coach.why
+    root.querySelector('#advisor-result-impact').textContent = coach.impact
+    root.querySelector('#advisor-result-alternative').textContent = coach.alternative
     root.querySelector('#advisor-result-action').textContent = coach.advice
     const nextBtn = root.querySelector('#advisor-next-action')
     if (nextBtn) {
@@ -170,4 +252,41 @@ export function renderAdvisorUI(rootId, AdvisorService) {
   root.querySelectorAll('button[data-q]').forEach((button) => {
     button.addEventListener('click', () => runQuery(button.getAttribute('data-q')))
   })
+
+  const hydrateProactive = async () => {
+    try {
+      const [coach, scenarios] = await Promise.all([
+        AdvisorService.getProactiveCoach ? AdvisorService.getProactiveCoach() : null,
+        AdvisorService.getScenarios ? AdvisorService.getScenarios() : []
+      ])
+      if (coach) {
+        root.querySelector('#advisor-proactive-advice').textContent = coach.dailyAdvice || 'Aucune action urgente aujourd’hui.'
+        root.querySelector('#advisor-proactive-priority').textContent = `Priorité : ${coach.priority || 'Maintenir la marge'}`
+        root.querySelector('#advisor-proactive-risks').innerHTML = renderList(coach.risks, 'Aucun risque majeur')
+        root.querySelector('#advisor-proactive-opportunities').innerHTML = renderList(coach.opportunities, 'Aucune opportunité claire')
+        const memoryHtml = renderMemoryItems(coach.memory)
+        const memoryCard = root.querySelector('#advisor-memory-card')
+        if (memoryCard) {
+          memoryCard.hidden = !memoryHtml
+          root.querySelector('#advisor-memory-list').innerHTML = memoryHtml
+        }
+        const actionBtn = root.querySelector('#advisor-proactive-action')
+        if (actionBtn) {
+          actionBtn.textContent = coach.actionLabel || 'Voir le Plan'
+          actionBtn.onclick = () => window.showSection?.(coach.actionTarget || 'plan')
+        }
+      }
+      root.querySelector('#advisor-scenarios-list').innerHTML = renderScenarioCards(scenarios)
+    } catch (error) {
+      root.querySelector('#advisor-proactive-advice').textContent = 'Je peux t’aider, mais il me manque encore tes revenus, tes charges ou ton objectif principal.'
+      root.querySelector('#advisor-proactive-priority').textContent = 'Priorité : compléter les données'
+      root.querySelector('#advisor-proactive-risks').innerHTML = renderList([], 'Données insuffisantes')
+      root.querySelector('#advisor-proactive-opportunities').innerHTML = renderList([], 'Complète le budget pour les afficher')
+      root.querySelector('#advisor-scenarios-list').innerHTML = renderScenarioCards([])
+      const memoryCard = root.querySelector('#advisor-memory-card')
+      if (memoryCard) memoryCard.hidden = true
+    }
+  }
+
+  hydrateProactive()
 }

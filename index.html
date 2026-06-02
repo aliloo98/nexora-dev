@@ -187,6 +187,9 @@
       </div>
     </div>
     <div class="dashboard-clean-grid">
+      <section class="wow-card dashboard-coach-card" id="dashboard-coach-card">
+        <div id="dashboard-master-root"></div>
+      </section>
       <section class="wow-card priority-action-card" id="priority-action-card">
         <span>Action recommandée</span>
         <strong id="priority-action-title">Aucun risque détecté</strong>
@@ -682,6 +685,85 @@
           <span>Données fictives</span>
         </label>
       </div>
+    </div>
+
+    <div class="settings-group-title">Réglages Nexora</div>
+    <div class="param-block">
+      <div class="param-title">Réglages Nexora</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Niveau de prudence</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Influence les achats, alertes, scénarios et marges acceptées.</div>
+        </div>
+        <select id="ai-caution-level" class="budget-cycle-select" onchange="saveNexoraAiSettingsFromUI()">
+          <option value="very_cautious">Très prudent</option>
+          <option value="cautious">Prudent</option>
+          <option value="balanced">Équilibré</option>
+          <option value="ambitious">Ambitieux</option>
+          <option value="aggressive">Agressif</option>
+        </select>
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Priorité principale du coach</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Oriente le conseil du jour et les arbitrages.</div>
+        </div>
+        <select id="ai-coach-priority" class="budget-cycle-select" onchange="saveNexoraAiSettingsFromUI()">
+          <option value="security">Sécurité financière</option>
+          <option value="savings">Épargne</option>
+          <option value="primary_goal">Objectif principal</option>
+          <option value="debt_reduction">Réduction des dettes</option>
+          <option value="major_purchase">Achat important</option>
+          <option value="couple_budget">Budget couple</option>
+        </select>
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Style de communication</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Adapte le ton des réponses Nexora.</div>
+        </div>
+        <select id="ai-communication-style" class="budget-cycle-select" onchange="saveNexoraAiSettingsFromUI()">
+          <option value="direct">Direct</option>
+          <option value="benevolent">Bienveillant</option>
+          <option value="professional">Professionnel</option>
+          <option value="motivational">Motivant</option>
+        </select>
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Fréquence des recommandations</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Contrôle la carte “Conseil du jour” et la mémoire.</div>
+        </div>
+        <select id="ai-recommendation-frequency" class="budget-cycle-select" onchange="saveNexoraAiSettingsFromUI()">
+          <option value="daily">Quotidienne</option>
+          <option value="weekly">Hebdomadaire</option>
+          <option value="risk_only">Seulement si risque détecté</option>
+        </select>
+      </div>
+      <div class="param-row budget-cycle-row">
+        <div>
+          <div class="param-label">Seuils d’alerte</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Ces seuils influencent les risques, conseils et priorités.</div>
+        </div>
+        <div class="budget-cycle-fields ai-threshold-fields">
+          <label for="ai-threshold-min-balance">Solde min.
+            <input id="ai-threshold-min-balance" class="budget-input budget-cycle-input" type="number" min="0" step="50" onchange="saveNexoraAiSettingsFromUI()">
+          </label>
+          <label for="ai-threshold-charges-rate">Charges %
+            <input id="ai-threshold-charges-rate" class="budget-input budget-cycle-input" type="number" min="1" max="100" onchange="saveNexoraAiSettingsFromUI()">
+          </label>
+          <label for="ai-threshold-variable-rate">Variables %
+            <input id="ai-threshold-variable-rate" class="budget-input budget-cycle-input" type="number" min="1" max="100" onchange="saveNexoraAiSettingsFromUI()">
+          </label>
+          <label for="ai-threshold-goal-delay">Retard obj.
+            <input id="ai-threshold-goal-delay" class="budget-input budget-cycle-input" type="number" min="0" max="30" onchange="saveNexoraAiSettingsFromUI()">
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-group-title">Interface</div>
+    <div class="param-block">
       <div class="param-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
         <div>
           <div class="param-label">Thème de l'application</div>
@@ -1234,6 +1316,9 @@ function applyNexoraUxMode(mode = getNexoraUxMode()) {
   if (typeof scheduleAssistantRefresh === 'function') {
     try { scheduleAssistantRefresh(); } catch (err) { console.warn('[Assistant] simplified refresh failed', err); }
   }
+  if (typeof window.refreshDashboardCoach === 'function') {
+    window.refreshDashboardCoach().catch(err => console.warn('[Dashboard coach] refresh failed', err));
+  }
 }
 
 function setNexoraUxMode(mode) {
@@ -1241,6 +1326,79 @@ function setNexoraUxMode(mode) {
   try { SafeStorage.setItem(UX_MODE_KEY, nextMode); } catch {}
   applyNexoraUxMode(nextMode);
   if (typeof updateAll === 'function') updateAll();
+}
+
+function getDefaultNexoraAiSettings() {
+  return {
+    cautionLevel: 'balanced',
+    coachPriority: 'security',
+    communicationStyle: 'benevolent',
+    recommendationFrequency: 'daily',
+    thresholds: {
+      minBalance: 150,
+      chargesRate: 75,
+      variableRate: 35,
+      goalDelayDays: 1
+    }
+  };
+}
+
+function readNexoraAiSettings() {
+  try {
+    if (window.NexoraAiSettingsService?.readAiSettings) {
+      return window.NexoraAiSettingsService.readAiSettings();
+    }
+    return { ...getDefaultNexoraAiSettings(), ...(JSON.parse(SafeStorage.getItem('nexora_ai_settings_v1') || '{}')) };
+  } catch {
+    return getDefaultNexoraAiSettings();
+  }
+}
+
+function applyNexoraAiSettingsUI() {
+  const settings = readNexoraAiSettings();
+  const thresholds = settings.thresholds || {};
+  const setValue = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.value = value;
+  };
+  setValue('ai-caution-level', settings.cautionLevel || 'balanced');
+  setValue('ai-coach-priority', settings.coachPriority || 'security');
+  setValue('ai-communication-style', settings.communicationStyle || 'benevolent');
+  setValue('ai-recommendation-frequency', settings.recommendationFrequency || 'daily');
+  setValue('ai-threshold-min-balance', thresholds.minBalance ?? 150);
+  setValue('ai-threshold-charges-rate', thresholds.chargesRate ?? 75);
+  setValue('ai-threshold-variable-rate', thresholds.variableRate ?? 35);
+  setValue('ai-threshold-goal-delay', thresholds.goalDelayDays ?? 1);
+}
+
+function saveNexoraAiSettingsFromUI() {
+  const readValue = (id, fallback) => document.getElementById(id)?.value || fallback;
+  const next = {
+    cautionLevel: readValue('ai-caution-level', 'balanced'),
+    coachPriority: readValue('ai-coach-priority', 'security'),
+    communicationStyle: readValue('ai-communication-style', 'benevolent'),
+    recommendationFrequency: readValue('ai-recommendation-frequency', 'daily'),
+    thresholds: {
+      minBalance: parseBudgetNumber(readValue('ai-threshold-min-balance', 150)),
+      chargesRate: parseBudgetNumber(readValue('ai-threshold-charges-rate', 75)),
+      variableRate: parseBudgetNumber(readValue('ai-threshold-variable-rate', 35)),
+      goalDelayDays: parseBudgetNumber(readValue('ai-threshold-goal-delay', 1))
+    }
+  };
+  try {
+    if (window.NexoraAiSettingsService?.updateAiSettings) {
+      window.NexoraAiSettingsService.updateAiSettings(next);
+    } else {
+      SafeStorage.setItem('nexora_ai_settings_v1', JSON.stringify(next));
+    }
+    applyNexoraAiSettingsUI();
+    if (typeof window.refreshDashboardCoach === 'function') window.refreshDashboardCoach().catch(() => {});
+    if (typeof scheduleAssistantRefresh === 'function') scheduleAssistantRefresh();
+    showToast('Réglages Nexora enregistrés');
+  } catch (err) {
+    console.warn('[Nexora AI settings] save failed', err);
+    showToast('Erreur lors de l’enregistrement des réglages Nexora');
+  }
 }
 
 function readDebts() {
@@ -4138,6 +4296,8 @@ async function exportData(){
       'nexora_monthly_history_snapshots_v1',
       'nexora_notifications_settings_v1',
       'nexora_notifications_history_v1',
+      'nexora_ai_settings_v1',
+      'nexora_financial_memory_v1',
       'nexora_recurring_incomes',
       'nexora_bill_schedules',
       'nexora_ux_mode_v1',
@@ -4191,6 +4351,8 @@ const NEXORA_IMPORTABLE_STORAGE_KEYS = new Set([
   'nexora_monthly_history_snapshots_v1',
   'nexora_notifications_settings_v1',
   'nexora_notifications_history_v1',
+  'nexora_ai_settings_v1',
+  'nexora_financial_memory_v1',
   'nexora_recurring_incomes',
   'nexora_bill_schedules',
   'nexora_ux_mode_v1',
@@ -5979,6 +6141,7 @@ window.onload=async ()=>{
   installMonthlyHistorySnapshotHook();
   applyNexoraUxMode();
   applyNexoraDemoMode();
+  applyNexoraAiSettingsUI();
   await renderCustomBudgetRows();
   convertCheckboxesToPaidInputs();
   initDynamicElements();
