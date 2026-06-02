@@ -17,10 +17,36 @@ const COUPLE_CACHE_KEY = 'nexora_couple_cache'
 const COUPLE_TTL = 5 * 60 * 1000 // 5 minutes
 const LOCAL_COUPLE_KEY = 'nexora_couple_household'
 
+const defaultSharedState = () => ({
+  income: {},
+  charge: {},
+  goal: {},
+  debt: {}
+})
+
+const normalizeHousehold = (payload) => {
+  if (!payload || typeof payload !== 'object') return null
+  return {
+    id: payload.id || `household_${Date.now()}`,
+    name: payload.name || 'Foyer Nexora',
+    status: payload.status === 'active' ? 'active' : 'inactive',
+    currentUser: payload.currentUser || 'Moi',
+    partnerName: payload.partnerName || '',
+    partnerEmail: payload.partnerEmail || '',
+    invitationCode: payload.invitationCode || `NEXORA-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+    invitationStatus: payload.invitationStatus || 'pending',
+    createdAt: payload.createdAt || new Date().toISOString(),
+    shared: {
+      ...defaultSharedState(),
+      ...(payload.shared || {})
+    }
+  }
+}
+
 const parseLocalHousehold = () => {
   try {
     const raw = localStorage.getItem(LOCAL_COUPLE_KEY)
-    return raw ? JSON.parse(raw) : null
+    return raw ? normalizeHousehold(JSON.parse(raw)) : null
   } catch (error) {
     console.warn('[CoupleService] invalid local household payload', error)
     return null
@@ -29,8 +55,9 @@ const parseLocalHousehold = () => {
 
 const saveLocalHousehold = (payload) => {
   try {
-    localStorage.setItem(LOCAL_COUPLE_KEY, JSON.stringify(payload))
-    return payload
+    const household = normalizeHousehold(payload)
+    localStorage.setItem(LOCAL_COUPLE_KEY, JSON.stringify(household))
+    return household
   } catch (error) {
     console.warn('[CoupleService] failed to save local household', error)
     return null
@@ -363,19 +390,76 @@ export const CoupleService = {
     return parseLocalHousehold()
   },
 
-  enableLocalCouple(partnerEmail) {
-    const household = {
+  enableLocalCouple(partnerEmail, options = {}) {
+    const household = normalizeHousehold({
       status: 'active',
-      partnerEmail: partnerEmail || 'partenaire@nexora.app',
+      name: options.name || 'Foyer Nexora',
+      currentUser: options.currentUser || 'Moi',
+      partnerName: options.partnerName || '',
+      partnerEmail: partnerEmail || options.partnerEmail || '',
       createdAt: new Date().toISOString(),
-      invitationCode: `NEXORA-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
-    }
+      invitationStatus: partnerEmail ? 'pending' : 'none',
+      shared: defaultSharedState()
+    })
     return saveLocalHousehold(household)
+  },
+
+  createLocalHousehold(name = 'Foyer Nexora') {
+    const existing = this.getLocalHousehold()
+    return saveLocalHousehold({
+      ...(existing || {}),
+      name: name || existing?.name || 'Foyer Nexora',
+      status: 'active',
+      invitationStatus: existing?.invitationStatus || 'none'
+    })
+  },
+
+  joinLocalHousehold(invitationCode, partnerName = 'Partenaire') {
+    const code = String(invitationCode || '').trim()
+    if (!code) return null
+    return saveLocalHousehold({
+      status: 'active',
+      name: 'Foyer rejoint',
+      currentUser: 'Moi',
+      partnerName,
+      partnerEmail: '',
+      invitationCode: code,
+      invitationStatus: 'accepted',
+      shared: defaultSharedState()
+    })
   },
 
   disableLocalCouple() {
     localStorage.removeItem(LOCAL_COUPLE_KEY)
     return null
+  },
+
+  leaveLocalHousehold() {
+    localStorage.removeItem(LOCAL_COUPLE_KEY)
+    return null
+  },
+
+  dissolveLocalHousehold() {
+    localStorage.removeItem(LOCAL_COUPLE_KEY)
+    return null
+  },
+
+  toggleLocalShare(itemType, itemId, isShared) {
+    const household = this.getLocalHousehold()
+    if (!household || !itemType || !itemId) return null
+    const type = String(itemType)
+    const id = String(itemId)
+    household.shared = {
+      ...defaultSharedState(),
+      ...(household.shared || {})
+    }
+    household.shared[type] = { ...(household.shared[type] || {}), [id]: Boolean(isShared) }
+    return saveLocalHousehold(household)
+  },
+
+  isLocalItemShared(itemType, itemId) {
+    const household = this.getLocalHousehold()
+    return Boolean(household?.shared?.[itemType]?.[String(itemId)])
   },
 
   async getCombinedStatus(user) {

@@ -619,7 +619,6 @@ body.mode-simple .simple-dashboard-grid {
 
 body.mode-simple .kpi-grid,
 body.mode-simple .dash-row,
-body.mode-simple .dashboard-greeting-card,
 body.mode-simple .dashboard-action-center,
 body.mode-simple .couple-insights-card,
 body.mode-simple .week-plan-card,
@@ -636,6 +635,16 @@ body.mode-simple .assistant-timeline-section {
 }
 
 body.mode-simple .available-money-card .wow-actions {
+  display: none !important;
+}
+
+body.mode-simple .dashboard-greeting-card .btn {
+  display: none !important;
+}
+
+body.mode-simple .dashboard-primary-goal-track,
+body.mode-simple .dashboard-primary-goal-meta,
+body.mode-simple .dashboard-primary-goal-head em {
   display: none !important;
 }
 
@@ -3071,9 +3080,131 @@ body.mode-demo .settings-page-header::after {
   color: var(--text2);
   font-size: 13px;
   line-height: 1.45;
-  margin-top: 5px;
+  margin: 8px 0 0;
 }
 
+.couple-page {
+  display: grid;
+  gap: 14px;
+}
+
+.couple-hero-card,
+.couple-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--card-shadow);
+  padding: 16px;
+}
+
+.couple-hero-card {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.couple-hero-card span,
+.couple-card span {
+  color: var(--gold);
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.couple-hero-card h2,
+.couple-card strong {
+  color: var(--text);
+  display: block;
+  line-height: 1.2;
+}
+
+.couple-hero-card p,
+.couple-card em,
+.couple-list-row span {
+  color: var(--text2);
+  display: block;
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.35;
+}
+
+.couple-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.couple-card.wide {
+  display: grid;
+  gap: 12px;
+}
+
+.couple-section-head,
+.couple-list-row,
+.couple-share-toggle {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.couple-list {
+  display: grid;
+  gap: 10px;
+}
+
+.couple-list-row,
+.couple-share-toggle {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.couple-share-toggle select {
+  background: rgba(0,0,0,0.18);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 7px 9px;
+}
+
+.share-badge {
+  background: rgba(229,192,96,0.1);
+  border: 1px solid rgba(229,192,96,0.22);
+  border-radius: 999px;
+  color: var(--gold);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+  padding: 5px 8px;
+}
+
+.couple-empty-state {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+}
+
+@media(max-width: 430px) {
+  .couple-hero-card,
+  .couple-section-head,
+  .couple-list-row,
+  .couple-share-toggle {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .couple-share-toggle select {
+    width: 100%;
+  }
+}
 @media (max-width: 900px) {
   .plan-hub-grid {
     grid-template-columns: 1fr;

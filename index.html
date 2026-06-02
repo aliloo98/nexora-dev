@@ -136,8 +136,56 @@
             <button type="button" class="btn btn-outline" onclick="showSection('saisie')">Mettre à jour le budget</button>
             <button type="button" class="btn btn-gold" onclick="showSection('plan')">Voir le plan financier</button>
           </div>
-        </div>
       </div>
+    </div>
+    <div class="kpi-grid dashboard-complete-kpis" aria-label="Indicateurs du mode complet">
+      <div class="kpi-card" id="card-revenus">
+        <div class="kpi-label">Revenus</div>
+        <div class="kpi-value positive" id="kpi-revenus">0 €</div>
+        <div class="kpi-sub">Mois en cours</div>
+        <div class="kpi-icon">💰</div>
+      </div>
+      <div class="kpi-card" id="card-fixes">
+        <div class="kpi-label">Charges fixes</div>
+        <div class="kpi-value" id="kpi-fixes">0 €</div>
+        <div class="kpi-sub" id="kpi-fixes-pct">0% des revenus</div>
+        <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-fixes-bar"></div></div>
+        <div class="kpi-icon">🏠</div>
+      </div>
+      <div class="kpi-card" id="card-variables">
+        <div class="kpi-label">Dépenses variables</div>
+        <div class="kpi-value" id="kpi-variables">0 €</div>
+        <div class="kpi-sub" id="kpi-variables-pct">0% des revenus</div>
+        <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-variables-bar"></div></div>
+        <div class="kpi-icon">🛒</div>
+      </div>
+      <div class="kpi-card" id="card-solde">
+        <div class="kpi-label">Reste disponible</div>
+        <div class="kpi-value" id="kpi-solde">0 €</div>
+        <div class="kpi-sub" id="kpi-solde-status">Équilibré</div>
+        <div class="kpi-icon">✨</div>
+      </div>
+      <div class="kpi-card" id="card-epargne">
+        <div class="kpi-label">Épargne prévue</div>
+        <div class="kpi-value" id="kpi-epargne">—</div>
+        <div class="kpi-sub" id="kpi-epargne-sub">Budget à compléter</div>
+        <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-epargne-bar"></div></div>
+        <div class="kpi-icon">🎯</div>
+      </div>
+      <div class="kpi-card" id="card-taux">
+        <div class="kpi-label">Taux de charges</div>
+        <div class="kpi-value" id="kpi-taux">—</div>
+        <div class="kpi-sub">Données insuffisantes</div>
+        <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-taux-bar"></div></div>
+        <div class="kpi-icon">📊</div>
+      </div>
+      <div class="kpi-card" id="card-dettes">
+        <div class="kpi-label">Dettes</div>
+        <div class="kpi-value" id="kpi-dettes">0 €</div>
+        <div class="kpi-sub" id="kpi-dettes-sub">Aucune dette active</div>
+        <div class="kpi-icon">💳</div>
+      </div>
+    </div>
     <div class="dashboard-clean-grid">
       <section class="wow-card priority-action-card" id="priority-action-card">
         <span>Action recommandée</span>
@@ -718,16 +766,10 @@
       </div>
     </div>
 
-    <div class="settings-group-title">Avancé</div>
+    <div class="settings-group-title">Mode couple</div>
     <div class="param-block">
-      <div class="param-title">Fonctionnalités à venir</div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">❤️ Mode couple</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px">Prévu dans une future version.</div>
-        </div>
-        <button class="btn btn-outline" type="button" disabled>À venir</button>
-      </div>
+      <div class="param-title">Mode couple</div>
+      <div id="couple-mode-settings-root" style="margin-top:12px"></div>
     </div>
 
     <div class="param-block">
@@ -4087,6 +4129,7 @@ async function exportData(){
       'nexora_bill_schedules',
       'nexora_ux_mode_v1',
       'nexora_demo_mode_v1',
+      'nexora_couple_household',
       'nexora_budget_categories_v1',
       'nexora_csv_learning_v1',
       'nexora_csv_import_drafts_v1',
@@ -4139,6 +4182,7 @@ const NEXORA_IMPORTABLE_STORAGE_KEYS = new Set([
   'nexora_bill_schedules',
   'nexora_ux_mode_v1',
   'nexora_demo_mode_v1',
+  'nexora_couple_household',
   'nexora_budget_categories_v1',
   'nexora_csv_learning_v1',
   'nexora_csv_import_drafts_v1',

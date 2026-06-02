@@ -158,27 +158,33 @@ export async function renderCoupleModeSettings() {
       <div class="settings-card couple-mode-card is-active">
         <div class="couple-mode-head">
           <div>
-            <strong>Mode couple local</strong>
-            <div style="font-size:12px;color:var(--text2);margin-top:4px">Préparation locale du foyer. Le partage réel des données reste à venir.</div>
-            <div style="font-size:12px;color:var(--text2);margin-top:4px">Partenaire saisi : ${localHousehold?.partnerEmail || status.details?.couple?.partnerEmail || 'non renseigné'}</div>
+            <strong>${localHousehold?.name || 'Foyer Nexora'}</strong>
+            <div style="font-size:12px;color:var(--text2);margin-top:4px">Mode couple actif en local. Les données privées restent privées tant qu’elles ne sont pas marquées partagées.</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:4px">Partenaire : ${localHousehold?.partnerName || localHousehold?.partnerEmail || status.details?.couple?.partnerEmail || 'invitation en attente'}</div>
           </div>
-          <span class="plan-status-pill warning">Local</span>
+          <span class="plan-status-pill success">Actif local</span>
         </div>
         <div class="couple-code-box">${invitationCode}</div>
         <div class="couple-mode-actions">
-          <button class="btn btn-outline" type="button" id="invite-partner-btn" disabled>Invitation réelle à venir</button>
-          <button class="btn btn-outline" type="button" id="join-household-btn" disabled>Rejoindre un foyer</button>
+          <button class="btn btn-outline" type="button" id="copy-invite-code-btn">Copier le code</button>
+          <button class="btn btn-gold" type="button" id="open-couple-page-btn">Ouvrir Couple</button>
           <button class="btn btn-outline" type="button" id="disable-couple-btn">Quitter le foyer</button>
           <button class="btn btn-danger" type="button" id="dissolve-couple-btn">Dissoudre le foyer</button>
         </div>
       </div>
     `
 
-    root.querySelector('#join-household-btn')?.addEventListener('click', () => {
-      window.showToast('Fonction à venir')
+    root.querySelector('#copy-invite-code-btn')?.addEventListener('click', async () => {
+      await navigator.clipboard?.writeText?.(invitationCode).catch(() => {})
+      window.showToast('Code d’invitation copié')
+    })
+    root.querySelector('#open-couple-page-btn')?.addEventListener('click', () => {
+      window.showSection?.('couple')
     })
     root.querySelector('#disable-couple-btn')?.addEventListener('click', async () => {
-      CoupleService.disableLocalCouple()
+      const ok = window.confirm('Quitter le foyer ? Vos données privées resteront intactes.')
+      if (!ok) return
+      CoupleService.leaveLocalHousehold()
       await renderCoupleModeSettings()
       if (typeof window.updateCoupleNavigation === 'function') {
         await window.updateCoupleNavigation()
@@ -186,7 +192,9 @@ export async function renderCoupleModeSettings() {
       window.showToast('Mode couple désactivé')
     })
     root.querySelector('#dissolve-couple-btn')?.addEventListener('click', async () => {
-      CoupleService.disableLocalCouple()
+      const ok = window.confirm('Dissoudre le foyer ? Les données privées resteront intactes.')
+      if (!ok) return
+      CoupleService.dissolveLocalHousehold()
       await renderCoupleModeSettings()
       if (typeof window.updateCoupleNavigation === 'function') {
         await window.updateCoupleNavigation()
@@ -199,14 +207,15 @@ export async function renderCoupleModeSettings() {
   root.innerHTML = `
     <div class="settings-card couple-mode-card">
       <div class="couple-premium-empty">
-        <strong>Mode couple à venir</strong>
-        <p>Le partage complet du budget à deux n’est pas encore disponible. Vous pouvez seulement préparer un foyer local.</p>
+        <strong>Mode couple</strong>
+        <p>Active un foyer local pour préparer un budget à deux. Rien n’est fusionné automatiquement : chaque partage reste explicite.</p>
       </div>
       <div class="couple-mode-actions">
+        <input type="text" id="couple-household-name" class="budget-input" placeholder="Nom du foyer" aria-label="Nom du foyer" />
         <input type="email" id="couple-partner-email" class="budget-input" placeholder="Email du partenaire" aria-label="Email du partenaire" />
-        <button class="btn btn-gold" type="button" id="create-couple-btn">Préparer localement</button>
-        <button class="btn btn-outline" type="button" disabled title="Fonction à venir">Invitation réelle à venir</button>
-        <button class="btn btn-outline" type="button" disabled title="Invitation partenaire requise">Rejoindre un foyer</button>
+        <input type="text" id="couple-join-code" class="budget-input" placeholder="Code d’invitation reçu" aria-label="Code d’invitation reçu" />
+        <button class="btn btn-gold" type="button" id="create-couple-btn">Activer le mode couple</button>
+        <button class="btn btn-outline" type="button" id="join-household-btn">Rejoindre un foyer</button>
         <button class="btn btn-outline" type="button" disabled title="Aucun foyer actif">Quitter le foyer</button>
         <button class="btn btn-danger" type="button" disabled title="Aucun foyer actif">Dissoudre le foyer</button>
       </div>
@@ -214,16 +223,27 @@ export async function renderCoupleModeSettings() {
   `
 
   root.querySelector('#create-couple-btn')?.addEventListener('click', async () => {
+    const name = document.getElementById('couple-household-name')?.value?.trim() || 'Foyer Nexora'
     const email = document.getElementById('couple-partner-email')?.value?.trim()
-    if (!email) {
-      window.showToast('Entre un email de partenaire valide')
-      return
-    }
-    CoupleService.enableLocalCouple(email)
+    CoupleService.enableLocalCouple(email, { name })
     await renderCoupleModeSettings()
     if (typeof window.updateCoupleNavigation === 'function') {
       await window.updateCoupleNavigation()
     }
-    window.showToast('Foyer local préparé')
+    window.showToast('Mode couple activé')
+  })
+
+  root.querySelector('#join-household-btn')?.addEventListener('click', async () => {
+    const code = document.getElementById('couple-join-code')?.value?.trim()
+    if (!code) {
+      window.showToast('Entre un code d’invitation')
+      return
+    }
+    CoupleService.joinLocalHousehold(code)
+    await renderCoupleModeSettings()
+    if (typeof window.updateCoupleNavigation === 'function') {
+      await window.updateCoupleNavigation()
+    }
+    window.showToast('Foyer rejoint localement')
   })
 }

@@ -37,6 +37,7 @@ import { UserAppSettingsService } from '../js/userAppSettingsService.js'
 import { STORAGE_KEYS } from './constants/storageKeys.js'
 import { renderAssistantCard } from './components/AssistantCard.js'
 import CoupleUIComponent from './couple/coupleUIComponent.js'
+import { CoupleService } from './couple/coupleService.js'
 import { renderTreasuryTimeline } from './components/TreasuryTimeline.js'
 import './styles/design-system.css'
 import { renderDashboardMaster } from './components/DashboardMaster.js'
@@ -69,6 +70,7 @@ window.UserAppSettingsService = UserAppSettingsService
 window.NexoraStorageKeys = STORAGE_KEYS
 window.CoupleUIComponent = CoupleUIComponent
 window.CoupleOverlay = CoupleOverlay
+window.CoupleService = CoupleService
 window.openTreasuryPlanner = async (opts = {}) => {
   try {
     await renderTreasuryPlanner('treasury-planner-root', opts)
@@ -88,41 +90,178 @@ window.setCoupleFallbackMessage = (message) => {
   banner.style.display = 'block'
 }
 
+const formatEuro = (value) => `${(Number(value) || 0).toLocaleString('fr-FR')} €`
+
+const readCurrentBudgetForCouple = () => {
+  const read = (key) => Number(document.querySelector(`[data-key="${key}"]`)?.value) || 0
+  const income = ['rev_ali', 'rev_megane', 'rev_excep'].reduce((sum, key) => sum + read(key), 0)
+  const fixed = ['loyer', 'credit', 'assauto', 'gasoil', 'elec', 'eau', 'psy', 'diete', 'itou', 'sante', 'impots', 'box', 'tel_ali', 'tel_meg', 'stream', 'ps', 'cb', 'impfix']
+    .reduce((sum, key) => sum + read(key), 0)
+  const variable = ['courses', 'tabac', 'sport', 'ongles', 'cadeaux', 'impvar']
+    .reduce((sum, key) => sum + read(key), 0)
+  return { income, fixed, variable, expenses: fixed + variable, remaining: income - fixed - variable }
+}
+
+const createShareToggle = (type, id, label) => {
+  const checked = CoupleService.isLocalItemShared(type, id)
+  return `
+    <label class="couple-share-toggle">
+      <span>${label}</span>
+      <select data-share-type="${type}" data-share-id="${id}">
+        <option value="private" ${checked ? '' : 'selected'}>Privé</option>
+        <option value="shared" ${checked ? 'selected' : ''}>Partagé</option>
+      </select>
+    </label>
+  `
+}
+
 window.renderCoupleSection = async () => {
   const section = document.getElementById('section-couple')
   if (!section) return
 
+  const household = CoupleService.getLocalHousehold()
+  if (!household?.status || household.status !== 'active') {
+    section.innerHTML = `
+      <div class="budget-block">
+        <div class="budget-block-header">
+          <span class="budget-block-title">❤️ Couple</span>
+          <span style="font-size:12px;color:var(--text2)">Inactif</span>
+        </div>
+        <div class="couple-empty-state">
+          <strong>Aucun foyer actif</strong>
+          <p>Active le mode couple dans les paramètres pour afficher l’espace foyer.</p>
+          <button class="btn btn-gold" type="button" onclick="showSection('parametres')">Ouvrir les paramètres</button>
+        </div>
+      </div>
+    `
+    return
+  }
+
+  const budget = readCurrentBudgetForCouple()
+  const goals = await GoalsService.listGoals().catch(() => [])
+  const debts = (() => {
+    try { return JSON.parse(localStorage.getItem('nexora_debts_v1') || '[]') } catch { return [] }
+  })()
+  const sharedGoals = goals.filter((goal) => CoupleService.isLocalItemShared('goal', goal.id))
+  const sharedDebts = debts.filter((debt, index) => CoupleService.isLocalItemShared('debt', debt.id || index))
+
   section.style.display = 'block'
   section.innerHTML = `
-    <div class="budget-block">
+    <div class="couple-page">
       <div class="budget-block-header">
-        <span class="budget-block-title">❤️ Mode couple</span>
-        <span style="font-size:12px;color:var(--text2)">Prévu dans une future version</span>
+        <span class="budget-block-title">❤️ Couple</span>
+        <span style="font-size:12px;color:var(--text2)">Couche collaborative locale</span>
       </div>
-      <div style="padding:16px;display:grid;gap:12px;">
-        <p>Le mode couple n’est pas disponible dans cette version.</p>
-        <button class="btn btn-outline" type="button" onclick="showSection('parametres')">Voir les fonctionnalités à venir</button>
-      </div>
+      <section class="couple-hero-card">
+        <div>
+          <span>Foyer</span>
+          <h2>${household.name || 'Foyer Nexora'}</h2>
+          <p>Utilisateur actuel : ${household.currentUser || 'Moi'} · Partenaire : ${household.partnerName || household.partnerEmail || 'invitation en attente'}</p>
+        </div>
+        <div class="couple-code-box">${household.invitationCode}</div>
+      </section>
+
+      <section class="couple-grid">
+        <div class="couple-card">
+          <span>Revenus communs</span>
+          <strong>${formatEuro(budget.income)}</strong>
+          <em>Ali / Mégane selon les revenus saisis</em>
+        </div>
+        <div class="couple-card">
+          <span>Charges communes</span>
+          <strong>${formatEuro(budget.expenses)}</strong>
+          <em>Charges fixes + variables du mois</em>
+        </div>
+        <div class="couple-card">
+          <span>Reste disponible commun</span>
+          <strong class="${budget.remaining >= 0 ? 'positive' : 'negative'}">${formatEuro(budget.remaining)}</strong>
+          <em>Vue foyer, sans fusion cloud</em>
+        </div>
+      </section>
+
+      <section class="couple-card wide">
+        <div class="couple-section-head">
+          <div>
+            <span>Objectifs communs</span>
+            <strong>${sharedGoals.length ? `${sharedGoals.length} partagé(s)` : 'Aucun objectif partagé'}</strong>
+          </div>
+          <em class="share-badge">Partage explicite</em>
+        </div>
+        <div class="couple-list">
+          ${goals.length ? goals.map((goal) => {
+            const current = Number(goal.current) || 0
+            const target = Number(goal.target) || 0
+            const pct = target > 0 ? Math.min(100, Math.round(current / target * 100)) : 0
+            return `<div class="couple-list-row">
+              <div><strong>${goal.icon || '🎯'} ${goal.name || 'Objectif'}</strong><span>${formatEuro(current)} / ${formatEuro(target)} · ${pct}%</span></div>
+              ${createShareToggle('goal', goal.id, CoupleService.isLocalItemShared('goal', goal.id) ? 'Partagé' : 'Privé')}
+            </div>`
+          }).join('') : '<div class="empty-state">Aucun objectif à partager.</div>'}
+        </div>
+      </section>
+
+      <section class="couple-card wide">
+        <div class="couple-section-head">
+          <div>
+            <span>Dettes communes</span>
+            <strong>${sharedDebts.length ? `${sharedDebts.length} partagée(s)` : 'Aucune dette partagée'}</strong>
+          </div>
+          <em class="share-badge">Privé par défaut</em>
+        </div>
+        <div class="couple-list">
+          ${debts.length ? debts.map((debt, index) => {
+            const id = debt.id || index
+            return `<div class="couple-list-row">
+              <div><strong>💳 ${debt.name || 'Dette'}</strong><span>${formatEuro(debt.remaining)} restants · ${formatEuro(debt.monthly)}/mois</span></div>
+              ${createShareToggle('debt', id, CoupleService.isLocalItemShared('debt', id) ? 'Partagée' : 'Privée')}
+            </div>`
+          }).join('') : '<div class="empty-state">Aucune dette à partager.</div>'}
+        </div>
+      </section>
+
+      <section class="couple-card wide">
+        <div class="couple-section-head">
+          <div>
+            <span>Partage budget</span>
+            <strong>Revenus et charges</strong>
+          </div>
+          <em class="share-badge">Local</em>
+        </div>
+        <div class="couple-list">
+          ${createShareToggle('income', 'rev_ali', 'Revenu Ali')}
+          ${createShareToggle('income', 'rev_megane', 'Revenu Mégane')}
+          ${createShareToggle('charge', 'loyer', 'Loyer')}
+          ${createShareToggle('charge', 'courses', 'Courses')}
+        </div>
+      </section>
     </div>
   `
+
+  section.querySelectorAll('[data-share-type][data-share-id]').forEach((input) => {
+    input.addEventListener('change', async (event) => {
+      CoupleService.toggleLocalShare(event.target.dataset.shareType, event.target.dataset.shareId, event.target.value === 'shared')
+      window.showToast?.(event.target.value === 'shared' ? 'Élément partagé' : 'Élément privé')
+      await window.renderCoupleSection()
+    })
+  })
 }
 
 window.updateCoupleNavigation = async () => {
   try {
     const coupleNav = document.querySelector('.sidebar .nav-btn[data-section="couple"]')
-    const isVisible = false
+    const isVisible = CoupleService.getLocalHousehold()?.status === 'active'
 
     if (coupleNav) {
-      coupleNav.style.display = 'none'
-    }
-
-    if (typeof window.renderCoupleSection === 'function') {
-      await window.renderCoupleSection()
+      coupleNav.style.display = isVisible ? 'inline-flex' : 'none'
     }
 
     window.__isCoupleTabVisible = isVisible
     if (!isVisible) {
-      window.setCoupleFallbackMessage('Mode couple prévu dans une future version.')
+      window.setCoupleFallbackMessage('Active le mode couple pour afficher l’onglet Couple.')
+    } else {
+      const banner = document.getElementById('couple-fallback-message')
+      if (banner) banner.style.display = 'none'
+      await window.renderCoupleSection()
     }
     return isVisible
   } catch (error) {
