@@ -11,7 +11,8 @@
     "test:e2e": "npx playwright test tests/playwright --config=./playwright.config.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0"
+    "@supabase/supabase-js": "^2.39.0",
+    "gsap": "^3.15.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",

@@ -47,7 +47,7 @@ import { renderTreasuryPlanner } from './components/TreasuryPlannerUI.js'
 import { renderPlanHub } from './plan/PlanHubUI.js'
 import { renderSettingsPanels, renderRecurringIncomeSettings, renderBillScheduleSettings } from './settings/SettingsUI.js'
 import { readAiSettings, updateAiSettings } from './advisor/proactiveCoachService.js'
-import NexoraMotion from './ui/motion.js'
+import NexoraMotion from './ui/gsapMotion.js'
 import { parseFinancialExpression } from './finance/financialExpression.js'
 
 // Expose modules globally for HTML event handlers and old code
@@ -367,6 +367,8 @@ const initApp = async () => {
     }
 
     window.NexoraMotion?.bindButtonFeedback?.(document)
+    window.NexoraMotion?.animateNavigation?.(document.querySelector('.sidebar .nav-btn.active'))
+    window.NexoraMotion?.initScrollReveal?.(document)
 
     if (typeof window.updateCoupleNavigation === 'function') {
       await window.updateCoupleNavigation()
