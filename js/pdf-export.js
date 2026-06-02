@@ -489,7 +489,7 @@ const addSummary = (pdf, totals) => {
     ['Revenus', totals.income, GREEN],
     ['Charges fixes', totals.fixed, RED],
     ['Dépenses variables', totals.variable, [234, 88, 12]],
-    ['Solde prévisionnel', totals.balance, totals.balance >= 0 ? GREEN : RED]
+    ['Solde fin de cycle', totals.balance, totals.balance >= 0 ? GREEN : RED]
   ];
   const gap = 10;
   const width = (PAGE_WIDTH - MARGIN * 2 - gap * 3) / 4;

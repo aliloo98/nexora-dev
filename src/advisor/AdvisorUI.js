@@ -90,7 +90,7 @@ const renderScenarioCards = (scenarios = []) => {
         <strong>${escapeHtml(scenario.label || 'Scénario')}</strong>
         <span>Risque ${escapeHtml(scenario.risk || 'modéré')}</span>
       </div>
-      <p>Solde prévu : ${(Number(scenario.projectedBalance) || 0).toLocaleString('fr-FR')} €</p>
+      <p>Solde fin de cycle : ${(Number(scenario.projectedBalance) || 0).toLocaleString('fr-FR')} €</p>
       <p>Épargne possible : ${(Number(scenario.possibleSaving) || 0).toLocaleString('fr-FR')} €</p>
       <em>${escapeHtml(scenario.advice || 'Garde une marge de sécurité.')}</em>
     </div>
@@ -119,7 +119,7 @@ export function renderAdvisorUI(rootId, AdvisorService) {
       <div class="advisor-greeting" style="margin-bottom:12px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
           <div>
-            <span style="font-size:13px;color:var(--text2);">Bonjour Ali 👋</span>
+            <span style="font-size:13px;color:var(--text2);">Bonjour 👋</span>
             <h3 style="margin:6px 0 4px;font-size:18px;">Je suis Nexora. Situation actuelle</h3>
             <div id="advisor-human-summary" style="font-size:13px;color:var(--text2);">Analyse ton budget et dis-moi ce que tu souhaites analyser.</div>
           </div>

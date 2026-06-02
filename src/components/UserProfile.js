@@ -2,7 +2,7 @@
  * Nexora - User Profile Header Component
  *
  * Displays user's username in the header and provides logout functionality.
- * Replaces static "Ali & Megane" with dynamic username.
+ * Replaces static profile labels with dynamic username.
  *
  * TODO: Integrate with dashboard header system
  * TODO: Add profile settings page

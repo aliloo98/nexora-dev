@@ -501,8 +501,8 @@ const NotificationsService = {
       await NotificationsService.createNotification({
         type: 'budget',
         priority: 'critical',
-        title: 'Solde prévisionnel négatif',
-        message: 'Le solde prévisionnel du mois est négatif.',
+        title: 'Solde fin de cycle négatif',
+        message: 'Le solde fin de cycle du mois est négatif.',
         source: `budget:${periodKey}:negative`,
         actionLabel: 'Voir budget',
         actionTarget: 'saisie'
@@ -511,7 +511,7 @@ const NotificationsService = {
         await NotificationsService.sendOnce({
           eventKey: 'negative-forecast',
           periodKey,
-          body: 'Le solde prévisionnel du mois est négatif.'
+          body: 'Le solde fin de cycle du mois est négatif.'
         })
       }
     } else {
@@ -590,7 +590,7 @@ const NotificationsService = {
         type: 'réussite',
         priority: 'success',
         title: 'Record d’épargne',
-        message: `C’est votre meilleur solde prévisionnel sur les derniers mois : ${Math.round(solde).toLocaleString('fr-FR')} €.`,
+        message: `C’est votre meilleur solde fin de cycle sur les derniers mois : ${Math.round(solde).toLocaleString('fr-FR')} €.`,
         source: `success:${periodKey}:record-savings`,
         actionLabel: 'Voir historique',
         actionTarget: 'historique'

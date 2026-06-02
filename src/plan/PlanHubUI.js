@@ -61,8 +61,8 @@ const isDemoMode = () => {
 const demoPlanData = () => {
   const fromDate = new Date('2026-06-01T00:00:00')
   const revenues = [
-    { title: 'Salaire Ali', amount: 1700, frequency: 'once', date: '2026-06-05' },
-    { title: 'Salaire Mégane', amount: 1300, frequency: 'once', date: '2026-06-28' }
+    { title: 'Salaire utilisateur', amount: 1700, frequency: 'once', date: '2026-06-05' },
+    { title: 'Salaire foyer', amount: 1300, frequency: 'once', date: '2026-06-28' }
   ]
   const charges = [
     { title: 'Loyer', amount: 650, date: '2026-06-12', priority: 'critique' },
@@ -125,7 +125,7 @@ const buildPlanContent = (data) => {
     <div class="plan-hub-grid">
       <section class="plan-card plan-balance-card">
         <div class="plan-card-header">
-          <h3>Solde prévisionnel</h3>
+          <h3>Solde fin de cycle</h3>
           <span class="plan-status-pill ${getRiskClass(endingBalance)}">${getBalanceLabel(endingBalance)}</span>
         </div>
         <strong class="plan-balance-value ${getRiskClass(endingBalance)}">${formatCurrency(endingBalance)}</strong>

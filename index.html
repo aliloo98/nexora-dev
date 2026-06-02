@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Application de gestion de budget personnelle et collaborative pour Ali & Megane. Suivi en temps réel des charges fixes, dépenses variables, et taux d'épargne.">
+<meta name="description" content="Application de gestion de budget personnelle et collaborative pour mon foyer. Suivi en temps réel des charges fixes, dépenses variables, et taux d'épargne.">
 <title>NEXORA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,12 +24,12 @@
   <div class="sidebar-logo" id="app-sidebar-logo">
     <img src="/icon-192.png" alt="NEXORA">
   </div>
-  <a href="#section-dashboard" class="nav-btn active" data-section="dashboard" onclick="showSection('dashboard'); return false;" title="Tableau de bord" aria-label="Tableau de bord">🏠</a>
-  <a href="#section-saisie" class="nav-btn" data-section="saisie" onclick="showSection('saisie'); return false;" title="Budget" aria-label="Budget">✏️</a>
-  <a href="#section-plan" class="nav-btn" data-section="plan" onclick="showSection('plan'); return false;" title="Plan" aria-label="Plan">📈</a>
-  <a href="#section-nexora" class="nav-btn" data-section="nexora" onclick="showSection('nexora'); return false;" title="Conseiller Nexora" aria-label="Conseiller Nexora">🤖</a>
+  <a href="#section-dashboard" class="nav-btn active" data-section="dashboard" onclick="showSection('dashboard'); return false;" title="Accueil" aria-label="Accueil"><span class="nav-icon">🏠</span><span class="nav-label">Accueil</span></a>
+  <a href="#section-saisie" class="nav-btn" data-section="saisie" onclick="showSection('saisie'); return false;" title="Budget" aria-label="Budget"><span class="nav-icon">✏️</span><span class="nav-label">Budget</span></a>
+  <a href="#section-plan" class="nav-btn" data-section="plan" onclick="showSection('plan'); return false;" title="Plan" aria-label="Plan"><span class="nav-icon">📈</span><span class="nav-label">Plan</span></a>
+  <a href="#section-nexora" class="nav-btn" data-section="nexora" onclick="showSection('nexora'); return false;" title="Nexora" aria-label="Nexora"><span class="nav-icon">🤖</span><span class="nav-label">Nexora</span></a>
   <a href="#section-couple" class="nav-btn couple-nav-btn" data-section="couple" onclick="showSection('couple'); return false;" title="Mode couple" aria-label="Mode couple" style="display:none;">❤️</a>
-  <a href="#section-parametres" class="nav-btn" data-section="parametres" onclick="showSection('parametres'); return false;" title="Paramètres" aria-label="Paramètres">⚙️</a>
+  <a href="#section-parametres" class="nav-btn" data-section="parametres" onclick="showSection('parametres'); return false;" title="Paramètres" aria-label="Paramètres"><span class="nav-icon">⚙️</span><span class="nav-label">Paramètres</span></a>
 </nav>
 
 <!-- TOAST -->
@@ -128,7 +128,7 @@
       <div class="wow-card dashboard-greeting-card">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
           <div>
-            <span id="dashboard-greeting-hello" style="font-size:13px;color:var(--text2);">Bonjour Ali 👋</span>
+            <span id="dashboard-greeting-hello" style="font-size:13px;color:var(--text2);">Bonjour 👋</span>
             <h3 id="dashboard-greeting-title" style="margin:8px 0 6px;font-size:18px;">Je suis Nexora. Situation actuelle</h3>
             <p id="dashboard-greeting-subtitle" style="margin:0;color:var(--text2);">Analyse ton budget et trouve la priorité du moment.</p>
           </div>
@@ -160,7 +160,7 @@
         <div class="kpi-icon">🛒</div>
       </div>
       <div class="kpi-card" id="card-solde">
-        <div class="kpi-label">Reste disponible</div>
+        <div class="kpi-label">Solde actuel</div>
         <div class="kpi-value" id="kpi-solde">0 €</div>
         <div class="kpi-sub" id="kpi-solde-status">Équilibré</div>
         <div class="kpi-icon">✨</div>
@@ -221,12 +221,13 @@
         </div>
         <div class="week-plan-summary" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px;">
           <div style="padding:14px;background:rgba(255,255,255,0.03);border-radius:12px;">
-            <span>Solde prévu</span>
+            <span>Solde fin de cycle</span>
             <strong id="week-plan-balance">0 €</strong>
           </div>
           <div style="padding:14px;background:rgba(255,255,255,0.03);border-radius:12px;">
             <span>Prochain revenu</span>
             <strong id="week-plan-next-income">--/--</strong>
+            <button type="button" class="inline-cta" id="week-plan-income-cta" onclick="showSection('parametres')" style="display:none">Définir un revenu</button>
           </div>
           <div style="padding:14px;background:rgba(255,255,255,0.03);border-radius:12px;">
             <span>Charges à payer</span>
@@ -372,12 +373,12 @@
       </div>
       <div class="budget-category-divider">Revenus principaux</div>
       <div class="budget-row">
-        <div class="budget-row-label">Revenu principal — Ali</div>
+        <div class="budget-row-label">Revenu principal — Utilisateur</div>
         <input class="budget-input" type="text" placeholder="Montant" data-key="rev_ali" oninput="updateAll()">
         <div></div>
       </div>
       <div class="budget-row">
-        <div class="budget-row-label">Revenu principal — Megane</div>
+        <div class="budget-row-label">Revenu principal — Mon foyer</div>
         <input class="budget-input" type="text" placeholder="Montant" data-key="rev_megane" oninput="updateAll()">
         <div></div>
       </div>
@@ -494,14 +495,14 @@
         </div>
       </div>
       <div class="budget-row">
-        <div class="budget-row-label">Téléphone — Ali</div>
+        <div class="budget-row-label">Téléphone — Utilisateur</div>
         <input class="budget-input" type="text" placeholder="Montant" data-key="tel_ali" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="tel_ali_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
       </div>
       <div class="budget-row">
-        <div class="budget-row-label">Téléphone — Megane</div>
+        <div class="budget-row-label">Téléphone — Mon foyer</div>
         <input class="budget-input" type="text" placeholder="Montant" data-key="tel_meg" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="tel_meg_paye" onchange="updateRowPayedStyle(this); updateAll()">
@@ -576,7 +577,7 @@
         </div>
       </div>
       <div class="budget-row">
-        <div class="budget-row-label">Ongles — Megane</div>
+        <div class="budget-row-label">Soins personnels</div>
         <input class="budget-input" type="text" placeholder="Montant" data-key="ongles" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="ongles_paye" onchange="updateRowPayedStyle(this); updateAll()">
@@ -2885,7 +2886,7 @@ function createCustomBudgetRow(category) {
 
   const input = document.createElement('input');
   input.className = 'budget-input';
-  input.type = 'number';
+  input.type = 'text';
   input.placeholder = 'Montant';
   input.dataset.key = category.id;
   input.oninput = () => updateAll();
@@ -3230,10 +3231,12 @@ function updateAll(){
 
   const totalDepReel = fixReel + varReel;
   const totalDepPayee = fixPaye + varPaye;
-  const totalDepRestant = totalDepReel - totalDepPayee;
-
-  const solde = revReel - totalDepReel;
-  const soldeEstime = revReel - totalDepPayee;
+  const resteADepenser = Math.max(0, totalDepReel - totalDepPayee);
+  const soldeFinCycle = revReel - totalDepReel;
+  const soldeActuel = revReel - totalDepPayee;
+  const totalDepRestant = resteADepenser;
+  const solde = soldeFinCycle;
+  const soldeEstime = soldeActuel;
 
   const tauxEp = revReel > 0 ? Math.round((solde / revReel) * 100) : 0;
   const tauxCh = revReel > 0 ? Math.round((totalDepReel / revReel) * 100) : 0;
@@ -3272,13 +3275,13 @@ function updateAll(){
     else if (variablesPct > 30) cardVars.classList.add('warning-status');
   }
 
-  // Solde actuel card
+  // Solde actuel = revenus saisis moins dépenses déjà payées.
   const soldeEl=document.getElementById('kpi-solde');
   if (soldeEl) {
     soldeEl.textContent=fmt(soldeEstime);
     soldeEl.className='kpi-value '+(soldeEstime>0?'positive':soldeEstime<0?'negative':'');
   }
-  setDashboardGuidanceText('kpi-solde-status', soldeEstime>0?'Bilan positif':soldeEstime<0?'Attention déficit':'Équilibré');
+  setDashboardGuidanceText('kpi-solde-status', soldeEstime>0?'Après paiements saisis':soldeEstime<0?'Solde actuel négatif':'Équilibré');
 
   const cardSolde = document.getElementById('card-solde');
   if (cardSolde) {
@@ -3295,7 +3298,7 @@ function updateAll(){
   const kpiDepPayesBar = document.getElementById('kpi-dep-payes-bar');
   if (kpiDepPayesBar) kpiDepPayesBar.style.width = Math.min(depPayesPct, 100) + '%';
 
-  // Solde prévisionnel card
+  // Solde fin de cycle = revenus saisis moins toutes les dépenses prévues.
   const kpiSoldeEst = document.getElementById('kpi-solde-est-kpi');
   if (kpiSoldeEst) {
     kpiSoldeEst.textContent = fmt(solde);
@@ -3701,6 +3704,7 @@ function updateWeekPlan(metrics = {}) {
   const titleEl = document.getElementById('week-plan-title');
   const balanceEl = document.getElementById('week-plan-balance');
   const nextIncomeEl = document.getElementById('week-plan-next-income');
+  const incomeCtaEl = document.getElementById('week-plan-income-cta');
   const toPayEl = document.getElementById('week-plan-to-pay');
   const descEl = document.getElementById('week-plan-description');
   const hasProgrammedIncome = (() => {
@@ -3720,7 +3724,8 @@ function updateWeekPlan(metrics = {}) {
   const dueCount = getPendingFixedExpenseRows().length;
   if (titleEl) titleEl.textContent = metrics.revReel > 0 ? 'Aperçu essentiel' : 'Plan financier';
   if (balanceEl) balanceEl.textContent = fmt(metrics.solde || 0);
-  if (nextIncomeEl) nextIncomeEl.textContent = hasProgrammedIncome && range.start ? formatShortDate(range.start) : 'Non défini';
+  if (nextIncomeEl) nextIncomeEl.textContent = hasProgrammedIncome && range.start ? formatShortDate(range.start) : 'Définir un revenu';
+  if (incomeCtaEl) incomeCtaEl.style.display = hasProgrammedIncome ? 'none' : 'inline-flex';
   if (toPayEl) toPayEl.textContent = `${dueCount} charge${dueCount !== 1 ? 's' : ''}`;
   if (descEl) {
     descEl.textContent = metrics.revReel > 0
@@ -3761,7 +3766,10 @@ function updateDashboardGreeting({ revReel = 0, solde = 0 } = {}) {
   const titleEl = document.getElementById('dashboard-greeting-title');
   const subtitleEl = document.getElementById('dashboard-greeting-subtitle');
   if (!titleEl) return;
-  if (helloEl) helloEl.textContent = 'Bonjour Ali 👋';
+  const profileName = window.AuthContext?.getCurrentUser?.()?.user_metadata?.full_name
+    || window.AuthContext?.getCurrentUser?.()?.email?.split('@')?.[0]
+    || ''
+  if (helloEl) helloEl.textContent = profileName ? `Bonjour ${profileName} 👋` : 'Bonjour 👋';
 
   if (revReel === 0) {
     titleEl.textContent = 'Je suis Nexora. Situation actuelle';
@@ -3795,7 +3803,7 @@ function updateDashboardGuidance(metrics) {
   let situationTitle = 'Budget à compléter';
   let situationText = 'Ajoute les revenus et dépenses du mois pour obtenir une lecture fiable.';
   if (revReel > 0 && solde >= 0) {
-    situationTitle = `Solde prévu positif : ${fmt(solde)}`;
+    situationTitle = `Solde fin de cycle positif : ${fmt(solde)}`;
     situationText = `Après toutes les dépenses prévues, le budget garde ${tauxEp}% d'épargne.`;
   } else if (revReel > 0) {
     situationTitle = `Déficit prévu : ${fmt(Math.abs(solde))}`;
@@ -3883,7 +3891,7 @@ function renderCoupleInsights() {
   const totalIncome = metrics.global.income || 0;
   const totalExpenses = metrics.global.expenses || 0;
   const net = current.income - current.expenses;
-  const label = coupleView === 'ali' ? 'Ali' : coupleView === 'megane' ? 'Mégane' : 'globale';
+  const label = coupleView === 'ali' ? 'Utilisateur' : coupleView === 'megane' ? 'Mon foyer' : 'globale';
 
   document.querySelectorAll('.couple-view-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.coupleView === coupleView);
@@ -6087,9 +6095,11 @@ function updateTrendIndicators() {
       if (!baseKey) return;
 
       const valCurrent = getVal(baseKey);
-      const valPrev = parseBudgetNumber(prevData[baseKey]) || parseBudgetNumber(prevData[baseKey + '_reel']);
+      const hasPrevValue = Object.prototype.hasOwnProperty.call(prevData, baseKey)
+        || Object.prototype.hasOwnProperty.call(prevData, baseKey + '_reel');
+      const valPrev = hasPrevValue ? (parseBudgetNumber(prevData[baseKey]) || parseBudgetNumber(prevData[baseKey + '_reel'])) : 0;
 
-      if (valPrev > 0 && valCurrent !== valPrev) {
+      if (valCurrent > 0 && valPrev > 0 && valCurrent !== valPrev) {
         const diffPct = Math.round(((valCurrent - valPrev) / valPrev) * 100);
         if (diffPct !== 0) {
           const isIncome = baseKey.startsWith('rev_');

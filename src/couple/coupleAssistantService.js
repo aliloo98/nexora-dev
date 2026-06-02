@@ -4,7 +4,7 @@
  * AI-powered insights for couple households:
  * - "Le foyer épargne 280 €/mois."
  * - "Objectif Maison atteignable dans 14 mois."
- * - "Ali contribue à 57% du budget commun."
+ * - "Un membre contribue à 57% du budget commun."
  * - "Les dépenses communes augmentent."
  */
 

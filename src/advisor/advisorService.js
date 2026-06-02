@@ -191,7 +191,7 @@ export const AdvisorService = {
           verdict: 'recommend',
           today: coach.priority,
           why: coach.risks[0] || 'Aucun risque majeur détecté.',
-          impact: `Solde prévisionnel : ${formatEuro(coach.summary.projectedBalance)}.`,
+          impact: `Solde fin de cycle : ${formatEuro(coach.summary.projectedBalance)}.`,
           alternative: coach.opportunities[0] || 'Garde une marge de sécurité avant toute dépense.',
           action: coach.dailyAdvice,
           risk: coach.risks.length ? 'moyen' : 'faible'

@@ -30,7 +30,7 @@ tests.push({
     const r = await analyzeBudget('2026-05')
     assertMinimumOutputs(r)
     assert(r.score > 50, 'expected score > 50')
-    assert(!r.alerts.includes('Solde prévisionnel négatif'))
+    assert(!r.alerts.includes('Solde fin de cycle négatif'))
   }
 })
 
@@ -40,7 +40,7 @@ tests.push({
     setMocks({ metrics: { income: 1000, fixed: 900, variable: 300, expenses: 1200, savings: -200 } })
     const r = await analyzeBudget('2026-05')
     assertMinimumOutputs(r)
-    assert(r.alerts.length > 0 && r.alerts.includes('Solde prévisionnel négatif'), 'expected negative balance alert')
+    assert(r.alerts.length > 0 && r.alerts.includes('Solde fin de cycle négatif'), 'expected negative balance alert')
   }
 })
 
@@ -143,7 +143,7 @@ tests.push({
     assert.strictEqual(r.metadata.fixedRate, null, 'expected fixedRate null when revenue is zero')
     assert.strictEqual(r.metadata.variableRate, null, 'expected variableRate null when revenue is zero')
     assert.strictEqual(r.metadata.totalChargesRate, null, 'expected totalChargesRate null when revenue is zero')
-    assert(!r.alerts.some(a => /Solde prévisionnel négatif/i.test(a)), 'expected no negative balance alert before revenue is entered')
+    assert(!r.alerts.some(a => /Solde fin de cycle négatif/i.test(a)), 'expected no negative balance alert before revenue is entered')
   }
 })
 

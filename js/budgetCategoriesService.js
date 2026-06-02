@@ -17,8 +17,8 @@ const TABLE_NAME = 'budget_categories'
 const VALID_TYPES = ['income', 'fixed_expense', 'variable_expense']
 
 export const DEFAULT_BUDGET_CATEGORIES = [
-  { id: 'rev_ali', name: 'Revenu principal — Ali', type: 'income', position: 10, is_default: true, is_active: true },
-  { id: 'rev_megane', name: 'Revenu principal — Megane', type: 'income', position: 20, is_default: true, is_active: true },
+  { id: 'rev_ali', name: 'Revenu principal — Utilisateur', type: 'income', position: 10, is_default: true, is_active: true },
+  { id: 'rev_megane', name: 'Revenu principal — Mon foyer', type: 'income', position: 20, is_default: true, is_active: true },
   { id: 'rev_excep', name: "Entrée d'argent exceptionnelle", type: 'income', position: 30, is_default: true, is_active: true },
 
   { id: 'loyer', name: 'Loyer', type: 'fixed_expense', position: 110, is_default: true, is_active: true },
@@ -33,8 +33,8 @@ export const DEFAULT_BUDGET_CATEGORIES = [
   { id: 'sante', name: 'Frais de santé divers', type: 'fixed_expense', position: 200, is_default: true, is_active: true },
   { id: 'impots', name: 'Impôts', type: 'fixed_expense', position: 210, is_default: true, is_active: true },
   { id: 'box', name: 'Box internet', type: 'fixed_expense', position: 220, is_default: true, is_active: true },
-  { id: 'tel_ali', name: 'Téléphone — Ali', type: 'fixed_expense', position: 230, is_default: true, is_active: true },
-  { id: 'tel_meg', name: 'Téléphone — Megane', type: 'fixed_expense', position: 240, is_default: true, is_active: true },
+  { id: 'tel_ali', name: 'Téléphone — Utilisateur', type: 'fixed_expense', position: 230, is_default: true, is_active: true },
+  { id: 'tel_meg', name: 'Téléphone — Mon foyer', type: 'fixed_expense', position: 240, is_default: true, is_active: true },
   { id: 'stream', name: 'Streaming', type: 'fixed_expense', position: 250, is_default: true, is_active: true },
   { id: 'ps', name: 'PlayStation', type: 'fixed_expense', position: 260, is_default: true, is_active: true },
   { id: 'cb', name: 'Carte bancaire', type: 'fixed_expense', position: 270, is_default: true, is_active: true },
@@ -43,7 +43,7 @@ export const DEFAULT_BUDGET_CATEGORIES = [
   { id: 'courses', name: 'Courses', type: 'variable_expense', position: 310, is_default: true, is_active: true },
   { id: 'tabac', name: 'Tabac', type: 'variable_expense', position: 320, is_default: true, is_active: true },
   { id: 'sport', name: 'Salle de sport', type: 'variable_expense', position: 330, is_default: true, is_active: true },
-  { id: 'ongles', name: 'Ongles — Megane', type: 'variable_expense', position: 340, is_default: true, is_active: true },
+  { id: 'ongles', name: 'Soins personnels', type: 'variable_expense', position: 340, is_default: true, is_active: true },
   { id: 'cadeaux', name: 'Cadeaux', type: 'variable_expense', position: 350, is_default: true, is_active: true },
   { id: 'impvar', name: 'Imprévu variable / Exceptionnel', type: 'variable_expense', position: 360, is_default: true, is_active: true }
 ]

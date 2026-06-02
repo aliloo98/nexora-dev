@@ -220,7 +220,7 @@ export function analyzeProactiveCoach(context = {}) {
 
   if (income <= 0) risks.push('Revenu non configuré')
   if (income > 0 && chargesRate > settings.thresholds.chargesRate) risks.push(`Charges élevées : ${chargesRate}% des revenus`)
-  if (projectedBalance < 0) risks.push(`Solde prévisionnel négatif : ${formatEuro(projectedBalance)}`)
+  if (projectedBalance < 0) risks.push(`Solde fin de cycle négatif : ${formatEuro(projectedBalance)}`)
   else if (projectedBalance < minBalance) risks.push(`Marge critique : ${formatEuro(projectedBalance)} disponibles`)
   if (income > 0 && variableRate > settings.thresholds.variableRate) risks.push(`Dépenses variables élevées : ${variableRate}% des revenus`)
   if (primaryGoal) {

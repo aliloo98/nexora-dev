@@ -32,7 +32,7 @@ export const createRegisterForm = () => {
               id="registerUsername"
               name="username"
               class="form-input"
-              placeholder="ex: Ali, Megane..."
+              placeholder="ex: Utilisateur..."
               required
               autocomplete="off"
             />

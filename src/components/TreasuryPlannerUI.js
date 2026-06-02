@@ -17,7 +17,7 @@ export async function renderTreasuryPlanner(rootId, options = {}) {
   // derive toPayNow from charges present in the timeline
   const chargesFromTimeline = (timeline || []).filter(t => t.amount < 0).map(t => ({ amount: Math.abs(t.amount), date: t.date, title: t.title, priority: t.priority || 'standard' }))
   const toPayNow = (await TreasuryService.suggestPayments({ baseBalance, revenues: [], charges: chargesFromTimeline, fromDate: new Date(), days: 30 })).toPayNow || []
-  summaryEl.innerHTML = `<div style="display:flex;justify-content:space-between"><div><strong>Solde prévu</strong><div style="font-size:18px">${endingBalance} €</div></div><div><strong>À payer maintenant</strong><div style="font-size:14px">${toPayNow.length} éléments</div></div></div>`
+  summaryEl.innerHTML = `<div style="display:flex;justify-content:space-between"><div><strong>Solde fin de cycle</strong><div style="font-size:18px">${endingBalance} €</div></div><div><strong>À payer maintenant</strong><div style="font-size:14px">${toPayNow.length} éléments</div></div></div>`
 
   const timelineEl = root.querySelector('#tp-timeline')
   timelineEl.innerHTML = ''

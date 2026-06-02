@@ -89,8 +89,8 @@ export const CoupleUIComponent = {
       return '<p>Chargement du budget...</p>'
     }
 
-    const user1Name = 'Ali' // TODO: get from couple data
-    const user2Name = 'Mégane'
+    const user1Name = 'Membre 1'
+    const user2Name = 'Membre 2'
 
     return `
       <div class="couple-budget-section">

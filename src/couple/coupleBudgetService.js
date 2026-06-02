@@ -14,8 +14,8 @@
  * Charges communes (shared expenses)
  * Reste à vivre commun (household available)
  * 
- * Contribution Ali: 45%
- * Contribution Mégane: 55%
+ * Contribution membre 1: 45%
+ * Contribution membre 2: 55%
  */
 
 import { supabase } from '../supabase.js'

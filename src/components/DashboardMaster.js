@@ -29,11 +29,11 @@ export async function renderDashboardMaster(rootId, TreasuryService) {
   root.innerHTML = `
     <div class="dashboard-coach-content" style="display:flex;flex-direction:column;gap:8px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-        <div><span>Conseil Nexora du jour</span><strong>${escapeHtml(coachPriority)}</strong></div>
+        <div><span>Priorité du jour</span><strong>${escapeHtml(coachPriority)}</strong></div>
         <em style="font-size:12px;color:var(--text2)">${new Date().toLocaleDateString()}</em>
       </div>
       <div class="action-highlight dashboard-coach-highlight">
-          <div style="font-size:13px;color:var(--text);line-height:1.4">${escapeHtml(coachAdvice)}</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.4">${escapeHtml(showDetails ? coachAdvice : `Action prioritaire : ${coachPriority}`)}</div>
           ${showDetails && coach.risks?.length ? `<div style="font-size:12px;color:var(--text2);margin-top:4px">Risque : ${escapeHtml(coach.risks[0])}</div>` : ''}
           ${showDetails && coach.opportunities?.length ? `<div style="font-size:12px;color:var(--text2);margin-top:4px">Opportunité : ${escapeHtml(coach.opportunities[0])}</div>` : ''}
           <button class="btn btn-outline" type="button" style="margin-top:8px" id="dashboard-coach-action">${escapeHtml(actionLabel)}</button>

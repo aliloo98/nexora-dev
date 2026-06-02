@@ -569,7 +569,13 @@ async function renderAssistantCard() {
     }
   }
 
-  const renderItems = (el, items, limit = 3) => {
+  const getDashboardAdviceTexts = () => [
+    document.getElementById('priority-action-title')?.textContent,
+    document.getElementById('priority-action-detail')?.textContent,
+    document.querySelector('#dashboard-master-root .dashboard-coach-highlight')?.textContent
+  ].map((text) => String(text || '').trim().toLowerCase()).filter(Boolean)
+
+  const renderItems = (el, items, limit = 3, options = {}) => {
     if (!el) return
     el.innerHTML = ''
     let listItems = items
@@ -587,7 +593,15 @@ async function renderAssistantCard() {
       }
     }
 
-    listItems.slice(0, limit).forEach(i => {
+    const blockedTexts = options.excludeDashboardAdvice ? getDashboardAdviceTexts() : []
+    const visibleItems = listItems.filter((item) => {
+      const normalized = String(item || '').trim().toLowerCase()
+      if (!normalized) return false
+      return !blockedTexts.some((text) => text.includes(normalized) || normalized.includes(text))
+    })
+    const finalItems = visibleItems.length ? visibleItems : listItems
+
+    finalItems.slice(0, limit).forEach(i => {
       const li = document.createElement('li')
       li.textContent = i
       el.appendChild(li)
@@ -597,7 +611,7 @@ async function renderAssistantCard() {
   // Vigilance -> show natural alert phrases
   renderItems(vigilanceList, result.alertDisplay || result.alerts, isSimpleMode ? 1 : 3)
   // Action -> show recommendations
-  renderItems(actionList, result.recommendations, isSimpleMode ? 1 : 3)
+  renderItems(actionList, result.recommendations, isSimpleMode ? 1 : 3, { excludeDashboardAdvice: true })
 
   // Populate formatted visual comparison for savings projections
   const projectionsBlock = existing.querySelector('#assistant-projections-block')

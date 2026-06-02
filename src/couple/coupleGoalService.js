@@ -3,7 +3,7 @@
  *
  * Manages shared goals with individual contributions:
  * - Maison, mariage, voyage, voiture, etc.
- * - Contributions séparées (Ali: 420€, Mégane: 380€)
+ * - Contributions séparées (membre 1: 420€, membre 2: 380€)
  * - Progression commune (800€ / 2000€)
  */
 

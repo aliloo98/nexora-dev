@@ -178,7 +178,7 @@ window.renderCoupleSection = async () => {
         <div class="couple-card">
           <span>Revenus communs</span>
           <strong>${formatEuro(budget.income)}</strong>
-          <em>Ali / Mégane selon les revenus saisis</em>
+          <em>Utilisateur / foyer selon les revenus saisis</em>
         </div>
         <div class="couple-card">
           <span>Charges communes</span>
@@ -186,7 +186,7 @@ window.renderCoupleSection = async () => {
           <em>Charges fixes + variables du mois</em>
         </div>
         <div class="couple-card">
-          <span>Reste disponible commun</span>
+          <span>Solde actuel commun</span>
           <strong class="${budget.remaining >= 0 ? 'positive' : 'negative'}">${formatEuro(budget.remaining)}</strong>
           <em>Vue foyer, sans fusion cloud</em>
         </div>
@@ -241,8 +241,8 @@ window.renderCoupleSection = async () => {
           <em class="share-badge">Local</em>
         </div>
         <div class="couple-list">
-          ${createShareToggle('income', 'rev_ali', 'Revenu Ali')}
-          ${createShareToggle('income', 'rev_megane', 'Revenu Mégane')}
+          ${createShareToggle('income', 'rev_ali', 'Revenu utilisateur')}
+          ${createShareToggle('income', 'rev_megane', 'Revenu foyer')}
           ${createShareToggle('charge', 'loyer', 'Loyer')}
           ${createShareToggle('charge', 'courses', 'Courses')}
         </div>

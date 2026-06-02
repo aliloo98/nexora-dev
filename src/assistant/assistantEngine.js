@@ -536,7 +536,7 @@ async function analyzeBudget(monthKey) {
 
     // Negative balance - highest priority
     if (savings < 0) {
-      pushAlert('deficit', `Attention, ce cycle risque de se terminer avec un déficit estimé de ${Math.abs(savings)} €.`, 'Solde prévisionnel négatif', 100, 'Priorisez la réduction des dépenses variables et des charges fixes avant de financer des objectifs.')
+      pushAlert('deficit', `Attention, ce cycle risque de se terminer avec un déficit estimé de ${Math.abs(savings)} €.`, 'Solde fin de cycle négatif', 100, 'Priorisez la réduction des dépenses variables et des charges fixes avant de financer des objectifs.')
     }
 
     // High charges
