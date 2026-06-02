@@ -17,7 +17,7 @@ const createRecurringIncomeCard = (income, index) => {
         </div>
         <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;">
           <input type="text" class="budget-input recurring-income-input" data-index="${index}" data-key="name" value="${income.name || ''}" placeholder="Nom du revenu" aria-label="Nom du revenu" />
-          <input type="number" class="budget-input recurring-income-input" data-index="${index}" data-key="amount" value="${income.amount || 0}" placeholder="Montant" aria-label="Montant du revenu" />
+          <input type="text" class="budget-input recurring-income-input" data-index="${index}" data-key="amount" value="${income.amount || 0}" placeholder="Montant" aria-label="Montant du revenu" />
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <select class="budget-input recurring-income-input" data-index="${index}" data-key="frequency" aria-label="Fréquence de revenu">
@@ -43,7 +43,7 @@ const createBillScheduleCard = (bill, index) => {
         </div>
         <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;">
           <input type="text" class="budget-input bill-schedule-input" data-index="${index}" data-key="name" value="${bill.name || ''}" placeholder="Nom de la charge" aria-label="Nom de la charge" />
-          <input type="number" class="budget-input bill-schedule-input" data-index="${index}" data-key="amount" value="${bill.amount || 0}" placeholder="Montant" aria-label="Montant de la charge" />
+          <input type="text" class="budget-input bill-schedule-input" data-index="${index}" data-key="amount" value="${bill.amount || 0}" placeholder="Montant" aria-label="Montant de la charge" />
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <input type="number" class="budget-input bill-schedule-input" data-index="${index}" data-key="day" value="${bill.day || bill.date || ''}" min="1" max="31" placeholder="Jour du mois" aria-label="Jour de facturation" />

@@ -1,0 +1,24 @@
+#!/usr/bin/env node
+import assert from 'node:assert/strict'
+import { parseFinancialExpression } from './financialExpression.js'
+
+const validCases = [
+  ['450', 450],
+  ['450+50', 500],
+  ['1200-300', 900],
+  ['1700+308', 2008],
+  ['500-120+50', 430],
+  ['1 200,50 + 49.50', 1250]
+]
+
+for (const [expression, expected] of validCases) {
+  assert.equal(parseFinancialExpression(expression), expected, `${expression} should be ${expected}`)
+}
+
+const invalidCases = ['abc', 'bonjour', '450+abc', '12*/5']
+
+for (const expression of invalidCases) {
+  assert.equal(parseFinancialExpression(expression), null, `${expression} should be rejected`)
+}
+
+console.log('financialExpression-tests: OK')

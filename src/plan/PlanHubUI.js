@@ -2,6 +2,7 @@ import TreasuryService from '../treasury/treasuryService.js'
 import TreasuryAdapter from '../treasury/treasuryAdapter.js'
 import { SettingsService } from '../settings/settingsService.js'
 import { renderTreasuryTimeline } from '../components/TreasuryTimeline.js'
+import { parseFinancialExpression } from '../finance/financialExpression.js'
 
 const formatCurrency = (value) => {
   const amount = Number(value) || 0
@@ -22,6 +23,8 @@ const escapeAttr = (value) => String(value ?? '')
   .replace(/"/g, '&quot;')
   .replace(/</g, '&lt;')
   .replace(/>/g, '&gt;')
+
+const parseAmount = (value, fallback = 0) => parseFinancialExpression(value, { fallback })
 
 const buildEmptyState = () => `
   <div class="empty-state plan-empty-state">
@@ -173,8 +176,8 @@ const buildPlanContent = (data) => {
               </div>
               <div class="plan-edit-grid">
                 <label>Nom<input class="budget-input plan-goal-input" data-field="name" value="${escapeAttr(goal.name || '')}" type="text"></label>
-                <label>Cible<input class="budget-input plan-goal-input" data-field="target" value="${target}" type="number" min="0"></label>
-                <label>Actuel<input class="budget-input plan-goal-input" data-field="current" value="${current}" type="number" min="0"></label>
+                <label>Cible<input class="budget-input plan-goal-input" data-field="target" value="${target}" type="text"></label>
+                <label>Actuel<input class="budget-input plan-goal-input" data-field="current" value="${current}" type="text"></label>
                 <label>Échéance<input class="budget-input plan-goal-input" data-field="targetDate" value="${escapeAttr(goal.targetDate || '')}" type="date"></label>
               </div>
               <div class="plan-edit-actions">
@@ -189,7 +192,7 @@ const buildPlanContent = (data) => {
         </div>
         <div class="plan-create-form" id="plan-goal-create-form">
           <input class="budget-input" id="plan-new-goal-name" type="text" placeholder="Nouvel objectif">
-          <input class="budget-input" id="plan-new-goal-target" type="number" min="0" placeholder="Cible">
+          <input class="budget-input" id="plan-new-goal-target" type="text" placeholder="Cible">
           <button class="btn btn-gold" id="plan-goal-create" type="button">Créer</button>
         </div>
       </section>
@@ -206,11 +209,11 @@ const buildPlanContent = (data) => {
               </div>
               <div class="plan-edit-grid">
                 <label>Nom<input class="budget-input plan-debt-input" data-field="name" value="${escapeAttr(debt.name || '')}" type="text"></label>
-                <label>Initial<input class="budget-input plan-debt-input" data-field="initial" value="${Number(debt.initial) || 0}" type="number" min="0"></label>
-                <label>Restant<input class="budget-input plan-debt-input" data-field="remaining" value="${Number(debt.remaining) || 0}" type="number" min="0"></label>
-                <label>Mensualité<input class="budget-input plan-debt-input" data-field="monthly" value="${Number(debt.monthly) || 0}" type="number" min="0"></label>
+                <label>Initial<input class="budget-input plan-debt-input" data-field="initial" value="${Number(debt.initial) || 0}" type="text"></label>
+                <label>Restant<input class="budget-input plan-debt-input" data-field="remaining" value="${Number(debt.remaining) || 0}" type="text"></label>
+                <label>Mensualité<input class="budget-input plan-debt-input" data-field="monthly" value="${Number(debt.monthly) || 0}" type="text"></label>
                 <label>Échéance<input class="budget-input plan-debt-input" data-field="endDate" value="${escapeAttr(debt.endDate || '')}" type="date"></label>
-                <label>Paiement<input class="budget-input plan-debt-payment" value="" type="number" min="0" placeholder="Montant"></label>
+                <label>Paiement<input class="budget-input plan-debt-payment" value="" type="text" placeholder="Montant"></label>
               </div>
               <div class="plan-edit-actions">
                 <button class="btn btn-gold plan-debt-save" type="button">Enregistrer</button>
@@ -223,8 +226,8 @@ const buildPlanContent = (data) => {
         </div>
         <div class="plan-create-form" id="plan-debt-create-form">
           <input class="budget-input" id="plan-new-debt-name" type="text" placeholder="Nouvelle dette">
-          <input class="budget-input" id="plan-new-debt-remaining" type="number" min="0" placeholder="Restant">
-          <input class="budget-input" id="plan-new-debt-monthly" type="number" min="0" placeholder="Mensualité">
+          <input class="budget-input" id="plan-new-debt-remaining" type="text" placeholder="Restant">
+          <input class="budget-input" id="plan-new-debt-monthly" type="text" placeholder="Mensualité">
           <button class="btn btn-gold" id="plan-debt-create" type="button">Créer</button>
         </div>
       </section>
@@ -239,7 +242,7 @@ const attachPlanEditors = (root, planData) => {
       const patch = {}
       item.querySelectorAll('.plan-goal-input').forEach((input) => {
         const field = input.dataset.field
-        patch[field] = input.type === 'number' ? Number(input.value) || 0 : input.value
+        patch[field] = ['target', 'current'].includes(field) ? parseAmount(input.value) : input.value
       })
       return patch
     }
@@ -270,7 +273,7 @@ const attachPlanEditors = (root, planData) => {
 
   root.querySelector('#plan-goal-create')?.addEventListener('click', async () => {
     const name = root.querySelector('#plan-new-goal-name')?.value?.trim()
-    const target = Number(root.querySelector('#plan-new-goal-target')?.value) || 0
+    const target = parseAmount(root.querySelector('#plan-new-goal-target')?.value)
     if (!name || target <= 0) {
       window.showToast?.('Nom et cible requis')
       return
@@ -293,7 +296,7 @@ const attachPlanEditors = (root, planData) => {
       const patch = {}
       item.querySelectorAll('.plan-debt-input').forEach((input) => {
         const field = input.dataset.field
-        patch[field] = input.type === 'number' ? Number(input.value) || 0 : input.value
+        patch[field] = ['initial', 'remaining', 'monthly'].includes(field) ? parseAmount(input.value) : input.value
       })
       return patch
     }
@@ -304,7 +307,7 @@ const attachPlanEditors = (root, planData) => {
       await saveDebtList(debts)
     })
     item.querySelector('.plan-debt-pay')?.addEventListener('click', async () => {
-      const payment = Number(item.querySelector('.plan-debt-payment')?.value) || 0
+      const payment = parseAmount(item.querySelector('.plan-debt-payment')?.value)
       if (payment <= 0) {
         window.showToast?.('Montant de paiement requis')
         return
@@ -331,8 +334,8 @@ const attachPlanEditors = (root, planData) => {
 
   root.querySelector('#plan-debt-create')?.addEventListener('click', async () => {
     const name = root.querySelector('#plan-new-debt-name')?.value?.trim()
-    const remaining = Number(root.querySelector('#plan-new-debt-remaining')?.value) || 0
-    const monthly = Number(root.querySelector('#plan-new-debt-monthly')?.value) || 0
+    const remaining = parseAmount(root.querySelector('#plan-new-debt-remaining')?.value)
+    const monthly = parseAmount(root.querySelector('#plan-new-debt-monthly')?.value)
     if (!name || remaining <= 0) {
       window.showToast?.('Nom et montant restant requis')
       return

@@ -2,6 +2,7 @@ import { GoalsService } from '../goals/goalsService.js'
 import { UserAppSettingsService } from '../../js/userAppSettingsService.js'
 import createGoalCard from '../components/GoalCard.js'
 import { STORAGE_KEYS } from '../constants/storageKeys.js'
+import { parseFinancialExpression } from '../finance/financialExpression.js'
 
 const GOALS_STORAGE_KEY = STORAGE_KEYS.goals
 
@@ -13,10 +14,7 @@ const openGoalModal = async (options) => {
 }
 
 const readGoalNumber = (value, fallback) => {
-  const normalized = String(value ?? '').trim().replace(',', '.')
-  if (normalized === '') return fallback
-  const parsed = Number(normalized)
-  return Number.isFinite(parsed) ? parsed : fallback
+  return parseFinancialExpression(value, { fallback })
 }
 
 const normalizeGoalDate = (value) => {
@@ -58,8 +56,8 @@ const GoalsPage = {
 
   handleCreate: async () => {
     const name = GoalsPage.form.name.value.trim()
-    const target = Number(GoalsPage.form.target.value) || 0
-    const current = Number(GoalsPage.form.current.value) || 0
+    const target = readGoalNumber(GoalsPage.form.target.value, 0)
+    const current = readGoalNumber(GoalsPage.form.current.value, 0)
     const date = GoalsPage.form.date.value || null
     const color = GoalsPage.form.color.value || '#e5c060'
     const icon = GoalsPage.form.icon.value || '🎯'
@@ -194,7 +192,7 @@ const GoalsPage = {
     const goals = await GoalsService.listGoals()
     GoalsPage.listEl.innerHTML = ''
     const monthlyInput = document.getElementById('goal-monthly-contrib')
-    const monthly = monthlyInput ? Number(monthlyInput.value) || 0 : 0
+    const monthly = monthlyInput ? readGoalNumber(monthlyInput.value, 0) : 0
     goals.forEach(g => {
       const est = GoalsService.estimateMonthsToTarget(g, monthly)
       if (est !== null) g.__estimatedMonths = est

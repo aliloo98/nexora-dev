@@ -269,7 +269,7 @@
           <div style="font-size:12px;color:var(--text2);margin-top:4px">Ce montant aide Nexora à estimer ta capacité d'épargne.</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <input class="budget-input" type="number" placeholder="500" data-key="target_epargne" oninput="updateAll()" style="width:120px">
+          <input class="budget-input" type="text" placeholder="500" data-key="target_epargne" oninput="updateAll()" style="width:120px">
           <span style="font-weight:600;color:var(--text)">€</span>
         </div>
       </div>
@@ -300,15 +300,15 @@
             <label for="goal-monthly-contrib" style="font-size:12px;color:var(--text2);display:block;margin-bottom:3px">Contribution mensuelle aux objectifs</label>
             <div style="font-size:11px;color:var(--text2);line-height:1.35">Utilisée uniquement pour estimer la date d’atteinte.</div>
           </div>
-          <input id="goal-monthly-contrib" type="number" class="budget-input" style="width:140px" value="0" oninput="if(window.GoalsPage) GoalsPage.render()">
+          <input id="goal-monthly-contrib" type="text" class="budget-input" style="width:140px" value="0" oninput="if(window.GoalsPage) GoalsPage.render()">
         </div>
 
         <div id="goals-list" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px"></div>
         <div style="margin-top:16px;padding:12px;background:rgba(255,255,255,0.02);border-radius:12px;border:1px dashed rgba(229,192,96,0.2);">
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
             <input type="text" id="goal-new-name" class="budget-input" placeholder="Nom (ex: Voyage de noces)" style="flex:2;min-width:180px" aria-label="Nom de l'objectif">
-            <input type="number" id="goal-new-target" class="budget-input" placeholder="Montant cible (€)" style="width:160px" aria-label="Montant cible de l'objectif">
-            <input type="number" id="goal-new-current" class="budget-input" placeholder="Montant déjà épargné (€)" value="0" style="width:140px" aria-label="Montant déjà épargné de l'objectif">
+            <input type="text" id="goal-new-target" class="budget-input" placeholder="Montant cible (€)" style="width:160px" aria-label="Montant cible de l'objectif">
+            <input type="text" id="goal-new-current" class="budget-input" placeholder="Montant déjà épargné (€)" value="0" style="width:140px" aria-label="Montant déjà épargné de l'objectif">
             <input type="date" id="goal-new-date" class="budget-input" style="width:160px" aria-label="Date d'échéance de l'objectif">
             <input type="color" id="goal-new-color" value="#e5c060" title="Couleur" style="width:48px;height:40px;border:none;padding:0" aria-label="Couleur de l'objectif">
             <input type="text" id="goal-new-icon" class="budget-input" placeholder="Emoji" style="width:80px" aria-label="Emoji de l'objectif">
@@ -347,10 +347,10 @@
       <div id="debts-list" class="debts-list"></div>
       <div class="debt-form">
         <input type="text" id="debt-new-name" class="budget-input" placeholder="Nom (ex: Crédit voiture)" aria-label="Nom de la dette">
-        <input type="number" id="debt-new-initial" class="budget-input" placeholder="Montant initial" aria-label="Montant initial">
-        <input type="number" id="debt-new-remaining" class="budget-input" placeholder="Restant" aria-label="Montant restant">
-        <input type="number" id="debt-new-monthly" class="budget-input" placeholder="Mensualité" aria-label="Mensualité">
-        <input type="number" id="debt-new-rate" class="budget-input" placeholder="Taux %" aria-label="Taux optionnel">
+        <input type="text" id="debt-new-initial" class="budget-input" placeholder="Montant initial" aria-label="Montant initial">
+        <input type="text" id="debt-new-remaining" class="budget-input" placeholder="Restant" aria-label="Montant restant">
+        <input type="text" id="debt-new-monthly" class="budget-input" placeholder="Mensualité" aria-label="Mensualité">
+        <input type="text" id="debt-new-rate" class="budget-input" placeholder="Taux %" aria-label="Taux optionnel">
         <button type="button" class="btn btn-gold" onclick="addDebt()">Ajouter</button>
       </div>
     </div>
@@ -373,18 +373,18 @@
       <div class="budget-category-divider">Revenus principaux</div>
       <div class="budget-row">
         <div class="budget-row-label">Revenu principal — Ali</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="rev_ali" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="rev_ali" oninput="updateAll()">
         <div></div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Revenu principal — Megane</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="rev_megane" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="rev_megane" oninput="updateAll()">
         <div></div>
       </div>
       <div class="budget-category-divider">Revenus exceptionnels</div>
       <div class="budget-row">
         <div class="budget-row-label">Entrée d'argent exceptionnelle</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="rev_excep" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="rev_excep" oninput="updateAll()">
         <div></div>
       </div>
       <div id="custom-income-rows"></div>
@@ -405,7 +405,7 @@
       <div class="budget-category-divider">Logement</div>
       <div class="budget-row">
         <div class="budget-row-label">Loyer</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="loyer" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="loyer" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="loyer_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
@@ -413,7 +413,7 @@
       <div class="budget-category-divider">Crédits & dettes</div>
       <div class="budget-row">
         <div class="budget-row-label">Crédit de surendettement</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="credit" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="credit" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="credit_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
@@ -421,14 +421,14 @@
       <div class="budget-category-divider">Transport</div>
       <div class="budget-row">
         <div class="budget-row-label">Assurance voiture</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="assauto" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="assauto" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="assauto_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Carburant / Gasoil</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="gasoil" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="gasoil" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="gasoil_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
@@ -436,14 +436,14 @@
       <div class="budget-category-divider">Énergie & services</div>
       <div class="budget-row">
         <div class="budget-row-label">Électricité</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="elec" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="elec" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="elec_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Eau</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="eau" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="eau" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="eau_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
@@ -451,28 +451,28 @@
       <div class="budget-category-divider">Santé</div>
       <div class="budget-row">
         <div class="budget-row-label">Psy</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="psy" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="psy" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="psy_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Diététicienne</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="diete" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="diete" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="diete_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Médicaments pour Itou</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="itou" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="itou" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="itou_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Frais de santé divers</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="sante" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="sante" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="sante_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
@@ -480,7 +480,7 @@
       <div class="budget-category-divider">Fiscalité</div>
       <div class="budget-row">
         <div class="budget-row-label">Impôts</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="impots" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="impots" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="impots_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
@@ -488,42 +488,42 @@
       <div class="budget-category-divider">Télécoms & abonnements</div>
       <div class="budget-row">
         <div class="budget-row-label">Box internet</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="box" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="box" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="box_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Téléphone — Ali</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="tel_ali" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="tel_ali" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="tel_ali_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Téléphone — Megane</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="tel_meg" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="tel_meg" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="tel_meg_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Streaming</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="stream" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="stream" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="stream_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">PlayStation</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="ps" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="ps" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="ps_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Carte bancaire</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="cb" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="cb" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="cb_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
@@ -531,7 +531,7 @@
       <div class="budget-category-divider">Imprévus fixes</div>
       <div class="budget-row">
         <div class="budget-row-label">Imprévu fixe / Exceptionnel</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="impfix" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="impfix" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="impfix_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
@@ -554,7 +554,7 @@
       <div class="budget-category-divider">Alimentation</div>
       <div class="budget-row">
         <div class="budget-row-label">Courses</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="courses" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="courses" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="courses_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
@@ -562,7 +562,7 @@
       <div class="budget-category-divider">Consommation personnelle</div>
       <div class="budget-row">
         <div class="budget-row-label">Tabac</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="tabac" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="tabac" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="tabac_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
@@ -570,14 +570,14 @@
       <div class="budget-category-divider">Bien-être & sport</div>
       <div class="budget-row">
         <div class="budget-row-label">Salle de sport</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="sport" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="sport" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="sport_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Ongles — Megane</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="ongles" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="ongles" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="ongles_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
@@ -585,7 +585,7 @@
       <div class="budget-category-divider">Vie sociale</div>
       <div class="budget-row">
         <div class="budget-row-label">Cadeaux</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="cadeaux" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="cadeaux" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="cadeaux_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
@@ -593,7 +593,7 @@
       <div class="budget-category-divider">Imprévus variables</div>
       <div class="budget-row">
         <div class="budget-row-label">Imprévu variable / Exceptionnel</div>
-        <input class="budget-input" type="number" placeholder="Montant" data-key="impvar" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="impvar" oninput="updateAll()">
         <div class="checkbox-container">
           <input type="checkbox" class="payee-checkbox" data-key="impvar_paye" onchange="updateRowPayedStyle(this); updateAll()">
         </div>
@@ -747,7 +747,7 @@
         </div>
         <div class="budget-cycle-fields ai-threshold-fields">
           <label for="ai-threshold-min-balance">Solde min.
-            <input id="ai-threshold-min-balance" class="budget-input budget-cycle-input" type="number" min="0" step="50" onchange="saveNexoraAiSettingsFromUI()">
+            <input id="ai-threshold-min-balance" class="budget-input budget-cycle-input" type="text" onchange="saveNexoraAiSettingsFromUI()">
           </label>
           <label for="ai-threshold-charges-rate">Charges %
             <input id="ai-threshold-charges-rate" class="budget-input budget-cycle-input" type="number" min="1" max="100" onchange="saveNexoraAiSettingsFromUI()">
@@ -873,7 +873,7 @@
           <div style="font-size:12px;color:var(--text2);margin-top:4px">Prévenir si le reste à payer dépasse ce seuil dans le cycle</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
-          <input id="notification-expense-threshold" class="budget-input" type="number" min="0" step="50" value="500" onchange="saveNexoraNotificationSettings()" style="width:110px" aria-label="Seuil d'alerte des dépenses restantes">
+          <input id="notification-expense-threshold" class="budget-input" type="text" value="500" onchange="saveNexoraNotificationSettings()" style="width:110px" aria-label="Seuil d'alerte des dépenses restantes">
           <span style="font-weight:600;color:var(--text)">€</span>
         </div>
       </div>
@@ -2596,14 +2596,18 @@ function openNexoraActionModal({ title, message, input = false, inputType = 'tex
 
 // Inline mathematical formula evaluation
 function parseBudgetNumber(value) {
+  if (typeof window.parseFinancialExpression === 'function') {
+    return window.parseFinancialExpression(value, { fallback: 0 });
+  }
   if (value === null || value === undefined) return 0;
-  const normalized = String(value)
-    .trim()
-    .replace(/\u202F/g, ' ')
-    .replace(/\u00A0/g, ' ')
-    .replace(/\s+/g, '')
-    .replace(',', '.');
-  return parseFloat(normalized) || 0;
+  const normalized = String(value).trim().replace(/\u202F/g, ' ').replace(/\u00A0/g, ' ');
+  if (!/^[0-9+\-.,\s]+$/.test(normalized)) return 0;
+  const compact = normalized.replace(/\s+/g, '').replace(/,/g, '.');
+  if (!/^[+-]?\d+(?:\.\d+)?(?:[+-]\d+(?:\.\d+)?)*$/.test(compact)) return 0;
+  const tokens = compact.match(/[+-]?\d+(?:\.\d+)?/g);
+  if (!tokens || tokens.join('') !== compact) return 0;
+  const result = tokens.reduce((sum, token) => sum + Number(token), 0);
+  return Number.isFinite(result) ? result : 0;
 }
 
 function formatFormulaResult(value) {
@@ -2649,25 +2653,17 @@ function evaluateFormula(input) {
   const val = input.value.trim();
   if (val === '') return;
 
-  const normalized = val.replace(/\u202F/g, ' ').replace(/\u00A0/g, ' ');
-  const hasOperator = /[0-9]\s*[+-]\s*[0-9]/.test(normalized);
+  const hasOperator = /[0-9]\s*[+-]\s*[0-9]/.test(val.replace(/\u202F/g, ' ').replace(/\u00A0/g, ' '));
   if (!hasOperator) return;
 
-  const expressionPattern = /^\s*[+-]?\s*\d+(?:[,.]\d+)?(?:\s*[+-]\s*\d+(?:[,.]\d+)?)*\s*$/;
-  if (!expressionPattern.test(normalized)) {
+  const result = typeof window.parseFinancialExpression === 'function'
+    ? window.parseFinancialExpression(val, { fallback: null })
+    : parseBudgetNumber(val);
+  if (result === null || !Number.isFinite(result)) {
     console.warn('[Formula] Expression invalide ignorée', val);
     return;
   }
 
-  const compact = normalized.replace(/\s+/g, '').replace(/,/g, '.');
-  const tokens = compact.match(/[+-]?\d+(?:\.\d+)?/g);
-  if (!tokens || tokens.join('') !== compact) {
-    console.warn('[Formula] Expression invalide ignorée', val);
-    return;
-  }
-
-  const result = tokens.reduce((sum, token) => sum + Number(token), 0);
-  if (!Number.isFinite(result)) return;
   input.value = formatFormulaResult(result);
   updateAll();
 }
@@ -3987,9 +3983,9 @@ async function editDebt(id) {
   if (!debt) return;
   const name = await openNexoraActionModal({ title: 'Modifier la dette', message: 'Nom', input: true, defaultValue: debt.name || '', required: true, confirmLabel: 'Continuer' });
   if (name === null) return;
-  const remaining = await openNexoraActionModal({ title: 'Modifier la dette', message: 'Montant restant', input: true, inputType: 'number', defaultValue: String(debt.remaining || 0), required: true, confirmLabel: 'Continuer' });
+  const remaining = await openNexoraActionModal({ title: 'Modifier la dette', message: 'Montant restant', input: true, inputType: 'text', defaultValue: String(debt.remaining || 0), required: true, confirmLabel: 'Continuer' });
   if (remaining === null) return;
-  const monthly = await openNexoraActionModal({ title: 'Modifier la dette', message: 'Mensualité', input: true, inputType: 'number', defaultValue: String(debt.monthly || 0), required: true, confirmLabel: 'Enregistrer' });
+  const monthly = await openNexoraActionModal({ title: 'Modifier la dette', message: 'Mensualité', input: true, inputType: 'text', defaultValue: String(debt.monthly || 0), required: true, confirmLabel: 'Enregistrer' });
   if (monthly === null) return;
   debt.name = name.trim();
   debt.remaining = parseBudgetNumber(remaining);
@@ -4049,7 +4045,7 @@ async function updateDashboardPrimaryGoal() {
     ? new Date(goal.targetDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
     : 'Non définie';
   const monthlyInput = document.getElementById('goal-monthly-contrib');
-  const monthly = monthlyInput ? Number(monthlyInput.value) || 0 : 0;
+  const monthly = monthlyInput ? parseBudgetNumber(monthlyInput.value) : 0;
   const estimatedMonths = window.GoalsService?.estimateMonthsToTarget?.(goal, monthly);
   const forecast = window.GoalsService?.getGoalForecast?.(goal, monthly);
   const estimateLabel = forecast?.status === 'reached'
@@ -4604,8 +4600,8 @@ function getHistoryMonthsFromStorage() {
 }
 
 function getHistoryDataValue(data, key) {
-  if (data && Object.prototype.hasOwnProperty.call(data, key)) return parseFloat(String(data[key]).replace(',', '.')) || 0;
-  if (data && Object.prototype.hasOwnProperty.call(data, key + '_reel')) return parseFloat(String(data[key + '_reel']).replace(',', '.')) || 0;
+  if (data && Object.prototype.hasOwnProperty.call(data, key)) return parseBudgetNumber(data[key]);
+  if (data && Object.prototype.hasOwnProperty.call(data, key + '_reel')) return parseBudgetNumber(data[key + '_reel']);
   return 0;
 }
 
@@ -6044,8 +6040,8 @@ function addCagnotte() {
   if (!nameEl || !targetEl || !currentEl) return;
 
   const name = nameEl.value.trim();
-  const target = parseFloat(targetEl.value) || 0;
-  const current = parseFloat(currentEl.value) || 0;
+  const target = parseBudgetNumber(targetEl.value);
+  const current = parseBudgetNumber(currentEl.value);
 
   if (name === '' || target <= 0) {
     showToast('⚠️ Veuillez renseigner un nom et un objectif valide');

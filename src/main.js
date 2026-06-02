@@ -48,6 +48,7 @@ import { renderPlanHub } from './plan/PlanHubUI.js'
 import { renderSettingsPanels, renderRecurringIncomeSettings, renderBillScheduleSettings } from './settings/SettingsUI.js'
 import { readAiSettings, updateAiSettings } from './advisor/proactiveCoachService.js'
 import NexoraMotion from './ui/motion.js'
+import { parseFinancialExpression } from './finance/financialExpression.js'
 
 // Expose modules globally for HTML event handlers and old code
 window.StorageManager = StorageManager
@@ -59,6 +60,7 @@ window.NexoraPdfExport = NexoraPdfExport
 window.NotificationsService = NotificationsService
 window.NexoraAiSettingsService = { readAiSettings, updateAiSettings }
 window.NexoraMotion = NexoraMotion
+window.parseFinancialExpression = parseFinancialExpression
 
 // Expose Supabase globally for future modules
 window.supabase = supabase
@@ -386,7 +388,7 @@ const initApp = async () => {
     // Attach amount input handlers to sanitize user input (prevent letters, support French formats)
     const attachAmountInputHandlers = () => {
         const sanitize = (v) => String(v ?? '')
-          .replace(/[^0-9\s,\.\-]/g, '') // allow digits, spaces, comma, dot, minus
+          .replace(/[^0-9\s,\.\+\-]/g, '') // allow simple arithmetic without letters
           .replace(/\,+/g, ',')
           .replace(/\.+/g, '.')
           .trim()
@@ -396,6 +398,11 @@ const initApp = async () => {
           if (input.type === 'date' || input.type === 'color') return false
           if (input.dataset?.key) return true
           if (input.type === 'number') return true
+          if (input.classList.contains('plan-goal-input')) return true
+          if (input.classList.contains('plan-debt-input')) return true
+          if (input.classList.contains('plan-debt-payment')) return true
+          if (input.classList.contains('recurring-income-input') && input.dataset?.key === 'amount') return true
+          if (input.classList.contains('bill-schedule-input') && input.dataset?.key === 'amount') return true
           return [
             'goal-monthly-contrib',
             'goal-new-target',
@@ -431,8 +438,8 @@ const initApp = async () => {
 
           input.addEventListener('blur', (e) => {
             const raw = sanitize(input.value)
-            const numeric = parseFloat(String(raw).replace(/\s/g, '').replace(',', '.'))
-            if (!Number.isNaN(numeric) && typeof window.Utils?.formatCurrency === 'function') {
+            const numeric = parseFinancialExpression(raw, { fallback: null })
+            if (numeric !== null && typeof window.Utils?.formatCurrency === 'function') {
               try { input.value = window.Utils.formatCurrency(numeric) } catch (err) {}
             }
           })

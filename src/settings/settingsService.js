@@ -1,3 +1,5 @@
+import { parseFinancialExpression } from '../finance/financialExpression.js'
+
 export const SettingsService = {
   RECURRING_INCOMES_KEY: 'nexora_recurring_incomes',
   BILL_SCHEDULES_KEY: 'nexora_bill_schedules',
@@ -6,7 +8,7 @@ export const SettingsService = {
     const day = Math.max(1, Math.min(31, Number(entry.day || entry.payDay || entry.date) || 1))
     return {
       name: String(entry.name || entry.title || 'Revenu récurrent').trim(),
-      amount: Number(entry.amount) || 0,
+      amount: parseFinancialExpression(entry.amount, { fallback: 0 }),
       day,
       frequency: ['monthly', 'weekly', 'biweekly', 'once'].includes(entry.frequency) ? entry.frequency : 'monthly'
     }
@@ -17,7 +19,7 @@ export const SettingsService = {
     const priority = ['critique', 'importante', 'standard'].includes(entry.priority) ? entry.priority : 'standard'
     return {
       name: String(entry.name || entry.title || 'Charge planifiée').trim(),
-      amount: Number(entry.amount) || 0,
+      amount: parseFinancialExpression(entry.amount, { fallback: 0 }),
       day,
       date: day,
       priority,

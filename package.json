@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test:assistant": "node ./src/assistant/run-tests.js && node ./src/couple/ui-tests.js && node ./src/treasury/treasury-tests.js && node ./src/debt/debt-tests.js && node ./src/advisor/advisor-tests.js",
+    "test:assistant": "node ./src/finance/financialExpression-tests.js && node ./src/assistant/run-tests.js && node ./src/couple/ui-tests.js && node ./src/treasury/treasury-tests.js && node ./src/debt/debt-tests.js && node ./src/advisor/advisor-tests.js",
     "test:e2e": "npx playwright test tests/playwright --config=./playwright.config.js"
   },
   "dependencies": {
