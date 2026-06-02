@@ -97,6 +97,19 @@ const renderScenarioCards = (scenarios = []) => {
   `).join('')
 }
 
+const renderMemoryItems = (memory = {}) => {
+  const items = []
+  if (memory.lastRecommendation) items.push(`La dernière fois, je t’avais conseillé : ${memory.lastRecommendation}`)
+  if (memory.lastPrimaryGoal) items.push(`Ton objectif principal reste ${memory.lastPrimaryGoal}.`)
+  if (memory.recentProgress) items.push(`Progression récente : ${memory.recentProgress}.`)
+  if (Array.isArray(memory.lastImportantAlerts) && memory.lastImportantAlerts[0]) {
+    items.push(`Point déjà repéré : ${memory.lastImportantAlerts[0]}.`)
+  }
+  const uniqueItems = Array.from(new Set(items.filter(Boolean))).slice(0, 3)
+  if (!uniqueItems.length) return ''
+  return uniqueItems.map((item) => `<li>${escapeHtml(item)}</li>`).join('')
+}
+
 export function renderAdvisorUI(rootId, AdvisorService) {
   const root = document.getElementById(rootId)
   if (!root) return
@@ -179,6 +192,10 @@ export function renderAdvisorUI(rootId, AdvisorService) {
           <div id="advisor-scenarios-list" class="advisor-scenarios-list"></div>
         </section>
       </div>
+      <section class="advisor-result-card advisor-memory-card" id="advisor-memory-card" hidden>
+        <span>Mémoire Nexora</span>
+        <ul id="advisor-memory-list" class="advisor-memory-list"></ul>
+      </section>
     </section>
   `
 
@@ -247,6 +264,12 @@ export function renderAdvisorUI(rootId, AdvisorService) {
         root.querySelector('#advisor-proactive-priority').textContent = `Priorité : ${coach.priority || 'Maintenir la marge'}`
         root.querySelector('#advisor-proactive-risks').innerHTML = renderList(coach.risks, 'Aucun risque majeur')
         root.querySelector('#advisor-proactive-opportunities').innerHTML = renderList(coach.opportunities, 'Aucune opportunité claire')
+        const memoryHtml = renderMemoryItems(coach.memory)
+        const memoryCard = root.querySelector('#advisor-memory-card')
+        if (memoryCard) {
+          memoryCard.hidden = !memoryHtml
+          root.querySelector('#advisor-memory-list').innerHTML = memoryHtml
+        }
         const actionBtn = root.querySelector('#advisor-proactive-action')
         if (actionBtn) {
           actionBtn.textContent = coach.actionLabel || 'Voir le Plan'
@@ -260,6 +283,8 @@ export function renderAdvisorUI(rootId, AdvisorService) {
       root.querySelector('#advisor-proactive-risks').innerHTML = renderList([], 'Données insuffisantes')
       root.querySelector('#advisor-proactive-opportunities').innerHTML = renderList([], 'Complète le budget pour les afficher')
       root.querySelector('#advisor-scenarios-list').innerHTML = renderScenarioCards([])
+      const memoryCard = root.querySelector('#advisor-memory-card')
+      if (memoryCard) memoryCard.hidden = true
     }
   }
 

@@ -539,6 +539,71 @@ body,
   margin-top: 12px;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .kpi-card,
+  .wow-card,
+  .advisor-result-card,
+  .plan-card,
+  .timeline-event {
+    animation: nexoraSoftIn 420ms ease both;
+  }
+
+  .kpi-card:nth-child(2),
+  .wow-card:nth-child(2),
+  .plan-card:nth-child(2) { animation-delay: 45ms; }
+
+  .kpi-card:nth-child(3),
+  .wow-card:nth-child(3),
+  .plan-card:nth-child(3) { animation-delay: 90ms; }
+
+  .kpi-card:nth-child(4),
+  .wow-card:nth-child(4),
+  .plan-card:nth-child(4) { animation-delay: 135ms; }
+
+  .dashboard-coach-card {
+    animation: nexoraAdviceIn 520ms ease both;
+  }
+
+  .mode-simple .dashboard-clean-grid,
+  .mode-complet .dashboard-clean-grid,
+  .assistant-result-grid,
+  .advisor-result-grid {
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+
+  .btn,
+  .mode-toggle-btn,
+  button {
+    transition: transform 140ms ease, border-color 180ms ease, background-color 180ms ease, color 180ms ease;
+  }
+
+  .btn:active,
+  .mode-toggle-btn:active,
+  button:active {
+    transform: scale(0.98);
+  }
+
+  .plan-timeline-root > *,
+  .assistant-timeline-item {
+    animation: nexoraLiftIn 360ms ease both;
+  }
+
+  @keyframes nexoraSoftIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes nexoraAdviceIn {
+    from { opacity: 0; transform: translateY(10px) scale(0.99); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @keyframes nexoraLiftIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
 .wow-actions .btn {
   font-size: 11px;
   min-height: 30px;
@@ -620,6 +685,8 @@ body.mode-simple .simple-dashboard-grid {
 body.mode-simple .kpi-grid,
 body.mode-simple .dash-row,
 body.mode-simple .dashboard-action-center,
+body.mode-simple .dashboard-greeting-card,
+body.mode-simple .priority-action-card,
 body.mode-simple .couple-insights-card,
 body.mode-simple .week-plan-card,
 body.mode-simple .analytics-premium,
@@ -3015,6 +3082,18 @@ body.has-unsaved-budget-changes .save-bar-spacer {
   color: var(--text2);
   font-size: 13px;
   line-height: 1.4;
+}
+
+.advisor-memory-card[hidden] {
+  display: none;
+}
+
+.advisor-memory-list {
+  margin: 4px 0 0;
+  padding-left: 17px;
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .advisor-scenarios-list {

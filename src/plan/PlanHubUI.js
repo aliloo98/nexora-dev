@@ -428,7 +428,9 @@ const buildPlanData = async () => {
     days: 30
   })
 
-  const totalRevenue = revenues.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+  const scheduledRevenue = revenues.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+  const budgetRevenue = (fetchedRevenues || []).reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+  const totalRevenue = Math.max(scheduledRevenue, budgetRevenue)
   const totalCharges = charges.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
   const { toPayNow } = TreasuryService.suggestPayments({
     baseBalance,

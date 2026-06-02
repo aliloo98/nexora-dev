@@ -1,4 +1,26 @@
 export const FINANCIAL_MEMORY_KEY = 'nexora_financial_memory_v1'
+export const AI_SETTINGS_KEY = 'nexora_ai_settings_v1'
+
+export const DEFAULT_AI_SETTINGS = {
+  cautionLevel: 'balanced',
+  coachPriority: 'security',
+  communicationStyle: 'benevolent',
+  recommendationFrequency: 'daily',
+  thresholds: {
+    minBalance: 150,
+    chargesRate: 75,
+    variableRate: 35,
+    goalDelayDays: 1
+  }
+}
+
+const CAUTION_PROFILES = {
+  very_cautious: { minBalancePct: 0.14, purchaseFloorPct: 0.16, label: 'Très prudent' },
+  cautious: { minBalancePct: 0.1, purchaseFloorPct: 0.12, label: 'Prudent' },
+  balanced: { minBalancePct: 0.08, purchaseFloorPct: 0.08, label: 'Équilibré' },
+  ambitious: { minBalancePct: 0.05, purchaseFloorPct: 0.05, label: 'Ambitieux' },
+  aggressive: { minBalancePct: 0.03, purchaseFloorPct: 0.03, label: 'Agressif' }
+}
 
 const clamp = (value, min = 0, max = 100) => Math.max(min, Math.min(max, value))
 const safeNumber = (value, fallback = 0) => {
@@ -34,6 +56,45 @@ const writeJson = (key, value) => {
   } catch {
     // Local memory is helpful, not required.
   }
+}
+
+const normalizeAiSettings = (settings = {}) => {
+  const thresholds = settings.thresholds && typeof settings.thresholds === 'object' ? settings.thresholds : {}
+  return {
+    cautionLevel: CAUTION_PROFILES[settings.cautionLevel] ? settings.cautionLevel : DEFAULT_AI_SETTINGS.cautionLevel,
+    coachPriority: ['security', 'savings', 'primary_goal', 'debt_reduction', 'major_purchase', 'couple_budget'].includes(settings.coachPriority)
+      ? settings.coachPriority
+      : DEFAULT_AI_SETTINGS.coachPriority,
+    communicationStyle: ['direct', 'benevolent', 'professional', 'motivational'].includes(settings.communicationStyle)
+      ? settings.communicationStyle
+      : DEFAULT_AI_SETTINGS.communicationStyle,
+    recommendationFrequency: ['daily', 'weekly', 'risk_only'].includes(settings.recommendationFrequency)
+      ? settings.recommendationFrequency
+      : DEFAULT_AI_SETTINGS.recommendationFrequency,
+    thresholds: {
+      minBalance: Math.max(0, safeNumber(thresholds.minBalance, DEFAULT_AI_SETTINGS.thresholds.minBalance)),
+      chargesRate: clamp(Math.round(safeNumber(thresholds.chargesRate, DEFAULT_AI_SETTINGS.thresholds.chargesRate)), 1, 100),
+      variableRate: clamp(Math.round(safeNumber(thresholds.variableRate, DEFAULT_AI_SETTINGS.thresholds.variableRate)), 1, 100),
+      goalDelayDays: Math.max(0, Math.round(safeNumber(thresholds.goalDelayDays, DEFAULT_AI_SETTINGS.thresholds.goalDelayDays)))
+    }
+  }
+}
+
+export function readAiSettings() {
+  return normalizeAiSettings(readJson(AI_SETTINGS_KEY, DEFAULT_AI_SETTINGS))
+}
+
+export function updateAiSettings(patch = {}) {
+  const next = normalizeAiSettings({
+    ...readAiSettings(),
+    ...patch,
+    thresholds: {
+      ...readAiSettings().thresholds,
+      ...(patch.thresholds || {})
+    }
+  })
+  writeJson(AI_SETTINGS_KEY, next)
+  return next
 }
 
 export function readFinancialMemory() {
@@ -111,6 +172,7 @@ export async function collectFinancialContext(overrides = {}) {
     upcomingRevenues: Array.isArray(overrides.upcomingRevenues) ? overrides.upcomingRevenues : [],
     mode: overrides.mode || (runtime.document?.body?.classList?.contains('mode-simple') ? 'simple' : 'complete'),
     demoMode: Boolean(overrides.demoMode ?? (runtime.SafeStorage?.getItem?.('nexora_demo_mode_v1') === 'on' || runtime.localStorage?.getItem?.('nexora_demo_mode_v1') === 'on')),
+    settings: normalizeAiSettings(overrides.settings || readAiSettings()),
     today: overrides.today || new Date()
   }
 }
@@ -148,15 +210,19 @@ export function analyzeProactiveCoach(context = {}) {
   const variableRate = income > 0 ? Math.round((variable / income) * 100) : 0
   const debtMonthlyTotal = debts.reduce((sum, debt) => sum + safeNumber(debt?.monthly), 0)
   const targetSavings = safeNumber(context.targetSavings)
+  const settings = normalizeAiSettings(context.settings || readAiSettings())
+  const caution = CAUTION_PROFILES[settings.cautionLevel] || CAUTION_PROFILES.balanced
+  const minBalance = Math.max(settings.thresholds.minBalance, Math.round(income * caution.minBalancePct))
   const memory = readFinancialMemory()
   const risks = []
   const opportunities = []
+  const actions = []
 
   if (income <= 0) risks.push('Revenu non configuré')
-  if (income > 0 && chargesRate > 70) risks.push(`Charges élevées : ${chargesRate}% des revenus`)
+  if (income > 0 && chargesRate > settings.thresholds.chargesRate) risks.push(`Charges élevées : ${chargesRate}% des revenus`)
   if (projectedBalance < 0) risks.push(`Solde prévisionnel négatif : ${formatEuro(projectedBalance)}`)
-  else if (projectedBalance < Math.max(100, income * 0.08)) risks.push(`Solde prévisionnel bas : ${formatEuro(projectedBalance)}`)
-  if (income > 0 && variableRate > 35) risks.push(`Dépenses variables élevées : ${variableRate}% des revenus`)
+  else if (projectedBalance < minBalance) risks.push(`Marge critique : ${formatEuro(projectedBalance)} disponibles`)
+  if (income > 0 && variableRate > settings.thresholds.variableRate) risks.push(`Dépenses variables élevées : ${variableRate}% des revenus`)
   if (primaryGoal) {
     const deadline = getGoalDeadline(primaryGoal, today)
     if (deadline.isLate) risks.push(`Objectif ${primaryGoal.name || 'principal'} en retard`)
@@ -171,44 +237,65 @@ export function analyzeProactiveCoach(context = {}) {
   const upcomingCharge = (context.upcomingCharges || []).find((charge) => safeNumber(charge?.amount) > 0)
   if (upcomingCharge) risks.push(`Échéance proche : ${upcomingCharge.title || 'charge'} ${formatEuro(upcomingCharge.amount)}`)
 
-  if (income > 0 && projectedBalance > 150) opportunities.push(`Tu peux épargner environ ${formatEuro(projectedBalance * 0.6)} sans vider ta marge.`)
-  if (debts.length && projectedBalance > debtMonthlyTotal + 50) opportunities.push('Une dette peut être remboursée un peu plus vite.')
-  if (primaryGoal && projectedBalance > 80) opportunities.push(`Ton objectif ${primaryGoal.name || 'principal'} peut avancer cette semaine.`)
+  const budgetTense = income <= 0 || projectedBalance < minBalance || chargesRate > settings.thresholds.chargesRate || variableRate > settings.thresholds.variableRate
+  if (!budgetTense && income > 0 && projectedBalance > minBalance + 50) opportunities.push(`Tu peux épargner environ ${formatEuro((projectedBalance - minBalance) * 0.6)} sans vider ta marge.`)
+  if (!budgetTense && debts.length && projectedBalance > debtMonthlyTotal + 50) opportunities.push('Une dette peut être remboursée un peu plus vite.')
+  if (!budgetTense && primaryGoal && projectedBalance > minBalance + 80) opportunities.push(`Ton objectif ${primaryGoal.name || 'principal'} peut avancer cette semaine.`)
   if (income > 0 && variableRate !== null && variableRate <= 25) opportunities.push('Tes dépenses variables sont maîtrisées.')
 
-  let priority = 'Compléter les données'
+  let priority = 'Complète tes revenus dans Budget'
   let actionTarget = 'saisie'
-  if (income <= 0) priority = 'Configurer les revenus'
+  if (income <= 0) {
+    priority = 'Ajoute tes revenus dans Budget'
+    actions.push('Ajoute au moins un revenu réel avant de suivre une recommandation.')
+  }
   else if (upcomingCharge && currentBalance < safeNumber(upcomingCharge.amount)) {
-    priority = `Sécuriser ${upcomingCharge.title || 'la prochaine charge'}`
+    priority = `Garde ${formatEuro(upcomingCharge.amount)} pour ${upcomingCharge.title || 'la prochaine charge'}`
     actionTarget = 'plan'
   } else if (projectedBalance < 0 || chargesRate > 80) {
-    priority = 'Limiter les dépenses variables'
+    priority = `Réduis les dépenses variables de ${formatEuro(Math.max(50, Math.abs(projectedBalance) || variable * 0.15))}`
     actionTarget = 'saisie'
   } else if (debts.some((debt) => safeNumber(debt?.monthly) <= 0)) {
-    priority = 'Rembourser la dette prioritaire'
+    priority = `Rembourse ${debts[0]?.name || 'la dette prioritaire'} en priorité`
     actionTarget = 'plan'
   } else if (primaryGoal && safeNumber(primaryGoal.target) > safeNumber(primaryGoal.current)) {
-    priority = 'Alimenter l’objectif principal'
+    priority = budgetTense
+      ? 'Protège ta marge avant l’objectif principal'
+      : `Ajoute ${formatEuro(Math.min(50, Math.max(20, projectedBalance - minBalance)))} à ${primaryGoal.name || 'l’objectif principal'} cette semaine`
     actionTarget = 'objectifs'
+  } else if (settings.coachPriority === 'debt_reduction' && debts.length) {
+    priority = `Rembourse ${debts[0]?.name || 'la dette prioritaire'} en priorité`
+    actionTarget = 'plan'
   } else {
-    priority = 'Maintenir la marge de sécurité'
+    priority = `Conserve au moins ${formatEuro(minBalance)} de marge`
     actionTarget = 'plan'
   }
 
-  let dailyAdvice = 'Aucune action urgente aujourd’hui.'
+  let dailyAdvice = `Conserve au moins ${formatEuro(minBalance)} de marge aujourd’hui.`
   if (income <= 0) dailyAdvice = 'Je peux t’aider, mais il me manque encore tes revenus, tes charges ou ton objectif principal.'
   else if (upcomingCharge) dailyAdvice = `${upcomingCharge.title || 'Une charge'} arrive bientôt, garde au moins ${formatEuro(upcomingCharge.amount)} disponibles.`
   else if (projectedBalance < 0) dailyAdvice = `Réduis ou reporte ${formatEuro(Math.abs(projectedBalance))} pour éviter un solde négatif.`
+  else if (budgetTense) dailyAdvice = `Budget tendu : garde ta marge et limite les dépenses variables avant d’épargner.`
   else if (primaryGoal) {
     const deadline = getGoalDeadline(primaryGoal, today)
     if (deadline.isLate) dailyAdvice = `Ton objectif ${primaryGoal.name || 'principal'} est en retard, ajoute ${formatEuro(Math.min(Math.max(20, deadline.monthlyNeed / 4), projectedBalance))} cette semaine si possible.`
     else if (projectedBalance > 80) dailyAdvice = `Tu peux mettre ${formatEuro(Math.min(projectedBalance * 0.4, 100))} sur ${primaryGoal.name || 'ton objectif'} tout en gardant une marge.`
   }
+  if (income > 0 && budgetTense && /objectif|épargn|epargn|mettre/i.test(dailyAdvice)) {
+    dailyAdvice = `Budget tendu : sécurise les charges essentielles et garde ${formatEuro(minBalance)} de marge.`
+  }
 
   if (memory.lastRecommendation === dailyAdvice && risks.length > 1) {
-    dailyAdvice = risks[1]
+    dailyAdvice = `Action prioritaire : ${priority}.`
   }
+
+  const styleAdvice = (text) => {
+    if (settings.communicationStyle === 'direct') return text.replace(/^Je te conseille de\s+/i, '').replace(/^Tu peux\s+/i, 'Fais-le seulement si ')
+    if (settings.communicationStyle === 'professional') return text.replace(/^Tu /, 'Vous ').replace(/\bta\b/g, 'votre').replace(/\btes\b/g, 'vos')
+    if (settings.communicationStyle === 'motivational' && !budgetTense) return `${text} Tu progresses, garde le cap.`
+    return text
+  }
+  dailyAdvice = styleAdvice(dailyAdvice)
 
   const progress = primaryGoal
     ? `${primaryGoal.name || 'Objectif'} : ${clamp(Math.round((safeNumber(primaryGoal.current) / Math.max(1, safeNumber(primaryGoal.target))) * 100))}% atteint`
@@ -231,6 +318,8 @@ export function analyzeProactiveCoach(context = {}) {
     actionTarget,
     actionLabel: actionTarget === 'objectifs' ? 'Voir l’objectif' : actionTarget === 'saisie' ? 'Mettre à jour' : 'Voir le plan',
     memory: readFinancialMemory(),
+    settings,
+    actions: actions.length ? actions : [priority],
     summary: {
       income,
       fixedExpenses: fixed,
@@ -242,7 +331,9 @@ export function analyzeProactiveCoach(context = {}) {
       variableRate,
       debtMonthlyTotal,
       targetSavings,
-      hasEnoughData: income > 0 && expenses >= 0
+      hasEnoughData: income > 0 && expenses >= 0,
+      budgetTense,
+      minBalance
     }
   }
 }
@@ -251,4 +342,4 @@ export async function getProactiveCoach(overrides = {}) {
   return analyzeProactiveCoach(await collectFinancialContext(overrides))
 }
 
-export default { collectFinancialContext, analyzeProactiveCoach, getProactiveCoach, readFinancialMemory, updateFinancialMemory }
+export default { collectFinancialContext, analyzeProactiveCoach, getProactiveCoach, readFinancialMemory, updateFinancialMemory, readAiSettings, updateAiSettings }

@@ -51,7 +51,7 @@ const tests = [
     fn: async () => {
       const res = analyzeProactiveCoach({ ...baseContext, expenses: 2500, fixedExpenses: 1800, variableExpenses: 700, projectedBalance: 500 })
       assert(res.risks.some((risk) => /Charges élevées/.test(risk)))
-      assert.strictEqual(res.priority, 'Limiter les dépenses variables')
+      assert.match(res.priority, /Réduis les dépenses variables/)
     }
   },
   {
@@ -116,6 +116,66 @@ const tests = [
       const memory = readFinancialMemory()
       assert.strictEqual(new Set(memory.lastImportantAlerts).size, memory.lastImportantAlerts.length)
       assert(memory.lastRecommendation)
+    }
+  },
+  {
+    name: 'niveau de prudence bloque un achat important',
+    fn: async () => {
+      const res = await AdvisorService.evaluateQuery({
+        query: 'Puis-je acheter un PC à 600 € ?',
+        income: 3000,
+        expenses: 1200,
+        projectedBalance: 1300,
+        settings: { cautionLevel: 'very_cautious' }
+      })
+      assert.strictEqual(res.verdict, 'no')
+      assert.match(res.today, /Non recommandé|Pas maintenant/i)
+    }
+  },
+  {
+    name: 'seuils personnalisés influencent les risques',
+    fn: async () => {
+      const res = analyzeProactiveCoach({
+        ...baseContext,
+        variableExpenses: 700,
+        expenses: 1900,
+        projectedBalance: 1100,
+        settings: { thresholds: { variableRate: 20, chargesRate: 90, minBalance: 100, goalDelayDays: 1 } }
+      })
+      assert(res.risks.some((risk) => /Dépenses variables élevées/i.test(risk)))
+    }
+  },
+  {
+    name: 'style de communication professionnel',
+    fn: async () => {
+      const res = analyzeProactiveCoach({
+        ...baseContext,
+        settings: { communicationStyle: 'professional' }
+      })
+      assert(!/\bta\b|\btes\b/i.test(res.dailyAdvice))
+    }
+  },
+  {
+    name: 'budget tendu bloque recommandation objectif',
+    fn: async () => {
+      const goal = { id: 'g1', name: 'Déménagement', target: 2000, current: 400, targetDate: '2026-12-01', isPrimary: true }
+      const res = analyzeProactiveCoach({
+        ...baseContext,
+        projectedBalance: 80,
+        primaryGoal: goal,
+        goals: [goal],
+        settings: { thresholds: { minBalance: 300, chargesRate: 75, variableRate: 35, goalDelayDays: 1 } }
+      })
+      assert(!/mettre|objectif peut avancer|épargn/i.test(res.dailyAdvice))
+      assert.match(res.priority, /marge/i)
+    }
+  },
+  {
+    name: 'dette absente sans contradiction',
+    fn: async () => {
+      const res = await AdvisorService.evaluateQuery({ query: 'Quelle dette rembourser ?', ...baseContext, debts: [] })
+      assert.match(res.today, /Aucune dette active/i)
+      assert(!/priorise .*dette|rembourse .*dette/i.test(res.action))
     }
   },
   {

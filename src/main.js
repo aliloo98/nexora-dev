@@ -46,6 +46,7 @@ import CoupleOverlay from './couple/coupleOverlay.js'
 import { renderTreasuryPlanner } from './components/TreasuryPlannerUI.js'
 import { renderPlanHub } from './plan/PlanHubUI.js'
 import { renderSettingsPanels, renderRecurringIncomeSettings, renderBillScheduleSettings } from './settings/SettingsUI.js'
+import { readAiSettings, updateAiSettings } from './advisor/proactiveCoachService.js'
 
 // Expose modules globally for HTML event handlers and old code
 window.StorageManager = StorageManager
@@ -55,6 +56,7 @@ window.ThemeManager = ThemeManager
 window.LogoManager = LogoManager
 window.NexoraPdfExport = NexoraPdfExport
 window.NotificationsService = NotificationsService
+window.NexoraAiSettingsService = { readAiSettings, updateAiSettings }
 
 // Expose Supabase globally for future modules
 window.supabase = supabase
@@ -75,6 +77,12 @@ window.openTreasuryPlanner = async (opts = {}) => {
   try {
     await renderTreasuryPlanner('treasury-planner-root', opts)
   } catch (e) { console.warn('openTreasuryPlanner failed', e) }
+}
+window.refreshDashboardCoach = async () => {
+  if (typeof renderDashboardMaster === 'function' && document.getElementById('dashboard-master-root')) {
+    const TreasuryService = (await import('./treasury/treasuryService.js')).default
+    await renderDashboardMaster('dashboard-master-root', TreasuryService)
+  }
 }
 
 // Expose helper functions globally (for HTML onclick handlers)

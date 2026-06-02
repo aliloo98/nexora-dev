@@ -73,17 +73,33 @@ export const AdvisorService = {
       const priceRaw = buyMatch[2].replace(',', '.')
       const price = Number(priceRaw)
       if (!Number.isFinite(price)) return { verdict: 'unknown', advice: 'Montant introuvable' }
-      const safetyFloor = Math.max(100, Math.round((context.income || activeBaseBalance) * 0.08))
+      const cautionLevel = context.settings?.cautionLevel || 'balanced'
+      const purchaseFloorPct = {
+        very_cautious: 0.16,
+        cautious: 0.12,
+        balanced: 0.08,
+        ambitious: 0.05,
+        aggressive: 0.03
+      }[cautionLevel] ?? 0.08
+      const safetyFloor = Math.max(context.settings?.thresholds?.minBalance || 100, Math.round((context.income || activeBaseBalance) * purchaseFloorPct))
       const balanceAfter = activeBaseBalance - price
-      const canAfford = hasEnoughData && balanceAfter >= safetyFloor
+      const isLargePurchaseForProfile = cautionLevel === 'very_cautious' && context.income > 0 && price > context.income * 0.12
+      const canAfford = hasEnoughData && balanceAfter >= safetyFloor && !isLargePurchaseForProfile
       const maxSaferBudget = Math.max(0, activeBaseBalance - safetyFloor)
+      const cautiousText = cautionLevel === 'very_cautious'
+        ? 'Non recommandé avec le niveau très prudent.'
+        : cautionLevel === 'aggressive' && balanceAfter >= 0
+          ? 'Possible si tu acceptes de réduire ta marge.'
+          : canAfford
+            ? 'Oui, si cet achat reste exceptionnel.'
+            : 'Pas maintenant.'
       return {
         intent: 'purchase',
         canAfford,
         endingBalance: balanceAfter,
         ...buildDecision({
           verdict: canAfford ? 'ok' : 'no',
-          today: canAfford ? 'Oui, si cet achat reste exceptionnel.' : 'Pas maintenant.',
+          today: cautiousText,
           why: hasEnoughData
             ? `Après cet achat, ta marge serait d’environ ${formatEuro(balanceAfter)}.`
             : 'Les revenus ou charges ne sont pas assez renseignés pour valider cet achat.',
