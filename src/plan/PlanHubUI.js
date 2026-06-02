@@ -5,7 +5,16 @@ import { renderTreasuryTimeline } from '../components/TreasuryTimeline.js'
 
 const formatCurrency = (value) => {
   const amount = Number(value) || 0
-  return `${amount.toLocaleString('fr-FR')} €`
+  return `${amount.toLocaleString('fr-FR', {
+    minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2
+  })} €`
+}
+
+const formatShortDate = (value) => {
+  const date = value ? new Date(`${value}T00:00:00`) : null
+  if (!date || Number.isNaN(date.getTime())) return 'date estimée'
+  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
 }
 
 const escapeAttr = (value) => String(value ?? '')
@@ -38,6 +47,38 @@ const saveDebts = (debts) => {
 
 const makeDebtId = () => `debt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 
+const isDemoMode = () => {
+  try {
+    return window.SafeStorage?.getItem?.('nexora_demo_mode_v1') === 'on' || localStorage.getItem('nexora_demo_mode_v1') === 'on'
+  } catch {
+    return false
+  }
+}
+
+const demoPlanData = () => {
+  const fromDate = new Date('2026-06-01T00:00:00')
+  const revenues = [
+    { title: 'Salaire Ali', amount: 1700, frequency: 'once', date: '2026-06-05' },
+    { title: 'Salaire Mégane', amount: 1300, frequency: 'once', date: '2026-06-28' }
+  ]
+  const charges = [
+    { title: 'Loyer', amount: 650, date: '2026-06-12', priority: 'critique' },
+    { title: 'Électricité', amount: 95, date: '2026-06-18', priority: 'importante' },
+    { title: 'Courses', amount: 420, date: '2026-06-20', priority: 'standard' }
+  ]
+  const { timeline, endingBalance } = TreasuryService.buildTimeline({ baseBalance: 940, revenues, charges, fromDate, days: 30 })
+  return {
+    timeline,
+    endingBalance,
+    baseBalance: 940,
+    totalRevenue: 3000,
+    totalCharges: 1165,
+    toPayNow: [],
+    goals: [{ id: 'demo_goal', name: 'Coussin de sécurité', target: 1500, current: 450, targetDate: '2026-09-30' }],
+    debts: [{ id: 'demo_debt', name: 'Crédit voiture', initial: 2400, remaining: 1800, monthly: 180 }]
+  }
+}
+
 const buildPlanRows = (items, options = {}) => {
   const {
     emptyLabel = 'Aucun mouvement prévu',
@@ -56,7 +97,7 @@ const buildPlanRows = (items, options = {}) => {
       <div class="plan-row">
         <div>
           <strong>${item.title || (positive ? 'Revenu' : 'Charge')}</strong>
-          <span>${item.date ? `${item.date}${item.dateEstimated ? ' · estimée' : ''}` : item.priority || 'date estimée'}</span>
+          <span>${item.date ? `${formatShortDate(item.date)}${item.dateEstimated ? ' · estimé' : ''}` : item.priority || 'date estimée'}</span>
         </div>
         <em class="${positive ? 'positive' : 'negative'}">${positive ? '+' : '-'}${formatCurrency(amount)}</em>
       </div>
@@ -67,10 +108,12 @@ const buildPlanRows = (items, options = {}) => {
 const buildPlanContent = (data) => {
   const { timeline = [], endingBalance, baseBalance, totalRevenue, totalCharges, toPayNow, goals = [], debts = [] } = data
 
-  const minBalance = timeline.reduce((min, item) => Math.min(min, Number(item.balance) || 0), baseBalance)
-  const upcomingCharges = timeline.filter((item) => item.amount < 0)
-  const upcomingRevenues = timeline.filter((item) => item.amount > 0)
+  const minBalance = Math.max(-99999, timeline.reduce((min, item) => Math.min(min, Number(item.balance) || 0), baseBalance))
+  const important = (item) => Math.abs(Number(item.amount) || 0) >= 20 || Number(item.amount) > 0 || ['critique', 'importante'].includes(String(item.priority || '').toLowerCase())
+  const upcomingCharges = timeline.filter((item) => item.amount < 0 && important(item))
+  const upcomingRevenues = timeline.filter((item) => item.amount > 0 && important(item))
   const netFlow = totalRevenue - totalCharges
+  const hasEstimatedDates = timeline.some((item) => item.dateEstimated)
 
   const getRiskClass = (bal) => bal < 0 ? 'danger' : bal < 500 ? 'warning' : 'success'
 
@@ -88,6 +131,7 @@ const buildPlanContent = (data) => {
           <div><span class="metric-label">Revenus</span><strong>${formatCurrency(totalRevenue)}</strong></div>
           <div><span class="metric-label">Flux net</span><strong class="${netFlow >= 0 ? 'positive' : 'negative'}">${formatCurrency(netFlow)}</strong></div>
         </div>
+        ${hasEstimatedDates ? '<p class="plan-estimate-note">Estimation basée sur vos échéances actuelles.</p>' : ''}
       </section>
 
       <section class="plan-card">
@@ -292,6 +336,8 @@ const attachPlanEditors = (root, planData) => {
 }
 
 const buildPlanData = async () => {
+  if (isDemoMode()) return demoPlanData()
+
   const monthKey = typeof window.getMonth === 'function' ? window.getMonth() : new Date().toISOString().slice(0, 7)
   const fromDate = /^\d{4}-\d{2}$/.test(monthKey) ? new Date(`${monthKey}-01T00:00:00`) : new Date()
 

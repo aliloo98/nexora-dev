@@ -579,6 +579,8 @@
       Mode couple activable depuis les paramètres pour partager le budget du foyer.
     </div>
 
+    <div class="settings-group-title">Paramètres essentiels</div>
+
     <div class="param-row budget-cycle-row">
       <div>
         <div class="param-label">📅 Période du budget</div>
@@ -615,6 +617,16 @@
           <button type="button" id="mode-simple-btn" class="mode-toggle-btn" onclick="setNexoraUxMode('simple')">Mode simplifié</button>
         </div>
       </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Mode démo</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Affiche des données fictives pour présenter Nexora sans montrer tes chiffres.</div>
+        </div>
+        <label class="settings-toggle-row">
+          <input id="demo-mode-toggle" type="checkbox" onchange="setNexoraDemoMode(this.checked)">
+          <span>Données fictives</span>
+        </label>
+      </div>
       <div class="param-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
         <div>
           <div class="param-label">Thème de l'application</div>
@@ -630,6 +642,7 @@
       </div>
     </div>
 
+    <div class="settings-group-title">Revenus récurrents</div>
     <div class="param-block">
       <div class="param-title">Revenus récurrents</div>
       <div class="param-row">
@@ -642,6 +655,7 @@
       <div id="recurring-incomes-root" style="margin-top:14px"></div>
     </div>
 
+    <div class="settings-group-title">Échéances</div>
     <div class="param-block">
       <div class="param-title">Échéances des charges</div>
       <div class="param-row">
@@ -654,9 +668,59 @@
       <div id="bill-schedule-root" style="margin-top:14px"></div>
     </div>
 
+    <div class="settings-group-title">Données</div>
     <div class="param-block">
-      <div class="param-title">❤️ Mode couple</div>
-      <div id="couple-mode-settings-root" style="margin-top:12px"></div>
+      <div class="param-title">Données</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Exporter le budget mensuel en PDF</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Génère un rapport propre du mois sélectionné</div>
+        </div>
+        <button class="btn btn-gold" onclick="exportMonthlyPdf()">Exporter PDF</button>
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Exporter mes données</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Télécharge un fichier JSON avec tous tes mois</div>
+        </div>
+        <button class="btn btn-gold" onclick="exportData()">Exporter</button>
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Importer une sauvegarde</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Charge un fichier JSON exporté précédemment</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input type="file" id="json-import-input" accept=".json" style="display:none" onchange="importData(event)">
+          <label class="btn btn-outline" for="json-import-input" style="cursor:pointer; margin:0;">Importer</label>
+        </div>
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Importer un relevé bancaire</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Prépare un brouillon CSV sans modifier le budget</div>
+        </div>
+        <button class="btn btn-outline" onclick="document.getElementById('csv-importer-block')?.scrollIntoView({behavior:'smooth', block:'start'})">Ouvrir</button>
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Réinitialiser le mois en cours</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Efface toutes les valeurs du mois sélectionné</div>
+        </div>
+        <button class="btn btn-danger" onclick="resetMonth()">Réinitialiser</button>
+      </div>
+    </div>
+
+    <div class="settings-group-title">Avancé</div>
+    <div class="param-block">
+      <div class="param-title">Fonctionnalités à venir</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">❤️ Mode couple</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Prévu dans une future version.</div>
+        </div>
+        <button class="btn btn-outline" type="button" disabled>À venir</button>
+      </div>
     </div>
 
     <div class="param-block">
@@ -697,48 +761,6 @@
           <button type="button" class="notification-filter-btn" data-filter="archived" onclick="setNexoraNotificationFilter('archived')">Archivées</button>
         </div>
         <div id="notification-list" class="notification-list">Aucune notification pour le moment</div>
-      </div>
-    </div>
-
-    <div class="param-block">
-      <div class="param-title">Données</div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">Exporter le budget mensuel en PDF</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px">Génère un rapport propre du mois sélectionné</div>
-        </div>
-        <button class="btn btn-gold" onclick="exportMonthlyPdf()">Exporter PDF</button>
-      </div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">Exporter mes données</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px">Télécharge un fichier JSON avec tous tes mois</div>
-        </div>
-        <button class="btn btn-gold" onclick="exportData()">Exporter</button>
-      </div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">Importer une sauvegarde</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px">Charge un fichier JSON exporté précédemment</div>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <input type="file" id="json-import-input" accept=".json" style="display:none" onchange="importData(event)">
-          <label class="btn btn-outline" for="json-import-input" style="cursor:pointer; margin:0;">Importer</label>
-        </div>
-      </div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">Importer un relevé bancaire</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px">Prépare un brouillon CSV sans modifier le budget</div>
-        </div>
-        <button class="btn btn-outline" onclick="document.getElementById('csv-importer-block')?.scrollIntoView({behavior:'smooth', block:'start'})">Ouvrir</button>
-      </div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">Réinitialiser le mois en cours</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px">Efface toutes les valeurs du mois sélectionné</div>
-        </div>
-        <button class="btn btn-danger" onclick="resetMonth()">Réinitialiser</button>
       </div>
     </div>
 
@@ -1095,7 +1117,52 @@ function saveBudgetCycleSettingsFromUI() {
 }
 
 const UX_MODE_KEY = 'nexora_ux_mode_v1';
+const DEMO_MODE_KEY = 'nexora_demo_mode_v1';
 const DEBTS_STORAGE_KEY = 'nexora_debts_v1';
+
+function isNexoraDemoMode() {
+  try { return SafeStorage.getItem(DEMO_MODE_KEY) === 'on'; } catch { return false; }
+}
+
+function getNexoraDemoMonthData() {
+  return {
+    rev_ali: 1700,
+    rev_megane: 1300,
+    loyer: 650,
+    loyer_paye: 0,
+    elec: 95,
+    elec_paye: 0,
+    box: 39,
+    box_paye: 39,
+    tel_ali: 15,
+    tel_ali_paye: 15,
+    tel_meg: 15,
+    tel_meg_paye: 15,
+    courses: 420,
+    courses_paye: 180,
+    sport: 35,
+    sport_paye: 35,
+    cadeaux: 80,
+    cadeaux_paye: 0,
+    target_epargne: 300
+  };
+}
+
+function applyNexoraDemoMode() {
+  const enabled = isNexoraDemoMode();
+  document.body.classList.toggle('mode-demo', enabled);
+  const toggle = document.getElementById('demo-mode-toggle');
+  if (toggle) toggle.checked = enabled;
+}
+
+async function setNexoraDemoMode(enabled) {
+  try { SafeStorage.setItem(DEMO_MODE_KEY, enabled ? 'on' : 'off'); } catch {}
+  applyNexoraDemoMode();
+  setSaveBarDirty(false);
+  await loadMonth();
+  if (typeof window.refreshPlanHub === 'function') window.refreshPlanHub().catch(() => {});
+  showToast(enabled ? 'Mode démo activé — données fictives affichées' : 'Mode démo désactivé — données réelles affichées');
+}
 
 function getNexoraUxMode() {
   try {
@@ -1561,6 +1628,8 @@ document.addEventListener('input', (event) => {
 });
 
 async function readMonthData(m) {
+  if (isNexoraDemoMode()) return getNexoraDemoMonthData();
+
   if (window.MonthlyBudgetStateService?.getMonthlyBudgetState) {
     const state = await window.MonthlyBudgetStateService.getMonthlyBudgetState(m);
     return state?.data || {};
@@ -1640,6 +1709,11 @@ async function loadMonth(){
 }
 
 async function saveData(){
+  if (isNexoraDemoMode()) {
+    showToast('Mode démo actif : aucune donnée réelle sauvegardée');
+    setSaveBarDirty(false);
+    return;
+  }
   const m=getMonth();
   normalizeFormulaInputs();
   // Load existing month data and merge current DOM values into it so
@@ -3703,7 +3777,9 @@ function deleteDebt(id) {
 
 async function updateDashboardPrimaryGoal() {
   if (!window.GoalsService?.getPrimaryGoal) return;
-  const goal = await window.GoalsService.getPrimaryGoal();
+  const goal = isNexoraDemoMode()
+    ? { name: 'Coussin de sécurité', icon: '🎯', current: 450, target: 1500, targetDate: '2026-09-30' }
+    : await window.GoalsService.getPrimaryGoal();
   const panel = document.getElementById('dashboard-primary-goal');
   if (!panel) return;
 
@@ -3993,6 +4069,7 @@ async function exportData(){
       'nexora_recurring_incomes',
       'nexora_bill_schedules',
       'nexora_ux_mode_v1',
+      'nexora_demo_mode_v1',
       'nexora_budget_categories_v1',
       'nexora_csv_learning_v1',
       'nexora_csv_import_drafts_v1',
@@ -4044,6 +4121,7 @@ const NEXORA_IMPORTABLE_STORAGE_KEYS = new Set([
   'nexora_recurring_incomes',
   'nexora_bill_schedules',
   'nexora_ux_mode_v1',
+  'nexora_demo_mode_v1',
   'nexora_budget_categories_v1',
   'nexora_csv_learning_v1',
   'nexora_csv_import_drafts_v1',
@@ -5826,6 +5904,7 @@ window.onload=async ()=>{
   await syncBudgetCycleSettingsFromCloud({ update: false });
   installMonthlyHistorySnapshotHook();
   applyNexoraUxMode();
+  applyNexoraDemoMode();
   await renderCustomBudgetRows();
   convertCheckboxesToPaidInputs();
   initDynamicElements();

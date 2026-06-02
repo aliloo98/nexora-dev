@@ -45,7 +45,6 @@ import CoupleOverlay from './couple/coupleOverlay.js'
 import { renderTreasuryPlanner } from './components/TreasuryPlannerUI.js'
 import { renderPlanHub } from './plan/PlanHubUI.js'
 import { renderSettingsPanels, renderRecurringIncomeSettings, renderBillScheduleSettings } from './settings/SettingsUI.js'
-import { CoupleService } from './couple/coupleService.js'
 
 // Expose modules globally for HTML event handlers and old code
 window.StorageManager = StorageManager
@@ -93,75 +92,28 @@ window.renderCoupleSection = async () => {
   const section = document.getElementById('section-couple')
   if (!section) return
 
-  const user = AuthContext.getState()?.user
-  const status = await CoupleService.getCombinedStatus(user)
-
-  if (status.status === 'couple_actif') {
-    const monthlyBudget = await TransactionsService.getBudgetMonth(new Date().toISOString().slice(0, 7)).catch(() => ({}))
-    const user1Income = Number(monthlyBudget.rev_ali) || 0
-    const user2Income = Number(monthlyBudget.rev_megane) || 0
-    const commonExpenses = Object.entries(monthlyBudget).reduce((total, [key, value]) => {
-      if (typeof value === 'number' || typeof value === 'string') {
-        if (!key.startsWith('rev_')) {
-          return total + Number(value || 0)
-        }
-      }
-      return total
-    }, 0)
-    const commonIncome = user1Income + user2Income
-    const remaining = commonIncome - commonExpenses
-
-    section.style.display = 'block'
-    section.innerHTML = `
-      <div class="budget-block">
-        <div class="budget-block-header">
-          <span class="budget-block-title">❤️ Budget couple</span>
-          <span style="font-size:12px;color:var(--text2)">Partage local et aperçu des finances du foyer</span>
-        </div>
-        <div style="padding:16px;display:grid;gap:16px;">
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;">
-            <div class="kpi-card"><div class="kpi-icon">💰</div><div class="kpi-label">Revenus foyer</div><div class="kpi-value">${commonIncome.toLocaleString('fr-FR')} €</div></div>
-            <div class="kpi-card"><div class="kpi-icon">📉</div><div class="kpi-label">Charges communes</div><div class="kpi-value">${commonExpenses.toLocaleString('fr-FR')} €</div></div>
-            <div class="kpi-card"><div class="kpi-icon">✨</div><div class="kpi-label">Reste disponible</div><div class="kpi-value">${remaining.toLocaleString('fr-FR')} €</div></div>
-          </div>
-          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:flex-start;">
-            <button class="btn btn-outline" type="button" onclick="showSection('plan')">Retour au Plan</button>
-            <button class="btn btn-outline" type="button" onclick="showSection('parametres')">Paramètres couple</button>
-          </div>
-        </div>
+  section.style.display = 'block'
+  section.innerHTML = `
+    <div class="budget-block">
+      <div class="budget-block-header">
+        <span class="budget-block-title">❤️ Mode couple</span>
+        <span style="font-size:12px;color:var(--text2)">Prévu dans une future version</span>
       </div>
-    `
-  } else {
-    section.style.display = 'block'
-    section.innerHTML = `
-      <div class="budget-block">
-        <div class="budget-block-header">
-          <span class="budget-block-title">❤️ Mode couple</span>
-          <span style="font-size:12px;color:var(--text2)">Partage le budget de ton foyer</span>
-        </div>
-        <div style="padding:16px;display:grid;gap:12px;">
-          <p>Le mode couple permet de synchroniser et visualiser les finances du foyer. Activez-le pour partager les revenus et charges.</p>
-          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:flex-start;">
-            <button class="btn btn-outline" type="button" onclick="showSection('parametres')">Ouvrir les paramètres</button>
-            <button class="btn btn-outline" type="button" disabled>Inviter un partenaire <span class="badge-coming">À venir</span></button>
-            <button class="btn btn-outline" type="button" disabled>Fusionner les budgets <span class="badge-coming">À venir</span></button>
-            <button class="btn btn-outline" type="button" onclick="showSection('plan')">Retour au Plan</button>
-          </div>
-        </div>
+      <div style="padding:16px;display:grid;gap:12px;">
+        <p>Le mode couple n’est pas disponible dans cette version.</p>
+        <button class="btn btn-outline" type="button" onclick="showSection('parametres')">Voir les fonctionnalités à venir</button>
       </div>
-    `
-  }
+    </div>
+  `
 }
 
 window.updateCoupleNavigation = async () => {
   try {
     const coupleNav = document.querySelector('.sidebar .nav-btn[data-section="couple"]')
-    const user = AuthContext.getState()?.user
-    const status = await CoupleService.getCombinedStatus(user)
-    const isVisible = status.status === 'couple_actif'
+    const isVisible = false
 
     if (coupleNav) {
-      coupleNav.style.display = isVisible ? 'inline-flex' : 'none'
+      coupleNav.style.display = 'none'
     }
 
     if (typeof window.renderCoupleSection === 'function') {
@@ -170,7 +122,7 @@ window.updateCoupleNavigation = async () => {
 
     window.__isCoupleTabVisible = isVisible
     if (!isVisible) {
-      window.setCoupleFallbackMessage('Mode couple activable depuis les paramètres pour partager le budget du foyer.')
+      window.setCoupleFallbackMessage('Mode couple prévu dans une future version.')
     }
     return isVisible
   } catch (error) {

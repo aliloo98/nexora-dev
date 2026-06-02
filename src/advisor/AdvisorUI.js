@@ -38,6 +38,33 @@ const normalizeRisk = (value) => {
   return value
 }
 
+const buildCoachMessage = (outcome = {}, query = '') => {
+  const verdict = normalizeVerdict(getField(outcome, ['verdict'], outcome.canAfford ? 'Possible' : 'Non recommandé'))
+  const impact = formatCurrencyImpact(getField(outcome, ['impact', 'endingBalance'], 'Aucun impact clair détecté'))
+  const risk = normalizeRisk(getField(outcome, ['risk'], 'Modéré'))
+  const advice = getField(outcome, ['recommendation', 'advice', 'rationale'], 'Vérifie le Plan avant de décider.')
+  const loweredQuery = String(query || '').toLowerCase()
+
+  let today = verdict === 'Non recommandé'
+    ? 'N’engage pas cette dépense maintenant.'
+    : verdict === 'À prioriser'
+      ? 'Concentre-toi sur cette priorité aujourd’hui.'
+      : 'Tu peux avancer, mais garde une marge.'
+
+  if (loweredQuery.includes('objectif')) today = verdict === 'Non recommandé' ? 'Garde ton argent disponible pour le moment.' : 'Tu peux alimenter ton objectif prudemment.'
+  if (loweredQuery.includes('dette')) today = 'Priorise la dette la plus coûteuse ou la plus urgente.'
+  if (loweredQuery.includes('vert') || loweredQuery.includes('positif')) today = verdict === 'Non recommandé' ? 'Surveille tes paiements avant la fin du mois.' : 'Le mois semble tenir si tu gardes le cap.'
+
+  const why = impact === 'Aucun impact clair détecté'
+    ? `Risque estimé : ${risk}.`
+    : `Impact estimé : ${impact}. Risque : ${risk}.`
+
+  const nextTarget = loweredQuery.includes('objectif') ? 'objectifs' : loweredQuery.includes('budget') ? 'saisie' : 'plan'
+  const nextLabel = nextTarget === 'objectifs' ? 'Voir l’objectif' : nextTarget === 'saisie' ? 'Voir le Budget' : 'Voir le Plan'
+
+  return { today, why, advice, nextTarget, nextLabel }
+}
+
 export function renderAdvisorUI(rootId, AdvisorService) {
   const root = document.getElementById(rootId)
   if (!root) return
@@ -72,25 +99,22 @@ export function renderAdvisorUI(rootId, AdvisorService) {
         `).join('')}
       </div>
 
-      <div id="advisor-result" class="advisor-result" hidden>
+      <div id="advisor-result" class="advisor-result coach-result" hidden>
         <div class="advisor-result-card advisor-verdict">
-          <span>Verdict</span>
-          <strong id="advisor-result-verdict">-</strong>
+          <span>🎯 Aujourd’hui</span>
+          <strong id="advisor-result-today">-</strong>
         </div>
         <div class="advisor-result-grid">
           <div class="advisor-result-card">
-            <span>Impact</span>
-            <strong id="advisor-result-impact">-</strong>
-          </div>
-          <div class="advisor-result-card">
-            <span>Risque</span>
-            <strong id="advisor-result-risk">-</strong>
+            <span>Pourquoi ?</span>
+            <strong id="advisor-result-why">-</strong>
           </div>
           <div class="advisor-result-card advisor-recommendation">
-            <span>Conseil</span>
-            <p id="advisor-result-advice">-</p>
+            <span>Action recommandée</span>
+            <p id="advisor-result-action">-</p>
           </div>
         </div>
+        <button class="btn btn-gold advisor-next-btn" id="advisor-next-action" type="button">Voir le Plan</button>
       </div>
     </section>
   `
@@ -99,17 +123,18 @@ export function renderAdvisorUI(rootId, AdvisorService) {
   const btn = root.querySelector('#advisor-btn')
   const resultDiv = root.querySelector('#advisor-result')
 
-  const renderResult = (outcome = {}) => {
+  const renderResult = (outcome = {}, query = '') => {
     resultDiv.hidden = false
-    const verdict = normalizeVerdict(getField(outcome, ['verdict'], outcome.canAfford ? 'Possible' : 'Non recommandé'))
-    const impact = formatCurrencyImpact(getField(outcome, ['impact', 'endingBalance'], 'Aucun impact clair détecté'))
-    const risk = normalizeRisk(getField(outcome, ['risk'], 'Modéré'))
-    const advice = getField(outcome, ['recommendation', 'advice', 'rationale'], 'Vérifiez le plan avant de confirmer.')
+    const coach = buildCoachMessage(outcome, query)
 
-    root.querySelector('#advisor-result-verdict').textContent = verdict
-    root.querySelector('#advisor-result-impact').textContent = impact
-    root.querySelector('#advisor-result-risk').textContent = risk
-    root.querySelector('#advisor-result-advice').textContent = advice
+    root.querySelector('#advisor-result-today').textContent = coach.today
+    root.querySelector('#advisor-result-why').textContent = coach.why
+    root.querySelector('#advisor-result-action').textContent = coach.advice
+    const nextBtn = root.querySelector('#advisor-next-action')
+    if (nextBtn) {
+      nextBtn.textContent = coach.nextLabel
+      nextBtn.onclick = () => window.showSection?.(coach.nextTarget)
+    }
   }
 
   const runQuery = async (query) => {
@@ -120,13 +145,17 @@ export function renderAdvisorUI(rootId, AdvisorService) {
     btn.textContent = 'Analyse'
     try {
       const outcome = await AdvisorService.evaluateQuery({ query: normalizedQuery })
-      renderResult(outcome)
+      renderResult(outcome, normalizedQuery)
     } catch (e) {
       resultDiv.hidden = false
-      root.querySelector('#advisor-result-verdict').textContent = 'Analyse indisponible'
-      root.querySelector('#advisor-result-impact').textContent = 'Aucun changement appliqué au budget'
-      root.querySelector('#advisor-result-risk').textContent = 'Inconnu'
-      root.querySelector('#advisor-result-advice').textContent = 'Réessayez après avoir mis le budget à jour.'
+      root.querySelector('#advisor-result-today').textContent = 'Reviens aux données du budget.'
+      root.querySelector('#advisor-result-why').textContent = 'Nexora n’a pas assez d’informations fiables pour répondre.'
+      root.querySelector('#advisor-result-action').textContent = 'Mets le budget à jour, puis relance la question.'
+      const nextBtn = root.querySelector('#advisor-next-action')
+      if (nextBtn) {
+        nextBtn.textContent = 'Voir le Budget'
+        nextBtn.onclick = () => window.showSection?.('saisie')
+      }
     } finally {
       btn.disabled = false
       btn.textContent = 'Analyser'
