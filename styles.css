@@ -2977,6 +2977,79 @@ body.has-unsaved-budget-changes .save-bar-spacer {
   justify-self: start;
 }
 
+.advisor-proactive-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 10px;
+}
+
+.advisor-proactive-card,
+.advisor-scenarios-card {
+  display: grid;
+  gap: 10px;
+}
+
+.advisor-proactive-card p {
+  margin: 0;
+  color: var(--text);
+}
+
+.advisor-proactive-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.advisor-proactive-columns em,
+.advisor-scenario-card span,
+.advisor-scenario-card em,
+.advisor-muted {
+  color: var(--text2);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.advisor-proactive-columns ul {
+  margin: 6px 0 0;
+  padding-left: 17px;
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.advisor-scenarios-list {
+  display: grid;
+  gap: 8px;
+}
+
+.advisor-scenario-card {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.advisor-scenario-card > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.advisor-scenario-card p {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+}
+
+@media(max-width: 820px) {
+  .advisor-proactive-grid,
+  .advisor-proactive-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
 .note-toggle-btn,
 .edit-label-btn {
   opacity: 0;

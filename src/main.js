@@ -451,7 +451,7 @@ const initApp = async () => {
       // Render Dashboard Master component if present
       if (typeof renderDashboardMaster === 'function' && document.getElementById('dashboard-master-root')) {
         const TreasuryService = (await import('./treasury/treasuryService.js')).default
-        renderDashboardMaster('dashboard-master-root', TreasuryService)
+        await renderDashboardMaster('dashboard-master-root', TreasuryService)
       }
       // Render Advisor UI if present in dashboard
       if (typeof renderAdvisorUI === 'function' && document.getElementById('advisor-root')) {
