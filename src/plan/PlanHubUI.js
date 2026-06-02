@@ -115,14 +115,15 @@ const buildPlanContent = (data) => {
   const netFlow = totalRevenue - totalCharges
   const hasEstimatedDates = timeline.some((item) => item.dateEstimated)
 
-  const getRiskClass = (bal) => bal < 0 ? 'danger' : bal < 500 ? 'warning' : 'success'
+  const getRiskClass = (bal) => bal < 0 ? 'danger' : bal === 0 ? 'warning' : 'success'
+  const getBalanceLabel = (bal) => bal > 0 ? 'Positif' : bal === 0 ? 'Neutre' : 'Négatif'
 
   return `
     <div class="plan-hub-grid">
       <section class="plan-card plan-balance-card">
         <div class="plan-card-header">
           <h3>Solde prévisionnel</h3>
-          <span class="plan-status-pill ${getRiskClass(endingBalance)}">${endingBalance >= 0 ? 'Positif' : 'Risque'}</span>
+          <span class="plan-status-pill ${getRiskClass(endingBalance)}">${getBalanceLabel(endingBalance)}</span>
         </div>
         <strong class="plan-balance-value ${getRiskClass(endingBalance)}">${formatCurrency(endingBalance)}</strong>
         <div class="plan-metric-row">
@@ -372,10 +373,11 @@ const buildPlanData = async () => {
       frequency: income.frequency || 'monthly',
       day: Number(income.day) || 1
     }))
+    .filter((income) => income.amount > 0 && Number.isFinite(income.day) && income.day >= 1 && income.day <= 31)
 
   const revenues = normalizedRecurringIncomes.length > 0
     ? normalizedRecurringIncomes
-    : (fetchedRevenues || [])
+    : (fetchedRevenues || []).filter((income) => income && income.dateEstimated !== true)
 
   const scheduleByKey = new Map()
   const scheduleByName = new Map()

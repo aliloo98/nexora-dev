@@ -3544,11 +3544,24 @@ function updateWeekPlan(metrics = {}) {
   const nextIncomeEl = document.getElementById('week-plan-next-income');
   const toPayEl = document.getElementById('week-plan-to-pay');
   const descEl = document.getElementById('week-plan-description');
+  const hasProgrammedIncome = (() => {
+    try {
+      const raw = SafeStorage.getItem('nexora_recurring_incomes') || localStorage.getItem('nexora_recurring_incomes') || '[]';
+      const incomes = JSON.parse(raw);
+      return Array.isArray(incomes) && incomes.some(income => {
+        const amount = parseBudgetNumber(income?.amount || 0);
+        const day = Number(income?.day || income?.payDay || income?.date);
+        return amount > 0 && Number.isFinite(day) && day >= 1 && day <= 31;
+      });
+    } catch {
+      return false;
+    }
+  })();
   const range = getBudgetCycleRange(getMonth());
   const dueCount = getPendingFixedExpenseRows().length;
   if (titleEl) titleEl.textContent = metrics.revReel > 0 ? 'Aperçu essentiel' : 'Plan financier';
   if (balanceEl) balanceEl.textContent = fmt(metrics.solde || 0);
-  if (nextIncomeEl) nextIncomeEl.textContent = range.start ? formatShortDate(range.start) : '--/--';
+  if (nextIncomeEl) nextIncomeEl.textContent = hasProgrammedIncome && range.start ? formatShortDate(range.start) : 'Non défini';
   if (toPayEl) toPayEl.textContent = `${dueCount} charge${dueCount !== 1 ? 's' : ''}`;
   if (descEl) {
     descEl.textContent = metrics.revReel > 0

@@ -128,6 +128,9 @@ tests.push({
     assert.strictEqual(r.metadata.variableRate, null, 'expected variableRate null when revenue is zero')
     assert.strictEqual(r.metadata.totalChargesRate, null, 'expected totalChargesRate null when revenue is zero')
     assert.strictEqual(r.currentSituation, 'Ajoutez vos revenus pour commencer : le budget est à compléter avant analyse.', 'expected incomplete budget message when income is zero')
+    assert.strictEqual(r.status, 'no_data', 'expected no_data status when income is zero')
+    assert.strictEqual(r.financialHealthIndex, null, 'expected no arbitrary health index when income is zero')
+    assert(r.alerts.includes('Données insuffisantes'), 'expected insufficient data alert when income is zero')
   }
 })
 

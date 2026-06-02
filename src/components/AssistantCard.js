@@ -691,9 +691,13 @@ async function renderAssistantCard() {
   const insightsGrid = existing.querySelector('#assistant-advanced-grid')
   if (insightsGrid && result.advancedFinancialInsights && result.advancedFinancialInsights.length > 0) {
     insightsBlock.style.display = 'block'
+    const hasHealthIndex = typeof result.financialHealthIndex === 'number'
+    const healthValue = hasHealthIndex ? `${result.financialHealthIndex}%` : 'N/A'
+    const riskValue = typeof result.riskAnalysis?.riskScore === 'number' ? `${result.riskAnalysis.riskScore} / 100` : 'Aucune donnée'
+    const riskLevel = result.riskAnalysis?.riskLevel || 'none'
     insightsGrid.innerHTML = [
-      `<div class="risk-card"><div class="risk-card-title">Indice de santé financière</div><div class="risk-card-value ${result.riskAnalysis?.riskLevel || 'low'}">${result.financialHealthIndex}%</div><div style="font-size:12px;color:var(--text2);margin-top:6px">Score premium basé sur stabilité, charges, et objectifs.</div></div>`,
-      `<div class="risk-card"><div class="risk-card-title">Risque financier</div><div class="risk-card-value ${result.riskAnalysis?.riskLevel || 'low'}">${(result.riskAnalysis?.riskScore ?? 0)} / 100</div><div style="font-size:12px;color:var(--text2);margin-top:6px">Niveau : ${result.riskAnalysis?.riskLevel || 'low'}</div></div>`,
+      `<div class="risk-card"><div class="risk-card-title">Indice de santé financière</div><div class="risk-card-value ${riskLevel}">${healthValue}</div><div style="font-size:12px;color:var(--text2);margin-top:6px">${hasHealthIndex ? 'Score premium basé sur stabilité, charges, et objectifs.' : 'En attente de données financières.'}</div></div>`,
+      `<div class="risk-card"><div class="risk-card-title">Risque financier</div><div class="risk-card-value ${riskLevel}">${riskValue}</div><div style="font-size:12px;color:var(--text2);margin-top:6px">Niveau : ${riskLevel === 'none' ? 'Aucune donnée' : riskLevel}</div></div>`,
       ...result.advancedFinancialInsights.slice(0, 2).map(text => `<div class="insight-card"><div class="insight-card-title">Insight</div><div class="insight-card-value">${text}</div></div>`),
       ...result.advancedRecommendations.slice(0, 2).map(text => `<div class="insight-card"><div class="insight-card-title">Recommandation</div><div class="insight-card-value">${text}</div></div>`)
     ].join('')

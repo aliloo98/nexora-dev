@@ -47,6 +47,7 @@ async function analyzeBudget(monthKey) {
   const debtTotal = debts.reduce((sum, debt) => sum + Number(debt.remaining || 0), 0)
   const debtMonthlyTotal = debts.reduce((sum, debt) => sum + Number(debt.monthly || 0), 0)
   const debtRate = rev > 0 ? Math.round((debtMonthlyTotal / rev) * 100) : 0
+  const hasAnalyzableData = rev > 0
 
   // For UI/metadata: if revenue is zero, present rates as null to avoid misleading 0% values
   const metaFixedRate = rev > 0 ? fixedRate : null
@@ -177,8 +178,10 @@ async function analyzeBudget(monthKey) {
   const subscriptionInsights = subscriptionItems.map(item => `${item.label || item.key} ${item.amount} €`).join(', ')
   const subscriptionFlag = subscriptionCount > 0
 
-  const status = scoreObj.score >= 90 ? 'excellent' : scoreObj.score >= 75 ? 'healthy' : scoreObj.score >= 60 ? 'attention' : 'critical'
-  const trajectoryLabel = scoreObj.score >= 90
+  const status = !hasAnalyzableData ? 'no_data' : scoreObj.score >= 90 ? 'excellent' : scoreObj.score >= 75 ? 'healthy' : scoreObj.score >= 60 ? 'attention' : 'critical'
+  const trajectoryLabel = !hasAnalyzableData
+    ? 'Données insuffisantes'
+    : scoreObj.score >= 90
     ? '🟢 Excellente trajectoire'
     : scoreObj.score >= 75
       ? '🟢 Situation saine'
@@ -392,7 +395,7 @@ async function analyzeBudget(monthKey) {
   if (subscriptionFlag) healthFactors.push('Abonnements actifs')
   if (irregularRevenue) healthFactors.push('Revenus instables')
 
-  const advancedFinancialInsights = [
+  let advancedFinancialInsights = [
     `Comparaison historique : revenus ${incomeTrendPct >= 0 ? 'supérieurs' : 'inférieurs'} de ${Math.abs(incomeTrendPct)}% à la moyenne des 3 derniers mois.`,
     `Inflation des charges : ${expenseInflationRate >= 0 ? '+' : ''}${expenseInflationRate}% par rapport aux charges moyennes historiques.`,
     budgetInflection ? 'Le budget montre une inflation marquée des charges ce mois-ci.' : 'Le budget reste stable par rapport aux derniers mois.',
@@ -412,8 +415,19 @@ async function analyzeBudget(monthKey) {
   if (!subscriptionFlag && !budgetInflection && !irregularRevenue) {
     advancedRecommendations.push('Continuez à surveiller votre budget : maintenez ce niveau de contrôle et testez des scénarios d’épargne.')
   }
+  if (!hasAnalyzableData) {
+    advancedFinancialInsights = ['Données insuffisantes : complétez votre budget pour obtenir une analyse.']
+    advancedRecommendations.splice(0, advancedRecommendations.length, 'Complétez votre budget pour obtenir une analyse.')
+  }
 
-  const riskAnalysis = {
+  const riskAnalysis = !hasAnalyzableData ? {
+    incomeTrendPct: null,
+    expenseInflationRate: null,
+    subscriptionCount,
+    subscriptionItems: subscriptionItems.slice(0, 3),
+    riskScore: null,
+    riskLevel: 'none'
+  } : {
     incomeTrendPct,
     expenseInflationRate,
     subscriptionCount,
@@ -422,7 +436,9 @@ async function analyzeBudget(monthKey) {
     riskLevel: scoreObj.score >= 90 ? 'low' : scoreObj.score >= 75 ? 'medium' : scoreObj.score >= 60 ? 'high' : 'critical'
   }
 
-  const financialHealthIndex = clamp(Math.round((scoreObj.score * 0.35) + (stabilityScore * 0.2) + (expenseControlScore * 0.2) + (goalProgressScore * 0.25)), 0, 100)
+  const financialHealthIndex = hasAnalyzableData
+    ? clamp(Math.round((scoreObj.score * 0.35) + (stabilityScore * 0.2) + (expenseControlScore * 0.2) + (goalProgressScore * 0.25)), 0, 100)
+    : null
 
   // Add intelligent alerts based on advanced analysis
   const advancedAlerts = []
@@ -471,6 +487,7 @@ async function analyzeBudget(monthKey) {
 
   if (rev <= 0) {
     insights.push('Aucun revenu saisi pour le mois.')
+    pushAlert('missing_income', 'Complétez votre budget pour obtenir une analyse.', 'Données insuffisantes', 100, 'Complétez votre budget pour obtenir une analyse.')
     recommendations.push('Saisissez vos revenus pour activer l’analyse.')
   } else {
     insights.push(`Revenus: ${rev} € — Taux d’épargne estimé ${savingsRate}%`)
@@ -615,7 +632,7 @@ async function analyzeBudget(monthKey) {
     advancedFinancialInsights: advancedFinancialInsights || [],
     advancedRecommendations: advancedRecommendations || [],
     riskAnalysis: riskAnalysis || null,
-    financialHealthIndex: financialHealthIndex || 0,
+    financialHealthIndex,
     advancedAlerts: advancedAlerts || [],
     timeline: timelineEntries,
     kpis: kpis || null,
