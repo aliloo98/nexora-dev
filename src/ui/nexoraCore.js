@@ -41,6 +41,7 @@ let lastGraphNodes = []
 let activeGraphButton = null
 let currentCenterDataType = 'balance' // 'balance' or 'score'
 let lastCoreMetrics = null
+let hoverTimeout = null
 
 const CORE_GRAPH_LIMIT = 8
 
@@ -165,7 +166,7 @@ const hideCoreTooltip = (tooltip) => {
       autoAlpha: 0,
       scale: 0.95,
       y: 4,
-      duration: 0.18,
+      duration: 0.15,
       ease: 'power2.in',
       onComplete: () => {
         tooltip.hidden = true
@@ -180,13 +181,13 @@ const hideCoreTooltip = (tooltip) => {
 
 const showCoreTooltip = (tooltip, node, button, pinned = false) => {
   if (!tooltip || !node || !button) return
-  tooltip.hidden = false
+  if (!pinned && tooltip.dataset.pinned === 'true') return
+  
   if (pinned) {
     tooltip.dataset.pinned = 'true'
     tooltip.classList.add('is-pinned')
-  } else if (tooltip.dataset.pinned === 'true') {
-    return
   }
+  tooltip.hidden = false
   
   if (!tooltip.dataset.clickBound) {
     tooltip.dataset.clickBound = 'true'
@@ -245,11 +246,23 @@ const showCoreTooltip = (tooltip, node, button, pinned = false) => {
 
   gsap.killTweensOf(tooltip)
   if (!prefersReducedMotion()) {
-    gsap.fromTo(
-      tooltip,
-      { autoAlpha: 0, scale: 0.9, y: 5 },
-      { autoAlpha: 1, scale: 1, y: 0, duration: 0.28, ease: 'power3.out', overwrite: 'auto' }
-    )
+    const isAlreadyVisible = !tooltip.hidden && gsap.getProperty(tooltip, 'opacity') > 0.1
+    if (isAlreadyVisible) {
+      gsap.to(tooltip, {
+        autoAlpha: 1,
+        scale: 1,
+        y: 0,
+        duration: 0.15,
+        ease: 'power3.out',
+        overwrite: 'auto'
+      })
+    } else {
+      gsap.fromTo(
+        tooltip,
+        { autoAlpha: 0, scale: 0.9, y: 5 },
+        { autoAlpha: 1, scale: 1, y: 0, duration: 0.2, ease: 'power3.out', overwrite: 'auto' }
+      )
+    }
   }
 }
 
@@ -261,7 +274,7 @@ const setActiveSatellite = (button) => {
     activeGraphButton.classList.remove('is-active')
     if (!prefersReducedMotion()) {
       gsap.killTweensOf(activeGraphButton)
-      gsap.to(activeGraphButton, { '--node-scale': 1, duration: 0.25 })
+      gsap.to(activeGraphButton, { '--node-scale': 1, duration: 0.15 })
     }
   }
   
@@ -272,7 +285,7 @@ const setActiveSatellite = (button) => {
     if (graph) graph.classList.add('has-active-node')
     if (!prefersReducedMotion()) {
       gsap.killTweensOf(button)
-      gsap.to(button, { '--node-scale': 1.35, duration: 0.35, ease: 'back.out(2)' })
+      gsap.to(button, { '--node-scale': 1.35, duration: 0.2, ease: 'back.out(2)' })
     }
   } else {
     if (graph) graph.classList.remove('has-active-node')
@@ -345,16 +358,36 @@ const renderCoreGraph = (panel, payload = {}) => {
   graphBound = true
 
   graph.addEventListener('pointerover', (event) => {
-    const button = event.target.closest?.('.nexora-core-orbit-node')
-    if (!button) return hideCoreTooltip(tooltip)
     if (tooltip.dataset.pinned === 'true') return
+    const button = event.target.closest?.('.nexora-core-orbit-node')
+    
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+      hoverTimeout = null
+    }
+
+    if (!button) {
+      setActiveSatellite(null)
+      hideCoreTooltip(tooltip)
+      return
+    }
+
     const node = lastGraphNodes[Number(button.dataset.nodeIndex)]
-    setActiveSatellite(button)
-    showCoreTooltip(tooltip, node, button)
+    if (!node) return
+
+    hoverTimeout = setTimeout(() => {
+      setActiveSatellite(button)
+      showCoreTooltip(tooltip, node, button)
+    }, 150)
   }, { passive: true })
 
   graph.addEventListener('click', (event) => {
     const button = event.target.closest?.('.nexora-core-orbit-node')
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+      hoverTimeout = null
+    }
+
     if (!button) {
       if (tooltip.dataset.pinned === 'true') {
         tooltip.dataset.pinned = 'false'
@@ -381,23 +414,41 @@ const renderCoreGraph = (panel, payload = {}) => {
   })
 
   graph.addEventListener('focusin', (event) => {
+    if (tooltip.dataset.pinned === 'true') return
     const button = event.target.closest?.('.nexora-core-orbit-node')
     if (!button) return
-    if (tooltip.dataset.pinned === 'true') return
+
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+      hoverTimeout = null
+    }
+
     const node = lastGraphNodes[Number(button.dataset.nodeIndex)]
     setActiveSatellite(button)
     showCoreTooltip(tooltip, node, button)
   })
 
   graph.addEventListener('pointerout', (event) => {
-    if (event.relatedTarget && graph.contains(event.relatedTarget)) return
     if (tooltip.dataset.pinned === 'true') return
+    if (event.relatedTarget && graph.contains(event.relatedTarget)) return
+    
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+      hoverTimeout = null
+    }
+
     setActiveSatellite(null)
     hideCoreTooltip(tooltip)
   }, { passive: true })
 
   graph.addEventListener('blur', () => {
     if (tooltip.dataset.pinned === 'true') return
+
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+      hoverTimeout = null
+    }
+
     setActiveSatellite(null)
     hideCoreTooltip(tooltip)
   }, true)
