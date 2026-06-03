@@ -24,8 +24,10 @@ const isTechnicalValue = (value) => {
 const firstWord = (value) => {
   const trimmed = String(value || '').trim()
   if (!trimmed || isTechnicalValue(trimmed)) return ''
+  // Extraire uniquement le premier mot (prénom)
   const word = trimmed.split(/\s+/)[0]
-  return isTechnicalValue(word) ? '' : word
+  // On s'assure que le mot n'est pas un email ou un ID technique accidentel
+  return isTechnicalValue(word) || word.length > 20 ? '' : word
 }
 
 /**
@@ -37,6 +39,7 @@ export function getUserDisplayName(user) {
 
   const metadata = user.user_metadata || {}
 
+  // Priorité 1 : Prénom explicite
   const givenCandidates = [
     metadata.firstName,
     metadata.first_name,
@@ -47,20 +50,14 @@ export function getUserDisplayName(user) {
     if (name) return name
   }
 
+  // Priorité 2 : Display Name (si c'est un nom complet, firstWord extraira le prénom)
   const displayCandidates = [
     metadata.displayName,
-    metadata.display_name
-  ]
-  for (const candidate of displayCandidates) {
-    const name = firstWord(candidate)
-    if (name) return name
-  }
-
-  const fullCandidates = [
+    metadata.display_name,
     metadata.full_name,
     metadata.name
   ]
-  for (const candidate of fullCandidates) {
+  for (const candidate of displayCandidates) {
     const name = firstWord(candidate)
     if (name) return name
   }

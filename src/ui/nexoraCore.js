@@ -94,7 +94,8 @@ const buildGraphNodes = ({ goals = [], debts = [] }) => {
       kind: 'debt',
       name: debt.name || 'Dette',
       remaining: Number(debt.remaining) || 0,
-      progress: null,
+      monthly: Number(debt.monthly) || 0,
+      rate: debt.rate ? `${Number(debt.rate)}%` : null,
       due: debt.dueDate ? formatDateLabel(debt.dueDate) : 'Mensualité à suivre',
       amountLabel: `${formatEuro(debt.remaining)} restants`
     }))
@@ -106,39 +107,45 @@ const buildGraphNodes = ({ goals = [], debts = [] }) => {
 
   return merged.map((node, index) => {
     const baseAngle = (GOLDEN_ANGLE * (index + 1)) % 360
-    const kindOffset = node.kind === 'debt' ? 22 : 0
+    // Orbite Objectifs : 72% à 88% | Orbite Dettes : 96% à 116%
+    const radius = node.kind === 'goal' 
+      ? clamp(72 + (index % 4) * 4, 72, 88) 
+      : clamp(96 + (index % 4) * 5, 96, 116)
+    
     return {
       ...node,
-      size: clamp(11 + Math.sqrt(node.remaining / maxRemaining) * 18, 11, 28),
-      angle: (baseAngle + kindOffset) % 360,
-      radius: clamp(30 + (index % 4) * 8 + (node.kind === 'debt' ? 5 : 0), 28, 58),
-      speed: 32 + index * 4 + (node.kind === 'debt' ? 6 : 0)
+      size: clamp(8 + Math.sqrt(node.remaining / maxRemaining) * 20, 8, 28),
+      angle: baseAngle,
+      radius,
+      speed: node.kind === 'goal' ? 40 + index * 5 : 55 + index * 6
     }
   })
 }
 
 const applyReactorVisualState = (globe, panel, health, risk) => {
   if (!globe) return
-  const glowStrength = health >= 80 ? 1 : health >= 55 ? 0.78 : health >= 45 ? 0.55 : 0.38
-  const riskTint = risk >= 55 ? 0.42 : risk >= 32 ? 0.2 : 0.08
-  const savingsBoost = clamp((health - 40) / 60, 0, 1)
+  
+  // Couleurs Premium Galaxie : Excellent (Vert-Or), Correct (Or), Fragile (Orange), Critique (Rouge)
+  let tone = 'balanced'
+  if (health >= 85) tone = 'radiant'     // Vert-Doré
+  else if (health >= 65) tone = 'solid'  // Or
+  else if (health >= 45) tone = 'watch'  // Orange
+  else tone = 'fragile'                  // Rouge
 
+  globe.dataset.coreTone = tone
+  if (panel) panel.dataset.coreTone = tone
+
+  const glowStrength = health >= 80 ? 1 : health >= 60 ? 0.8 : health >= 40 ? 0.6 : 0.4
   globe.style.setProperty('--core-glow-strength', String(glowStrength))
-  globe.style.setProperty('--core-risk-tint', String(riskTint))
-  globe.style.setProperty('--core-reactor-scale', String(0.92 + savingsBoost * 0.12))
-  globe.dataset.coreTone = health >= 80 ? 'radiant' : health >= 45 ? 'balanced' : 'cautious'
-
-  if (panel) {
-    panel.dataset.coreTone = globe.dataset.coreTone
-  }
+  globe.style.setProperty('--core-reactor-scale', String(0.95 + (health / 100) * 0.1))
 
   const nucleus = globe.querySelector('.nexora-core-nucleus')
   if (nucleus && !prefersReducedMotion()) {
     gsap.to(nucleus, {
-      scale: 0.96 + glowStrength * 0.08,
-      opacity: 0.72 + glowStrength * 0.28,
-      duration: 1.1,
-      ease: 'power2.out',
+      scale: 1 + (health / 100) * 0.05,
+      opacity: 0.8 + (health / 100) * 0.2,
+      duration: 1.5,
+      ease: 'power2.inOut',
       overwrite: 'auto'
     })
   }
@@ -166,13 +173,25 @@ const hideCoreTooltip = (tooltip) => {
 const showCoreTooltip = (tooltip, node) => {
   if (!tooltip || !node) return
   tooltip.hidden = false
-  tooltip.innerHTML = `
-    <span class="nexora-core-tooltip-kind nexora-core-tooltip-kind--${node.kind}">${node.kind === 'goal' ? 'Objectif' : 'Dette'}</span>
-    <strong>${node.name}</strong>
-    <span class="nexora-core-tooltip-amount">${node.amountLabel}</span>
-    ${node.progress !== null ? `<span class="nexora-core-tooltip-progress"><em>Progression</em> ${node.progress}%</span>` : ''}
-    <span class="nexora-core-tooltip-due">${node.due}</span>
-  `
+  
+  if (node.kind === 'goal') {
+    tooltip.innerHTML = `
+      <span class="nexora-core-tooltip-kind nexora-core-tooltip-kind--goal">Objectif</span>
+      <strong>${node.name}</strong>
+      <span class="nexora-core-tooltip-amount">${node.amountLabel}</span>
+      <span class="nexora-core-tooltip-progress"><em>Progression</em> ${node.progress}%</span>
+      <span class="nexora-core-tooltip-due">${node.due}</span>
+    `
+  } else {
+    tooltip.innerHTML = `
+      <span class="nexora-core-tooltip-kind nexora-core-tooltip-kind--debt">Dette</span>
+      <strong>${node.name}</strong>
+      <span class="nexora-core-tooltip-amount">${node.amountLabel}</span>
+      <span class="nexora-core-tooltip-monthly"><em>Mensualité</em> ${formatEuro(node.monthly)}</span>
+      ${node.rate ? `<span class="nexora-core-tooltip-rate"><em>Taux</em> ${node.rate}</span>` : ''}
+    `
+  }
+
   if (!prefersReducedMotion()) {
     gsap.fromTo(
       tooltip,
@@ -184,13 +203,25 @@ const showCoreTooltip = (tooltip, node) => {
 
 const setActiveSatellite = (button) => {
   if (activeGraphButton === button) return
-  if (activeGraphButton) activeGraphButton.classList.remove('is-active')
+  const graph = document.getElementById('nexora-core-graph')
+  
+  if (activeGraphButton) {
+    activeGraphButton.classList.remove('is-active')
+    if (!prefersReducedMotion()) {
+      gsap.to(activeGraphButton, { scale: 1, duration: 0.3 })
+    }
+  }
+  
   activeGraphButton = button
+  
   if (button) {
     button.classList.add('is-active')
+    if (graph) graph.classList.add('has-active-node')
     if (!prefersReducedMotion()) {
-      gsap.fromTo(button, { scale: 1 }, { scale: 1.18, duration: 0.35, ease: 'back.out(2)' })
+      gsap.to(button, { scale: 1.4, duration: 0.4, ease: 'back.out(2)' })
     }
+  } else {
+    if (graph) graph.classList.remove('has-active-node')
   }
 }
 
@@ -259,21 +290,13 @@ const initGlobeSignature = (panel) => {
   if (!panel || globeMotionReady || prefersReducedMotion()) return
 
   const globe = panel.querySelector('#nexora-core-globe')
-  const rigOuter = panel.querySelector('.nexora-core-orbit-rig--outer')
-  const rigInner = panel.querySelector('.nexora-core-orbit-rig--inner')
   const sphere = panel.querySelector('.nexora-core-sphere')
-  const reactor = panel.querySelector('.nexora-core-reactor')
   const nucleusGlow = panel.querySelector('.nexora-core-nucleus-glow')
   const shimmer = panel.querySelector('.nexora-core-shimmer')
   const reflection = panel.querySelector('.nexora-core-reflection')
   const haloOuter = panel.querySelector('.nexora-core-halo--outer')
   const haloInner = panel.querySelector('.nexora-core-halo--inner')
-  const haloRisk = panel.querySelector('.nexora-core-halo--risk')
-  const particles = panel.querySelectorAll('.nexora-core-particle')
-  const dust = panel.querySelectorAll('.nexora-core-dust-particle')
   const depthFar = panel.querySelector('.nexora-core-depth--far')
-  const depthMid = panel.querySelector('.nexora-core-depth--mid')
-  const orbits = panel.querySelectorAll('.nexora-core-orbit')
 
   if (!globe) return
   globeMotionReady = true
@@ -281,61 +304,21 @@ const initGlobeSignature = (panel) => {
   globeMotionCtx = gsap.context(() => {
     gsap.set(globe, { transformPerspective: 1100, transformStyle: 'preserve-3d' })
 
-    if (rigOuter) {
-      gsap.to(rigOuter, {
-        rotation: 360,
-        duration: 72,
-        repeat: -1,
-        ease: 'none',
-        transformOrigin: '50% 50%'
-      })
-    }
-
-    if (rigInner) {
-      gsap.to(rigInner, {
-        rotation: -360,
-        duration: 48,
-        repeat: -1,
-        ease: 'none',
-        transformOrigin: '50% 50%'
-      })
-    }
-
     if (sphere) {
       gsap.to(sphere, {
         rotation: 360,
-        duration: 160,
+        duration: 180,
         repeat: -1,
         ease: 'none',
         transformOrigin: '50% 50%'
       })
     }
-
-    if (reactor) {
-      gsap.to(reactor, {
-        rotation: -360,
-        duration: 90,
-        repeat: -1,
-        ease: 'none',
-        transformOrigin: '50% 50%'
-      })
-    }
-
-    orbits.forEach((orbit, index) => {
-      gsap.to(orbit, {
-        rotateZ: index % 2 === 0 ? '+=360' : '-=360',
-        duration: 24 + index * 8,
-        repeat: -1,
-        ease: 'none',
-        transformOrigin: '50% 50%'
-      })
-    })
 
     if (nucleusGlow) {
       gsap.to(nucleusGlow, {
-        scale: 1.12,
-        opacity: 0.85,
-        duration: 5.5,
+        scale: 1.1,
+        opacity: 0.8,
+        duration: 6,
         yoyo: true,
         repeat: -1,
         ease: 'sine.inOut',
@@ -345,9 +328,9 @@ const initGlobeSignature = (panel) => {
 
     if (haloOuter) {
       gsap.to(haloOuter, {
-        scale: 1.06,
-        opacity: 0.82,
-        duration: 5.8,
+        scale: 1.05,
+        opacity: 0.7,
+        duration: 7,
         yoyo: true,
         repeat: -1,
         ease: 'sine.inOut',
@@ -355,82 +338,28 @@ const initGlobeSignature = (panel) => {
       })
     }
 
-    if (haloInner) {
-      gsap.to(haloInner, {
-        scale: 1.03,
-        opacity: 0.62,
-        duration: 4.4,
-        yoyo: true,
-        repeat: -1,
-        ease: 'sine.inOut',
-        transformOrigin: '50% 50%',
-        delay: 0.8
-      })
-    }
-
-    if (haloRisk) {
-      gsap.to(haloRisk, {
-        opacity: 0.35,
-        scale: 1.04,
-        duration: 6.2,
-        yoyo: true,
-        repeat: -1,
-        ease: 'sine.inOut',
-        transformOrigin: '50% 50%',
-        delay: 0.3
-      })
-    }
-
     if (shimmer) {
       gsap.fromTo(
         shimmer,
         { xPercent: -130, opacity: 0 },
-        { xPercent: 130, opacity: 0.7, duration: 5.6, repeat: -1, ease: 'power1.inOut', repeatDelay: 2 }
+        { xPercent: 130, opacity: 0.6, duration: 8, repeat: -1, ease: 'power1.inOut', repeatDelay: 3 }
       )
     }
 
     if (reflection) {
       gsap.to(reflection, {
-        xPercent: 14,
-        yPercent: -8,
-        opacity: 0.5,
-        duration: 6.8,
+        xPercent: 10,
+        opacity: 0.4,
+        duration: 8,
         yoyo: true,
         repeat: -1,
         ease: 'sine.inOut'
       })
     }
 
-    particles.forEach((particle, index) => {
-      gsap.to(particle, {
-        x: `+=${4 + (index % 3) * 2}`,
-        y: `+=${-3 - (index % 2)}`,
-        opacity: 0.55,
-        duration: 4.5 + index * 0.6,
-        yoyo: true,
-        repeat: -1,
-        ease: 'sine.inOut',
-        delay: index * 0.35
-      })
-    })
-
-    dust.forEach((particle, index) => {
-      gsap.set(particle, { opacity: 0.08 + (index % 5) * 0.04 })
-      gsap.to(particle, {
-        x: `+=${8 + (index % 4) * 4}`,
-        y: `+=${-6 - (index % 3) * 3}`,
-        opacity: 0.22,
-        duration: 14 + (index % 6) * 2.5,
-        yoyo: true,
-        repeat: -1,
-        ease: 'sine.inOut',
-        delay: index * 0.55
-      })
-    })
-
     gsap.to(globe, {
-      y: -6,
-      duration: 6.2,
+      y: -8,
+      duration: 7,
       yoyo: true,
       repeat: -1,
       ease: 'sine.inOut'
@@ -438,9 +367,9 @@ const initGlobeSignature = (panel) => {
 
     if (depthFar) {
       gsap.to(depthFar, {
-        scale: 1.04,
-        opacity: 0.5,
-        duration: 8,
+        scale: 1.05,
+        opacity: 0.4,
+        duration: 10,
         yoyo: true,
         repeat: -1,
         ease: 'sine.inOut'
@@ -449,13 +378,11 @@ const initGlobeSignature = (panel) => {
 
     if (isCoarsePointer()) {
       gsap.to(globe, {
-        x: 4,
-        rotation: 1.2,
-        duration: 7.5,
+        rotation: 1,
+        duration: 10,
         yoyo: true,
         repeat: -1,
-        ease: 'sine.inOut',
-        delay: 0.5
+        ease: 'sine.inOut'
       })
     }
   }, panel)
@@ -467,8 +394,6 @@ const bindGlobeTilt = (root) => {
   const globe = root?.querySelector?.('#nexora-core-globe')
   const stage = root?.querySelector?.('#nexora-core-stage')
   const depthFar = root?.querySelector?.('.nexora-core-depth--far')
-  const depthMid = root?.querySelector?.('.nexora-core-depth--mid')
-  const reactor = root?.querySelector?.('.nexora-core-reactor')
   if (!globe) return
   tiltBound = true
 
@@ -480,10 +405,6 @@ const bindGlobeTilt = (root) => {
   const parallaxY = stage ? gsap.quickTo(stage, 'y', { duration: 1, ease: 'power2.out' }) : null
   const depthFarX = depthFar ? gsap.quickTo(depthFar, 'x', { duration: 1.1, ease: 'power2.out' }) : null
   const depthFarY = depthFar ? gsap.quickTo(depthFar, 'y', { duration: 1.1, ease: 'power2.out' }) : null
-  const depthMidX = depthMid ? gsap.quickTo(depthMid, 'x', { duration: 0.95, ease: 'power2.out' }) : null
-  const depthMidY = depthMid ? gsap.quickTo(depthMid, 'y', { duration: 0.95, ease: 'power2.out' }) : null
-  const reactorX = reactor ? gsap.quickTo(reactor, 'x', { duration: 0.75, ease: 'power2.out' }) : null
-  const reactorY = reactor ? gsap.quickTo(reactor, 'y', { duration: 0.75, ease: 'power2.out' }) : null
 
   const setGlow = (xPct, yPct) => {
     globe.style.setProperty('--core-glow-x', `${xPct}%`)
@@ -497,10 +418,6 @@ const bindGlobeTilt = (root) => {
     parallaxY?.(0)
     depthFarX?.(0)
     depthFarY?.(0)
-    depthMidX?.(0)
-    depthMidY?.(0)
-    reactorX?.(0)
-    reactorY?.(0)
     gsap.to(globe, {
       '--core-glow-x': '50%',
       '--core-glow-y': '42%',
@@ -518,17 +435,13 @@ const bindGlobeTilt = (root) => {
     const cy = rect.top + rect.height / 2
     const dx = clamp((event.clientX - cx) / (rect.width / 2), -1, 1)
     const dy = clamp((event.clientY - cy) / (rect.height / 2), -1, 1)
-    tiltX(dy * -4.5)
-    tiltY(dx * 5.5)
-    parallaxX?.(dx * 8)
-    parallaxY?.(dy * 6)
-    depthFarX?.(dx * 14)
-    depthFarY?.(dy * 10)
-    depthMidX?.(dx * 9)
-    depthMidY?.(dy * 7)
-    reactorX?.(dx * 5)
-    reactorY?.(dy * 4)
-    setGlow(50 + dx * 16, 42 + dy * 14)
+    tiltX(dy * -3.5)
+    tiltY(dx * 4.5)
+    parallaxX?.(dx * 6)
+    parallaxY?.(dy * 5)
+    depthFarX?.(dx * 12)
+    depthFarY?.(dy * 8)
+    setGlow(50 + dx * 14, 42 + dy * 12)
   }
 
   root.addEventListener('pointermove', onMove, { passive: true })
@@ -553,14 +466,21 @@ export function updateNexoraCore(metrics = {}) {
   const variableRate = Number(metrics.variablesPct || 0)
   const debtRate = Number(metrics.debtRate || 0)
 
+  // Calcul de santé simplifié pour la Galaxie
   const health = income > 0
-    ? clamp(100 - Math.max(0, chargesRate - 55) - Math.max(0, variableRate - 25) - Math.max(0, debtRate - 20) + Math.min(20, Math.max(0, balance / Math.max(1, income) * 100)), 12, 96)
-    : 24
-  const risk = clamp(100 - health, 8, 88)
+    ? clamp(100 - Math.max(0, chargesRate - 55) - Math.max(0, variableRate - 30) - Math.max(0, debtRate - 20) + Math.min(15, Math.max(0, balance / Math.max(1, income) * 100)), 10, 100)
+    : 20
+  const risk = clamp(100 - health, 0, 100)
 
   globe.style.setProperty('--core-health', `${Math.round(health)}`)
   globe.style.setProperty('--core-risk', `${Math.round(risk)}`)
-  panel.dataset.health = health >= 72 ? 'solid' : health >= 45 ? 'watch' : 'fragile'
+  
+  // Mapping des tons pour le CSS
+  let toneClass = 'fragile'
+  if (health >= 85) toneClass = 'solid'
+  else if (health >= 45) toneClass = 'watch'
+  panel.dataset.health = toneClass
+  
   applyReactorVisualState(globe, panel, health, risk)
 
   if (healthEl) healthEl.textContent = income > 0 ? `${Math.round(health)}% · ${healthLabel(health)}` : '—'

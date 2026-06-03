@@ -138,13 +138,12 @@ const renderNexoraStatusBarContent = (bar) => {
 }
 
 const injectNexoraStatusBar = () => {
-  const sidebar = document.querySelector('.sidebar')
-  if (!sidebar || document.getElementById('nexora-status-bar')) return
+  if (document.getElementById('nexora-status-bar')) return
   const bar = document.createElement('div')
   bar.id = 'nexora-status-bar'
-  bar.className = 'nexora-status-bar'
+  bar.className = 'nexora-status-bar-fixed'
   bar.setAttribute('role', 'status')
-  sidebar.appendChild(bar)
+  document.body.appendChild(bar)
   renderNexoraStatusBarContent(bar)
 }
 

@@ -131,58 +131,19 @@
           <div class="nexora-core-stage" id="nexora-core-stage">
             <div class="nexora-core-ambient" aria-hidden="true"></div>
             <div class="nexora-core-globe-wrap">
-              <div class="nexora-core-globe" id="nexora-core-globe" role="img" aria-label="Globe Nexora Core">
+              <div class="nexora-core-globe" id="nexora-core-globe" role="img" aria-label="Galaxie financière Nexora">
                 <div class="nexora-core-depth nexora-core-depth--far" aria-hidden="true"></div>
                 <div class="nexora-core-depth nexora-core-depth--mid" aria-hidden="true"></div>
-                <div class="nexora-core-halo nexora-core-halo--risk" aria-hidden="true"></div>
                 <div class="nexora-core-halo nexora-core-halo--outer" aria-hidden="true"></div>
                 <div class="nexora-core-halo nexora-core-halo--inner" aria-hidden="true"></div>
-                <div class="nexora-core-dust" aria-hidden="true">
-                  <span class="nexora-core-dust-particle"></span>
-                  <span class="nexora-core-dust-particle"></span>
-                  <span class="nexora-core-dust-particle"></span>
-                  <span class="nexora-core-dust-particle"></span>
-                  <span class="nexora-core-dust-particle"></span>
-                  <span class="nexora-core-dust-particle"></span>
-                  <span class="nexora-core-dust-particle"></span>
-                  <span class="nexora-core-dust-particle"></span>
-                  <span class="nexora-core-dust-particle"></span>
-                  <span class="nexora-core-dust-particle"></span>
-                  <span class="nexora-core-dust-particle"></span>
-                  <span class="nexora-core-dust-particle"></span>
-                  <span class="nexora-core-dust-particle"></span>
-                  <span class="nexora-core-dust-particle"></span>
-                  <span class="nexora-core-dust-particle"></span>
-                  <span class="nexora-core-dust-particle"></span>
-                </div>
-                <div class="nexora-core-particles" aria-hidden="true">
-                  <span class="nexora-core-particle nexora-core-particle--1"></span>
-                  <span class="nexora-core-particle nexora-core-particle--2"></span>
-                  <span class="nexora-core-particle nexora-core-particle--3"></span>
-                  <span class="nexora-core-particle nexora-core-particle--4"></span>
-                  <span class="nexora-core-particle nexora-core-particle--5"></span>
-                  <span class="nexora-core-particle nexora-core-particle--6"></span>
-                </div>
-                <div class="nexora-core-orbit-rig nexora-core-orbit-rig--outer" aria-hidden="true">
-                  <div class="nexora-core-orbit nexora-core-orbit--a"></div>
-                  <div class="nexora-core-orbit nexora-core-orbit--b"></div>
-                </div>
-                <div class="nexora-core-orbit-rig nexora-core-orbit-rig--inner" aria-hidden="true">
-                  <div class="nexora-core-orbit nexora-core-orbit--c"></div>
-                  <div class="nexora-core-orbit nexora-core-orbit--d"></div>
-                </div>
+                
                 <div class="nexora-core-sphere" aria-hidden="true">
-                  <div class="nexora-core-reactor" id="nexora-core-reactor">
-                    <div class="nexora-core-nucleus-glow" aria-hidden="true"></div>
-                    <div class="nexora-core-nucleus" aria-hidden="true"></div>
-                    <div class="nexora-core-nucleus-core" aria-hidden="true"></div>
-                    <div class="nexora-core-inner-shell" aria-hidden="true"></div>
-                  </div>
-                  <div class="nexora-core-wireframe"></div>
+                  <div class="nexora-core-nucleus-glow" aria-hidden="true"></div>
+                  <div class="nexora-core-nucleus" aria-hidden="true"></div>
                   <div class="nexora-core-shimmer"></div>
                   <div class="nexora-core-reflection"></div>
-                  <div class="nexora-core-reflection nexora-core-reflection--soft" aria-hidden="true"></div>
                 </div>
+
                 <svg class="nexora-core-ring" viewBox="0 0 100 100" aria-hidden="true">
                   <defs>
                     <linearGradient id="nexora-ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -4005,8 +3966,19 @@ function updateHumanSummary(metrics = {}) {
 }
 
 function getNexoraDisplayName() {
-  if (window.AuthContext?.getUserDisplayName) {
-    return window.AuthContext.getUserDisplayName();
+  const user = window.AuthContext?.getState?.()?.user;
+  if (window.getUserDisplayName && typeof window.getUserDisplayName === 'function') {
+    const name = window.getUserDisplayName(user);
+    if (name && name !== 'Vous') return name;
+  }
+  
+  if (user?.user_metadata) {
+    const m = user.user_metadata;
+    const candidate = m.firstName || m.first_name || m.given_name || m.displayName || m.display_name || m.full_name || m.name;
+    if (candidate) {
+      const first = String(candidate).trim().split(/\s+/)[0];
+      if (first && !/@/.test(first) && first.length < 20) return first;
+    }
   }
   return 'Vous';
 }
