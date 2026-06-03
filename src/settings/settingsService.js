@@ -1,6 +1,10 @@
 import { parseFinancialExpression } from '../finance/financialExpression.js'
 import { UserAppSettingsService } from '../../js/userAppSettingsService.js'
 import { STORAGE_KEYS } from '../constants/storageKeys.js'
+import {
+  normalizeRecurringIncome as normalizeRecurringIncomeRecord,
+  normalizeRecurringIncomeList
+} from './recurringIncomeSync.js'
 
 const nowIso = () => new Date().toISOString()
 const makeId = (prefix) => {
@@ -18,16 +22,7 @@ export const SettingsService = {
   BILL_SCHEDULES_KEY: 'nexora_bill_schedules',
 
   normalizeRecurringIncome(entry = {}) {
-    const day = Math.max(1, Math.min(31, Number(entry.day || entry.payDay || entry.date) || 1))
-    const amount = parseStrictAmount(entry.amount)
-    return {
-      id: entry.id || makeId('income'),
-      name: String(entry.name || entry.title || 'Revenu récurrent').trim(),
-      amount: amount === null ? 0 : amount,
-      day,
-      frequency: ['monthly', 'weekly', 'biweekly', 'once'].includes(entry.frequency) ? entry.frequency : 'monthly',
-      updated_at: entry.updated_at || entry.updatedAt || nowIso()
-    }
+    return normalizeRecurringIncomeRecord(entry, { parseAmount: parseStrictAmount })
   },
 
   normalizeBillSchedule(entry = {}) {
@@ -55,7 +50,10 @@ export const SettingsService = {
       const { value } = await UserAppSettingsService.getSetting(STORAGE_KEYS.recurringIncomes)
       const raw = value === null ? localStorage.getItem(this.RECURRING_INCOMES_KEY) : null
       const parsed = value !== null ? value : (raw ? JSON.parse(raw) : [])
-      return Array.isArray(parsed) ? parsed.map((entry) => this.normalizeRecurringIncome(entry)) : []
+      return normalizeRecurringIncomeList(
+        Array.isArray(parsed) ? parsed : [],
+        { parseAmount: parseStrictAmount }
+      )
     } catch (error) {
       console.warn('[SettingsService] failed to load recurring incomes', error)
       return []

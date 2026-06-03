@@ -2,6 +2,10 @@ import { StorageManager } from './storage.js'
 import { STORAGE_KEYS, SYNCED_APP_SETTING_KEYS } from '../src/constants/storageKeys.js'
 import { getNamespacedStorageKey } from './userStorage.js'
 import { logSyncEvent } from '../src/sync/syncDiagnostics.js'
+import {
+  mergeRecurringIncomeArrays,
+  normalizeRecurringIncomeList
+} from '../src/settings/recurringIncomeSync.js'
 
 const META_SUFFIX = '::meta'
 
@@ -165,6 +169,32 @@ const refreshBudgetCycleUiAfterCloudMerge = async () => {
   }
 }
 
+const refreshRecurringIncomesUiAfterCloudMerge = async () => {
+  if (typeof window === 'undefined') return
+  try {
+    if (typeof window.renderRecurringIncomeSettings === 'function') {
+      await window.renderRecurringIncomeSettings()
+    }
+  } catch (err) {
+    UserAppSettingsService.warn('Failed to refresh recurring incomes UI after cloud merge', err)
+  }
+}
+
+const normalizeSyncedArrayValue = (key, value) => {
+  if (!Array.isArray(value)) return value
+  if (key === STORAGE_KEYS.recurringIncomes) {
+    return normalizeRecurringIncomeList(value)
+  }
+  return value
+}
+
+const mergeSyncedArrayValue = (key, localValue, cloudValue) => {
+  if (key === STORAGE_KEYS.recurringIncomes) {
+    return mergeRecurringIncomeArrays(localValue, cloudValue)
+  }
+  return mergeArrayByIdentity(localValue, cloudValue)
+}
+
 const UserAppSettingsService = {
   log: () => {},
 
@@ -285,7 +315,7 @@ const UserAppSettingsService = {
     const cloudValue = row.data
 
     if (key === STORAGE_KEYS.goals && isNonEmptyArray(cloudValue) && !isNonEmptyArray(localValue)) {
-      await forceWriteLocalSetting(key, cloudValue, row.updated_at)
+      await forceWriteLocalSetting(key, normalizeSyncedArrayValue(key, cloudValue), row.updated_at)
       await refreshGoalsUiAfterCloudMerge()
       UserAppSettingsService.log('Injected non-empty cloud goals into local storage', key)
       return { ok: true, action: 'cloud-to-local-goals-forced' }
@@ -302,14 +332,16 @@ const UserAppSettingsService = {
     }
 
     if (isNonEmptyArray(localValue) && isNonEmptyArray(cloudValue)) {
-      const merged = mergeArrayByIdentity(localValue, cloudValue)
-      if (JSON.stringify(merged.value) !== JSON.stringify(localValue) || merged.conflicts.length) {
+      const merged = mergeSyncedArrayValue(key, localValue, cloudValue)
+      const normalizedMerged = normalizeSyncedArrayValue(key, merged.value)
+      if (JSON.stringify(normalizedMerged) !== JSON.stringify(localValue) || merged.conflicts.length) {
         const newest = cloudUpdated > localUpdated ? row.updated_at : localMeta?.updated_at
-        await forceWriteLocalSetting(key, merged.value, newest || new Date().toISOString())
+        await forceWriteLocalSetting(key, normalizedMerged, newest || new Date().toISOString())
         await appendConflictLog(key, merged.conflicts)
         await UserAppSettingsService.syncLocalSettingToCloud(key)
         if (key === STORAGE_KEYS.goals) await refreshGoalsUiAfterCloudMerge()
         if (key === STORAGE_KEYS.budgetCycleSettings) await refreshBudgetCycleUiAfterCloudMerge()
+        if (key === STORAGE_KEYS.recurringIncomes) await refreshRecurringIncomesUiAfterCloudMerge()
         UserAppSettingsService.log('Merged local/cloud array setting by identity', key)
         return { ok: true, action: 'merged-array', conflicts: merged.conflicts.length }
       }
@@ -317,12 +349,15 @@ const UserAppSettingsService = {
 
     if (!localValue && cloudValue) {
       // no local, cloud present -> write cloud to local
-      await forceWriteLocalSetting(key, cloudValue, row.updated_at)
+      await forceWriteLocalSetting(key, normalizeSyncedArrayValue(key, cloudValue), row.updated_at)
       if (key === STORAGE_KEYS.goals) {
         await refreshGoalsUiAfterCloudMerge()
       }
       if (key === STORAGE_KEYS.budgetCycleSettings) {
         await refreshBudgetCycleUiAfterCloudMerge()
+      }
+      if (key === STORAGE_KEYS.recurringIncomes) {
+        await refreshRecurringIncomesUiAfterCloudMerge()
       }
       UserAppSettingsService.log('Pulled cloud setting to local', key)
       logSyncEvent('pull', key, { ok: true, action: 'cloud-to-local' })
@@ -331,12 +366,15 @@ const UserAppSettingsService = {
 
     if (cloudUpdated > localUpdated) {
       // cloud newer -> replace local
-      await forceWriteLocalSetting(key, cloudValue, row.updated_at)
+      await forceWriteLocalSetting(key, normalizeSyncedArrayValue(key, cloudValue), row.updated_at)
       if (key === STORAGE_KEYS.goals) {
         await refreshGoalsUiAfterCloudMerge()
       }
       if (key === STORAGE_KEYS.budgetCycleSettings) {
         await refreshBudgetCycleUiAfterCloudMerge()
+      }
+      if (key === STORAGE_KEYS.recurringIncomes) {
+        await refreshRecurringIncomesUiAfterCloudMerge()
       }
       UserAppSettingsService.log('Cloud setting is newer; updated local value', key)
       logSyncEvent('pull', key, { ok: true, action: 'cloud-to-local-newer' })
