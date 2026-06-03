@@ -52,30 +52,30 @@ export function generateScenarios(context = {}) {
         label: 'Prudent',
         projectedBalance: 0,
         possibleSaving: 0,
-        primaryGoalImpact: 'Objectif non analysable',
-        debtImpact: 'Dette non analysable',
+        primaryGoalImpact: 'À compléter',
+        debtImpact: 'À compléter',
         risk: 'indéfini',
-        advice: 'Complète les revenus avant de suivre une stratégie prudente.'
+        advice: 'Données à compléter : renseigne tes revenus pour activer le scénario prudent.'
       },
       {
         id: 'equilibre',
         label: 'Équilibré',
         projectedBalance: 0,
         possibleSaving: 0,
-        primaryGoalImpact: 'Objectif non analysable',
-        debtImpact: 'Dette non analysable',
+        primaryGoalImpact: 'À compléter',
+        debtImpact: 'À compléter',
         risk: 'indéfini',
-        advice: 'Le scénario équilibré sera fiable dès que revenus et charges seront renseignés.'
+        advice: 'Données à compléter : ajoute revenus et charges pour le scénario équilibré.'
       },
       {
         id: 'agressif',
         label: 'Agressif',
         projectedBalance: 0,
         possibleSaving: 0,
-        primaryGoalImpact: 'Objectif non analysable',
-        debtImpact: 'Dette non analysable',
+        primaryGoalImpact: 'À compléter',
+        debtImpact: 'À compléter',
         risk: 'indéfini',
-        advice: 'Aucune accélération conseillée sans données complètes.'
+        advice: 'Données à compléter : le scénario agressif s’affichera avec un budget complet.'
       }
     ]
   }

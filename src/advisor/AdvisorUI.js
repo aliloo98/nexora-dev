@@ -1,4 +1,7 @@
-import { generateScenarios } from './scenarioService.js'
+import {
+  getNeutralScenarios,
+  renderScenarioCardsMarkup
+} from './scenarioDisplay.js'
 import { gsap } from 'gsap'
 
 const quickQuestions = [
@@ -84,48 +87,33 @@ const renderList = (items = [], emptyText = 'Aucun point détecté') => {
   return list.slice(0, 3).map((item) => `<li>${escapeHtml(item)}</li>`).join('')
 }
 
-const FALLBACK_SCENARIO_CONTEXT = { income: 0 }
-
-const resolveScenariosForDisplay = (scenarios) => {
-  const list = Array.isArray(scenarios) ? scenarios.filter(Boolean) : []
-  if (list.length >= 3) return list.slice(0, 3)
-  const fallback = generateScenarios(FALLBACK_SCENARIO_CONTEXT)
-  const merged = [...list]
-  fallback.forEach((item) => {
-    if (merged.length >= 3) return
-    if (!merged.some((entry) => entry.id === item.id || entry.label === item.label)) merged.push(item)
-  })
-  return merged.slice(0, 3)
-}
-
 const ensureScenarioVisibility = (root) => {
   const elements = root?.querySelectorAll?.('.advisor-scenario-card, .advisor-scenarios-card, .advisor-scenarios-list')
   if (!elements?.length) return
   const gsapRuntime = typeof gsap !== 'undefined' ? gsap : null
   if (gsapRuntime?.set) {
     gsapRuntime.set(elements, { autoAlpha: 1, opacity: 1, visibility: 'visible', y: 0, scale: 1, filter: 'blur(0px)' })
-    return
   }
   elements.forEach((element) => {
-    element.style.opacity = '1'
-    element.style.visibility = 'visible'
+    element.style.setProperty('opacity', '1', 'important')
+    element.style.setProperty('visibility', 'visible', 'important')
+    element.dataset.revealReady = 'true'
+    element.dataset.revealed = 'true'
   })
 }
 
-const renderScenarioCards = (scenarios = []) => {
-  const visible = resolveScenariosForDisplay(scenarios)
-  if (!visible.length) return renderScenarioCards(generateScenarios(FALLBACK_SCENARIO_CONTEXT))
-  return visible.map((scenario) => `
-    <div class="advisor-scenario-card scenario-${escapeHtml(scenario.id || 'default')}">
-      <div>
-        <strong>${escapeHtml(scenario.label || 'Scénario')}</strong>
-        <span>Risque ${escapeHtml(scenario.risk || 'modéré')}</span>
-      </div>
-      <p>Solde fin de cycle : ${(Number(scenario.projectedBalance) || 0).toLocaleString('fr-FR')} €</p>
-      <p>Épargne possible : ${(Number(scenario.possibleSaving) || 0).toLocaleString('fr-FR')} €</p>
-      <em>${escapeHtml(scenario.advice || 'Garde une marge de sécurité.')}</em>
-    </div>
-  `).join('')
+const paintScenariosList = (root, scenarios) => {
+  const scenariosList = root?.querySelector?.('#advisor-scenarios-list')
+  if (!scenariosList) return
+  scenariosList.innerHTML = renderScenarioCardsMarkup(scenarios)
+  ensureScenarioVisibility(root)
+}
+
+const scheduleScenarioVisibilityLocks = (root) => {
+  const lock = () => ensureScenarioVisibility(root)
+  requestAnimationFrame(lock)
+  setTimeout(lock, 0)
+  setTimeout(lock, 700)
 }
 
 const renderMemoryItems = (memory = {}) => {
@@ -225,7 +213,7 @@ export function renderAdvisorUI(rootId, AdvisorService) {
         </section>
         <section class="advisor-result-card advisor-scenarios-card">
           <span>Scénarios automatiques</span>
-          <div id="advisor-scenarios-list" class="advisor-scenarios-list">${renderScenarioCards(generateScenarios(FALLBACK_SCENARIO_CONTEXT))}</div>
+          <div id="advisor-scenarios-list" class="advisor-scenarios-list">${renderScenarioCardsMarkup(getNeutralScenarios())}</div>
         </section>
       </div>
       <section class="advisor-result-card advisor-memory-card" id="advisor-memory-card" hidden>
@@ -293,53 +281,69 @@ export function renderAdvisorUI(rootId, AdvisorService) {
     button.addEventListener('click', () => runQuery(button.getAttribute('data-q')))
   })
 
+  const loadScenarios = async () => {
+    try {
+      const scenarios = AdvisorService.getScenarios
+        ? await AdvisorService.getScenarios()
+        : getNeutralScenarios()
+      paintScenariosList(root, scenarios)
+    } catch {
+      paintScenariosList(root, getNeutralScenarios())
+    } finally {
+      scheduleScenarioVisibilityLocks(root)
+    }
+  }
+
+  const loadCoach = async () => {
+    if (!AdvisorService.getProactiveCoach) return
+    const coach = await AdvisorService.getProactiveCoach()
+    if (!coach) return
+    root.querySelector('#advisor-proactive-advice').textContent = coach.dailyAdvice || 'Aucune action urgente aujourd’hui.'
+    root.querySelector('#advisor-proactive-priority').textContent = `Priorité : ${coach.priority || 'Maintenir la marge'}`
+    root.querySelector('#advisor-proactive-risks').innerHTML = renderList(coach.risks, 'Aucun risque majeur')
+    root.querySelector('#advisor-proactive-opportunities').innerHTML = renderList(coach.opportunities, 'Aucune opportunité claire')
+    const memoryHtml = renderMemoryItems(coach.memory)
+    const memoryCard = root.querySelector('#advisor-memory-card')
+    if (memoryCard) {
+      memoryCard.hidden = !memoryHtml
+      root.querySelector('#advisor-memory-list').innerHTML = memoryHtml
+    }
+    const actionBtn = root.querySelector('#advisor-proactive-action')
+    if (actionBtn) {
+      actionBtn.textContent = coach.actionLabel || 'Voir le Plan'
+      actionBtn.onclick = () => window.showSection?.(coach.actionTarget || 'plan')
+    }
+    window.NexoraMotion?.animateAdvisorResponse?.(root.querySelector('#advisor-memory-card'))
+  }
+
   const hydrateProactive = async () => {
     const helloEl = root.querySelector('#advisor-greeting-hello')
     if (helloEl && window.AuthContext?.getUserDisplayName) {
       const name = window.AuthContext.getUserDisplayName()
       helloEl.textContent = name === 'Vous' ? 'Bonjour 👋' : `Bonjour ${name} 👋`
     }
-    try {
-      const [coach, scenarios] = await Promise.all([
-        AdvisorService.getProactiveCoach ? AdvisorService.getProactiveCoach() : null,
-        AdvisorService.getScenarios ? AdvisorService.getScenarios() : []
-      ])
-      if (coach) {
-        root.querySelector('#advisor-proactive-advice').textContent = coach.dailyAdvice || 'Aucune action urgente aujourd’hui.'
-        root.querySelector('#advisor-proactive-priority').textContent = `Priorité : ${coach.priority || 'Maintenir la marge'}`
-        root.querySelector('#advisor-proactive-risks').innerHTML = renderList(coach.risks, 'Aucun risque majeur')
-        root.querySelector('#advisor-proactive-opportunities').innerHTML = renderList(coach.opportunities, 'Aucune opportunité claire')
-        const memoryHtml = renderMemoryItems(coach.memory)
-        const memoryCard = root.querySelector('#advisor-memory-card')
-        if (memoryCard) {
-          memoryCard.hidden = !memoryHtml
-          root.querySelector('#advisor-memory-list').innerHTML = memoryHtml
-        }
-        const actionBtn = root.querySelector('#advisor-proactive-action')
-        if (actionBtn) {
-          actionBtn.textContent = coach.actionLabel || 'Voir le Plan'
-          actionBtn.onclick = () => window.showSection?.(coach.actionTarget || 'plan')
-        }
-      }
-      const scenarioCards = renderScenarioCards(scenarios)
-      const scenariosList = root.querySelector('#advisor-scenarios-list')
-      if (scenariosList) scenariosList.innerHTML = scenarioCards
-      ensureScenarioVisibility(root)
-      window.NexoraMotion?.animateAdvisorResponse?.(root.querySelector('#advisor-scenarios-list'))
-      window.NexoraMotion?.animateAdvisorResponse?.(root.querySelector('#advisor-memory-card'))
-    } catch (error) {
+    paintScenariosList(root, getNeutralScenarios())
+    const coachResult = await Promise.allSettled([loadCoach()])
+    if (coachResult[0].status === 'rejected') {
       root.querySelector('#advisor-proactive-advice').textContent = 'Je peux t’aider, mais il me manque encore tes revenus, tes charges ou ton objectif principal.'
       root.querySelector('#advisor-proactive-priority').textContent = 'Priorité : compléter les données'
       root.querySelector('#advisor-proactive-risks').innerHTML = renderList([], 'Données insuffisantes')
       root.querySelector('#advisor-proactive-opportunities').innerHTML = renderList([], 'Complète le budget pour les afficher')
-      const scenariosList = root.querySelector('#advisor-scenarios-list')
-      if (scenariosList) scenariosList.innerHTML = renderScenarioCards(generateScenarios(FALLBACK_SCENARIO_CONTEXT))
-      ensureScenarioVisibility(root)
       const memoryCard = root.querySelector('#advisor-memory-card')
       if (memoryCard) memoryCard.hidden = true
     }
+    await loadScenarios()
+  }
+
+  const section = root.closest('.section') || document.getElementById('section-nexora')
+  if (section) {
+    const visibilityObserver = new MutationObserver(() => {
+      if (!section.hidden) scheduleScenarioVisibilityLocks(root)
+    })
+    visibilityObserver.observe(section, { attributes: true, attributeFilter: ['hidden', 'class'] })
   }
 
   hydrateProactive()
   window.NexoraMotion?.animateCards?.(root)
+  scheduleScenarioVisibilityLocks(root)
 }
