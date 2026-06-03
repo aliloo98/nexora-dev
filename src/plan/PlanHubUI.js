@@ -482,7 +482,9 @@ const buildPlanData = async () => {
   })
 
   const monthMetrics = typeof window.getMonthMetrics === 'function'
-    ? window.getMonthMetrics(monthKey, { fromDom: true })
+    ? (window.NexoraMetricsCache?.getCachedMonthMetrics
+      ? window.NexoraMetricsCache.getCachedMonthMetrics(monthKey, () => window.getMonthMetrics(monthKey, { fromDom: true }))
+      : window.getMonthMetrics(monthKey, { fromDom: true }))
     : { income: totalRevenue, expenses: totalCharges, paidExpenses: 0 }
   const cycleBalances = computeCycleBalancesFromMetrics(monthMetrics)
 

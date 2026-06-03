@@ -37,6 +37,10 @@ const healthLabel = (health) => {
 let tiltBound = false
 let globeMotionReady = false
 let globeMotionCtx = null
+let motionPanel = null
+let graphBound = false
+let lastGraphNodes = []
+const CORE_GRAPH_LIMIT = 8
 
 const killGlobeMotion = () => {
   if (globeMotionCtx) {
@@ -46,8 +50,136 @@ const killGlobeMotion = () => {
   globeMotionReady = false
 }
 
+export function setNexoraCoreMotionActive(active) {
+  const panel = document.getElementById('nexora-core-panel')
+  if (!panel) return
+  if (active) {
+    if (!globeMotionReady && !prefersReducedMotion()) initGlobeSignature(panel)
+  } else {
+    killGlobeMotion()
+  }
+}
+
+const formatDateLabel = (value) => {
+  if (!value) return 'Échéance à définir'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Échéance à définir'
+  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+const buildGraphNodes = ({ goals = [], debts = [] }) => {
+  const goalItems = (Array.isArray(goals) ? goals : [])
+    .filter((goal) => goal && (goal.name || goal.target))
+    .map((goal) => {
+      const target = Number(goal.target) || 0
+      const current = Number(goal.current) || 0
+      const remaining = Math.max(0, target - current)
+      const progress = target > 0 ? clamp(Math.round((current / target) * 100), 0, 100) : 0
+      return {
+        kind: 'goal',
+        name: goal.name || 'Objectif',
+        remaining,
+        progress,
+        due: formatDateLabel(goal.targetDate),
+        amountLabel: target > 0 ? `${formatEuro(remaining)} restants` : 'À compléter'
+      }
+    })
+    .sort((a, b) => b.remaining - a.remaining)
+    .slice(0, 4)
+
+  const debtItems = (Array.isArray(debts) ? debts : [])
+    .filter((debt) => Number(debt?.remaining) > 0)
+    .map((debt) => ({
+      kind: 'debt',
+      name: debt.name || 'Dette',
+      remaining: Number(debt.remaining) || 0,
+      progress: null,
+      due: debt.dueDate ? formatDateLabel(debt.dueDate) : 'Mensualité à suivre',
+      amountLabel: `${formatEuro(debt.remaining)} restants`
+    }))
+    .sort((a, b) => b.remaining - a.remaining)
+    .slice(0, 4)
+
+  const merged = [...goalItems, ...debtItems].slice(0, CORE_GRAPH_LIMIT)
+  const maxRemaining = merged.reduce((max, node) => Math.max(max, node.remaining), 0) || 1
+  const total = merged.length || 1
+  return merged.map((node, index) => ({
+    ...node,
+    size: clamp(12 + Math.sqrt(node.remaining / maxRemaining) * 16, 12, 30),
+    angle: (360 / total) * index
+  }))
+}
+
+const hideCoreTooltip = (tooltip) => {
+  if (!tooltip) return
+  tooltip.hidden = true
+  tooltip.textContent = ''
+}
+
+const showCoreTooltip = (tooltip, node) => {
+  if (!tooltip || !node) return
+  tooltip.hidden = false
+  tooltip.innerHTML = `
+    <strong>${node.name}</strong>
+    <span>${node.amountLabel}</span>
+    ${node.progress !== null ? `<span>Progression : ${node.progress}%</span>` : ''}
+    <span>${node.due}</span>
+  `
+}
+
+const renderCoreGraph = (panel, payload = {}) => {
+  const graph = panel.querySelector('#nexora-core-graph')
+  const tooltip = panel.querySelector('#nexora-core-tooltip')
+  const globe = panel.querySelector('#nexora-core-globe')
+  if (!graph || !globe) return
+
+  const nodes = buildGraphNodes(payload)
+  lastGraphNodes = nodes
+  graph.innerHTML = nodes.map((node, index) => `
+    <button
+      type="button"
+      class="nexora-core-orbit-node nexora-core-orbit-node--${node.kind}"
+      data-node-index="${index}"
+      style="--orbit-angle:${node.angle}deg; --orbit-size:${node.size}px;"
+      aria-label="${node.name} · ${node.amountLabel}"
+    ></button>
+  `).join('')
+
+  const income = Number(payload.revReel || 0)
+  const balance = Number(payload.solde || 0)
+  const targetSavings = Number(payload.targetSavings || 0)
+  const savingsRatio = income > 0 ? clamp(balance / Math.max(targetSavings || income * 0.15, 1), 0, 1.2) : 0
+  globe.style.setProperty('--core-savings', `${Math.round(savingsRatio * 100)}`)
+  globe.style.setProperty('--core-risk-intensity', `${clamp(Number(payload.risk ?? (100 - (payload.health ?? 50))), 8, 88)}`)
+
+  if (graphBound) return
+  graphBound = true
+
+  graph.addEventListener('pointerover', (event) => {
+    const button = event.target.closest?.('.nexora-core-orbit-node')
+    if (!button) return hideCoreTooltip(tooltip)
+    const node = lastGraphNodes[Number(button.dataset.nodeIndex)]
+    showCoreTooltip(tooltip, node)
+  }, { passive: true })
+
+  graph.addEventListener('focusin', (event) => {
+    const button = event.target.closest?.('.nexora-core-orbit-node')
+    if (!button) return
+    const node = lastGraphNodes[Number(button.dataset.nodeIndex)]
+    showCoreTooltip(tooltip, node)
+  })
+
+  graph.addEventListener('pointerout', (event) => {
+    if (event.relatedTarget && graph.contains(event.relatedTarget)) return
+    hideCoreTooltip(tooltip)
+  }, { passive: true })
+
+  graph.addEventListener('blur', () => hideCoreTooltip(tooltip), true)
+}
+
 const initGlobeSignature = (panel) => {
   if (!panel || globeMotionReady || prefersReducedMotion()) return
+  motionPanel = panel
 
   const globe = panel.querySelector('#nexora-core-globe')
   const rig = panel.querySelector('.nexora-core-orbit-rig')
@@ -326,8 +458,21 @@ export function updateNexoraCore(metrics = {}) {
     }
   }
 
-  initGlobeSignature(panel)
-  bindGlobeTilt(panel)
+  renderCoreGraph(panel, {
+    goals: metrics.goals,
+    debts: metrics.debts,
+    revReel: income,
+    solde: balance,
+    targetSavings: metrics.targetSavings,
+    health,
+    risk
+  })
+
+  const dashboardVisible = !document.getElementById('section-dashboard')?.hidden
+  if (dashboardVisible) {
+    initGlobeSignature(panel)
+    bindGlobeTilt(panel)
+  }
 }
 
 export function openNexoraCoreAction() {
@@ -348,4 +493,9 @@ if (typeof window !== 'undefined') {
   window.addEventListener?.('beforeunload', teardownNexoraCoreMotion)
 }
 
-export default { updateNexoraCore, openNexoraCoreAction, teardownNexoraCoreMotion }
+export default {
+  updateNexoraCore,
+  openNexoraCoreAction,
+  teardownNexoraCoreMotion,
+  setNexoraCoreMotionActive
+}

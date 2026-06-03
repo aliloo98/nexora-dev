@@ -41,10 +41,8 @@ import { CoupleService } from './couple/coupleService.js'
 import { renderTreasuryTimeline } from './components/TreasuryTimeline.js'
 import './styles/design-system.css'
 import { renderDashboardMaster } from './components/DashboardMaster.js'
-import { renderAdvisorUI } from './advisor/AdvisorUI.js'
 import CoupleOverlay from './couple/coupleOverlay.js'
 import { renderTreasuryPlanner } from './components/TreasuryPlannerUI.js'
-import { renderPlanHub } from './plan/PlanHubUI.js'
 import { renderSettingsPanels, renderRecurringIncomeSettings, renderBillScheduleSettings } from './settings/SettingsUI.js'
 import { readAiSettings, updateAiSettings } from './advisor/proactiveCoachService.js'
 import NexoraMotion from './ui/gsapMotion.js'
@@ -52,6 +50,11 @@ import { parseFinancialExpression } from './finance/financialExpression.js'
 import { computeCycleBalances, computeCycleBalancesFromMetrics } from './finance/cycleBalance.js'
 import NexoraRecurringResolver from './finance/recurringResolution.js'
 import NexoraCore from './ui/nexoraCore.js'
+import NexoraSections from './app/sectionLoader.js'
+import { getSyncStatusSnapshot, recordLastSync } from './app/syncStatus.js'
+import { APP_VERSION, formatBuildLabel } from './app/buildInfo.js'
+import { renderAboutPanel, refreshAboutPanel } from './settings/aboutPanel.js'
+import './app/metricsCache.js'
 import { getUserDisplayName } from './auth/userDisplayName.js'
 import SyncDiagnostics from './sync/syncDiagnostics.js'
 import { readSyncedArray } from '../js/syncedSettingAccess.js'
@@ -69,6 +72,8 @@ window.NexoraAiSettingsService = { readAiSettings, updateAiSettings }
 window.NexoraMotion = NexoraMotion
 window.NexoraRecurringResolver = NexoraRecurringResolver
 window.NexoraCore = NexoraCore
+window.NexoraSections = NexoraSections
+window.NexoraBuild = { version: APP_VERSION, label: formatBuildLabel }
 window.getUserDisplayName = (user) => getUserDisplayName(user || AuthContext.getCurrentUser())
 window.NexoraSyncDiagnostics = SyncDiagnostics
 window.readSyncedArray = readSyncedArray
@@ -119,6 +124,35 @@ window.setCoupleFallbackMessage = (message) => {
 }
 
 const formatEuro = (value) => `${(Number(value) || 0).toLocaleString('fr-FR')} €`
+
+const renderNexoraStatusBarContent = (bar) => {
+  if (!bar) return
+  const sync = getSyncStatusSnapshot()
+  const onlineClass = sync.online ? 'is-online' : 'is-offline'
+  bar.innerHTML = `
+    <span class="nexora-sync-dot ${onlineClass}" aria-hidden="true"></span>
+    <span class="nexora-status-text">${formatBuildLabel()}</span>
+    <span class="nexora-status-sub">${sync.label}</span>
+  `
+  bar.title = sync.lastAt ? `Dernière sync : ${new Date(sync.lastAt).toLocaleString('fr-FR')}` : 'Synchronisation locale'
+}
+
+const injectNexoraStatusBar = () => {
+  const sidebar = document.querySelector('.sidebar')
+  if (!sidebar || document.getElementById('nexora-status-bar')) return
+  const bar = document.createElement('div')
+  bar.id = 'nexora-status-bar'
+  bar.className = 'nexora-status-bar'
+  bar.setAttribute('role', 'status')
+  sidebar.appendChild(bar)
+  renderNexoraStatusBarContent(bar)
+}
+
+const refreshNexoraStatusBar = () => {
+  renderNexoraStatusBarContent(document.getElementById('nexora-status-bar'))
+}
+
+window.refreshNexoraStatusBar = refreshNexoraStatusBar
 
 const readCurrentBudgetForCouple = () => {
   const read = (key) => Number(document.querySelector(`[data-key="${key}"]`)?.value) || 0
@@ -370,18 +404,17 @@ const initApp = async () => {
       await GoalsPage.init()
     }
 
-    if (typeof renderPlanHub === 'function' && document.getElementById('plan-root')) {
-      await renderPlanHub('plan-root')
-      window.refreshPlanHub = async () => renderPlanHub('plan-root')
-    }
-
     if (typeof renderSettingsPanels === 'function') {
       await renderSettingsPanels()
     }
+    renderAboutPanel('nexora-about-panel')
+    injectNexoraStatusBar()
 
     window.NexoraMotion?.bindButtonFeedback?.(document)
     window.NexoraMotion?.animateNavigation?.(document.querySelector('.sidebar .nav-btn.active'))
-    window.NexoraMotion?.initScrollReveal?.(document)
+    const runScrollReveal = () => window.NexoraMotion?.initScrollReveal?.(document)
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(runScrollReveal, { timeout: 2400 })
+    else setTimeout(runScrollReveal, 400)
 
     if (typeof window.updateCoupleNavigation === 'function') {
       await window.updateCoupleNavigation()
@@ -395,7 +428,10 @@ const initApp = async () => {
     if (typeof UserAppSettingsService !== 'undefined' && UserAppSettingsService && typeof UserAppSettingsService.syncAllAppSettings === 'function') {
       try {
         const syncResults = await UserAppSettingsService.syncAllAppSettings()
+        recordLastSync({ action: 'bootstrap', keys: Object.keys(syncResults || {}) })
         SyncDiagnostics.logSyncEvent('bootstrap', 'syncAllAppSettings', { ok: true, keys: Object.keys(syncResults || {}) })
+        refreshAboutPanel()
+        refreshNexoraStatusBar()
       } catch (e) {
         console.warn('⚠️ User app settings sync failed', e)
         SyncDiagnostics.logSyncEvent('bootstrap', 'syncAllAppSettings', { ok: false, error: e?.message })
@@ -515,15 +551,10 @@ const initApp = async () => {
         window.NexoraMotion?.animatePageEnter?.(document.getElementById('section-dashboard'))
         window.NexoraMotion?.animateCards?.(document.getElementById('section-dashboard'))
       }
-      // Render Advisor UI if present in dashboard
-      if (typeof renderAdvisorUI === 'function' && document.getElementById('advisor-root')) {
+      if (document.getElementById('advisor-root')) {
+        const { renderAdvisorUI } = await import('./advisor/AdvisorUI.js')
         const AdvisorService = (await import('./advisor/advisorService.js')).default
         renderAdvisorUI('advisor-root', AdvisorService)
-      }
-      // Render Nexora page advisor if present
-      if (typeof renderAdvisorUI === 'function' && document.getElementById('nexora-page-root')) {
-        const AdvisorService = (await import('./advisor/advisorService.js')).default
-        renderAdvisorUI('nexora-page-root', AdvisorService)
       }
     } catch (err) {
       console.warn('[Treasury] render failed', err)

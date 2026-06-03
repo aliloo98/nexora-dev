@@ -6424,3 +6424,201 @@ body.mode-simple .home-goal-summary {
     font-size: 28px;
   }
 }
+
+/* —— Nexora Core V2 · orbites objectifs / dettes —— */
+.nexora-core-graph {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.nexora-core-orbit-node {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--orbit-size, 16px);
+  height: var(--orbit-size, 16px);
+  margin: calc(var(--orbit-size, 16px) / -2);
+  border: none;
+  border-radius: 50%;
+  pointer-events: auto;
+  cursor: pointer;
+  transform: rotate(var(--orbit-angle, 0deg)) translateX(min(42%, 92px)) rotate(calc(var(--orbit-angle, 0deg) * -1));
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+  animation: nexora-orbit-drift 48s linear infinite;
+}
+
+.nexora-core-orbit-node--goal {
+  background: radial-gradient(circle at 30% 30%, #f3e5ab, #10b981 72%);
+  box-shadow: 0 0 14px rgba(229, 192, 96, 0.35), 0 0 8px rgba(16, 185, 129, 0.25);
+}
+
+.nexora-core-orbit-node--debt {
+  background: radial-gradient(circle at 30% 30%, #fda4af, #f43f5e 70%);
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.35);
+}
+
+.nexora-core-orbit-node:hover,
+.nexora-core-orbit-node:focus-visible {
+  transform: rotate(var(--orbit-angle, 0deg)) translateX(min(46%, 98px)) rotate(calc(var(--orbit-angle, 0deg) * -1)) scale(1.12);
+  outline: none;
+}
+
+.nexora-core-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  z-index: 6;
+  transform: translateX(-50%);
+  min-width: min(240px, 88%);
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(229, 192, 96, 0.22);
+  background: rgba(8, 8, 14, 0.92);
+  backdrop-filter: blur(10px);
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text2);
+  pointer-events: none;
+}
+
+.nexora-core-tooltip strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.nexora-core-globe {
+  --core-savings: 0;
+  --core-risk-intensity: 24;
+}
+
+.nexora-core-halo--outer {
+  opacity: calc(0.35 + (var(--core-savings, 0) / 100) * 0.45);
+}
+
+.nexora-core-sphere {
+  box-shadow:
+    inset 0 0 40px rgba(229, 192, 96, calc(var(--core-savings, 0) / 220)),
+    0 0 calc(12px + var(--core-risk-intensity, 24) * 0.2px) rgba(244, 63, 94, calc(var(--core-risk-intensity, 24) / 220));
+}
+
+@keyframes nexora-orbit-drift {
+  from { filter: hue-rotate(0deg); }
+  to { filter: hue-rotate(12deg); }
+}
+
+/* —— Observabilité RC1 —— */
+.nexora-status-bar {
+  margin: 12px 10px 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  display: grid;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text2);
+}
+
+.nexora-status-text {
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.nexora-status-sub {
+  font-size: 11px;
+}
+
+.nexora-sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+  background: var(--text2);
+}
+
+.nexora-sync-dot.is-online {
+  background: var(--green);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.45);
+}
+
+.nexora-sync-dot.is-offline {
+  background: var(--red);
+}
+
+.nexora-about-block .nexora-about-meta {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 4px;
+}
+
+.nexora-about-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.45;
+}
+
+.nexora-version-badge {
+  border-radius: 999px;
+  border: 1px solid rgba(229, 192, 96, 0.28);
+  background: rgba(229, 192, 96, 0.08);
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 6px 10px;
+  letter-spacing: 0.04em;
+}
+
+/* —— RC1 responsive polish —— */
+@media (max-width: 900px) {
+  .advisor-proactive-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .advisor-scenarios-list,
+  .advisor-result-grid {
+    min-width: 0;
+  }
+
+  .advisor-scenario-card,
+  .advisor-result-card,
+  .plan-card,
+  .kpi-card {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .nexora-core-layout--signature {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nexora-core-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .section,
+  .budget-block,
+  .advisor-page {
+    overflow-x: clip;
+  }
+}
+
+@media (max-width: 640px) {
+  .nexora-status-bar {
+    margin-inline: 8px;
+  }
+
+  .btn,
+  .nav-btn {
+    min-height: 40px;
+  }
+
+  .nexora-core-orbit-node {
+    transform: rotate(var(--orbit-angle, 0deg)) translateX(min(38%, 72px)) rotate(calc(var(--orbit-angle, 0deg) * -1));
+  }
+}

@@ -165,9 +165,11 @@
                   <circle cx="50" cy="50" r="42" class="nexora-core-ring-track"></circle>
                   <circle cx="50" cy="50" r="42" id="nexora-core-health-ring" class="nexora-core-ring-progress"></circle>
                 </svg>
+                <div class="nexora-core-graph" id="nexora-core-graph" aria-hidden="true"></div>
               </div>
             </div>
           </div>
+          <div class="nexora-core-tooltip" id="nexora-core-tooltip" role="tooltip" hidden></div>
           <div class="nexora-core-hero-copy">
             <span id="dashboard-greeting-hello" class="nexora-core-hello">Bonjour 👋</span>
             <h3 id="dashboard-greeting-title" class="nexora-core-title">NEXORA CORE</h3>
@@ -696,6 +698,8 @@
     <div id="couple-fallback-message" style="display:none;margin-bottom:20px;padding:16px;border-radius:12px;background:rgba(16,185,129,0.12);color:var(--text);font-size:14px;line-height:1.5;">
       Mode couple activable depuis les paramètres pour partager le budget du foyer.
     </div>
+
+    <div id="nexora-about-panel"></div>
 
     <div class="settings-group-title">Paramètres essentiels</div>
     <div class="param-block">
@@ -3643,6 +3647,7 @@ function updateAll(){
     totalDepRestant,
     revReel
   });
+  window.NexoraMetricsCache?.invalidateMetricsCache?.();
   refreshNexoraCore({
     revReel,
     solde,
@@ -4001,13 +4006,23 @@ function updateDashboardGreeting({ revReel = 0, solde = 0 } = {}) {
   }
 }
 
-async function refreshNexoraCore(metrics = {}) {
+let _nexoraCoreRefreshTimer = null;
+let _nexoraCoreRefreshPayload = null;
+
+async function refreshNexoraCoreNow(metrics = {}) {
   let primaryGoalName = 'Aucun objectif principal';
   let primaryGoalProgress = 0;
+  let goals = [];
+  let debts = readDebts().filter((debt) => Number(debt?.remaining) > 0);
   try {
+    if (isNexoraDemoMode()) {
+      goals = [{ name: 'Coussin de sécurité', current: 450, target: 1500, isPrimary: true }];
+    } else if (window.GoalsService?.listGoals) {
+      goals = (await window.GoalsService.listGoals().catch(() => [])) || [];
+    }
     const goal = isNexoraDemoMode()
-      ? { name: 'Coussin de sécurité', current: 450, target: 1500 }
-      : (window.GoalsService?.getPrimaryGoal ? await window.GoalsService.getPrimaryGoal() : null);
+      ? goals[0]
+      : (window.GoalsService?.getPrimaryGoal ? await window.GoalsService.getPrimaryGoal() : goals.find((item) => item?.isPrimary) || goals[0]);
     if (goal) {
       primaryGoalName = goal.name || 'Objectif principal';
       const target = Number(goal.target) || 0;
@@ -4019,16 +4034,30 @@ async function refreshNexoraCore(metrics = {}) {
   }
 
   const debtRate = Number(getDebtSummary?.().debtRate || 0);
+  const targetSavings = Number(getVal?.('target_epargne') || 0);
   if (window.NexoraCore?.updateNexoraCore) {
     window.NexoraCore.updateNexoraCore({
       ...metrics,
       debtRate,
       primaryGoalName,
-      primaryGoalProgress
+      primaryGoalProgress,
+      goals,
+      debts,
+      targetSavings
     });
   } else if (typeof updateNexoraSphere === 'function') {
     updateNexoraSphere(metrics);
   }
+}
+
+function refreshNexoraCore(metrics = {}) {
+  _nexoraCoreRefreshPayload = { ..._nexoraCoreRefreshPayload, ...metrics };
+  clearTimeout(_nexoraCoreRefreshTimer);
+  _nexoraCoreRefreshTimer = setTimeout(() => {
+    const payload = _nexoraCoreRefreshPayload || {};
+    _nexoraCoreRefreshPayload = null;
+    refreshNexoraCoreNow(payload).catch((err) => console.warn('[NexoraCore] refresh failed', err));
+  }, 140);
 }
 
 function updateDashboardGuidance(metrics) {
@@ -4409,6 +4438,9 @@ function showSection(id){
   window.NexoraMotion?.animateNavigation?.(activeButton);
   window.NexoraMotion?.animateSectionTransition?.(nextSection);
   window.NexoraMotion?.initScrollReveal?.(nextSection);
+  if (window.NexoraCore?.setNexoraCoreMotionActive) {
+    window.NexoraCore.setNexoraCoreMotionActive(id === 'dashboard');
+  }
 
   const nextHash = '#section-' + id;
   if (window.location.hash !== nextHash) {
@@ -4419,8 +4451,12 @@ function showSection(id){
     buildHistory();
   }
 
-  if (id === 'plan' && typeof window.refreshPlanHub === 'function') {
-    window.refreshPlanHub().catch(() => {})
+  if (id === 'plan') {
+    const openPlan = async () => {
+      if (window.NexoraSections?.ensurePlan) await window.NexoraSections.ensurePlan();
+      if (typeof window.refreshPlanHub === 'function') await window.refreshPlanHub();
+    };
+    openPlan().catch(() => {});
   }
 
   if (id === 'objectifs' && window.GoalsPage?.refreshFromCloud) {
@@ -4429,8 +4465,8 @@ function showSection(id){
     });
   }
 
-  if (id === 'nexora' && typeof window.renderAdvisorUI === 'function') {
-    // no-op; rendered once at init
+  if (id === 'nexora' && window.NexoraSections?.ensureNexora) {
+    window.NexoraSections.ensureNexora().catch(() => {});
   }
 
   if (id === 'couple' && typeof window.renderCoupleSection === 'function') {
