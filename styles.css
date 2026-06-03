@@ -5924,7 +5924,7 @@ body.mode-simple .home-goal-summary {
   }
 }
 
-/* ─── Nexora Core V6.4 ─── */
+/* ─── Nexora Core V6.5 — Signature Edition ─── */
 #section-dashboard .dashboard-secondary-kpis {
   margin-top: 4px;
 }
@@ -5942,189 +5942,377 @@ body.mode-simple .home-goal-summary {
   display: none;
 }
 
-.nexora-core-panel {
-  margin-bottom: 18px;
+.nexora-core-panel--signature {
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 0%, rgba(229, 192, 96, 0.09), transparent 58%),
+    radial-gradient(ellipse 60% 50% at 50% 100%, rgba(99, 102, 241, 0.05), transparent 55%),
+    var(--bg2);
+  border-color: rgba(229, 192, 96, 0.18);
+  margin-bottom: 22px;
   min-height: 0;
-  overflow: visible;
-  padding: clamp(18px, 4vw, 28px);
+  overflow: hidden;
+  padding: clamp(20px, 5vw, 36px) clamp(16px, 4vw, 28px) clamp(22px, 4vw, 32px);
 }
 
-.nexora-core-layout {
+.nexora-core-layout--signature {
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 4vw, 32px);
+}
+
+.nexora-core-hero {
   align-items: center;
-  display: grid;
-  gap: clamp(16px, 3vw, 28px);
-  grid-template-columns: minmax(200px, 1.05fr) minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 3vw, 22px);
+  text-align: center;
+  width: 100%;
+}
+
+.nexora-core-stage {
+  isolation: isolate;
+  max-width: min(100%, 520px);
+  position: relative;
+  width: 100%;
+}
+
+.nexora-core-ambient {
+  background:
+    radial-gradient(circle at var(--core-glow-x, 50%) var(--core-glow-y, 42%), rgba(229, 192, 96, 0.22), transparent 42%),
+    radial-gradient(circle at 72% 68%, rgba(129, 140, 248, 0.08), transparent 38%);
+  filter: blur(28px);
+  inset: -8% -6% -4%;
+  opacity: 0.85;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
 }
 
 .nexora-core-globe-wrap {
   display: grid;
-  min-height: clamp(220px, 42vw, 320px);
+  min-height: clamp(260px, 58vw, 420px);
   place-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .nexora-core-globe {
   --core-health: 50;
   --core-risk: 30;
-  --core-tilt-x: 0deg;
-  --core-tilt-y: 0deg;
+  --core-glow-x: 50%;
+  --core-glow-y: 42%;
   aspect-ratio: 1;
-  height: clamp(200px, 38vw, 300px);
+  height: clamp(240px, 52vw, 400px);
   max-width: 100%;
-  perspective: 900px;
+  perspective: 1100px;
   position: relative;
-  transform: rotateX(var(--core-tilt-x)) rotateY(var(--core-tilt-y));
-  transition: transform 0.35s ease;
-  width: clamp(200px, 38vw, 300px);
+  transform-style: preserve-3d;
+  width: clamp(240px, 52vw, 400px);
+  will-change: transform;
+}
+
+.nexora-core-halo {
+  border-radius: 50%;
+  pointer-events: none;
+  position: absolute;
+}
+
+.nexora-core-halo--outer {
+  background: radial-gradient(circle, rgba(229, 192, 96, 0.14) 0%, transparent 68%);
+  box-shadow:
+    0 0 80px rgba(229, 192, 96, 0.16),
+    0 0 calc(40px + var(--core-risk) * 0.35px) rgba(229, 192, 96, 0.12);
+  inset: -28%;
+  opacity: 0.5;
+  z-index: 0;
+}
+
+.nexora-core-halo--inner {
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
+  box-shadow: inset 0 0 40px rgba(229, 192, 96, 0.08);
+  inset: -12%;
+  opacity: 0.4;
+  z-index: 1;
+}
+
+.nexora-core-particles {
+  inset: -6%;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+.nexora-core-particle {
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 1px, rgba(229, 192, 96, 0.85) 2px, transparent 3px);
+  border-radius: 50%;
+  height: 4px;
+  opacity: 0.35;
+  position: absolute;
+  width: 4px;
+}
+
+.nexora-core-particle--1 { left: 8%; top: 18%; }
+.nexora-core-particle--2 { left: 22%; top: 6%; }
+.nexora-core-particle--3 { right: 14%; top: 12%; }
+.nexora-core-particle--4 { right: 6%; top: 34%; }
+.nexora-core-particle--5 { left: 4%; bottom: 28%; }
+.nexora-core-particle--6 { left: 28%; bottom: 8%; }
+.nexora-core-particle--7 { right: 22%; bottom: 14%; }
+.nexora-core-particle--8 { left: 48%; top: 2%; }
+.nexora-core-particle--9 { right: 38%; bottom: 4%; }
+.nexora-core-particle--10 { left: 62%; top: 78%; }
+
+.nexora-core-orbit-rig {
+  inset: -10%;
+  pointer-events: none;
+  position: absolute;
+  transform-style: preserve-3d;
+  z-index: 3;
+}
+
+.nexora-core-orbit {
+  border: 1px solid rgba(229, 192, 96, 0.22);
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(229, 192, 96, 0.06);
+  pointer-events: none;
+  position: absolute;
+}
+
+.nexora-core-orbit--a {
+  inset: -2%;
+  transform: rotateX(72deg);
+}
+
+.nexora-core-orbit--b {
+  inset: 6%;
+  opacity: 0.75;
+  transform: rotateY(74deg) rotateZ(-12deg);
+}
+
+.nexora-core-orbit--c {
+  inset: 18%;
+  opacity: 0.5;
+  transform: rotateX(58deg) rotateZ(24deg);
+}
+
+.nexora-core-satellite {
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 2px, rgba(229, 192, 96, 0.9) 3px, transparent 5px);
+  border-radius: 50%;
+  height: 7px;
+  opacity: 0.65;
+  position: absolute;
+  width: 7px;
+}
+
+.nexora-core-satellite--a {
+  left: 4%;
+  top: 46%;
+}
+
+.nexora-core-satellite--b {
+  bottom: 18%;
+  right: 8%;
+}
+
+.nexora-core-sphere {
+  inset: 4%;
+  position: absolute;
+  transform-style: preserve-3d;
+  z-index: 4;
 }
 
 .nexora-core-wireframe {
   background:
-    radial-gradient(circle at 35% 28%, rgba(255,255,255,0.2), transparent 12%),
-    radial-gradient(circle at 62% 68%, rgba(229,192,96,0.22), transparent calc(var(--core-health) * 0.45%)),
-    radial-gradient(circle at 48% 44%, rgba(8,8,12,0.98), rgba(3,3,6,1) 68%);
-  border: 1px solid rgba(229, 192, 96, 0.32);
+    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.28), transparent 14%),
+    radial-gradient(circle at var(--core-glow-x, 62%) var(--core-glow-y, 68%), rgba(229, 192, 96, 0.28), transparent calc(var(--core-health) * 0.5%)),
+    radial-gradient(circle at 48% 50%, rgba(12, 12, 18, 0.98), rgba(2, 2, 5, 1) 72%);
+  border: 1px solid rgba(229, 192, 96, 0.38);
   border-radius: 50%;
   box-shadow:
-    0 0 0 1px rgba(255,255,255,0.05),
-    0 28px 80px rgba(0,0,0,0.5),
-    0 0 calc(24px + var(--core-risk) * 0.2px) rgba(229,192,96,0.18);
-  inset: 8%;
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    inset 0 -18px 36px rgba(0, 0, 0, 0.45),
+    inset 0 12px 24px rgba(255, 255, 255, 0.04),
+    0 32px 90px rgba(0, 0, 0, 0.55),
+    0 0 calc(32px + var(--core-risk) * 0.28px) rgba(229, 192, 96, 0.22);
+  inset: 0;
+  overflow: hidden;
   position: absolute;
 }
 
 .nexora-core-wireframe::before,
 .nexora-core-wireframe::after {
-  border: 1px solid rgba(229, 192, 96, 0.14);
+  border: 1px solid rgba(229, 192, 96, 0.16);
   border-radius: 50%;
   content: '';
-  inset: 6%;
+  inset: 8%;
   pointer-events: none;
   position: absolute;
 }
 
 .nexora-core-wireframe::before {
   background:
-    repeating-linear-gradient(0deg, transparent, transparent 11px, rgba(229,192,96,0.08) 11px, rgba(229,192,96,0.08) 12px),
-    repeating-linear-gradient(90deg, transparent, transparent 11px, rgba(255,255,255,0.04) 11px, rgba(255,255,255,0.04) 12px);
-  transform: rotate(12deg);
+    repeating-linear-gradient(0deg, transparent, transparent 10px, rgba(229, 192, 96, 0.09) 10px, rgba(229, 192, 96, 0.09) 11px),
+    repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(255, 255, 255, 0.05) 10px, rgba(255, 255, 255, 0.05) 11px);
 }
 
-.nexora-core-orbit {
-  border: 1px solid rgba(229, 192, 96, 0.2);
-  border-radius: 50%;
-  pointer-events: none;
-  position: absolute;
-}
-
-.nexora-core-orbit--a {
-  inset: -4%;
-  transform: rotateX(68deg);
-}
-
-.nexora-core-orbit--b {
-  inset: 2%;
-  transform: rotateY(72deg) rotateZ(-14deg);
+.nexora-core-wireframe::after {
+  border-color: rgba(255, 255, 255, 0.08);
+  inset: 22%;
   opacity: 0.7;
 }
 
-.nexora-core-orbit--c {
-  inset: 14%;
-  transform: rotateX(54deg) rotateZ(22deg);
-  opacity: 0.45;
+.nexora-core-shimmer {
+  background: linear-gradient(
+    115deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.22) 48%,
+    rgba(229, 192, 96, 0.35) 52%,
+    transparent 62%
+  );
+  height: 140%;
+  inset: -20% auto auto -40%;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  width: 45%;
+}
+
+.nexora-core-reflection {
+  background: radial-gradient(ellipse at 30% 22%, rgba(255, 255, 255, 0.35), transparent 55%);
+  height: 38%;
+  left: 14%;
+  opacity: 0.4;
+  pointer-events: none;
+  position: absolute;
+  top: 10%;
+  width: 48%;
 }
 
 .nexora-core-node {
-  background: radial-gradient(circle, rgba(229,192,96,0.95) 0 3px, transparent 4px);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 2px, rgba(229, 192, 96, 0.95) 3px, transparent 5px);
   border-radius: 50%;
-  height: 8px;
+  box-shadow: 0 0 14px rgba(229, 192, 96, 0.45);
+  height: 9px;
+  opacity: 0.5;
   position: absolute;
-  width: 8px;
+  width: 9px;
+  z-index: 6;
 }
 
-.nexora-core-node--1 { left: 18%; top: 22%; }
-.nexora-core-node--2 { right: 16%; top: 38%; opacity: 0.75; }
-.nexora-core-node--3 { left: 42%; bottom: 14%; opacity: 0.55; }
-
-.nexora-core-halo {
-  border-radius: 50%;
-  box-shadow: 0 0 60px rgba(229, 192, 96, 0.12);
-  inset: -18%;
-  pointer-events: none;
-  position: absolute;
-}
+.nexora-core-node--1 { left: 16%; top: 20%; }
+.nexora-core-node--2 { opacity: 0.7; right: 14%; top: 36%; }
+.nexora-core-node--3 { bottom: 12%; left: 40%; opacity: 0.55; }
 
 .nexora-core-ring {
   height: 100%;
   inset: 0;
   position: absolute;
   width: 100%;
+  z-index: 7;
 }
 
 .nexora-core-ring-track {
   fill: none;
-  stroke: rgba(255,255,255,0.06);
-  stroke-width: 3;
+  stroke: rgba(255, 255, 255, 0.07);
+  stroke-width: 2.5;
 }
 
 .nexora-core-ring-progress {
   fill: none;
-  stroke: rgba(229, 192, 96, 0.85);
+  filter: drop-shadow(0 0 6px rgba(229, 192, 96, 0.35));
+  stroke: rgba(229, 192, 96, 0.9);
   stroke-dasharray: 264;
   stroke-dashoffset: 120;
   stroke-linecap: round;
-  stroke-width: 3;
+  stroke-width: 2.5;
   transform: rotate(-90deg);
   transform-origin: 50% 50%;
-  transition: stroke-dashoffset 0.6s ease;
 }
 
-.nexora-core-copy {
+.nexora-core-hero-copy {
+  max-width: 28rem;
   min-width: 0;
+  padding: 0 8px;
+  width: 100%;
 }
 
 .nexora-core-hello {
-  color: var(--text2);
+  color: var(--gold);
   display: block;
-  font-size: 13px;
-  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+  text-transform: uppercase;
 }
 
 .nexora-core-title {
-  font-size: clamp(22px, 4.5vw, 32px);
+  background: linear-gradient(180deg, #fff 0%, rgba(229, 192, 96, 0.92) 120%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  font-size: clamp(26px, 6vw, 40px);
   font-weight: 800;
-  letter-spacing: 0.06em;
-  line-height: 1.1;
-  margin: 0 0 6px;
+  letter-spacing: 0.14em;
+  line-height: 1.05;
+  margin: 0 0 8px;
+  -webkit-text-fill-color: transparent;
   text-transform: uppercase;
   word-break: normal;
 }
 
-.nexora-core-subtitle,
+.nexora-core-subtitle {
+  color: var(--text2);
+  font-size: clamp(13px, 2.8vw, 15px);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.nexora-core-copy {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin: 0 auto;
+  max-width: 36rem;
+  min-width: 0;
+  padding-top: clamp(16px, 3vw, 22px);
+  text-align: center;
+  width: 100%;
+}
+
 .nexora-core-detail {
   color: var(--text2);
   font-size: 13px;
-  line-height: 1.45;
-  margin: 0 0 10px;
+  line-height: 1.5;
+  margin: 0 auto 14px;
+  max-width: 32rem;
 }
 
 .nexora-core-metrics {
   display: grid;
-  gap: 10px 16px;
+  gap: 12px 20px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 14px 0 16px;
+  margin: 0 auto 18px;
+  max-width: 32rem;
+}
+
+.nexora-core-metrics > div {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: left;
 }
 
 .nexora-core-metrics dt {
   color: var(--text2);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   margin: 0 0 4px;
   text-transform: uppercase;
 }
 
 .nexora-core-metrics dd {
-  font-size: clamp(14px, 3.2vw, 17px);
+  font-size: clamp(14px, 3vw, 16px);
   font-weight: 700;
   margin: 0;
   overflow-wrap: anywhere;
@@ -6134,48 +6322,36 @@ body.mode-simple .home-goal-summary {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  justify-content: center;
 }
 
-#nexora-core-panel[data-health="solid"] .nexora-core-title { color: var(--text); }
-#nexora-core-panel[data-health="watch"] .nexora-core-title { color: #fbbf24; }
-#nexora-core-panel[data-health="fragile"] .nexora-core-title { color: #fb7185; }
-
-@media (prefers-reduced-motion: no-preference) {
-  .nexora-core-globe {
-    animation: nexoraCoreFloat 9s ease-in-out infinite alternate;
-  }
-  .nexora-core-orbit--a {
-    animation: nexoraCoreSpin 22s linear infinite;
-  }
-  .nexora-core-orbit--b {
-    animation: nexoraCoreSpin 16s linear infinite reverse;
-  }
-  .nexora-core-node {
-    animation: nexoraCorePulse 3.6s ease-in-out infinite alternate;
-  }
+#nexora-core-panel[data-health="solid"] .nexora-core-title {
+  background: linear-gradient(180deg, #fff 0%, rgba(229, 192, 96, 0.95) 130%);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
-@keyframes nexoraCoreFloat {
-  from { transform: rotateX(var(--core-tilt-x)) rotateY(var(--core-tilt-y)) translateY(0); }
-  to { transform: rotateX(var(--core-tilt-x)) rotateY(var(--core-tilt-y)) translateY(-6px); }
+#nexora-core-panel[data-health="watch"] .nexora-core-title {
+  background: linear-gradient(180deg, #fde68a 0%, #fbbf24 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
-@keyframes nexoraCoreSpin {
-  from { transform: rotateX(68deg) rotateZ(0deg); }
-  to { transform: rotateX(68deg) rotateZ(360deg); }
+#nexora-core-panel[data-health="fragile"] .nexora-core-title {
+  background: linear-gradient(180deg, #fecdd3 0%, #fb7185 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
-@keyframes nexoraCorePulse {
-  from { opacity: 0.35; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1.15); }
-}
-
-@media (max-width: 900px) {
-  .nexora-core-layout {
-    grid-template-columns: 1fr;
-  }
-  .nexora-core-globe-wrap {
-    order: -1;
+@media (prefers-reduced-motion: reduce) {
+  .nexora-core-globe,
+  .nexora-core-orbit-rig,
+  .nexora-core-sphere,
+  .nexora-core-particle,
+  .nexora-core-halo,
+  .nexora-core-shimmer,
+  .nexora-core-reflection {
+    animation: none !important;
   }
 }
 
@@ -6185,22 +6361,66 @@ body.mode-simple .home-goal-summary {
   }
 }
 
-@media (max-width: 430px) {
-  .nexora-core-metrics {
-    grid-template-columns: 1fr;
+@media (max-width: 720px) {
+  .nexora-core-globe-wrap {
+    min-height: clamp(220px, 64vw, 340px);
   }
-  #section-dashboard .dashboard-secondary-kpis {
-    grid-template-columns: 1fr;
-  }
-  .nexora-core-title {
-    font-size: 22px;
-    hyphens: none;
-    overflow-wrap: normal;
+
+  .nexora-core-globe {
+    height: clamp(220px, 64vw, 320px);
+    width: clamp(220px, 64vw, 320px);
   }
 }
 
-@media (min-width: 1366px) {
-  .nexora-core-layout {
-    grid-template-columns: minmax(280px, 1.1fr) minmax(0, 1fr);
+@media (max-width: 430px) {
+  .nexora-core-metrics {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+  }
+
+  #section-dashboard .dashboard-secondary-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .nexora-core-title {
+    font-size: 24px;
+    hyphens: none;
+    letter-spacing: 0.1em;
+    overflow-wrap: normal;
+  }
+
+  .nexora-core-panel--signature {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .nexora-core-layout--signature {
+    gap: 28px;
+  }
+
+  .nexora-core-globe {
+    height: min(400px, 42vh);
+    width: min(400px, 42vh);
+  }
+
+  .nexora-core-globe-wrap {
+    min-height: min(420px, 44vh);
+  }
+}
+
+@media (min-width: 1280px) and (max-height: 800px) {
+  .nexora-core-globe {
+    height: min(320px, 38vh);
+    width: min(320px, 38vh);
+  }
+
+  .nexora-core-globe-wrap {
+    min-height: min(340px, 40vh);
+  }
+
+  .nexora-core-title {
+    font-size: 28px;
   }
 }
