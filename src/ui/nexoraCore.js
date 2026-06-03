@@ -62,6 +62,8 @@ const formatDateLabel = (value) => {
 }
 
 const buildGraphNodes = ({ goals = [], debts = [] }) => {
+  const debugIcons = ['🏠', '✈', '🛡', '💳']
+
   const goalItems = (Array.isArray(goals) ? goals : [])
     .filter((goal) => goal && (goal.name || goal.target))
     .map((goal) => {
@@ -101,18 +103,19 @@ const buildGraphNodes = ({ goals = [], debts = [] }) => {
     .slice(0, 4)
 
   const merged = [...goalItems, ...debtItems].slice(0, CORE_GRAPH_LIMIT)
-  const maxRemaining = merged.reduce((max, node) => Math.max(max, node.remaining), 0) || 1
 
   return merged.map((node, index) => {
     const baseAngle = (GOLDEN_ANGLE * (index + 1)) % 360
-    // Orbite Objectifs : 70% à 84% | Orbite Dettes : 98% à 114% (placées plus loin)
+    
+    // Orbite Objectifs : 38% à 42% (sur le cercle principal) | Orbite Dettes : 45% à 48% (sur le cercle externe, max 50%)
     const radius = node.kind === 'goal' 
-      ? clamp(70 + (index % 4) * 4, 70, 84) 
-      : clamp(98 + (index % 4) * 5, 98, 114)
+      ? clamp(38 + (index % 4) * 1.5, 38, 42) 
+      : clamp(45 + (index % 4) * 1.2, 45, 48.5)
     
     return {
       ...node,
-      size: clamp(26 + Math.sqrt(node.remaining / maxRemaining) * 12, 26, 38),
+      icon: debugIcons[index % 4], // Remplacement temporaire pour debug
+      size: 24, // Taille temporaire pour debug
       angle: baseAngle,
       radius
     }
@@ -269,6 +272,28 @@ const renderCoreGraph = (panel, payload = {}) => {
 
   const nodes = buildGraphNodes(payload)
   lastGraphNodes = nodes
+
+  // DEBUG CONSOLE LOG FOR AUDIT
+  console.log('[NexoraCore debug] Rendered nodes:', {
+    goalsCount: (payload.goals || []).length,
+    debtsCount: (payload.debts || []).length,
+    nodesList: nodes.map((n, i) => {
+      const rad = (n.angle * Math.PI) / 180
+      // Polar coordinates relative to center (50%, 50%)
+      const x = 50 + n.radius * Math.cos(rad)
+      const y = 50 + n.radius * Math.sin(rad)
+      return {
+        index: i,
+        kind: n.kind,
+        name: n.name,
+        icon: n.icon,
+        radius: `${n.radius.toFixed(1)}%`,
+        angle: `${n.angle.toFixed(1)}deg`,
+        posX: `${x.toFixed(1)}%`,
+        posY: `${y.toFixed(1)}%`
+      }
+    })
+  })
   
   graph.innerHTML = nodes.map((node, index) => {
     // Label characters: icon or first letter
@@ -283,7 +308,7 @@ const renderCoreGraph = (panel, payload = {}) => {
           type="button"
           class="nexora-core-orbit-node nexora-core-orbit-node--${node.kind}"
           data-node-index="${index}"
-          style="--orbit-size:${node.size}px; --orbit-angle:${node.angle}deg;"
+          style="--orbit-size:${node.size}px; --orbit-angle:${node.angle}deg; --orbit-radius:${node.radius}%;"
           aria-label="${node.name} · ${node.amountLabel}"
         >
           <span class="nexora-core-orbit-node-content">${labelChar}</span>
