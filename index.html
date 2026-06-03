@@ -125,20 +125,43 @@
         </div>
       </div>
     </div>
-      <div class="wow-card dashboard-greeting-card">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-          <div>
-            <span id="dashboard-greeting-hello" style="font-size:13px;color:var(--text2);">Bonjour 👋</span>
-            <h3 id="dashboard-greeting-title" style="margin:8px 0 6px;font-size:18px;">Je suis Nexora. Situation actuelle</h3>
-            <p id="dashboard-greeting-subtitle" style="margin:0;color:var(--text2);">Analyse ton budget et trouve la priorité du moment.</p>
+    <section class="nexora-core-panel wow-card" id="nexora-core-panel" aria-label="Nexora Core — centre de contrôle financier">
+      <div class="nexora-core-layout">
+        <div class="nexora-core-globe-wrap">
+          <div class="nexora-core-globe" id="nexora-core-globe" role="img" aria-label="Globe financier Nexora">
+            <div class="nexora-core-wireframe" aria-hidden="true"></div>
+            <div class="nexora-core-orbit nexora-core-orbit--a" aria-hidden="true"></div>
+            <div class="nexora-core-orbit nexora-core-orbit--b" aria-hidden="true"></div>
+            <div class="nexora-core-orbit nexora-core-orbit--c" aria-hidden="true"></div>
+            <span class="nexora-core-node nexora-core-node--1" aria-hidden="true"></span>
+            <span class="nexora-core-node nexora-core-node--2" aria-hidden="true"></span>
+            <span class="nexora-core-node nexora-core-node--3" aria-hidden="true"></span>
+            <span class="nexora-core-halo" aria-hidden="true"></span>
+            <svg class="nexora-core-ring" viewBox="0 0 100 100" aria-hidden="true">
+              <circle cx="50" cy="50" r="42" class="nexora-core-ring-track"></circle>
+              <circle cx="50" cy="50" r="42" id="nexora-core-health-ring" class="nexora-core-ring-progress"></circle>
+            </svg>
           </div>
-          <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
-            <button type="button" class="btn btn-outline" onclick="showSection('saisie')">Mettre à jour le budget</button>
-            <button type="button" class="btn btn-gold" onclick="showSection('plan')">Voir le plan financier</button>
+        </div>
+        <div class="nexora-core-copy">
+          <span id="dashboard-greeting-hello" class="nexora-core-hello">Bonjour 👋</span>
+          <h3 id="dashboard-greeting-title" class="nexora-core-title">NEXORA CORE</h3>
+          <p id="dashboard-greeting-subtitle" class="nexora-core-subtitle">Centre de contrôle financier</p>
+          <p id="nexora-core-detail" class="nexora-core-detail">Complète ton budget pour activer la lecture unifiée.</p>
+          <dl class="nexora-core-metrics">
+            <div><dt>Santé</dt><dd id="nexora-core-health">—</dd></div>
+            <div><dt>Risque</dt><dd id="nexora-core-risk">—</dd></div>
+            <div><dt>Solde fin de cycle</dt><dd id="nexora-core-balance">—</dd></div>
+            <div><dt>Objectif principal</dt><dd id="nexora-core-goal">—</dd></div>
+          </dl>
+          <div class="nexora-core-actions">
+            <button type="button" class="btn btn-gold" onclick="window.NexoraCore?.openNexoraCoreAction?.()">Prochaine action</button>
+            <button type="button" class="btn btn-outline" onclick="showSection('saisie')">Mettre à jour</button>
           </div>
+        </div>
       </div>
-    </div>
-    <div class="kpi-grid dashboard-complete-kpis" aria-label="Indicateurs du mode complet">
+    </section>
+    <div class="kpi-grid dashboard-complete-kpis dashboard-secondary-kpis" aria-label="Indicateurs du mode complet">
       <div class="kpi-card" id="card-revenus">
         <div class="kpi-label">Revenus</div>
         <div class="kpi-value positive" id="kpi-revenus">0 €</div>
@@ -186,20 +209,7 @@
         <div class="kpi-icon">💳</div>
       </div>
     </div>
-    <section class="nexora-orb-panel wow-card" id="nexora-orb-panel" aria-label="Signature financière Nexora">
-      <div class="nexora-orb-copy">
-        <span>Signature Nexora</span>
-        <strong id="nexora-orb-title">Sphère financière</strong>
-        <p id="nexora-orb-detail">La stabilité, le risque et les objectifs se reflètent dans une seule lecture.</p>
-      </div>
-      <div class="nexora-orb-stage" aria-hidden="true">
-        <div class="nexora-orb" id="nexora-finance-orb">
-          <i></i><i></i><i></i>
-          <span></span>
-        </div>
-      </div>
-    </section>
-    <div class="dashboard-clean-grid">
+    <div class="dashboard-clean-grid dashboard-essentials-grid">
       <section class="wow-card dashboard-coach-card" id="dashboard-coach-card">
         <div id="dashboard-master-root"></div>
       </section>
@@ -1971,8 +1981,7 @@ async function saveData(){
   SafeStorage.setItem(storageKey(m), JSON.stringify(data));
   await persistMonthSnapshot(m, data);
 
-  // Legacy transaction sync kept for compatibility; the full month snapshot
-  // above is now the source used for multi-device budget state.
+  // Pont legacy TransactionsService — source officielle : MonthlyBudgetStateService (voir docs/DATA_TRUTH_MATRIX.md).
   if (typeof window.TransactionsService !== 'undefined') {
     syncMonthTransactionsToSupabase(m, data).catch(err => {
       console.error('[Phase2B] sync error:', err);
@@ -3553,7 +3562,7 @@ function updateAll(){
     totalDepRestant,
     revReel
   });
-  updateNexoraSphere({
+  refreshNexoraCore({
     revReel,
     solde,
     tauxCh,
@@ -3814,28 +3823,9 @@ function updateWinsCard(metrics = {}) {
     : '<p>Aucune réussite détectée pour le moment.</p>';
 }
 
+/** @deprecated Utiliser refreshNexoraCore — conservé pour compatibilité console */
 function updateNexoraSphere(metrics = {}) {
-  const orb = document.getElementById('nexora-finance-orb');
-  const title = document.getElementById('nexora-orb-title');
-  const detail = document.getElementById('nexora-orb-detail');
-  if (!orb || !title || !detail) return;
-
-  const income = Number(metrics.revReel || 0);
-  const balance = Number(metrics.solde || 0);
-  const chargesRate = Number(metrics.tauxCh || 0);
-  const variableRate = Number(metrics.variablesPct || 0);
-  const debtRate = Number(getDebtSummary?.().debtRate || 0);
-  const health = income > 0
-    ? clamp(100 - Math.max(0, chargesRate - 55) - Math.max(0, variableRate - 25) - Math.max(0, debtRate - 20) + Math.min(20, Math.max(0, balance / Math.max(1, income) * 100)), 12, 96)
-    : 24;
-  const risk = clamp(100 - health, 8, 88);
-
-  orb.style.setProperty('--orb-health', `${Math.round(health)}%`);
-  orb.style.setProperty('--orb-risk', `${Math.round(risk)}%`);
-  title.textContent = health >= 72 ? 'Sphère stable' : health >= 45 ? 'Sphère sous surveillance' : 'Sphère fragile';
-  detail.textContent = income > 0
-    ? `Santé ${Math.round(health)}%, charges ${chargesRate}%, solde fin de cycle ${fmt(balance)}.`
-    : 'Ajoutez revenus, charges et objectifs pour activer une lecture fiable.';
+  refreshNexoraCore(metrics);
 }
 
 function updateWeekPlan(metrics = {}) {
@@ -3899,29 +3889,64 @@ function updateHumanSummary(metrics = {}) {
   actionEl.textContent = document.getElementById('priority-action-title')?.textContent || 'Mettre à jour le budget.';
 }
 
+function getNexoraDisplayName() {
+  if (window.AuthContext?.getUserDisplayName) {
+    return window.AuthContext.getUserDisplayName();
+  }
+  return 'Vous';
+}
+
 function updateDashboardGreeting({ revReel = 0, solde = 0 } = {}) {
   const helloEl = document.getElementById('dashboard-greeting-hello');
   const titleEl = document.getElementById('dashboard-greeting-title');
   const subtitleEl = document.getElementById('dashboard-greeting-subtitle');
   if (!titleEl) return;
-  const profileName = window.AuthContext?.getCurrentUser?.()?.user_metadata?.full_name
-    || window.AuthContext?.getCurrentUser?.()?.email?.split('@')?.[0]
-    || ''
-  if (helloEl) helloEl.textContent = profileName ? `Bonjour ${profileName} 👋` : 'Bonjour 👋';
+  const profileName = getNexoraDisplayName();
+  if (helloEl) {
+    helloEl.textContent = profileName === 'Vous' ? 'Bonjour 👋' : `Bonjour ${profileName} 👋`;
+  }
 
+  titleEl.textContent = 'NEXORA CORE';
   if (revReel === 0) {
-    titleEl.textContent = 'Je suis Nexora. Situation actuelle';
-    if (subtitleEl) subtitleEl.textContent = 'Analyse ton budget et trouve la priorité du moment.';
+    if (subtitleEl) subtitleEl.textContent = 'Centre de contrôle — budget à compléter';
     return;
   }
 
   const balanceText = fmt(solde);
-  if (solde >= 0) {
-    titleEl.textContent = `Je suis Nexora. Situation : solde ${balanceText}`;
-    if (subtitleEl) subtitleEl.textContent = 'Ton budget est en bonne voie.';
-  } else {
-    titleEl.textContent = `Je suis Nexora. Situation : solde ${balanceText}`;
-    if (subtitleEl) subtitleEl.textContent = 'Le budget est en déficit — examine les dépenses.';
+  if (subtitleEl) {
+    subtitleEl.textContent = solde >= 0
+      ? `Situation stable · solde fin de cycle ${balanceText}`
+      : `Attention · solde fin de cycle ${balanceText}`;
+  }
+}
+
+async function refreshNexoraCore(metrics = {}) {
+  let primaryGoalName = 'Aucun objectif principal';
+  let primaryGoalProgress = 0;
+  try {
+    const goal = isNexoraDemoMode()
+      ? { name: 'Coussin de sécurité', current: 450, target: 1500 }
+      : (window.GoalsService?.getPrimaryGoal ? await window.GoalsService.getPrimaryGoal() : null);
+    if (goal) {
+      primaryGoalName = goal.name || 'Objectif principal';
+      const target = Number(goal.target) || 0;
+      const current = Number(goal.current) || 0;
+      primaryGoalProgress = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
+    }
+  } catch (err) {
+    console.warn('[NexoraCore] goal read failed', err);
+  }
+
+  const debtRate = Number(getDebtSummary?.().debtRate || 0);
+  if (window.NexoraCore?.updateNexoraCore) {
+    window.NexoraCore.updateNexoraCore({
+      ...metrics,
+      debtRate,
+      primaryGoalName,
+      primaryGoalProgress
+    });
+  } else if (typeof updateNexoraSphere === 'function') {
+    updateNexoraSphere(metrics);
   }
 }
 

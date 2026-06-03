@@ -119,8 +119,8 @@ export function renderAdvisorUI(rootId, AdvisorService) {
       <div class="advisor-greeting" style="margin-bottom:12px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
           <div>
-            <span style="font-size:13px;color:var(--text2);">Bonjour 👋</span>
-            <h3 style="margin:6px 0 4px;font-size:18px;">Je suis Nexora. Situation actuelle</h3>
+            <span id="advisor-greeting-hello" style="font-size:13px;color:var(--text2);">Bonjour 👋</span>
+            <h3 style="margin:6px 0 4px;font-size:18px;">Nexora — coaching financier</h3>
             <div id="advisor-human-summary" style="font-size:13px;color:var(--text2);">Analyse ton budget et dis-moi ce que tu souhaites analyser.</div>
           </div>
           <div style="display:flex;gap:8px;align-items:center;">
@@ -263,6 +263,11 @@ export function renderAdvisorUI(rootId, AdvisorService) {
   })
 
   const hydrateProactive = async () => {
+    const helloEl = root.querySelector('#advisor-greeting-hello')
+    if (helloEl && window.AuthContext?.getUserDisplayName) {
+      const name = window.AuthContext.getUserDisplayName()
+      helloEl.textContent = name === 'Vous' ? 'Bonjour 👋' : `Bonjour ${name} 👋`
+    }
     try {
       const [coach, scenarios] = await Promise.all([
         AdvisorService.getProactiveCoach ? AdvisorService.getProactiveCoach() : null,

@@ -50,6 +50,10 @@ import { readAiSettings, updateAiSettings } from './advisor/proactiveCoachServic
 import NexoraMotion from './ui/gsapMotion.js'
 import { parseFinancialExpression } from './finance/financialExpression.js'
 import NexoraRecurringResolver from './finance/recurringResolution.js'
+import NexoraCore from './ui/nexoraCore.js'
+import { getUserDisplayName } from './auth/userDisplayName.js'
+import SyncDiagnostics from './sync/syncDiagnostics.js'
+import { readSyncedArray } from '../js/syncedSettingAccess.js'
 
 // Expose modules globally for HTML event handlers and old code
 window.StorageManager = StorageManager
@@ -62,6 +66,10 @@ window.NotificationsService = NotificationsService
 window.NexoraAiSettingsService = { readAiSettings, updateAiSettings }
 window.NexoraMotion = NexoraMotion
 window.NexoraRecurringResolver = NexoraRecurringResolver
+window.NexoraCore = NexoraCore
+window.getUserDisplayName = (user) => getUserDisplayName(user || AuthContext.getCurrentUser())
+window.NexoraSyncDiagnostics = SyncDiagnostics
+window.readSyncedArray = readSyncedArray
 window.parseFinancialExpression = parseFinancialExpression
 window.renderRecurringIncomeSettings = renderRecurringIncomeSettings
 window.renderBillScheduleSettings = renderBillScheduleSettings
@@ -156,9 +164,7 @@ window.renderCoupleSection = async () => {
 
   const budget = readCurrentBudgetForCouple()
   const goals = await GoalsService.listGoals().catch(() => [])
-  const debts = (() => {
-    try { return JSON.parse(localStorage.getItem('nexora_debts_v1') || '[]') } catch { return [] }
-  })()
+  const debts = await readSyncedArray(STORAGE_KEYS.debts, [])
   const sharedGoals = goals.filter((goal) => CoupleService.isLocalItemShared('goal', goal.id))
   const sharedDebts = debts.filter((debt, index) => CoupleService.isLocalItemShared('debt', debt.id || index))
 
@@ -385,9 +391,11 @@ const initApp = async () => {
     // Sync user app settings from cloud/local where applicable
     if (typeof UserAppSettingsService !== 'undefined' && UserAppSettingsService && typeof UserAppSettingsService.syncAllAppSettings === 'function') {
       try {
-        await UserAppSettingsService.syncAllAppSettings()
+        const syncResults = await UserAppSettingsService.syncAllAppSettings()
+        SyncDiagnostics.logSyncEvent('bootstrap', 'syncAllAppSettings', { ok: true, keys: Object.keys(syncResults || {}) })
       } catch (e) {
         console.warn('⚠️ User app settings sync failed', e)
+        SyncDiagnostics.logSyncEvent('bootstrap', 'syncAllAppSettings', { ok: false, error: e?.message })
       }
     }
 

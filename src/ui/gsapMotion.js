@@ -81,7 +81,7 @@ const interactiveSelector = [
 
 const getSectionChildren = (root) => [
   root.querySelector('.dashboard-clean-header, .settings-page-header'),
-  root.querySelector('.dashboard-greeting-card, .dashboard-coach-card, .advisor-page, .plan-balance-card'),
+  root.querySelector('.nexora-core-panel, .dashboard-coach-card, .advisor-page, .plan-balance-card'),
   ...Array.from(root.querySelectorAll('.kpi-card, .wow-card, .plan-card, .assistant-block')).slice(0, 14)
 ].filter(Boolean)
 

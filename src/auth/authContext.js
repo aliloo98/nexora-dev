@@ -9,6 +9,7 @@
 
 import { AuthService } from './authService.js'
 import { STORAGE_KEYS } from '../constants/storageKeys.js'
+import { getUserDisplayName as resolveUserDisplayName } from './userDisplayName.js'
 
 /**
  * AuthContext - Simple event-based state management
@@ -285,32 +286,10 @@ export const AuthContext = {
   },
 
   /**
-   * Get user display name (username)
+   * Nom affiché (prénom / displayName / extrait du nom complet — jamais email ni handle).
    */
   getUserDisplayName() {
-    if (!this._state.user) return 'Vous'
-
-    const metadata = this._state.user.user_metadata || {}
-    const candidates = [
-      metadata.firstName,
-      metadata.first_name,
-      metadata.given_name,
-      metadata.displayName,
-      metadata.display_name,
-      metadata.full_name,
-      metadata.name,
-      metadata.username
-    ]
-
-    for (const candidate of candidates) {
-      const value = String(candidate || '').trim()
-      if (!value) continue
-      if (/^[a-z0-9_-]{12,}$/i.test(value)) continue
-      if (/^[0-9a-f-]{16,}$/i.test(value)) continue
-      return value.split(/\s+/)[0] || value
-    }
-
-    return 'Vous'
+    return resolveUserDisplayName(this._state.user)
   }
 }
 

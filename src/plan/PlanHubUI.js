@@ -3,6 +3,8 @@ import TreasuryAdapter from '../treasury/treasuryAdapter.js'
 import { SettingsService } from '../settings/settingsService.js'
 import { renderTreasuryTimeline } from '../components/TreasuryTimeline.js'
 import { parseFinancialExpression } from '../finance/financialExpression.js'
+import { STORAGE_KEYS } from '../constants/storageKeys.js'
+import { readSyncedArray, writeSyncedArray } from '../../js/syncedSettingAccess.js'
 
 const formatCurrency = (value) => {
   const amount = Number(value) || 0
@@ -34,19 +36,9 @@ const buildEmptyState = () => `
   </div>
 `
 
-const readDebts = () => {
-  try {
-    const raw = localStorage.getItem('nexora_debts_v1') || '[]'
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
-}
+const readDebts = async () => readSyncedArray(STORAGE_KEYS.debts, [])
 
-const saveDebts = (debts) => {
-  localStorage.setItem('nexora_debts_v1', JSON.stringify(Array.isArray(debts) ? debts : []))
-}
+const saveDebts = async (debts) => writeSyncedArray(STORAGE_KEYS.debts, debts)
 
 const makeDebtId = () => `debt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 
@@ -284,7 +276,7 @@ const attachPlanEditors = (root, planData) => {
   })
 
   const saveDebtList = async (debts) => {
-    saveDebts(debts)
+    await saveDebts(debts)
     window.showToast?.('Dette mise à jour')
     if (typeof window.updateAll === 'function') window.updateAll()
     await renderPlanHub(root.id)
@@ -302,7 +294,7 @@ const attachPlanEditors = (root, planData) => {
     }
 
     item.querySelector('.plan-debt-save')?.addEventListener('click', async () => {
-      const debts = readDebts()
+      const debts = await readDebts()
       debts[index] = { ...debts[index], ...readDebtPatch(), id: debts[index]?.id || makeDebtId() }
       await saveDebtList(debts)
     })
@@ -312,20 +304,20 @@ const attachPlanEditors = (root, planData) => {
         window.showToast?.('Montant de paiement requis')
         return
       }
-      const debts = readDebts()
+      const debts = await readDebts()
       const debt = debts[index] || {}
       debts[index] = { ...debt, remaining: Math.max(0, (Number(debt.remaining) || 0) - payment), id: debt.id || makeDebtId() }
       await saveDebtList(debts)
     })
     item.querySelector('.plan-debt-complete')?.addEventListener('click', async () => {
-      const debts = readDebts()
+      const debts = await readDebts()
       debts[index] = { ...debts[index], remaining: 0, id: debts[index]?.id || makeDebtId() }
       await saveDebtList(debts)
     })
     item.querySelector('.plan-debt-delete')?.addEventListener('click', async () => {
-      const debts = readDebts()
+      const debts = await readDebts()
       debts.splice(index, 1)
-      saveDebts(debts)
+      await saveDebts(debts)
       window.showToast?.('Dette supprimée')
       if (typeof window.updateAll === 'function') window.updateAll()
       await renderPlanHub(root.id)
@@ -340,7 +332,7 @@ const attachPlanEditors = (root, planData) => {
       window.showToast?.('Nom et montant restant requis')
       return
     }
-    const debts = readDebts()
+    const debts = await readDebts()
     debts.push({ id: makeDebtId(), name, initial: remaining, remaining, monthly })
     await saveDebtList(debts)
   })
@@ -443,7 +435,7 @@ const buildPlanData = async () => {
     days: 30
   })
 
-  return { timeline, endingBalance, baseBalance, totalRevenue, totalCharges, toPayNow, goals, debts: readDebts() }
+  return { timeline, endingBalance, baseBalance, totalRevenue, totalCharges, toPayNow, goals, debts: await readDebts() }
 }
 
 export async function renderPlanHub(rootId) {

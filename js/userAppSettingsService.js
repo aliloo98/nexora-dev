@@ -1,6 +1,7 @@
 import { StorageManager } from './storage.js'
 import { STORAGE_KEYS, SYNCED_APP_SETTING_KEYS } from '../src/constants/storageKeys.js'
 import { getNamespacedStorageKey } from './userStorage.js'
+import { logSyncEvent } from '../src/sync/syncDiagnostics.js'
 
 const META_SUFFIX = '::meta'
 
@@ -222,8 +223,10 @@ const UserAppSettingsService = {
       const { error } = result
       if (error) {
         UserAppSettingsService.warn('Failed to upsert cloud setting', { key, error })
+        logSyncEvent('push', key, { ok: false, error: error?.message })
         return { ok: false, error }
       }
+      logSyncEvent('push', key, { ok: true })
       return { ok: true }
     } catch (err) {
       UserAppSettingsService.warn('Supabase upsert failed', { key, err })
@@ -322,6 +325,7 @@ const UserAppSettingsService = {
         await refreshBudgetCycleUiAfterCloudMerge()
       }
       UserAppSettingsService.log('Pulled cloud setting to local', key)
+      logSyncEvent('pull', key, { ok: true, action: 'cloud-to-local' })
       return { ok: true, action: 'cloud-to-local' }
     }
 
@@ -335,6 +339,7 @@ const UserAppSettingsService = {
         await refreshBudgetCycleUiAfterCloudMerge()
       }
       UserAppSettingsService.log('Cloud setting is newer; updated local value', key)
+      logSyncEvent('pull', key, { ok: true, action: 'cloud-to-local-newer' })
       return { ok: true, action: 'cloud-to-local' }
     }
 
@@ -343,13 +348,16 @@ const UserAppSettingsService = {
       const pushResult = await UserAppSettingsService.syncLocalSettingToCloud(key)
       if (!pushResult.ok) {
         UserAppSettingsService.warn('Failed to push newer local setting to cloud', { key, pushResult })
+        logSyncEvent('pull', key, { ok: false, action: 'local-to-cloud-failed' })
         return { ok: false, error: pushResult.error }
       }
       UserAppSettingsService.log('Local setting is newer; pushed to cloud', key)
+      logSyncEvent('pull', key, { ok: true, action: 'local-to-cloud' })
       return { ok: true, action: 'local-to-cloud' }
     }
 
     UserAppSettingsService.log('No sync action needed; local and cloud timestamps equal', key)
+    logSyncEvent('pull', key, { ok: true, action: 'noop' })
     return { ok: true, action: 'noop' }
   },
 
