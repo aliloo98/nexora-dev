@@ -55,6 +55,7 @@ import NexoraCore from './ui/nexoraCore.js'
 import { getUserDisplayName } from './auth/userDisplayName.js'
 import SyncDiagnostics from './sync/syncDiagnostics.js'
 import { readSyncedArray } from '../js/syncedSettingAccess.js'
+import { filterUserFacingRecords } from './utils/userFacingFilter.js'
 
 // Expose modules globally for HTML event handlers and old code
 window.StorageManager = StorageManager
@@ -165,7 +166,7 @@ window.renderCoupleSection = async () => {
   }
 
   const budget = readCurrentBudgetForCouple()
-  const goals = await GoalsService.listGoals().catch(() => [])
+  const goals = filterUserFacingRecords(await GoalsService.listGoals().catch(() => []), (goal) => goal?.name)
   const debts = await readSyncedArray(STORAGE_KEYS.debts, [])
   const sharedGoals = goals.filter((goal) => CoupleService.isLocalItemShared('goal', goal.id))
   const sharedDebts = debts.filter((debt, index) => CoupleService.isLocalItemShared('debt', debt.id || index))
@@ -435,6 +436,13 @@ const initApp = async () => {
           if (input.__amountHandlerAttached) return
           input.__amountHandlerAttached = true
 
+          input.addEventListener('focus', () => {
+            const raw = sanitize(input.value)
+            if (raw && parseFinancialExpression(raw, { fallback: null }) !== null) {
+              input.dataset.lastValidValue = input.value
+            }
+          })
+
           input.addEventListener('input', () => {
             const raw = sanitize(input.value)
             const parsed = parseFinancialExpression(raw, { fallback: null })
@@ -462,14 +470,17 @@ const initApp = async () => {
             if (numeric === null) {
               input.classList.add('input-error')
               window.showToast?.('Expression financière invalide : rien n’a été enregistré')
+              if (Object.prototype.hasOwnProperty.call(input.dataset, 'lastValidValue')) {
+                input.value = input.dataset.lastValidValue
+              }
               return
             }
             input.classList.remove('input-error')
-            if (typeof window.Utils?.formatCurrency === 'function') {
-              try { input.value = window.Utils.formatCurrency(numeric) } catch (err) {}
-            } else {
-              input.value = String(numeric)
-            }
+            const formatted = typeof window.Utils?.formatCurrency === 'function'
+              ? window.Utils.formatCurrency(numeric)
+              : String(numeric)
+            input.value = formatted
+            input.dataset.lastValidValue = formatted
           })
         })
       }
@@ -508,13 +519,11 @@ const initApp = async () => {
       if (typeof renderAdvisorUI === 'function' && document.getElementById('advisor-root')) {
         const AdvisorService = (await import('./advisor/advisorService.js')).default
         renderAdvisorUI('advisor-root', AdvisorService)
-        window.NexoraMotion?.animateAdvisorResponse?.(document.getElementById('advisor-root'))
       }
       // Render Nexora page advisor if present
       if (typeof renderAdvisorUI === 'function' && document.getElementById('nexora-page-root')) {
         const AdvisorService = (await import('./advisor/advisorService.js')).default
         renderAdvisorUI('nexora-page-root', AdvisorService)
-        window.NexoraMotion?.animateAdvisorResponse?.(document.getElementById('nexora-page-root'))
       }
     } catch (err) {
       console.warn('[Treasury] render failed', err)

@@ -167,9 +167,12 @@ export async function collectFinancialContext(overrides = {}) {
       ? runtime.readDebts()
       : readJson('nexora_debts_v1', [])))
 
-  const goals = Array.isArray(overrides.goals)
-    ? overrides.goals
-    : (runtime.GoalsService?.listGoals ? await runtime.GoalsService.listGoals().catch(() => []) : [])
+  const goals = filterUserFacingRecords(
+    Array.isArray(overrides.goals)
+      ? overrides.goals
+      : (runtime.GoalsService?.listGoals ? await runtime.GoalsService.listGoals().catch(() => []) : []),
+    (goal) => goal?.name
+  )
 
   const primaryGoal = overrides.primaryGoal || goals.find((goal) => goal?.isPrimary) || (runtime.GoalsService?.getPrimaryGoal
     ? await runtime.GoalsService.getPrimaryGoal().catch(() => null)

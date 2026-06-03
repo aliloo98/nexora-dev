@@ -83,9 +83,15 @@ async function analyzeBudget(monthKey) {
 
   // Goals: prefer any runtime-provided GoalsService (window or globalThis). Avoid static imports so tests can mock easily.
   const G = (typeof window !== 'undefined' && window.GoalsService) ? window.GoalsService : (typeof globalThis !== 'undefined' ? globalThis.GoalsService : null)
-  const primaryGoal = G && typeof G.getPrimaryGoal === 'function' ? await G.getPrimaryGoal() : null
   const goalsSummary = G && typeof G.getSummary === 'function' ? await G.getSummary() : null
-  const goals = Array.isArray(goalsSummary?.goals) ? goalsSummary.goals : []
+  const filterTechnicalGoals = (items = []) => {
+    if (typeof window !== 'undefined' && typeof window.filterTechnicalRecords === 'function') {
+      return window.filterTechnicalRecords(items, (goal) => goal?.name)
+    }
+    return items.filter((goal) => !/^(TEST_|DEBUG_|TEMP_)/i.test(String(goal?.name || '').trim()))
+  }
+  const goals = filterTechnicalGoals(Array.isArray(goalsSummary?.goals) ? goalsSummary.goals : [])
+  const primaryGoal = G && typeof G.getPrimaryGoal === 'function' ? await G.getPrimaryGoal() : null
 
   // Score — reuse existing logic if available
   let scoreObj = { score: 0, label: 'Aucune donnée' }

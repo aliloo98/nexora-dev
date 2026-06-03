@@ -2205,6 +2205,7 @@ function filterTechnicalRecords(items, getName) {
   const readName = typeof getName === 'function' ? getName : (item) => item?.name;
   return (Array.isArray(items) ? items : []).filter((item) => !/^(TEST_|DEBUG_|TEMP_)/i.test(String(readName(item) || '').trim()));
 }
+window.filterTechnicalRecords = filterTechnicalRecords;
 
 function getBudgetLabel(key) {
   const input = document.querySelector(`input.budget-input[data-key="${key}"]:not(.paid-input):not(.note-input)`);
@@ -2794,6 +2795,10 @@ function setupFormulaEvaluation() {
     input.addEventListener('focus', () => {
       input.dataset.originalPlaceholder = originalPlaceholder;
       input.placeholder = 'ex: 150+45-30';
+      const current = input.value.trim();
+      if (current && parseBudgetNumberStrict(current) !== null) {
+        input.dataset.lastValidValue = input.value;
+      }
     });
     input.addEventListener('blur', () => {
       input.placeholder = input.dataset.originalPlaceholder || originalPlaceholder;
@@ -2810,10 +2815,10 @@ function setupFormulaEvaluation() {
 
 function evaluateFormula(input) {
   const val = input.value.trim();
-  if (val === '') return;
-
-  const hasOperator = /[0-9]\s*[+-]\s*[0-9]/.test(val.replace(/\u202F/g, ' ').replace(/\u00A0/g, ' '));
-  if (!hasOperator) return;
+  if (val === '') {
+    input.classList.remove('input-error');
+    return;
+  }
 
   const result = typeof window.parseFinancialExpression === 'function'
     ? window.parseFinancialExpression(val, { fallback: null })
@@ -2821,11 +2826,16 @@ function evaluateFormula(input) {
   if (result === null || !Number.isFinite(result)) {
     input.classList.add('input-error');
     showToast('Expression financière invalide : rien n’a été enregistré');
+    if (Object.prototype.hasOwnProperty.call(input.dataset, 'lastValidValue')) {
+      input.value = input.dataset.lastValidValue;
+    }
     return;
   }
   input.classList.remove('input-error');
 
-  input.value = formatFormulaResult(result);
+  const formatted = formatFormulaResult(result);
+  input.value = formatted;
+  input.dataset.lastValidValue = formatted;
   updateAll();
 }
 

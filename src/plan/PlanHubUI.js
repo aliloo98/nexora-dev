@@ -110,6 +110,7 @@ const buildPlanContent = (data) => {
     timeline = [],
     endingBalance,
     projectedEndOfCycle,
+    currentBalance,
     baseBalance,
     totalRevenue,
     totalCharges,
@@ -117,7 +118,8 @@ const buildPlanContent = (data) => {
     goals = [],
     debts = []
   } = data
-  const cycleBalanceDisplay = Number.isFinite(projectedEndOfCycle) ? projectedEndOfCycle : endingBalance
+  const cycleBalanceDisplay = Number.isFinite(projectedEndOfCycle) ? projectedEndOfCycle : 0
+  const currentBalanceDisplay = Number.isFinite(currentBalance) ? currentBalance : baseBalance
 
   const minBalance = Math.max(-99999, timeline.reduce((min, item) => Math.min(min, Number(item.balance) || 0), baseBalance))
   const important = (item) => Math.abs(Number(item.amount) || 0) >= 20 || Number(item.amount) > 0 || ['critique', 'importante'].includes(String(item.priority || '').toLowerCase())
@@ -138,7 +140,7 @@ const buildPlanContent = (data) => {
         </div>
         <strong class="plan-balance-value ${getRiskClass(cycleBalanceDisplay)}">${formatCurrency(cycleBalanceDisplay)}</strong>
         <div class="plan-metric-row">
-          <div><span class="metric-label">Solde actuel</span><strong>${formatCurrency(baseBalance)}</strong></div>
+          <div><span class="metric-label">Solde actuel</span><strong>${formatCurrency(currentBalanceDisplay)}</strong></div>
           <div><span class="metric-label">Solde minimum</span><strong>${formatCurrency(minBalance)}</strong></div>
           <div><span class="metric-label">Revenus</span><strong>${formatCurrency(totalRevenue)}</strong></div>
           <div><span class="metric-label">Flux net</span><strong class="${netFlow >= 0 ? 'positive' : 'negative'}">${formatCurrency(netFlow)}</strong></div>
@@ -396,7 +398,12 @@ const buildPlanData = async () => {
   const [recurringIncomes, billSchedules, goals] = await Promise.all([
     SettingsService.loadRecurringIncomes(),
     SettingsService.loadBillSchedules(),
-    window.GoalsService?.listGoals ? window.GoalsService.listGoals().catch(() => []) : []
+    window.GoalsService?.listUserFacingGoals
+      ? window.GoalsService.listUserFacingGoals().catch(() => [])
+      : filterUserFacingRecords(
+        await (window.GoalsService?.listGoals ? window.GoalsService.listGoals().catch(() => []) : []),
+        (goal) => goal?.name
+      )
   ])
 
   const { revenues: fetchedRevenues, charges: fetchedCharges } = await TreasuryAdapter.fetchCurrentMonthBudget(monthKey)
@@ -475,7 +482,7 @@ const buildPlanData = async () => {
   })
 
   const monthMetrics = typeof window.getMonthMetrics === 'function'
-    ? window.getMonthMetrics(monthKey, { fromDom: false })
+    ? window.getMonthMetrics(monthKey, { fromDom: true })
     : { income: totalRevenue, expenses: totalCharges, paidExpenses: 0 }
   const cycleBalances = computeCycleBalancesFromMetrics(monthMetrics)
 
@@ -483,7 +490,8 @@ const buildPlanData = async () => {
     timeline,
     endingBalance,
     projectedEndOfCycle: cycleBalances.projectedEndOfCycle,
-    baseBalance,
+    currentBalance: cycleBalances.currentBalance,
+    baseBalance: cycleBalances.currentBalance,
     totalRevenue,
     totalCharges,
     toPayNow,

@@ -2,6 +2,7 @@ import { StorageManager } from '../../js/storage.js'
 import { UserAppSettingsService } from '../../js/userAppSettingsService.js'
 import { getNamespacedStorageKey } from '../../js/userStorage.js'
 import { STORAGE_KEYS } from '../constants/storageKeys.js'
+import { filterUserFacingRecords, isTechnicalRecordName } from '../utils/userFacingFilter.js'
 
 const STORAGE_KEY = STORAGE_KEYS.goals
 
@@ -112,6 +113,10 @@ const GoalsService = {
 
   listGoals: getGoals,
 
+  listUserFacingGoals: async () => filterUserFacingRecords(await getGoals(), (goal) => goal?.name),
+
+  isTechnicalGoalName: isTechnicalRecordName,
+
   saveGoals: async (goals) => {
     const goalsToSave = normalizeGoals(goals || [])
     await UserAppSettingsService.saveSetting(STORAGE_KEY, goalsToSave)
@@ -164,13 +169,9 @@ const GoalsService = {
   },
 
   getPrimaryGoal: async () => {
-    const goals = await GoalsService.listGoals()
+    const goals = filterUserFacingRecords(await GoalsService.listGoals(), (goal) => goal?.name)
     if (goals.length === 0) return null
-    const primary = goals.find(goal => goal.isPrimary === true)
-    if (primary) return primary
-    goals[0].isPrimary = true
-    await GoalsService.saveGoals(goals)
-    return goals[0]
+    return goals.find(goal => goal.isPrimary === true) || goals[0]
   },
 
   estimateMonthsToTarget: (goal, monthlyContribution) => {
@@ -185,7 +186,8 @@ const GoalsService = {
   getGoalForecast,
 
   getSummary: async () => {
-    const goals = await GoalsService.listGoals()
+    const allGoals = await GoalsService.listGoals()
+    const goals = filterUserFacingRecords(allGoals, (goal) => goal?.name)
     const totalTarget = goals.reduce((s, g) => s + (Number(g.target) || 0), 0)
     const totalCurrent = goals.reduce((s, g) => s + (Number(g.current) || 0), 0)
     const progressPct = totalTarget > 0 ? Math.round((totalCurrent / totalTarget) * 100) : 0

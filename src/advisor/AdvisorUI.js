@@ -1,4 +1,5 @@
 import { generateScenarios } from './scenarioService.js'
+import { gsap } from 'gsap'
 
 const quickQuestions = [
   { label: 'Puis-je faire un achat ?', query: 'Puis-je acheter un PC à 600 € ?' },
@@ -83,16 +84,37 @@ const renderList = (items = [], emptyText = 'Aucun point détecté') => {
   return list.slice(0, 3).map((item) => `<li>${escapeHtml(item)}</li>`).join('')
 }
 
+const FALLBACK_SCENARIO_CONTEXT = { income: 0 }
+
+const resolveScenariosForDisplay = (scenarios) => {
+  const list = Array.isArray(scenarios) ? scenarios.filter(Boolean) : []
+  if (list.length >= 3) return list.slice(0, 3)
+  const fallback = generateScenarios(FALLBACK_SCENARIO_CONTEXT)
+  const merged = [...list]
+  fallback.forEach((item) => {
+    if (merged.length >= 3) return
+    if (!merged.some((entry) => entry.id === item.id || entry.label === item.label)) merged.push(item)
+  })
+  return merged.slice(0, 3)
+}
+
 const ensureScenarioVisibility = (root) => {
-  root?.querySelectorAll?.('.advisor-scenario-card, .advisor-scenarios-card, .advisor-scenarios-list')?.forEach((element) => {
+  const elements = root?.querySelectorAll?.('.advisor-scenario-card, .advisor-scenarios-card, .advisor-scenarios-list')
+  if (!elements?.length) return
+  const gsapRuntime = typeof gsap !== 'undefined' ? gsap : null
+  if (gsapRuntime?.set) {
+    gsapRuntime.set(elements, { autoAlpha: 1, opacity: 1, visibility: 'visible', y: 0, scale: 1, filter: 'blur(0px)' })
+    return
+  }
+  elements.forEach((element) => {
     element.style.opacity = '1'
     element.style.visibility = 'visible'
   })
 }
 
 const renderScenarioCards = (scenarios = []) => {
-  const visible = Array.isArray(scenarios) ? scenarios.slice(0, 3) : []
-  if (!visible.length) return '<div class="advisor-muted">Scénarios indisponibles pour le moment.</div>'
+  const visible = resolveScenariosForDisplay(scenarios)
+  if (!visible.length) return renderScenarioCards(generateScenarios(FALLBACK_SCENARIO_CONTEXT))
   return visible.map((scenario) => `
     <div class="advisor-scenario-card scenario-${escapeHtml(scenario.id || 'default')}">
       <div>
@@ -203,7 +225,7 @@ export function renderAdvisorUI(rootId, AdvisorService) {
         </section>
         <section class="advisor-result-card advisor-scenarios-card">
           <span>Scénarios automatiques</span>
-          <div id="advisor-scenarios-list" class="advisor-scenarios-list"></div>
+          <div id="advisor-scenarios-list" class="advisor-scenarios-list">${renderScenarioCards(generateScenarios(FALLBACK_SCENARIO_CONTEXT))}</div>
         </section>
       </div>
       <section class="advisor-result-card advisor-memory-card" id="advisor-memory-card" hidden>
@@ -299,17 +321,19 @@ export function renderAdvisorUI(rootId, AdvisorService) {
           actionBtn.onclick = () => window.showSection?.(coach.actionTarget || 'plan')
         }
       }
-      const scenarioCards = renderScenarioCards(scenarios?.length ? scenarios : generateScenarios({ income: 0 }))
-      root.querySelector('#advisor-scenarios-list').innerHTML = scenarioCards
+      const scenarioCards = renderScenarioCards(scenarios)
+      const scenariosList = root.querySelector('#advisor-scenarios-list')
+      if (scenariosList) scenariosList.innerHTML = scenarioCards
       ensureScenarioVisibility(root)
-      window.NexoraMotion?.animateAdvisorResponse?.(root.querySelector('.advisor-proactive-grid'))
+      window.NexoraMotion?.animateAdvisorResponse?.(root.querySelector('#advisor-scenarios-list'))
       window.NexoraMotion?.animateAdvisorResponse?.(root.querySelector('#advisor-memory-card'))
     } catch (error) {
       root.querySelector('#advisor-proactive-advice').textContent = 'Je peux t’aider, mais il me manque encore tes revenus, tes charges ou ton objectif principal.'
       root.querySelector('#advisor-proactive-priority').textContent = 'Priorité : compléter les données'
       root.querySelector('#advisor-proactive-risks').innerHTML = renderList([], 'Données insuffisantes')
       root.querySelector('#advisor-proactive-opportunities').innerHTML = renderList([], 'Complète le budget pour les afficher')
-      root.querySelector('#advisor-scenarios-list').innerHTML = renderScenarioCards(generateScenarios({ income: 0 }))
+      const scenariosList = root.querySelector('#advisor-scenarios-list')
+      if (scenariosList) scenariosList.innerHTML = renderScenarioCards(generateScenarios(FALLBACK_SCENARIO_CONTEXT))
       ensureScenarioVisibility(root)
       const memoryCard = root.querySelector('#advisor-memory-card')
       if (memoryCard) memoryCard.hidden = true
