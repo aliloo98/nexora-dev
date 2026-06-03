@@ -129,27 +129,37 @@
       <div class="nexora-core-layout nexora-core-layout--signature">
         <header class="nexora-core-hero">
           <div class="nexora-core-stage" id="nexora-core-stage">
-            <div class="nexora-core-ambient" aria-hidden="true"></div>
             <div class="nexora-core-globe-wrap">
               <div class="nexora-core-globe" id="nexora-core-globe" role="img" aria-label="Galaxie financière Nexora">
-                <div class="nexora-core-depth nexora-core-depth--far" aria-hidden="true"></div>
-                <div class="nexora-core-depth nexora-core-depth--mid" aria-hidden="true"></div>
-                <div class="nexora-core-halo nexora-core-halo--outer" aria-hidden="true"></div>
-                <div class="nexora-core-halo nexora-core-halo--inner" aria-hidden="true"></div>
                 
-                <div class="nexora-core-sphere" aria-hidden="true">
-                  <div class="nexora-core-nucleus-glow" aria-hidden="true"></div>
-                  <div class="nexora-core-nucleus" aria-hidden="true"></div>
-                  <div class="nexora-core-shimmer"></div>
-                  <div class="nexora-core-reflection"></div>
+                <!-- Central Typography Display -->
+                <div class="nexora-core-center-data" id="nexora-core-center-data" style="cursor: pointer;" title="Cliquer pour basculer la donnée">
+                  <div class="nexora-core-center-value" id="nexora-core-center-value">—</div>
+                  <div class="nexora-core-center-label" id="nexora-core-center-label">Solde fin de cycle</div>
                 </div>
 
+                <!-- Apple Fitness style Ring -->
                 <svg class="nexora-core-ring" viewBox="0 0 100 100" aria-hidden="true">
                   <defs>
-                    <linearGradient id="nexora-ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="rgba(243, 229, 171, 0.95)" />
-                      <stop offset="55%" stop-color="rgba(229, 192, 96, 0.85)" />
-                      <stop offset="100%" stop-color="rgba(184, 145, 48, 0.7)" />
+                    <!-- Gradient radiant (vert/or lumineux) -->
+                    <linearGradient id="nexora-ring-grad-radiant" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#10b981" />
+                      <stop offset="100%" stop-color="#e5c060" />
+                    </linearGradient>
+                    <!-- Gradient solid (vert doux) -->
+                    <linearGradient id="nexora-ring-grad-solid" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#34d399" />
+                      <stop offset="100%" stop-color="#059669" />
+                    </linearGradient>
+                    <!-- Gradient watch (orange) -->
+                    <linearGradient id="nexora-ring-grad-watch" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#fb923c" />
+                      <stop offset="100%" stop-color="#ea580c" />
+                    </linearGradient>
+                    <!-- Gradient fragile (rouge) -->
+                    <linearGradient id="nexora-ring-grad-fragile" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#f87171" />
+                      <stop offset="100%" stop-color="#dc2626" />
                     </linearGradient>
                   </defs>
                   <circle cx="50" cy="50" r="42" class="nexora-core-ring-track"></circle>
@@ -158,8 +168,9 @@
                 <div class="nexora-core-graph" id="nexora-core-graph" aria-hidden="true"></div>
               </div>
             </div>
+            <!-- Tooltip relocated inside the relative stage for precise positioning -->
+            <div class="nexora-core-tooltip" id="nexora-core-tooltip" role="tooltip" hidden></div>
           </div>
-          <div class="nexora-core-tooltip" id="nexora-core-tooltip" role="tooltip" hidden></div>
           <div class="nexora-core-hero-copy">
             <span id="dashboard-greeting-hello" class="nexora-core-hello">Bonjour 👋</span>
             <h3 id="dashboard-greeting-title" class="nexora-core-title">NEXORA CORE</h3>
@@ -168,6 +179,10 @@
         </header>
         <div class="nexora-core-copy">
           <p id="nexora-core-detail" class="nexora-core-detail">Complète ton budget pour activer la lecture unifiée.</p>
+          <div class="nexora-core-legend">
+            <span class="nexora-core-legend--goal"><i></i> Objectifs</span>
+            <span class="nexora-core-legend--debt"><i></i> Dettes</span>
+          </div>
           <dl class="nexora-core-metrics">
             <div><dt>Santé</dt><dd id="nexora-core-health">—</dd></div>
             <div><dt>Risque</dt><dd id="nexora-core-risk">—</dd></div>
@@ -3975,28 +3990,10 @@ function getNexoraDisplayName() {
     null;
 
   if (typeof window.getUserDisplayName === 'function') {
-    const resolved = window.getUserDisplayName(user);
-    if (resolved && resolved !== 'Vous') return resolved;
+    return window.getUserDisplayName(user);
   }
 
-  const email =
-    user?.email ||
-    window.AuthContext?.session?.user?.email ||
-    window.NexoraAuth?.session?.user?.email ||
-    '';
-
-  const prefix = String(email).split('@')[0] || '';
-  const clean = prefix
-    .replace(/[0-9]+/g, '')
-    .replace(/[._-]+/g, ' ')
-    .trim()
-    .split(' ')[0];
-
-  if (clean && clean.length >= 2) {
-    return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
-  }
-
-  return 'Ali';
+  return 'Vous';
 }
 function updateDashboardGreeting({ revReel = 0, solde = 0 } = {}) {
   const helloEl = document.getElementById('dashboard-greeting-hello');
