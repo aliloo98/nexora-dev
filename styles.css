@@ -5924,7 +5924,7 @@ body.mode-simple .home-goal-summary {
   }
 }
 
-/* ─── Nexora Core V6.5 — Signature Edition ─── */
+/* ─── Nexora Core V7 — Masterpiece ─── */
 #section-dashboard .dashboard-secondary-kpis {
   margin-top: 4px;
 }
@@ -5944,14 +5944,33 @@ body.mode-simple .home-goal-summary {
 
 .nexora-core-panel--signature {
   background:
-    radial-gradient(ellipse 90% 70% at 50% 0%, rgba(229, 192, 96, 0.09), transparent 58%),
-    radial-gradient(ellipse 60% 50% at 50% 100%, rgba(99, 102, 241, 0.05), transparent 55%),
+    radial-gradient(ellipse 100% 80% at 50% -10%, rgba(229, 192, 96, 0.14), transparent 62%),
+    radial-gradient(ellipse 70% 55% at 50% 105%, rgba(99, 102, 241, 0.07), transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 42%),
     var(--bg2);
-  border-color: rgba(229, 192, 96, 0.18);
+  border-color: rgba(229, 192, 96, 0.22);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 24px 80px rgba(0, 0, 0, 0.35);
   margin-bottom: 22px;
   min-height: 0;
   overflow: hidden;
+  position: relative;
   padding: clamp(20px, 5vw, 36px) clamp(16px, 4vw, 28px) clamp(22px, 4vw, 32px);
+}
+
+.nexora-core-panel--masterpiece::before {
+  background: radial-gradient(circle at 50% 0%, rgba(229, 192, 96, 0.08), transparent 55%);
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.nexora-core-panel--masterpiece .nexora-core-layout--signature {
+  position: relative;
+  z-index: 1;
 }
 
 .nexora-core-layout--signature {
@@ -6002,14 +6021,47 @@ body.mode-simple .home-goal-summary {
   --core-risk: 30;
   --core-glow-x: 50%;
   --core-glow-y: 42%;
+  --core-glow-strength: 0.65;
+  --core-risk-tint: 0.12;
+  --core-reactor-scale: 1;
+  --core-savings: 0;
+  --core-risk-intensity: 24;
   aspect-ratio: 1;
   height: clamp(240px, 52vw, 400px);
   max-width: 100%;
-  perspective: 1100px;
+  perspective: 1200px;
   position: relative;
   transform-style: preserve-3d;
   width: clamp(240px, 52vw, 400px);
   will-change: transform;
+}
+
+.nexora-core-depth {
+  border-radius: 50%;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.nexora-core-depth--far {
+  background: radial-gradient(circle, rgba(129, 140, 248, 0.12) 0%, transparent 68%);
+  filter: blur(18px);
+  inset: -35%;
+  opacity: 0.45;
+}
+
+.nexora-core-depth--mid {
+  background: radial-gradient(circle at var(--core-glow-x, 50%) var(--core-glow-y, 42%), rgba(229, 192, 96, 0.16), transparent 58%);
+  filter: blur(12px);
+  inset: -18%;
+  opacity: calc(0.35 + var(--core-glow-strength, 0.5) * 0.35);
+}
+
+.nexora-core-halo--risk {
+  background: radial-gradient(circle, rgba(244, 63, 94, calc(var(--core-risk-tint, 0.1) * 0.9)) 0%, transparent 70%);
+  inset: -32%;
+  opacity: calc(var(--core-risk-tint, 0.1) * 1.4);
+  z-index: 0;
 }
 
 .nexora-core-halo {
@@ -6019,13 +6071,13 @@ body.mode-simple .home-goal-summary {
 }
 
 .nexora-core-halo--outer {
-  background: radial-gradient(circle, rgba(229, 192, 96, 0.14) 0%, transparent 68%);
+  background: radial-gradient(circle, rgba(229, 192, 96, calc(0.12 + var(--core-glow-strength, 0.5) * 0.14)) 0%, transparent 68%);
   box-shadow:
-    0 0 80px rgba(229, 192, 96, 0.16),
-    0 0 calc(40px + var(--core-risk) * 0.35px) rgba(229, 192, 96, 0.12);
+    0 0 calc(60px + var(--core-glow-strength, 0.5) * 48px) rgba(229, 192, 96, calc(0.14 + var(--core-glow-strength, 0.5) * 0.2)),
+    0 0 calc(24px + var(--core-risk-intensity, 24) * 0.35px) rgba(244, 63, 94, calc(var(--core-risk-tint, 0.1) * 0.35));
   inset: -28%;
-  opacity: 0.5;
-  z-index: 0;
+  opacity: calc(0.4 + var(--core-glow-strength, 0.5) * 0.45);
+  z-index: 1;
 }
 
 .nexora-core-halo--inner {
@@ -6043,13 +6095,46 @@ body.mode-simple .home-goal-summary {
   z-index: 2;
 }
 
-.nexora-core-particle {
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 1px, rgba(229, 192, 96, 0.85) 2px, transparent 3px);
-  border-radius: 50%;
-  height: 4px;
-  opacity: 0.35;
+.nexora-core-dust {
+  inset: -12%;
+  pointer-events: none;
   position: absolute;
-  width: 4px;
+  z-index: 2;
+}
+
+.nexora-core-dust-particle {
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.7) 0 0.5px, rgba(229, 192, 96, 0.35) 1.5px, transparent 3px);
+  border-radius: 50%;
+  height: 2px;
+  opacity: 0.12;
+  position: absolute;
+  width: 2px;
+}
+
+.nexora-core-dust-particle:nth-child(1) { left: 12%; top: 22%; }
+.nexora-core-dust-particle:nth-child(2) { left: 28%; top: 8%; }
+.nexora-core-dust-particle:nth-child(3) { right: 18%; top: 14%; }
+.nexora-core-dust-particle:nth-child(4) { right: 8%; top: 38%; }
+.nexora-core-dust-particle:nth-child(5) { left: 6%; bottom: 30%; }
+.nexora-core-dust-particle:nth-child(6) { left: 32%; bottom: 10%; }
+.nexora-core-dust-particle:nth-child(7) { right: 26%; bottom: 16%; }
+.nexora-core-dust-particle:nth-child(8) { left: 50%; top: 4%; }
+.nexora-core-dust-particle:nth-child(9) { right: 42%; bottom: 6%; }
+.nexora-core-dust-particle:nth-child(10) { left: 64%; top: 76%; }
+.nexora-core-dust-particle:nth-child(11) { left: 18%; top: 52%; }
+.nexora-core-dust-particle:nth-child(12) { right: 34%; top: 48%; }
+.nexora-core-dust-particle:nth-child(13) { left: 44%; bottom: 22%; }
+.nexora-core-dust-particle:nth-child(14) { right: 52%; top: 28%; }
+.nexora-core-dust-particle:nth-child(15) { left: 72%; top: 34%; }
+.nexora-core-dust-particle:nth-child(16) { right: 14%; bottom: 38%; }
+
+.nexora-core-particle {
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0 1px, rgba(229, 192, 96, 0.75) 2px, transparent 3px);
+  border-radius: 50%;
+  height: 3px;
+  opacity: 0.28;
+  position: absolute;
+  width: 3px;
 }
 
 .nexora-core-particle--1 { left: 8%; top: 18%; }
@@ -6071,95 +6156,142 @@ body.mode-simple .home-goal-summary {
   z-index: 3;
 }
 
+.nexora-core-orbit-rig--outer,
+.nexora-core-orbit-rig--inner {
+  inset: -8%;
+  pointer-events: none;
+  position: absolute;
+  transform-style: preserve-3d;
+  z-index: 3;
+}
+
+.nexora-core-orbit-rig--inner {
+  inset: 2%;
+  z-index: 4;
+}
+
 .nexora-core-orbit {
-  border: 1px solid rgba(229, 192, 96, 0.22);
+  border: 0.5px solid rgba(229, 192, 96, 0.18);
   border-radius: 50%;
-  box-shadow: 0 0 12px rgba(229, 192, 96, 0.06);
+  box-shadow: 0 0 16px rgba(229, 192, 96, 0.04);
+  opacity: 0.55;
   pointer-events: none;
   position: absolute;
 }
 
 .nexora-core-orbit--a {
-  inset: -2%;
-  transform: rotateX(72deg);
+  inset: -4%;
+  opacity: 0.42;
+  transform: rotateX(68deg);
+  box-shadow: 0 0 20px rgba(229, 192, 96, 0.06);
 }
 
 .nexora-core-orbit--b {
-  inset: 6%;
-  opacity: 0.75;
-  transform: rotateY(74deg) rotateZ(-12deg);
+  inset: 4%;
+  opacity: 0.5;
+  transform: rotateY(70deg) rotateZ(-18deg);
 }
 
 .nexora-core-orbit--c {
-  inset: 18%;
-  opacity: 0.5;
-  transform: rotateX(58deg) rotateZ(24deg);
+  inset: 14%;
+  opacity: 0.38;
+  transform: rotateX(54deg) rotateZ(20deg);
 }
 
-.nexora-core-satellite {
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 2px, rgba(229, 192, 96, 0.9) 3px, transparent 5px);
-  border-radius: 50%;
-  height: 7px;
-  opacity: 0.65;
-  position: absolute;
-  width: 7px;
-}
-
-.nexora-core-satellite--a {
-  left: 4%;
-  top: 46%;
-}
-
-.nexora-core-satellite--b {
-  bottom: 18%;
-  right: 8%;
+.nexora-core-orbit--d {
+  inset: 22%;
+  opacity: 0.28;
+  transform: rotateY(62deg) rotateZ(8deg);
 }
 
 .nexora-core-sphere {
-  inset: 4%;
+  inset: 6%;
   position: absolute;
   transform-style: preserve-3d;
-  z-index: 4;
+  z-index: 5;
+}
+
+.nexora-core-reactor {
+  inset: 18%;
+  position: absolute;
+  transform: scale(var(--core-reactor-scale, 1));
+  transform-style: preserve-3d;
+  z-index: 2;
+}
+
+.nexora-core-nucleus-glow {
+  background: radial-gradient(circle, rgba(243, 229, 171, calc(0.35 + var(--core-glow-strength, 0.5) * 0.45)) 0%, rgba(229, 192, 96, 0.12) 42%, transparent 72%);
+  filter: blur(8px);
+  inset: -18%;
+  opacity: calc(0.5 + var(--core-glow-strength, 0.5) * 0.5);
+  position: absolute;
+}
+
+.nexora-core-nucleus {
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.55) 0%, transparent 28%),
+    radial-gradient(circle at 50% 58%, rgba(229, 192, 96, 0.55) 0%, rgba(184, 145, 48, 0.35) 38%, rgba(8, 8, 14, 0.98) 72%);
+  border-radius: 50%;
+  box-shadow:
+    0 0 calc(28px + var(--core-glow-strength, 0.5) * 36px) rgba(229, 192, 96, calc(0.25 + var(--core-glow-strength, 0.5) * 0.35)),
+    inset 0 -12px 28px rgba(0, 0, 0, 0.55),
+    inset 0 8px 16px rgba(255, 255, 255, 0.12);
+  inset: 12%;
+  position: absolute;
+}
+
+.nexora-core-nucleus-core {
+  background: radial-gradient(circle at 40% 35%, #fff 0%, rgba(243, 229, 171, 0.95) 18%, rgba(229, 192, 96, 0.4) 45%, transparent 70%);
+  border-radius: 50%;
+  inset: 32%;
+  opacity: calc(0.65 + var(--core-glow-strength, 0.5) * 0.35);
+  position: absolute;
+}
+
+.nexora-core-inner-shell {
+  border: 0.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  box-shadow: inset 0 0 24px rgba(229, 192, 96, 0.08);
+  inset: 4%;
+  opacity: 0.7;
+  position: absolute;
 }
 
 .nexora-core-wireframe {
   background:
-    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.28), transparent 14%),
-    radial-gradient(circle at var(--core-glow-x, 62%) var(--core-glow-y, 68%), rgba(229, 192, 96, 0.28), transparent calc(var(--core-health) * 0.5%)),
-    radial-gradient(circle at 48% 50%, rgba(12, 12, 18, 0.98), rgba(2, 2, 5, 1) 72%);
-  border: 1px solid rgba(229, 192, 96, 0.38);
+    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.18), transparent 16%),
+    radial-gradient(circle at var(--core-glow-x, 62%) var(--core-glow-y, 68%), rgba(229, 192, 96, 0.2), transparent 55%),
+    radial-gradient(circle at 48% 50%, rgba(10, 10, 16, 0.55), transparent 78%);
+  border: 0.5px solid rgba(229, 192, 96, 0.22);
   border-radius: 50%;
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.06),
-    inset 0 -18px 36px rgba(0, 0, 0, 0.45),
-    inset 0 12px 24px rgba(255, 255, 255, 0.04),
-    0 32px 90px rgba(0, 0, 0, 0.55),
-    0 0 calc(32px + var(--core-risk) * 0.28px) rgba(229, 192, 96, 0.22);
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 -14px 32px rgba(0, 0, 0, 0.35);
   inset: 0;
+  opacity: 0.85;
   overflow: hidden;
+  pointer-events: none;
   position: absolute;
 }
 
 .nexora-core-wireframe::before,
 .nexora-core-wireframe::after {
-  border: 1px solid rgba(229, 192, 96, 0.16);
+  border: 0.5px solid rgba(229, 192, 96, 0.1);
   border-radius: 50%;
   content: '';
-  inset: 8%;
+  inset: 10%;
   pointer-events: none;
   position: absolute;
 }
 
 .nexora-core-wireframe::before {
-  background:
-    repeating-linear-gradient(0deg, transparent, transparent 10px, rgba(229, 192, 96, 0.09) 10px, rgba(229, 192, 96, 0.09) 11px),
-    repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(255, 255, 255, 0.05) 10px, rgba(255, 255, 255, 0.05) 11px);
+  opacity: 0.35;
 }
 
 .nexora-core-wireframe::after {
-  border-color: rgba(255, 255, 255, 0.08);
-  inset: 22%;
-  opacity: 0.7;
+  border-color: rgba(255, 255, 255, 0.06);
+  inset: 24%;
+  opacity: 0.4;
 }
 
 .nexora-core-shimmer {
@@ -6189,20 +6321,13 @@ body.mode-simple .home-goal-summary {
   width: 48%;
 }
 
-.nexora-core-node {
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 2px, rgba(229, 192, 96, 0.95) 3px, transparent 5px);
-  border-radius: 50%;
-  box-shadow: 0 0 14px rgba(229, 192, 96, 0.45);
-  height: 9px;
-  opacity: 0.5;
-  position: absolute;
-  width: 9px;
-  z-index: 6;
+.nexora-core-reflection--soft {
+  height: 52%;
+  left: 8%;
+  opacity: 0.18;
+  top: 6%;
+  width: 55%;
 }
-
-.nexora-core-node--1 { left: 16%; top: 20%; }
-.nexora-core-node--2 { opacity: 0.7; right: 14%; top: 36%; }
-.nexora-core-node--3 { bottom: 12%; left: 40%; opacity: 0.55; }
 
 .nexora-core-ring {
   height: 100%;
@@ -6220,14 +6345,24 @@ body.mode-simple .home-goal-summary {
 
 .nexora-core-ring-progress {
   fill: none;
-  filter: drop-shadow(0 0 6px rgba(229, 192, 96, 0.35));
-  stroke: rgba(229, 192, 96, 0.9);
+  filter: drop-shadow(0 0 8px rgba(229, 192, 96, 0.45));
+  stroke: url(#nexora-ring-gradient);
   stroke-dasharray: 264;
   stroke-dashoffset: 120;
   stroke-linecap: round;
-  stroke-width: 2.5;
+  stroke-width: 2;
   transform: rotate(-90deg);
   transform-origin: 50% 50%;
+}
+
+#nexora-core-panel[data-core-tone="radiant"] .nexora-core-ambient {
+  opacity: 1;
+}
+
+#nexora-core-panel[data-core-tone="cautious"] .nexora-core-nucleus {
+  box-shadow:
+    0 0 18px rgba(244, 63, 94, calc(var(--core-risk-tint, 0.2) * 0.5)),
+    inset 0 -12px 28px rgba(0, 0, 0, 0.55);
 }
 
 .nexora-core-hero-copy {
@@ -6348,9 +6483,12 @@ body.mode-simple .home-goal-summary {
   .nexora-core-orbit-rig,
   .nexora-core-sphere,
   .nexora-core-particle,
+  .nexora-core-dust-particle,
   .nexora-core-halo,
   .nexora-core-shimmer,
-  .nexora-core-reflection {
+  .nexora-core-reflection,
+  .nexora-core-satellite-rig,
+  .nexora-core-reactor {
     animation: none !important;
   }
 }
@@ -6425,88 +6563,152 @@ body.mode-simple .home-goal-summary {
   }
 }
 
-/* —— Nexora Core V2 · orbites objectifs / dettes —— */
+/* —— Nexora Core V7 · satellites financiers —— */
 .nexora-core-graph {
-  position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 4;
+  position: absolute;
+  z-index: 8;
+}
+
+.nexora-core-satellite-rig {
+  animation: nexora-satellite-orbit var(--orbit-speed, 36s) linear infinite;
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  transform: rotate(var(--orbit-angle, 0deg));
 }
 
 .nexora-core-orbit-node {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: var(--orbit-size, 16px);
-  height: var(--orbit-size, 16px);
-  margin: calc(var(--orbit-size, 16px) / -2);
+  background: transparent;
   border: none;
   border-radius: 50%;
-  pointer-events: auto;
   cursor: pointer;
-  transform: rotate(var(--orbit-angle, 0deg)) translateX(min(42%, 92px)) rotate(calc(var(--orbit-angle, 0deg) * -1));
-  transition: transform 0.35s ease, box-shadow 0.35s ease;
-  animation: nexora-orbit-drift 48s linear infinite;
+  height: var(--orbit-size, 14px);
+  left: 50%;
+  margin: calc(var(--orbit-size, 14px) / -2);
+  pointer-events: auto;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%) translateX(min(var(--orbit-radius, 40%), 46%));
+  transition: box-shadow 0.4s ease, filter 0.4s ease;
+  width: var(--orbit-size, 14px);
+}
+
+.nexora-core-orbit-node::before {
+  border-radius: 50%;
+  content: '';
+  inset: -3px;
+  opacity: 0;
+  position: absolute;
+  transition: opacity 0.35s ease;
 }
 
 .nexora-core-orbit-node--goal {
-  background: radial-gradient(circle at 30% 30%, #f3e5ab, #10b981 72%);
-  box-shadow: 0 0 14px rgba(229, 192, 96, 0.35), 0 0 8px rgba(16, 185, 129, 0.25);
+  background: radial-gradient(circle at 28% 28%, #fff 0%, #f3e5ab 22%, #10b981 78%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.25),
+    0 0 16px rgba(229, 192, 96, 0.4),
+    0 0 10px rgba(16, 185, 129, 0.28);
+}
+
+.nexora-core-orbit-node--goal::before {
+  box-shadow: 0 0 22px rgba(229, 192, 96, 0.55);
 }
 
 .nexora-core-orbit-node--debt {
-  background: radial-gradient(circle at 30% 30%, #fda4af, #f43f5e 70%);
-  box-shadow: 0 0 12px rgba(244, 63, 94, 0.35);
+  background: radial-gradient(circle at 28% 28%, #fff 0%, #fecdd3 24%, #f43f5e 76%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 0 14px rgba(244, 63, 94, 0.42);
+}
+
+.nexora-core-orbit-node--debt::before {
+  box-shadow: 0 0 20px rgba(244, 63, 94, 0.5);
 }
 
 .nexora-core-orbit-node:hover,
-.nexora-core-orbit-node:focus-visible {
-  transform: rotate(var(--orbit-angle, 0deg)) translateX(min(46%, 98px)) rotate(calc(var(--orbit-angle, 0deg) * -1)) scale(1.12);
+.nexora-core-orbit-node:focus-visible,
+.nexora-core-orbit-node.is-active {
+  filter: brightness(1.15);
   outline: none;
+  z-index: 2;
+}
+
+.nexora-core-orbit-node:hover::before,
+.nexora-core-orbit-node:focus-visible::before,
+.nexora-core-orbit-node.is-active::before {
+  opacity: 1;
+}
+
+@keyframes nexora-satellite-orbit {
+  to { transform: rotate(calc(var(--orbit-angle, 0deg) + 360deg)); }
 }
 
 .nexora-core-tooltip {
-  position: absolute;
-  left: 50%;
-  bottom: 8px;
-  z-index: 6;
-  transform: translateX(-50%);
-  min-width: min(240px, 88%);
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(229, 192, 96, 0.22);
-  background: rgba(8, 8, 14, 0.92);
-  backdrop-filter: blur(10px);
-  display: grid;
-  gap: 4px;
-  font-size: 12px;
+  backdrop-filter: blur(16px) saturate(1.2);
+  background:
+    linear-gradient(145deg, rgba(18, 18, 28, 0.94), rgba(8, 8, 14, 0.92));
+  border: 1px solid rgba(229, 192, 96, 0.28);
+  border-radius: 14px;
+  bottom: 4px;
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
   color: var(--text2);
+  display: grid;
+  gap: 6px;
+  left: 50%;
+  min-width: min(260px, 90%);
+  padding: 12px 14px;
   pointer-events: none;
+  position: absolute;
+  text-align: left;
+  transform: translateX(-50%);
+  z-index: 12;
 }
+
+.nexora-core-tooltip-kind {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.nexora-core-tooltip-kind--goal { color: var(--gold); }
+.nexora-core-tooltip-kind--debt { color: #fb7185; }
 
 .nexora-core-tooltip strong {
   color: var(--text);
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 700;
 }
 
-.nexora-core-globe {
-  --core-savings: 0;
-  --core-risk-intensity: 24;
+.nexora-core-tooltip-amount {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.nexora-core-tooltip-progress em {
+  color: var(--text2);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-right: 6px;
+  text-transform: uppercase;
 }
 
 .nexora-core-halo--outer {
   opacity: calc(0.35 + (var(--core-savings, 0) / 100) * 0.45);
 }
 
-.nexora-core-sphere {
-  box-shadow:
-    inset 0 0 40px rgba(229, 192, 96, calc(var(--core-savings, 0) / 220)),
-    0 0 calc(12px + var(--core-risk-intensity, 24) * 0.2px) rgba(244, 63, 94, calc(var(--core-risk-intensity, 24) / 220));
-}
-
-@keyframes nexora-orbit-drift {
-  from { filter: hue-rotate(0deg); }
-  to { filter: hue-rotate(12deg); }
+@media (prefers-reduced-motion: reduce) {
+  .nexora-core-satellite-rig {
+    animation: none;
+    transform: rotate(var(--orbit-angle, 0deg));
+  }
 }
 
 /* —— Observabilité RC1 —— */
@@ -6619,6 +6821,12 @@ body.mode-simple .home-goal-summary {
   }
 
   .nexora-core-orbit-node {
-    transform: rotate(var(--orbit-angle, 0deg)) translateX(min(38%, 72px)) rotate(calc(var(--orbit-angle, 0deg) * -1));
+    transform: translate(-50%, -50%) translateX(min(var(--orbit-radius, 36%), 40%));
+  }
+
+  .nexora-core-tooltip {
+    bottom: 0;
+    font-size: 11px;
+    min-width: min(220px, 94%);
   }
 }
