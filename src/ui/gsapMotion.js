@@ -285,7 +285,13 @@ export function bindButtonFeedback(container = document) {
 export function initScrollReveal(container = document) {
   const root = resolveRoot(container)
   if (!root || !canMotion()) return
-  const items = getCards(root).filter((item) => !item.dataset.revealReady)
+
+  // Minimal fix: exclude elements from #section-parametres to avoid iOS ScrollTrigger invisibility bug
+  const items = getCards(root).filter((item) => {
+    if (item.closest('#section-parametres')) return false
+    return !item.dataset.revealReady
+  })
+
   if (!items.length) return
 
   gsap.set(items, { autoAlpha: 0, y: 18, scale: 0.985, filter: 'blur(6px)' })
