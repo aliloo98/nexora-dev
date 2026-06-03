@@ -322,6 +322,16 @@ const renderCoreGraph = (panel, payload = {}) => {
     `
   }).join('')
 
+  // Appliquer explicitement les propriétés CSS via JS pour garantir leur application
+  graph.querySelectorAll('.nexora-core-orbit-node').forEach((button) => {
+    const node = nodes[Number(button.dataset.nodeIndex)]
+    if (node) {
+      button.style.setProperty('--node-x', `${node.x.toFixed(3)}%`)
+      button.style.setProperty('--node-y', `${node.y.toFixed(3)}%`)
+      button.style.setProperty('--orbit-size', `${node.size}px`)
+    }
+  })
+
   if (graphBound) return
   graphBound = true
 
