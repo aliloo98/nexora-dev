@@ -3,6 +3,7 @@ import { UserAppSettingsService } from '../../js/userAppSettingsService.js'
 import createGoalCard from '../components/GoalCard.js'
 import { STORAGE_KEYS } from '../constants/storageKeys.js'
 import { parseFinancialExpression } from '../finance/financialExpression.js'
+import { filterUserFacingRecords } from '../utils/userFacingFilter.js'
 
 const GOALS_STORAGE_KEY = STORAGE_KEYS.goals
 
@@ -13,7 +14,7 @@ const openGoalModal = async (options) => {
   return null
 }
 
-const readGoalNumber = (value, fallback) => {
+const readGoalNumber = (value, fallback = null) => {
   return parseFinancialExpression(value, { fallback })
 }
 
@@ -56,8 +57,12 @@ const GoalsPage = {
 
   handleCreate: async () => {
     const name = GoalsPage.form.name.value.trim()
-    const target = readGoalNumber(GoalsPage.form.target.value, 0)
-    const current = readGoalNumber(GoalsPage.form.current.value, 0)
+    const target = readGoalNumber(GoalsPage.form.target.value, null)
+    const current = readGoalNumber(GoalsPage.form.current.value, null)
+    if (target === null || current === null) {
+      window.showToast('Expression financière invalide')
+      return
+    }
     const date = GoalsPage.form.date.value || null
     const color = GoalsPage.form.color.value || '#e5c060'
     const icon = GoalsPage.form.icon.value || '🎯'
@@ -125,8 +130,12 @@ const GoalsPage = {
     })
     if (targetDateValue === null) return
 
-    const newTarget = readGoalNumber(targetValue, Number(goal.target) || 0)
-    const newCurrent = readGoalNumber(currentValue, Number(goal.current) || 0)
+    const newTarget = readGoalNumber(targetValue, null)
+    const newCurrent = readGoalNumber(currentValue, null)
+    if (newTarget === null || newCurrent === null) {
+      window.showToast('Expression financière invalide')
+      return
+    }
     await GoalsService.updateGoal(goal.id, { name: newName, target: newTarget, current: newCurrent, targetDate: normalizeGoalDate(targetDateValue) })
     await GoalsPage.render()
     await GoalsPage.renderAnalytics()
@@ -189,7 +198,7 @@ const GoalsPage = {
     if (!GoalsPage.listEl) {
       return
     }
-    const goals = await GoalsService.listGoals()
+    const goals = filterUserFacingRecords(await GoalsService.listGoals(), (goal) => goal?.name)
     GoalsPage.listEl.innerHTML = ''
     const monthlyInput = document.getElementById('goal-monthly-contrib')
     const monthly = monthlyInput ? readGoalNumber(monthlyInput.value, 0) : 0

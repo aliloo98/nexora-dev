@@ -1465,7 +1465,7 @@ function saveNexoraAiSettingsFromUI() {
 function readDebts() {
   try {
     const parsed = JSON.parse(SafeStorage.getItem(DEBTS_STORAGE_KEY) || '[]');
-    return Array.isArray(parsed) ? parsed : [];
+    return filterTechnicalRecords(Array.isArray(parsed) ? parsed : [], (debt) => debt?.name);
   } catch {
     return [];
   }
@@ -2192,6 +2192,20 @@ function getAmountFromData(data, key) {
   return 0;
 }
 
+function getPaidAmountFromData(data, key) {
+  const amount = getAmountFromData(data, key);
+  if (!data || !Object.prototype.hasOwnProperty.call(data, key + '_paye')) return 0;
+  const paid = data[key + '_paye'];
+  if (paid === true || paid === 'true' || paid === 1 || paid === '1') return amount;
+  if (paid === false || paid === '0' || paid === '') return 0;
+  return Math.min(amount, Math.max(0, parseBudgetNumber(paid)));
+}
+
+function filterTechnicalRecords(items, getName) {
+  const readName = typeof getName === 'function' ? getName : (item) => item?.name;
+  return (Array.isArray(items) ? items : []).filter((item) => !/^(TEST_|DEBUG_|TEMP_)/i.test(String(readName(item) || '').trim()));
+}
+
 function getBudgetLabel(key) {
   const input = document.querySelector(`input.budget-input[data-key="${key}"]:not(.paid-input):not(.note-input)`);
   const label = input?.closest('.budget-row')?.querySelector('.budget-row-label');
@@ -2225,15 +2239,31 @@ function getMonthMetrics(month, { fromDom = false } = {}) {
   const fixed = fixedKeys.reduce((sum, key) => sum + read(key), 0);
   const variable = variableKeys.reduce((sum, key) => sum + read(key), 0);
   const expenses = fixed + variable;
-  const savings = income - expenses;
+  const expenseKeys = getAllExpenseKeys();
+  const paidExpenses = expenseKeys.reduce((sum, key) => {
+    if (fromDom) return sum + Math.min(read(key), getVal(key + '_paye'));
+    return sum + getPaidAmountFromData(data, key);
+  }, 0);
+  const balances = window.NexoraCycleBalance?.computeCycleBalances
+    ? window.NexoraCycleBalance.computeCycleBalances({ income, totalExpenses: expenses, paidExpenses })
+    : {
+      projectedEndOfCycle: income - expenses,
+      currentBalance: income - paidExpenses,
+      remainingToSpend: Math.max(0, expenses - paidExpenses),
+      savings: income - expenses
+    };
   return {
     month,
     income,
     fixed,
     variable,
     expenses,
-    savings,
-    savingsRate: income > 0 ? Math.round((savings / income) * 100) : 0
+    paidExpenses,
+    savings: balances.savings,
+    projectedEndOfCycle: balances.projectedEndOfCycle,
+    currentBalance: balances.currentBalance,
+    remainingToSpend: balances.remainingToSpend,
+    savingsRate: income > 0 ? Math.round((balances.savings / income) * 100) : 0
   };
 }
 
@@ -2787,11 +2817,13 @@ function evaluateFormula(input) {
 
   const result = typeof window.parseFinancialExpression === 'function'
     ? window.parseFinancialExpression(val, { fallback: null })
-    : parseBudgetNumber(val);
+    : parseBudgetNumberStrict(val);
   if (result === null || !Number.isFinite(result)) {
-    console.warn('[Formula] Expression invalide ignorée', val);
+    input.classList.add('input-error');
+    showToast('Expression financière invalide : rien n’a été enregistré');
     return;
   }
+  input.classList.remove('input-error');
 
   input.value = formatFormulaResult(result);
   updateAll();
@@ -3376,9 +3408,20 @@ function updateAll(){
 
   const totalDepReel = fixReel + varReel;
   const totalDepPayee = fixPaye + varPaye;
-  const resteADepenser = Math.max(0, totalDepReel - totalDepPayee);
-  const soldeFinCycle = revReel - totalDepReel;
-  const soldeActuel = revReel - totalDepPayee;
+  const cycleBalances = window.NexoraCycleBalance?.computeCycleBalances
+    ? window.NexoraCycleBalance.computeCycleBalances({
+      income: revReel,
+      totalExpenses: totalDepReel,
+      paidExpenses: totalDepPayee
+    })
+    : {
+      projectedEndOfCycle: revReel - totalDepReel,
+      currentBalance: revReel - totalDepPayee,
+      remainingToSpend: Math.max(0, totalDepReel - totalDepPayee)
+    };
+  const resteADepenser = cycleBalances.remainingToSpend;
+  const soldeFinCycle = cycleBalances.projectedEndOfCycle;
+  const soldeActuel = cycleBalances.currentBalance;
   const totalDepRestant = resteADepenser;
   const solde = soldeFinCycle;
   const soldeEstime = soldeActuel;

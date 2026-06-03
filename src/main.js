@@ -49,6 +49,7 @@ import { renderSettingsPanels, renderRecurringIncomeSettings, renderBillSchedule
 import { readAiSettings, updateAiSettings } from './advisor/proactiveCoachService.js'
 import NexoraMotion from './ui/gsapMotion.js'
 import { parseFinancialExpression } from './finance/financialExpression.js'
+import { computeCycleBalances, computeCycleBalancesFromMetrics } from './finance/cycleBalance.js'
 import NexoraRecurringResolver from './finance/recurringResolution.js'
 import NexoraCore from './ui/nexoraCore.js'
 import { getUserDisplayName } from './auth/userDisplayName.js'
@@ -71,6 +72,7 @@ window.getUserDisplayName = (user) => getUserDisplayName(user || AuthContext.get
 window.NexoraSyncDiagnostics = SyncDiagnostics
 window.readSyncedArray = readSyncedArray
 window.parseFinancialExpression = parseFinancialExpression
+window.NexoraCycleBalance = { computeCycleBalances, computeCycleBalancesFromMetrics }
 window.renderRecurringIncomeSettings = renderRecurringIncomeSettings
 window.renderBillScheduleSettings = renderBillScheduleSettings
 
@@ -402,9 +404,9 @@ const initApp = async () => {
     // Attach amount input handlers to sanitize user input (prevent letters, support French formats)
     const attachAmountInputHandlers = () => {
         const sanitize = (v) => String(v ?? '')
-          .replace(/[^0-9\s,\.\+\-]/g, '') // allow simple arithmetic without letters
+          .replace(/\u202F/g, ' ')
+          .replace(/\u00A0/g, ' ')
           .replace(/\,+/g, ',')
-          .replace(/\.+/g, '.')
           .trim()
 
         const isAmountInput = (input) => {
@@ -433,13 +435,13 @@ const initApp = async () => {
           if (input.__amountHandlerAttached) return
           input.__amountHandlerAttached = true
 
-          input.addEventListener('input', (e) => {
-            const selStart = input.selectionStart
-            const selEnd = input.selectionEnd
-            const cleaned = sanitize(input.value)
-            if (cleaned !== input.value) {
-              input.value = cleaned
-              try { input.setSelectionRange(selStart - 1, selEnd - 1) } catch (err) {}
+          input.addEventListener('input', () => {
+            const raw = sanitize(input.value)
+            const parsed = parseFinancialExpression(raw, { fallback: null })
+            if (raw && parsed === null) {
+              input.classList.add('input-error')
+            } else {
+              input.classList.remove('input-error')
             }
           })
 
@@ -450,11 +452,23 @@ const initApp = async () => {
             document.execCommand('insertText', false, cleaned)
           })
 
-          input.addEventListener('blur', (e) => {
+          input.addEventListener('blur', () => {
             const raw = sanitize(input.value)
+            if (!raw) {
+              input.classList.remove('input-error')
+              return
+            }
             const numeric = parseFinancialExpression(raw, { fallback: null })
-            if (numeric !== null && typeof window.Utils?.formatCurrency === 'function') {
+            if (numeric === null) {
+              input.classList.add('input-error')
+              window.showToast?.('Expression financière invalide : rien n’a été enregistré')
+              return
+            }
+            input.classList.remove('input-error')
+            if (typeof window.Utils?.formatCurrency === 'function') {
               try { input.value = window.Utils.formatCurrency(numeric) } catch (err) {}
+            } else {
+              input.value = String(numeric)
             }
           })
         })

@@ -1,3 +1,5 @@
+import { generateScenarios } from './scenarioService.js'
+
 const quickQuestions = [
   { label: 'Puis-je faire un achat ?', query: 'Puis-je acheter un PC à 600 € ?' },
   { label: 'Vais-je finir le mois positif ?', query: 'Vais-je finir le mois dans le vert ?' },
@@ -79,6 +81,13 @@ const renderList = (items = [], emptyText = 'Aucun point détecté') => {
   const list = Array.isArray(items) ? items.filter(Boolean) : []
   if (!list.length) return `<li>${emptyText}</li>`
   return list.slice(0, 3).map((item) => `<li>${escapeHtml(item)}</li>`).join('')
+}
+
+const ensureScenarioVisibility = (root) => {
+  root?.querySelectorAll?.('.advisor-scenario-card, .advisor-scenarios-card, .advisor-scenarios-list')?.forEach((element) => {
+    element.style.opacity = '1'
+    element.style.visibility = 'visible'
+  })
 }
 
 const renderScenarioCards = (scenarios = []) => {
@@ -290,7 +299,9 @@ export function renderAdvisorUI(rootId, AdvisorService) {
           actionBtn.onclick = () => window.showSection?.(coach.actionTarget || 'plan')
         }
       }
-      root.querySelector('#advisor-scenarios-list').innerHTML = renderScenarioCards(scenarios)
+      const scenarioCards = renderScenarioCards(scenarios?.length ? scenarios : generateScenarios({ income: 0 }))
+      root.querySelector('#advisor-scenarios-list').innerHTML = scenarioCards
+      ensureScenarioVisibility(root)
       window.NexoraMotion?.animateAdvisorResponse?.(root.querySelector('.advisor-proactive-grid'))
       window.NexoraMotion?.animateAdvisorResponse?.(root.querySelector('#advisor-memory-card'))
     } catch (error) {
@@ -298,7 +309,8 @@ export function renderAdvisorUI(rootId, AdvisorService) {
       root.querySelector('#advisor-proactive-priority').textContent = 'Priorité : compléter les données'
       root.querySelector('#advisor-proactive-risks').innerHTML = renderList([], 'Données insuffisantes')
       root.querySelector('#advisor-proactive-opportunities').innerHTML = renderList([], 'Complète le budget pour les afficher')
-      root.querySelector('#advisor-scenarios-list').innerHTML = renderScenarioCards([])
+      root.querySelector('#advisor-scenarios-list').innerHTML = renderScenarioCards(generateScenarios({ income: 0 }))
+      ensureScenarioVisibility(root)
       const memoryCard = root.querySelector('#advisor-memory-card')
       if (memoryCard) memoryCard.hidden = true
     }

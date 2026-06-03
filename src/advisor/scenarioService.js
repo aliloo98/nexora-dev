@@ -49,7 +49,7 @@ export function generateScenarios(context = {}) {
     return [
       {
         id: 'prudent',
-        label: 'Scénario prudent',
+        label: 'Prudent',
         projectedBalance: 0,
         possibleSaving: 0,
         primaryGoalImpact: 'Objectif non analysable',
@@ -59,7 +59,7 @@ export function generateScenarios(context = {}) {
       },
       {
         id: 'equilibre',
-        label: 'Scénario équilibré',
+        label: 'Équilibré',
         projectedBalance: 0,
         possibleSaving: 0,
         primaryGoalImpact: 'Objectif non analysable',
@@ -69,7 +69,7 @@ export function generateScenarios(context = {}) {
       },
       {
         id: 'agressif',
-        label: 'Scénario agressif',
+        label: 'Agressif',
         projectedBalance: 0,
         possibleSaving: 0,
         primaryGoalImpact: 'Objectif non analysable',
@@ -83,7 +83,7 @@ export function generateScenarios(context = {}) {
   return [
     buildScenario({
       id: 'prudent',
-      label: 'Scénario prudent',
+      label: 'Prudent',
       savingRate: 0.25,
       risk: 'faible',
       context,
@@ -91,7 +91,7 @@ export function generateScenarios(context = {}) {
     }),
     buildScenario({
       id: 'equilibre',
-      label: 'Scénario équilibré',
+      label: 'Équilibré',
       savingRate: 0.45,
       risk: 'modéré',
       context,
@@ -100,7 +100,7 @@ export function generateScenarios(context = {}) {
     }),
     buildScenario({
       id: 'agressif',
-      label: 'Scénario agressif',
+      label: 'Agressif',
       savingRate: 0.7,
       risk: 'élevé',
       context,

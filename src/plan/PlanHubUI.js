@@ -3,6 +3,8 @@ import TreasuryAdapter from '../treasury/treasuryAdapter.js'
 import { SettingsService } from '../settings/settingsService.js'
 import { renderTreasuryTimeline } from '../components/TreasuryTimeline.js'
 import { parseFinancialExpression } from '../finance/financialExpression.js'
+import { computeCycleBalancesFromMetrics } from '../finance/cycleBalance.js'
+import { filterUserFacingRecords } from '../utils/userFacingFilter.js'
 import { STORAGE_KEYS } from '../constants/storageKeys.js'
 import { readSyncedArray, writeSyncedArray } from '../../js/syncedSettingAccess.js'
 
@@ -26,7 +28,10 @@ const escapeAttr = (value) => String(value ?? '')
   .replace(/</g, '&lt;')
   .replace(/>/g, '&gt;')
 
-const parseAmount = (value, fallback = 0) => parseFinancialExpression(value, { fallback })
+const parseAmount = (value) => {
+  const parsed = parseFinancialExpression(value, { fallback: null })
+  return parsed === null ? null : parsed
+}
 
 const buildEmptyState = () => `
   <div class="empty-state plan-empty-state">
@@ -36,7 +41,7 @@ const buildEmptyState = () => `
   </div>
 `
 
-const readDebts = async () => readSyncedArray(STORAGE_KEYS.debts, [])
+const readDebts = async () => filterUserFacingRecords(await readSyncedArray(STORAGE_KEYS.debts, []))
 
 const saveDebts = async (debts) => writeSyncedArray(STORAGE_KEYS.debts, debts)
 
@@ -101,7 +106,18 @@ const buildPlanRows = (items, options = {}) => {
 }
 
 const buildPlanContent = (data) => {
-  const { timeline = [], endingBalance, baseBalance, totalRevenue, totalCharges, toPayNow, goals = [], debts = [] } = data
+  const {
+    timeline = [],
+    endingBalance,
+    projectedEndOfCycle,
+    baseBalance,
+    totalRevenue,
+    totalCharges,
+    toPayNow,
+    goals = [],
+    debts = []
+  } = data
+  const cycleBalanceDisplay = Number.isFinite(projectedEndOfCycle) ? projectedEndOfCycle : endingBalance
 
   const minBalance = Math.max(-99999, timeline.reduce((min, item) => Math.min(min, Number(item.balance) || 0), baseBalance))
   const important = (item) => Math.abs(Number(item.amount) || 0) >= 20 || Number(item.amount) > 0 || ['critique', 'importante'].includes(String(item.priority || '').toLowerCase())
@@ -118,9 +134,9 @@ const buildPlanContent = (data) => {
       <section class="plan-card plan-balance-card">
         <div class="plan-card-header">
           <h3>Solde fin de cycle</h3>
-          <span class="plan-status-pill ${getRiskClass(endingBalance)}">${getBalanceLabel(endingBalance)}</span>
+          <span class="plan-status-pill ${getRiskClass(cycleBalanceDisplay)}">${getBalanceLabel(cycleBalanceDisplay)}</span>
         </div>
-        <strong class="plan-balance-value ${getRiskClass(endingBalance)}">${formatCurrency(endingBalance)}</strong>
+        <strong class="plan-balance-value ${getRiskClass(cycleBalanceDisplay)}">${formatCurrency(cycleBalanceDisplay)}</strong>
         <div class="plan-metric-row">
           <div><span class="metric-label">Solde actuel</span><strong>${formatCurrency(baseBalance)}</strong></div>
           <div><span class="metric-label">Solde minimum</span><strong>${formatCurrency(minBalance)}</strong></div>
@@ -234,13 +250,24 @@ const attachPlanEditors = (root, planData) => {
       const patch = {}
       item.querySelectorAll('.plan-goal-input').forEach((input) => {
         const field = input.dataset.field
-        patch[field] = ['target', 'current'].includes(field) ? parseAmount(input.value) : input.value
+        if (['target', 'current'].includes(field)) {
+          const parsed = parseAmount(input.value)
+          if (parsed === null) throw new Error('invalid-amount')
+          patch[field] = parsed
+        } else {
+          patch[field] = input.value
+        }
       })
       return patch
     }
 
     item.querySelector('.plan-goal-save')?.addEventListener('click', async () => {
-      await window.GoalsService?.updateGoal?.(goalId, readPatch())
+      try {
+        await window.GoalsService?.updateGoal?.(goalId, readPatch())
+      } catch {
+        window.showToast?.('Expression financière invalide')
+        return
+      }
       window.showToast?.('Objectif mis à jour')
       await renderPlanHub(root.id)
     })
@@ -266,6 +293,10 @@ const attachPlanEditors = (root, planData) => {
   root.querySelector('#plan-goal-create')?.addEventListener('click', async () => {
     const name = root.querySelector('#plan-new-goal-name')?.value?.trim()
     const target = parseAmount(root.querySelector('#plan-new-goal-target')?.value)
+    if (target === null) {
+      window.showToast?.('Expression financière invalide')
+      return
+    }
     if (!name || target <= 0) {
       window.showToast?.('Nom et cible requis')
       return
@@ -300,6 +331,10 @@ const attachPlanEditors = (root, planData) => {
     })
     item.querySelector('.plan-debt-pay')?.addEventListener('click', async () => {
       const payment = parseAmount(item.querySelector('.plan-debt-payment')?.value)
+      if (payment === null) {
+        window.showToast?.('Expression financière invalide')
+        return
+      }
       if (payment <= 0) {
         window.showToast?.('Montant de paiement requis')
         return
@@ -328,6 +363,10 @@ const attachPlanEditors = (root, planData) => {
     const name = root.querySelector('#plan-new-debt-name')?.value?.trim()
     const remaining = parseAmount(root.querySelector('#plan-new-debt-remaining')?.value)
     const monthly = parseAmount(root.querySelector('#plan-new-debt-monthly')?.value)
+    if (remaining === null || monthly === null) {
+      window.showToast?.('Expression financière invalide')
+      return
+    }
     if (!name || remaining <= 0) {
       window.showToast?.('Nom et montant restant requis')
       return
@@ -435,7 +474,22 @@ const buildPlanData = async () => {
     days: 30
   })
 
-  return { timeline, endingBalance, baseBalance, totalRevenue, totalCharges, toPayNow, goals, debts: await readDebts() }
+  const monthMetrics = typeof window.getMonthMetrics === 'function'
+    ? window.getMonthMetrics(monthKey, { fromDom: false })
+    : { income: totalRevenue, expenses: totalCharges, paidExpenses: 0 }
+  const cycleBalances = computeCycleBalancesFromMetrics(monthMetrics)
+
+  return {
+    timeline,
+    endingBalance,
+    projectedEndOfCycle: cycleBalances.projectedEndOfCycle,
+    baseBalance,
+    totalRevenue,
+    totalCharges,
+    toPayNow,
+    goals,
+    debts: await readDebts()
+  }
 }
 
 export async function renderPlanHub(rootId) {

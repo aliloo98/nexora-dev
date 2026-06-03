@@ -1,5 +1,7 @@
 import { UserAppSettingsService } from '../../js/userAppSettingsService.js'
 import { STORAGE_KEYS } from '../constants/storageKeys.js'
+import { computeCycleBalances } from '../finance/cycleBalance.js'
+import { filterUserFacingRecords } from '../utils/userFacingFilter.js'
 
 export const FINANCIAL_MEMORY_KEY = STORAGE_KEYS.financialMemory
 export const AI_SETTINGS_KEY = STORAGE_KEYS.aiSettings
@@ -146,15 +148,24 @@ export async function collectFinancialContext(overrides = {}) {
   const variableExpenses = safeNumber(overrides.variableExpenses ?? metrics?.variable)
   const inferredExpenses = fixedExpenses + variableExpenses
   const expenses = safeNumber(overrides.expenses ?? metrics?.expenses, inferredExpenses)
-  const projectedBalance = safeNumber(overrides.projectedBalance ?? metrics?.savings, income - expenses)
-  const currentBalance = safeNumber(overrides.currentBalance ?? projectedBalance)
+  const paidExpenses = safeNumber(overrides.paidExpenses ?? metrics?.paidExpenses)
+  const cycleBalances = computeCycleBalances({
+    income,
+    totalExpenses: expenses,
+    paidExpenses: paidExpenses || Math.max(0, expenses - safeNumber(metrics?.savings, income - expenses))
+  })
+  const projectedBalance = safeNumber(
+    overrides.projectedBalance ?? metrics?.projectedEndOfCycle ?? metrics?.savings,
+    cycleBalances.projectedEndOfCycle
+  )
+  const currentBalance = safeNumber(overrides.currentBalance ?? metrics?.currentBalance, cycleBalances.currentBalance)
   const targetSavings = safeNumber(overrides.targetSavings ?? (typeof runtime.getVal === 'function' ? runtime.getVal('target_epargne') : 0))
 
-  const debts = Array.isArray(overrides.debts)
+  const debts = filterUserFacingRecords(Array.isArray(overrides.debts)
     ? overrides.debts
     : (typeof runtime.readDebts === 'function'
       ? runtime.readDebts()
-      : readJson('nexora_debts_v1', []))
+      : readJson('nexora_debts_v1', [])))
 
   const goals = Array.isArray(overrides.goals)
     ? overrides.goals

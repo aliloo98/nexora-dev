@@ -15,10 +15,12 @@ for (const [expression, expected] of validCases) {
   assert.equal(parseFinancialExpression(expression), expected, `${expression} should be ${expected}`)
 }
 
-const invalidCases = ['abc', 'bonjour', '450+abc', '12*/5']
+const invalidCases = ['abc', 'bonjour', '450+abc', '12*/5', '12*5', '100/2', '450+', '+', '--12']
 
 for (const expression of invalidCases) {
   assert.equal(parseFinancialExpression(expression), null, `${expression} should be rejected`)
 }
+
+assert.equal(parseFinancialExpression('450+abc', { fallback: 0 }), null, 'fallback must not coerce invalid expression')
 
 console.log('financialExpression-tests: OK')
