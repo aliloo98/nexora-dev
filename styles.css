@@ -6524,12 +6524,12 @@ body.mode-simple .home-goal-summary {
   }
 
   .nexora-core-globe-wrap {
-    min-height: clamp(200px, 60vw, 300px);
+    min-height: clamp(160px, 45vw, 220px);
   }
 
   .nexora-core-globe {
-    height: clamp(180px, 58vw, 280px);
-    width: clamp(180px, 58vw, 280px);
+    height: clamp(140px, 42vw, 200px);
+    width: clamp(140px, 42vw, 200px);
   }
 
   .nexora-core-nucleus {
@@ -6623,7 +6623,7 @@ body.mode-simple .home-goal-summary {
 }
 
 .nexora-core-orbit-node--goal {
-  background: radial-gradient(circle at 30% 30%, #fff 0%, #10b981 60%, #064e3b 100%);
+  background: radial-gradient(circle at 30% 30%, #fff 0%, #10b981 50%, #d4af37 100%);
   box-shadow: 0 0 12px rgba(16, 185, 129, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
@@ -6631,6 +6631,51 @@ body.mode-simple .home-goal-summary {
   background: radial-gradient(circle at 30% 30%, #fff 0%, #f43f5e 60%, #4c0519 100%);
   box-shadow: 0 0 12px rgba(244, 63, 94, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
+
+.nexora-core-legend {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.nexora-core-legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nexora-core-legend i {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.nexora-core-legend--goal i { background: #10b981; box-shadow: 0 0 6px #10b981; }
+.nexora-core-legend--debt i { background: #f43f5e; box-shadow: 0 0 6px #f43f5e; }
+
+.nexora-core-tooltip-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text2);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.nexora-core-tooltip-close:hover { color: var(--text); }
+.nexora-core-tooltip.is-pinned { border-color: var(--gold); box-shadow: 0 20px 50px rgba(0,0,0,0.6); z-index: 200; }
 
 .nexora-core-orbit-node.is-active {
   filter: brightness(1.2) saturate(1.2);

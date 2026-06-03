@@ -3966,19 +3966,8 @@ function updateHumanSummary(metrics = {}) {
 }
 
 function getNexoraDisplayName() {
-  const user = window.AuthContext?.getState?.()?.user;
-  if (window.getUserDisplayName && typeof window.getUserDisplayName === 'function') {
-    const name = window.getUserDisplayName(user);
-    if (name && name !== 'Vous') return name;
-  }
-  
-  if (user?.user_metadata) {
-    const m = user.user_metadata;
-    const candidate = m.firstName || m.first_name || m.given_name || m.displayName || m.display_name || m.full_name || m.name;
-    if (candidate) {
-      const first = String(candidate).trim().split(/\s+/)[0];
-      if (first && !/@/.test(first) && first.length < 20) return first;
-    }
+  if (typeof window.getUserDisplayName === 'function') {
+    return window.getUserDisplayName();
   }
   return 'Vous';
 }

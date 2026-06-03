@@ -79,6 +79,7 @@ const buildGraphNodes = ({ goals = [], debts = [] }) => {
       return {
         kind: 'goal',
         name: goal.name || 'Objectif',
+        target,
         remaining,
         progress,
         due: formatDateLabel(goal.targetDate),
@@ -95,6 +96,8 @@ const buildGraphNodes = ({ goals = [], debts = [] }) => {
       name: debt.name || 'Dette',
       remaining: Number(debt.remaining) || 0,
       monthly: Number(debt.monthly) || 0,
+      priority: debt.priority || 'Normale',
+      impact: debt.impact || 'Standard',
       rate: debt.rate ? `${Number(debt.rate)}%` : null,
       due: debt.dueDate ? formatDateLabel(debt.dueDate) : 'Mensualité à suivre',
       amountLabel: `${formatEuro(debt.remaining)} restants`
@@ -153,6 +156,7 @@ const applyReactorVisualState = (globe, panel, health, risk) => {
 
 const hideCoreTooltip = (tooltip) => {
   if (!tooltip) return
+  if (tooltip.dataset.pinned === 'true') return
   if (!prefersReducedMotion()) {
     gsap.to(tooltip, {
       autoAlpha: 0,
@@ -170,17 +174,25 @@ const hideCoreTooltip = (tooltip) => {
   tooltip.innerHTML = ''
 }
 
-const showCoreTooltip = (tooltip, node) => {
+const showCoreTooltip = (tooltip, node, pinned = false) => {
   if (!tooltip || !node) return
   tooltip.hidden = false
+  if (pinned) {
+    tooltip.dataset.pinned = 'true'
+    tooltip.classList.add('is-pinned')
+  } else if (tooltip.dataset.pinned === 'true') {
+    return
+  }
   
   if (node.kind === 'goal') {
     tooltip.innerHTML = `
       <span class="nexora-core-tooltip-kind nexora-core-tooltip-kind--goal">Objectif</span>
       <strong>${node.name}</strong>
+      <span class="nexora-core-tooltip-amount">Cible : ${formatEuro(node.target)}</span>
       <span class="nexora-core-tooltip-amount">${node.amountLabel}</span>
       <span class="nexora-core-tooltip-progress"><em>Progression</em> ${node.progress}%</span>
       <span class="nexora-core-tooltip-due">${node.due}</span>
+      ${pinned ? '<button class="nexora-core-tooltip-close" type="button" aria-label="Fermer">✕</button>' : ''}
     `
   } else {
     tooltip.innerHTML = `
@@ -188,8 +200,24 @@ const showCoreTooltip = (tooltip, node) => {
       <strong>${node.name}</strong>
       <span class="nexora-core-tooltip-amount">${node.amountLabel}</span>
       <span class="nexora-core-tooltip-monthly"><em>Mensualité</em> ${formatEuro(node.monthly)}</span>
+      <span class="nexora-core-tooltip-priority"><em>Priorité</em> ${node.priority}</span>
+      <span class="nexora-core-tooltip-impact"><em>Impact</em> ${node.impact}</span>
       ${node.rate ? `<span class="nexora-core-tooltip-rate"><em>Taux</em> ${node.rate}</span>` : ''}
+      ${pinned ? '<button class="nexora-core-tooltip-close" type="button" aria-label="Fermer">✕</button>' : ''}
     `
+  }
+
+  if (pinned) {
+    const closeBtn = tooltip.querySelector('.nexora-core-tooltip-close')
+    if (closeBtn) {
+      closeBtn.onclick = (e) => {
+        e.stopPropagation()
+        tooltip.dataset.pinned = 'false'
+        tooltip.classList.remove('is-pinned')
+        setActiveSatellite(null)
+        hideCoreTooltip(tooltip)
+      }
+    }
   }
 
   if (!prefersReducedMotion()) {
@@ -202,6 +230,8 @@ const showCoreTooltip = (tooltip, node) => {
 }
 
 const setActiveSatellite = (button) => {
+  const tooltip = document.getElementById('nexora-core-tooltip')
+  if (tooltip?.dataset?.pinned === 'true' && button !== activeGraphButton) return
   if (activeGraphButton === button) return
   const graph = document.getElementById('nexora-core-graph')
   
@@ -266,6 +296,28 @@ const renderCoreGraph = (panel, payload = {}) => {
     showCoreTooltip(tooltip, node)
   }, { passive: true })
 
+  graph.addEventListener('click', (event) => {
+    const button = event.target.closest?.('.nexora-core-orbit-node')
+    if (!button) {
+      if (tooltip.dataset.pinned === 'true') {
+        tooltip.dataset.pinned = 'false'
+        tooltip.classList.remove('is-pinned')
+        setActiveSatellite(null)
+        hideCoreTooltip(tooltip)
+      }
+      return
+    }
+    const node = lastGraphNodes[Number(button.dataset.nodeIndex)]
+    if (activeGraphButton === button && tooltip.dataset.pinned === 'true') {
+      tooltip.dataset.pinned = 'false'
+      tooltip.classList.remove('is-pinned')
+      hideCoreTooltip(tooltip)
+      return
+    }
+    setActiveSatellite(button)
+    showCoreTooltip(tooltip, node, true)
+  })
+
   graph.addEventListener('focusin', (event) => {
     const button = event.target.closest?.('.nexora-core-orbit-node')
     if (!button) return
@@ -276,11 +328,13 @@ const renderCoreGraph = (panel, payload = {}) => {
 
   graph.addEventListener('pointerout', (event) => {
     if (event.relatedTarget && graph.contains(event.relatedTarget)) return
+    if (tooltip.dataset.pinned === 'true') return
     setActiveSatellite(null)
     hideCoreTooltip(tooltip)
   }, { passive: true })
 
   graph.addEventListener('blur', () => {
+    if (tooltip.dataset.pinned === 'true') return
     setActiveSatellite(null)
     hideCoreTooltip(tooltip)
   }, true)
@@ -497,6 +551,16 @@ export function updateNexoraCore(metrics = {}) {
     detailEl.textContent = income > 0
       ? `Charges ${chargesRate}% · Variables ${variableRate}% · Lecture unifiée Nexora Core.`
       : 'Complète ton budget pour activer le centre de contrôle.'
+    // Inject Legend if not present
+    if (income > 0 && !panel.querySelector('.nexora-core-legend')) {
+      const legend = document.createElement('div')
+      legend.className = 'nexora-core-legend'
+      legend.innerHTML = `
+        <span class="nexora-core-legend--goal"><i></i> Objectifs</span>
+        <span class="nexora-core-legend--debt"><i></i> Dettes</span>
+      `
+      detailEl.after(legend)
+    }
   }
   if (ringEl) {
     if (prefersReducedMotion()) {

@@ -62,6 +62,14 @@ export function getUserDisplayName(user) {
     if (name) return name
   }
 
+  // Priorité 3 : Email (uniquement si rien d'autre et si propre)
+  if (user.email) {
+    const emailPart = user.email.split('@')[0]
+    const cleanName = emailPart.replace(/[._-]/g, ' ')
+    const name = firstWord(cleanName)
+    if (name) return name
+  }
+
   return 'Vous'
 }
 
