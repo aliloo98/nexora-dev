@@ -3966,12 +3966,38 @@ function updateHumanSummary(metrics = {}) {
 }
 
 function getNexoraDisplayName() {
+  const user =
+    window.AuthContext?.getCurrentUser?.() ||
+    window.AuthContext?.currentUser ||
+    window.AuthContext?.user ||
+    window.NexoraAuth?.user ||
+    window.supabaseUser ||
+    null;
+
   if (typeof window.getUserDisplayName === 'function') {
-    return window.getUserDisplayName();
+    const resolved = window.getUserDisplayName(user);
+    if (resolved && resolved !== 'Vous') return resolved;
   }
+
+  const email =
+    user?.email ||
+    window.AuthContext?.session?.user?.email ||
+    window.NexoraAuth?.session?.user?.email ||
+    '';
+
+  const prefix = String(email).split('@')[0] || '';
+  const clean = prefix
+    .replace(/[0-9]+/g, '')
+    .replace(/[._-]+/g, ' ')
+    .trim()
+    .split(' ')[0];
+
+  if (clean && clean.length >= 2) {
+    return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
+  }
+
   return 'Vous';
 }
-
 function updateDashboardGreeting({ revReel = 0, solde = 0 } = {}) {
   const helloEl = document.getElementById('dashboard-greeting-hello');
   const titleEl = document.getElementById('dashboard-greeting-title');
