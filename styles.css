@@ -6736,14 +6736,14 @@ body.mode-simple .home-goal-summary {
   inset: 0;
   pointer-events: none;
   position: absolute;
-  z-index: 8;
+  z-index: 20;
+  overflow: visible;
 }
 
 .nexora-core-satellite-rig {
   inset: 0;
   pointer-events: none;
   position: absolute;
-  transform: rotate(var(--orbit-angle, 0deg));
 }
 
 .nexora-core-orbit-node {
@@ -6753,19 +6753,18 @@ body.mode-simple .home-goal-summary {
   cursor: pointer;
   height: var(--orbit-size, 32px);
   width: var(--orbit-size, 32px);
-  left: 50%;
+  left: var(--node-x);
+  top: var(--node-y);
   margin: calc(var(--orbit-size, 32px) / -2) 0 0 calc(var(--orbit-size, 32px) / -2);
   pointer-events: auto;
   position: absolute;
-  top: 50%;
-  /* translateX offsets by radius, rotate counter-acts rig rotation to keep text/emojis upright */
-  transform: translate(-50%, -50%) translateX(var(--orbit-radius, 40%)) rotate(calc(-1 * var(--orbit-angle, 0deg))) scale(var(--node-scale, 1));
+  transform: translate(-50%, -50%) scale(var(--node-scale, 1));
   transition: box-shadow 0.4s ease, filter 0.4s ease, transform 0.4s cubic-bezier(0.15, 0.85, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.15);
-  z-index: 15;
+  z-index: 20;
 }
 
 .nexora-core-orbit-node-content {

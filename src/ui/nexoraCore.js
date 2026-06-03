@@ -112,12 +112,18 @@ const buildGraphNodes = ({ goals = [], debts = [] }) => {
       ? clamp(38 + (index % 4) * 1.5, 38, 42) 
       : clamp(45 + (index % 4) * 1.2, 45, 48.5)
     
+    const angleRad = (baseAngle * Math.PI) / 180
+    const x = 50 + Math.cos(angleRad) * radius
+    const y = 50 + Math.sin(angleRad) * radius
+
     return {
       ...node,
       icon: debugIcons[index % 4], // Remplacement temporaire pour debug
       size: 24, // Taille temporaire pour debug
       angle: baseAngle,
-      radius
+      radius,
+      x,
+      y
     }
   })
 }
@@ -302,13 +308,12 @@ const renderCoreGraph = (panel, payload = {}) => {
     return `
       <div
         class="nexora-core-satellite-rig"
-        style="--orbit-angle:${node.angle}deg; --orbit-radius:${node.radius}%;"
       >
         <button
           type="button"
           class="nexora-core-orbit-node nexora-core-orbit-node--${node.kind}"
           data-node-index="${index}"
-          style="--orbit-size:${node.size}px; --orbit-angle:${node.angle}deg; --orbit-radius:${node.radius}%;"
+          style="--orbit-size:${node.size}px; --node-x:${node.x.toFixed(3)}%; --node-y:${node.y.toFixed(3)}%;"
           aria-label="${node.name} · ${node.amountLabel}"
         >
           <span class="nexora-core-orbit-node-content">${labelChar}</span>
