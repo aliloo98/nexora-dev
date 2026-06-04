@@ -109,6 +109,17 @@ export const AuthContext = {
         if (typeof window.renderDebts === 'function') window.renderDebts()
         if (typeof window.loadMonth === 'function') await window.loadMonth()
         if (typeof window.updateAll === 'function') window.updateAll()
+
+        // Ensure custom categories UI is rendered after session restore
+        if (typeof window.renderCustomBudgetRows === 'function') {
+          await window.renderCustomBudgetRows()
+        }
+
+        if (typeof window.refreshCategoryLabels === 'function') {
+          await window.refreshCategoryLabels()
+        }
+
+        if (typeof window.updateAll === 'function') window.updateAll()
       } catch (error) {
         console.error('[Phase2D] sync error:', error)
       }
