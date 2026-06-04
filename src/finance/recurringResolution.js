@@ -5,10 +5,36 @@ const normalizeText = (value) => String(value || '')
   .replace(/[^a-z0-9]+/g, ' ')
   .trim()
 
-const safeNumber = (value) => {
-  const number = Number(value)
+const normalizeAmount = (value) => {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : 0
+  }
+  const raw = String(value || '').trim()
+    .replace(/[\u00A0\u202F\u2009\u2007]/g, ' ')
+    .replace(/\s+/g, '')
+  if (!raw) return 0
+
+  const hasComma = raw.includes(',')
+  const hasDot = raw.includes('.')
+  let normalized = raw
+
+  if (hasComma && hasDot) {
+    const lastComma = raw.lastIndexOf(',')
+    const lastDot = raw.lastIndexOf('.')
+    if (lastComma > lastDot) {
+      normalized = raw.replace(/\./g, '').replace(',', '.')
+    } else {
+      normalized = raw.replace(/,/g, '')
+    }
+  } else if (hasComma) {
+    normalized = raw.replace(/,/g, '.')
+  }
+
+  const number = Number(normalized)
   return Number.isFinite(number) ? number : 0
 }
+
+const safeNumber = (value) => normalizeAmount(value)
 
 const timestamp = (value) => {
   const raw = value?.updated_at || value?.updatedAt || value?.created_at || value?.createdAt
