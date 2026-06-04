@@ -412,10 +412,10 @@ body,
   --core-risk: 30;
   --core-glow-strength: 0.65;
   aspect-ratio: 1;
-  height: clamp(220px, 48vw, 360px);
+  height: clamp(120px, 30vw, 140px);
   max-width: 100%;
   position: relative;
-  width: clamp(220px, 48vw, 360px);
+  width: clamp(120px, 30vw, 140px);
   will-change: transform;
 }
 
@@ -6563,7 +6563,7 @@ body.mode-simple .home-goal-summary {
 
 .nexora-core-globe-wrap {
   display: grid;
-  min-height: clamp(240px, 52vw, 380px);
+  min-height: clamp(140px, 32vw, 160px);
   place-items: center;
   position: relative;
   z-index: 1;
@@ -6579,25 +6579,27 @@ body.mode-simple .home-goal-summary {
 }
 
 .nexora-core-center-value {
-  font-size: clamp(20px, 4.5vw, 30px);
-  font-weight: 800;
-  color: #fff;
+  font-size: clamp(36px, 9vw, 56px);
+  font-weight: 900;
+  color: transparent;
   line-height: 1.1;
   margin-bottom: 6px;
   font-family: inherit;
-  letter-spacing: -0.02em;
-  background: linear-gradient(180deg, #ffffff 40%, #cbd5e1 100%);
+  letter-spacing: -0.03em;
+  background: var(--gold-gradient);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .nexora-core-center-label {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  color: var(--text2);
+  text-transform: none;
+  letter-spacing: 0.04em;
   line-height: 1.2;
+  opacity: 0.95;
 }
 
 /* Premium Gauges & Rings */
@@ -6606,24 +6608,27 @@ body.mode-simple .home-goal-summary {
   inset: 0;
   position: absolute;
   width: 100%;
-  z-index: 5;
+  z-index: 12;
+  opacity: 0.88;
+  pointer-events: auto;
 }
 
 .nexora-core-ring-track {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.04);
-  stroke-width: 6.5;
+  stroke: rgba(255, 255, 255, 0.06);
+  stroke-width: 4;
 }
 
 .nexora-core-ring-progress {
   fill: none;
   stroke-linecap: round;
-  stroke-width: 5.5;
+  stroke-width: 4.5;
   stroke-dasharray: 264;
   stroke-dashoffset: 264;
   transform: rotate(-90deg);
   transform-origin: 50% 50%;
   transition: stroke 0.4s ease;
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.45));
 }
 
 
@@ -6670,7 +6675,7 @@ body.mode-simple .home-goal-summary {
   margin: 0 auto;
   max-width: 36rem;
   min-width: 0;
-  padding-top: clamp(16px, 3vw, 22px);
+  padding-top: clamp(12px, 2vw, 16px);
   text-align: center;
   width: 100%;
 }
@@ -6687,7 +6692,7 @@ body.mode-simple .home-goal-summary {
   display: grid;
   gap: 12px 20px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 0 auto 18px;
+  margin: 12px auto 18px;
   max-width: 32rem;
 }
 
