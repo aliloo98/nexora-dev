@@ -398,6 +398,101 @@ body,
   padding-left: 12px;
 }
 
+.nexora-core-stage {
+  isolation: isolate;
+  max-width: min(100%, 520px);
+  position: relative;
+  width: 100%;
+  perspective: 900px;
+  -webkit-perspective: 900px;
+  transform-style: preserve-3d;
+}
+
+.nexora-core-globe {
+  --core-health: 50;
+  --core-risk: 30;
+  --core-glow-strength: 0.65;
+  aspect-ratio: 1;
+  height: clamp(220px, 48vw, 360px);
+  max-width: 100%;
+  position: relative;
+  width: clamp(220px, 48vw, 360px);
+  will-change: transform;
+  transform-style: preserve-3d;
+}
+
+.nexora-core-center-data {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate3d(-50%, -50%, 22px);
+  text-align: center;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: clamp(140px, 30vw, 200px);
+  height: clamp(140px, 30vw, 200px);
+  border-radius: 50%;
+  background: rgba(10, 10, 16, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 22px 54px rgba(0, 0, 0, 0.36), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.nexora-core-center-data::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(229, 192, 96, 0.12), transparent 48%);
+  opacity: 0.55;
+  z-index: -1;
+  transform: translate3d(0, 0, -18px);
+}
+
+.nexora-core-globe .nexora-core-ambient {
+  transform: translate3d(0, 0, -18px);
+}
+
+.kpi-card,
+.wow-card,
+.dashboard-primary-goal {
+  transform: translate3d(0, 0, 6px);
+  transition: transform 0.3s ease, opacity 0.25s ease;
+  will-change: transform, opacity;
+}
+
+.kpi-card { transform: translate3d(0, 0, 4px); }
+.wow-card { transform: translate3d(0, 0, 5px); }
+.dashboard-primary-goal { transform: translate3d(0, 0, 7px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .nexora-core-stage,
+  .nexora-core-globe,
+  .nexora-core-center-data,
+  .kpi-card,
+  .wow-card,
+  .dashboard-primary-goal {
+    transition: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .nexora-core-center-data {
+    backdrop-filter: none;
+    background: rgba(10, 10, 16, 0.62);
+  }
+
+  .kpi-card,
+  .wow-card,
+  .dashboard-primary-goal {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
+  }
+}
+
 .advisor-quick-grid .btn,
 .mode-toggle-btn,
 .inline-cta,
@@ -6380,12 +6475,7 @@ body.mode-simple .home-goal-summary {
   width: 100%;
 }
 
-.nexora-core-stage {
-  isolation: isolate;
-  max-width: min(100%, 520px);
-  position: relative;
-  width: 100%;
-}
+/* Core depth styling is handled earlier to avoid duplicated selectors */
 
 .nexora-core-ambient {
   background:
@@ -6433,41 +6523,9 @@ body.mode-simple .home-goal-summary {
   z-index: 1;
 }
 
-.nexora-core-globe {
-  --core-health: 50;
-  --core-risk: 30;
-  --core-glow-strength: 0.65;
-  aspect-ratio: 1;
-  height: clamp(220px, 48vw, 360px);
-  max-width: 100%;
-  position: relative;
-  width: clamp(220px, 48vw, 360px);
-  will-change: transform;
-}
+/* core globe + center-data depth rules are defined above */
 
-/* Typographic central data container */
-.nexora-core-center-data {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: clamp(140px, 30vw, 200px);
-  height: clamp(140px, 30vw, 200px);
-  border-radius: 50%;
-  background: rgba(10, 10, 16, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  box-shadow:
-    0 12px 32px rgba(0, 0, 0, 0.4),
-    inset 0 1px 1px rgba(255, 255, 255, 0.05);
-  transition: background 0.3s ease, border-color 0.3s ease;
-}
+/* core center styling defined earlier to keep depth rules centralized */
 
 .nexora-core-center-data:hover {
   background: rgba(15, 15, 25, 0.7);
