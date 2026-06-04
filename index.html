@@ -3078,6 +3078,17 @@ function createCustomBudgetRow(category) {
   };
   label.appendChild(hideBtn);
 
+  const renameBtn = document.createElement('button');
+  renameBtn.className = 'rename-category-btn';
+  renameBtn.innerHTML = '✎';
+  renameBtn.type = 'button';
+  renameBtn.title = 'Renommer cette ligne';
+  renameBtn.onclick = (e) => {
+    e.preventDefault();
+    renameBudgetCategoryLabel(category.id);
+  };
+  label.appendChild(renameBtn);
+
   const input = document.createElement('input');
   input.className = 'budget-input';
   input.type = 'text';
