@@ -1985,6 +1985,14 @@ async function loadMonth(){
     }
   }
 
+  // Remove legacy _reel keys after migration so they are not preserved or synced
+  Object.keys(data).forEach(k => {
+    if (k.endsWith('_reel')) {
+      delete data[k];
+      migrated = true;
+    }
+  });
+
   // Convert boolean _paye values to numeric
   const fixKeys = getBudgetKeysByType('fixed_expense');
   const varKeys = getBudgetKeysByType('variable_expense');
@@ -2042,6 +2050,9 @@ async function saveData(){
   document.querySelectorAll('[data-key]').forEach(el=>{
     data[el.dataset.key] = el.value;
   });
+  Object.keys(data).forEach(k => {
+    if (k.endsWith('_reel')) delete data[k];
+  });
   SafeStorage.setItem(storageKey(m), JSON.stringify(data));
   await persistMonthSnapshot(m, data);
 
@@ -2080,7 +2091,7 @@ async function syncMonthTransactionsToSupabase(month, data) {
     return;
   }
 
-  const categories = Object.keys(data).filter(k => k !== 'target_epargne' && !k.endsWith('_paye') && !k.startsWith('note_'));
+  const categories = Object.keys(data).filter(k => k !== 'target_epargne' && !k.endsWith('_paye') && !k.endsWith('_reel') && !k.startsWith('note_'));
 
   for (const category of categories) {
     const amount = parseBudgetNumber(data[category]);
@@ -2155,16 +2166,22 @@ function getResolvedBudgetSnapshot() {
   const expenseKeys = getAllExpenseKeys();
   const categoriesById = new Map(budgetCategoriesCache.map(category => [category.id, category]));
   if (window.NexoraRecurringResolver?.resolveBudgetWithRecurring) {
-    return window.NexoraRecurringResolver.resolveBudgetWithRecurring({
+    const resolverResult = window.NexoraRecurringResolver.resolveBudgetWithRecurring({
       budgetData,
       incomeKeys,
       expenseKeys,
       categoriesById,
       recurringIncomes: readLocalJsonArray('nexora_recurring_incomes'),
       billSchedules: readLocalJsonArray('nexora_bill_schedules')
-    }).resolved || {};
+    });
+    const resolved = resolverResult?.resolved || {};
+    // If resolver produced valid output, use it; otherwise fallback to DOM values
+    if (resolved && Object.keys(resolved).length > 0) {
+      return resolved;
+    }
   }
-  return {};
+  // Fallback: return DOM values directly instead of empty object
+  return budgetData;
 }
 
 const BUDGET_KEYS_BY_TYPE = {
