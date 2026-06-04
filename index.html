@@ -2747,6 +2747,61 @@ function openNexoraActionModal({ title, message, input = false, inputType = 'tex
 }
 
 // Inline mathematical formula evaluation
+function normalizeBudgetNumberToken(token) {
+  if (token === null || token === undefined) return null;
+  const raw = String(token).trim();
+  if (!raw) return null;
+  const signMatch = raw.match(/^([+-])\s*(.*)$/);
+  let sign = '';
+  let body = raw;
+  if (signMatch) {
+    sign = signMatch[1];
+    body = signMatch[2];
+  }
+
+  const cleaned = body.replace(/\s+/g, '');
+  if (!/^[0-9.,]+$/.test(cleaned)) return null;
+
+  const hasDot = cleaned.includes('.');
+  const hasComma = cleaned.includes(',');
+  let normalized = cleaned;
+
+  if (hasDot && hasComma) {
+    const lastDot = cleaned.lastIndexOf('.');
+    const lastComma = cleaned.lastIndexOf(',');
+    if (lastComma > lastDot) {
+      normalized = cleaned.replace(/\./g, '').replace(',', '.');
+    } else {
+      normalized = cleaned.replace(/,/g, '');
+    }
+  } else if (hasComma) {
+    normalized = cleaned.replace(/,/g, '.');
+    const dotCount = (normalized.match(/\./g) || []).length;
+    if (dotCount > 1) {
+      const segments = normalized.split('.');
+      const lastSegment = segments[segments.length - 1];
+      if (lastSegment.length === 2) {
+        normalized = segments.slice(0, -1).join('') + '.' + lastSegment;
+      } else {
+        normalized = segments.join('');
+      }
+    }
+  } else if (hasDot) {
+    const segments = normalized.split('.');
+    if (segments.length > 2) {
+      const lastSegment = segments[segments.length - 1];
+      if (lastSegment.length === 2) {
+        normalized = segments.slice(0, -1).join('') + '.' + lastSegment;
+      } else {
+        normalized = segments.join('');
+      }
+    }
+  }
+
+  if (!/^\d+(?:\.\d+)?$/.test(normalized)) return null;
+  return sign + normalized;
+}
+
 function parseBudgetNumber(value) {
   if (typeof window.parseFinancialExpression === 'function') {
     return window.parseFinancialExpression(value, { fallback: 0 });
@@ -2754,10 +2809,13 @@ function parseBudgetNumber(value) {
   if (value === null || value === undefined) return 0;
   const normalized = String(value).trim().replace(/\u202F/g, ' ').replace(/\u00A0/g, ' ');
   if (!/^[0-9+\-.,\s]+$/.test(normalized)) return 0;
-  const compact = normalized.replace(/\s+/g, '').replace(/,/g, '.');
-  if (!/^[+-]?\d+(?:\.\d+)?(?:[+-]\d+(?:\.\d+)?)*$/.test(compact)) return 0;
-  const tokens = compact.match(/[+-]?\d+(?:\.\d+)?/g);
-  if (!tokens || tokens.join('') !== compact) return 0;
+
+  const tokenMatches = normalized.match(/[+-]?\s*[0-9][0-9\s.,]*/g);
+  if (!tokenMatches) return 0;
+
+  const tokens = tokenMatches.map((token) => normalizeBudgetNumberToken(token));
+  if (tokens.some((token) => token === null)) return 0;
+
   const result = tokens.reduce((sum, token) => sum + Number(token), 0);
   return Number.isFinite(result) ? result : 0;
 }
@@ -2769,10 +2827,13 @@ function parseBudgetNumberStrict(value) {
   if (value === null || value === undefined) return null;
   const normalized = String(value).trim().replace(/\u202F/g, ' ').replace(/\u00A0/g, ' ');
   if (!normalized || !/^[0-9+\-.,\s]+$/.test(normalized)) return null;
-  const compact = normalized.replace(/\s+/g, '').replace(/,/g, '.');
-  if (!/^[+-]?\d+(?:\.\d+)?(?:[+-]\d+(?:\.\d+)?)*$/.test(compact)) return null;
-  const tokens = compact.match(/[+-]?\d+(?:\.\d+)?/g);
-  if (!tokens || tokens.join('') !== compact) return null;
+
+  const tokenMatches = normalized.match(/[+-]?\s*[0-9][0-9\s.,]*/g);
+  if (!tokenMatches) return null;
+
+  const tokens = tokenMatches.map((token) => normalizeBudgetNumberToken(token));
+  if (tokens.some((token) => token === null)) return null;
+
   const result = tokens.reduce((sum, token) => sum + Number(token), 0);
   return Number.isFinite(result) ? result : null;
 }
