@@ -3047,6 +3047,8 @@ function decorateBudgetRowActions(row, category) {
 
 function applyBudgetCategoryVisibility(categories) {
   const categoryById = new Map(categories.map(category => [category.id, category]));
+
+  // Handle default budget keys
   Object.values(BUDGET_KEYS_BY_TYPE).flat().forEach(key => {
     const category = categoryById.get(key);
     const row = document.querySelector(`[data-row-key="${key}"]`)
@@ -3057,11 +3059,23 @@ function applyBudgetCategoryVisibility(categories) {
     row.style.display = category?.is_active === false ? 'none' : '';
     if (note) note.style.display = category?.is_active === false ? 'none' : note.style.display;
   });
+
+  // Handle custom categories
+  categories
+    .filter(category => !category.is_default)
+    .forEach(category => {
+      const row = document.querySelector(`[data-row-key="${category.id}"]`);
+      const note = document.getElementById(`note-container-${category.id}`);
+      if (!row) return;
+      row.style.display = category?.is_active === false ? 'none' : '';
+      if (note) note.style.display = category?.is_active === false ? 'none' : note.style.display;
+    });
 }
 
 function createCustomBudgetRow(category) {
   const row = document.createElement('div');
   row.className = 'budget-row custom-budget-row';
+  row.dataset.rowKey = category.id;
 
   const label = document.createElement('div');
   label.className = 'budget-row-label';
