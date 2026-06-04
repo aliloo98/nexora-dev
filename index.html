@@ -440,18 +440,18 @@
       <div class="budget-category-divider">Revenus principaux</div>
       <div class="budget-row">
         <div class="budget-row-label">Revenu principal — Utilisateur</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="rev_ali" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="rev_ali" oninput="if (validateRevenueInput(this)) updateAll()">
         <div></div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Revenu principal — Mon foyer</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="rev_megane" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="rev_megane" oninput="if (validateRevenueInput(this)) updateAll()">
         <div></div>
       </div>
       <div class="budget-category-divider">Revenus exceptionnels</div>
       <div class="budget-row">
         <div class="budget-row-label">Entrée d'argent exceptionnelle</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="rev_excep" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="rev_excep" oninput="if (validateRevenueInput(this)) updateAll()">
         <div></div>
       </div>
       <div id="custom-income-rows"></div>
@@ -3236,7 +3236,10 @@ function createCustomBudgetRow(category) {
   input.type = 'text';
   input.placeholder = 'Montant';
   input.dataset.key = category.id;
-  input.oninput = () => updateAll();
+  input.oninput = () => {
+    if (!validateRevenueInput(input)) return;
+    updateAll();
+  };
 
   row.appendChild(label);
   row.appendChild(input);
@@ -3550,6 +3553,29 @@ async function refreshCategoryLabels() {
   } catch (err) {
     console.warn('[Phase3B] Libellés catégories indisponibles, libellés HTML conservés', err);
   }
+}
+
+function validateRevenueInput(element) {
+  if (!element || !element.dataset?.key) return true;
+  const key = element.dataset.key;
+  const incomeKeys = getBudgetKeysByType('income');
+
+  // Check both standard keys and custom category IDs
+  let isIncome = incomeKeys.includes(key);
+  if (!isIncome) {
+    const category = budgetCategoriesCache.find(cat => cat.id === key);
+    isIncome = category?.type === 'income';
+  }
+
+  if (!isIncome) return true;
+
+  const value = parseBudgetNumber(element.value);
+  if (value < 0) {
+    element.value = '0';
+    showToast('Un revenu ne peut pas être négatif.');
+    return false;
+  }
+  return true;
 }
 
 function updateAll(){
