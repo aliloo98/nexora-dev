@@ -154,7 +154,7 @@ const refreshNexoraStatusBar = () => {
 window.refreshNexoraStatusBar = refreshNexoraStatusBar
 
 const readCurrentBudgetForCouple = () => {
-  const read = (key) => Number(document.querySelector(`[data-key="${key}"]`)?.value) || 0
+  const read = (key) => parseFinancialExpression(document.querySelector(`[data-key="${key}"]`)?.value || 0, { fallback: 0 })
   const income = ['rev_ali', 'rev_megane', 'rev_excep'].reduce((sum, key) => sum + read(key), 0)
   const fixed = ['loyer', 'credit', 'assauto', 'gasoil', 'elec', 'eau', 'psy', 'diete', 'itou', 'sante', 'impots', 'box', 'tel_ali', 'tel_meg', 'stream', 'ps', 'cb', 'impfix']
     .reduce((sum, key) => sum + read(key), 0)
