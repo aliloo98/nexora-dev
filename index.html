@@ -1972,7 +1972,9 @@ async function loadMonth(){
     const payeKey = k + '_paye';
     if (data.hasOwnProperty(payeKey) && typeof data[payeKey] === 'boolean') {
       if (data[payeKey]) {
-        data[payeKey] = data[k] || 0;
+        // Use the helper that reads either the main key or its `_reel` fallback
+        // to avoid incorrectly assigning an unrelated/raw value when migrating booleans.
+        data[payeKey] = getAmountFromData(data, k);
       } else {
         data[payeKey] = 0;
       }
