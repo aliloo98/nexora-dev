@@ -1914,7 +1914,29 @@ document.addEventListener('input', (event) => {
   if (target.closest('#section-saisie') || target.closest('#section-parametres') || target.closest('#section-objectifs') || target.closest('#section-dettes')) {
     if (target.matches('[data-key], input[type="number"], input[type="text"], select, textarea')) {
       markBudgetChanges();
+      // Debounced delegated updateAll for any budget-input (covers elements without inline oninput)
+      if (target.matches('.budget-input')) {
+        if (typeof __debouncedUpdateAll === 'function') __debouncedUpdateAll();
+      }
     }
+  }
+});
+
+// Ensure all .budget-input fields trigger updateAll() on input/change (debounced)
+let __updateAllTimeout = null;
+function __debouncedUpdateAll() {
+  clearTimeout(__updateAllTimeout);
+  __updateAllTimeout = setTimeout(() => {
+    try { if (typeof updateAll === 'function') updateAll(); } catch (e) { console.warn('updateAll error', e); }
+  }, 80);
+}
+
+document.addEventListener('change', (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  if (target.matches('.budget-input')) {
+    markBudgetChanges();
+    __debouncedUpdateAll();
   }
 });
 
@@ -2749,7 +2771,7 @@ function openNexoraActionModal({ title, message, input = false, inputType = 'tex
 // Inline mathematical formula evaluation
 function normalizeBudgetNumberToken(token) {
   if (token === null || token === undefined) return null;
-  const raw = String(token).trim();
+  const raw = String(token).trim().replace(/\u202F/g, ' ').replace(/\u00A0/g, ' ');
   if (!raw) return null;
   const signMatch = raw.match(/^([+-])\s*(.*)$/);
   let sign = '';
@@ -2759,7 +2781,9 @@ function normalizeBudgetNumberToken(token) {
     body = signMatch[2];
   }
 
-  const cleaned = body.replace(/\s+/g, '');
+  // Remove all common Unicode spacing characters that are sometimes used as
+  // thousand separators (regular space, NBSP, narrow no-break, thin space, figure space)
+  const cleaned = body.replace(/[\s\u00A0\u202F\u2009\u2007]+/g, '');
   if (!/^[0-9.,]+$/.test(cleaned)) return null;
 
   const hasDot = cleaned.includes('.');
@@ -4260,7 +4284,7 @@ function getBudgetOwner(key) {
 
 function getCoupleMetrics() {
   const aliIncome = getVal('rev_ali');
-  const meganeIncome = getVal('rev_meg');
+  const meganeIncome = getVal('rev_megane');
   const globalIncome = getBudgetKeysByType('income').reduce((sum, key) => sum + getVal(key), 0);
   const totals = {
     global: { income: globalIncome, expenses: 0 },
