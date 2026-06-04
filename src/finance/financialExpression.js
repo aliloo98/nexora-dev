@@ -50,6 +50,7 @@ function normalizeFinancialExpressionToken(token) {
     }
   }
 
+  if (normalized.endsWith('.') || normalized.endsWith(',')) normalized = normalized.slice(0, -1)
   if (!/^\d+(?:\.\d+)?$/.test(normalized)) return null
   return sign + normalized
 }

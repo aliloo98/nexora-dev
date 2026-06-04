@@ -38,6 +38,8 @@ assert.strictEqual(parseBudgetNumber('1700'), 1700, '1700 should parse as 1700')
 assert.strictEqual(parseBudgetNumber('1.700,50'), 1700.5, '1.700,50 should parse as 1700.5');
 assert.strictEqual(parseBudgetNumber('1,700.50'), 1700.5, '1,700.50 should parse as 1700.5');
 assert.strictEqual(parseBudgetNumber('1.700.50'), 1700.5, '1.700.50 should parse as 1700.5');
+assert.strictEqual(parseBudgetNumber('1700,'), 1700, '1700, should parse as 1700');
+assert.strictEqual(parseBudgetNumber('1700.'), 1700, '1700. should parse as 1700');
 
 assert.strictEqual(parseBudgetNumberStrict('1700,50'), 1700.5, 'strict 1700,50 should parse as 1700.5');
 assert.strictEqual(parseBudgetNumberStrict('1700.50'), 1700.5, 'strict 1700.50 should parse as 1700.5');
