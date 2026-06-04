@@ -2852,8 +2852,13 @@ function validateStrictMoneyFields(fields) {
 
 function formatFormulaResult(value) {
   const rounded = Math.round(value * 100) / 100;
-  if (Number.isInteger(rounded)) return String(rounded);
-  return rounded.toFixed(2).replace(/\.?0+$/, '').replace('.', ',');
+  let formatted;
+  if (Number.isInteger(rounded)) {
+    formatted = String(rounded);
+  } else {
+    formatted = rounded.toFixed(2).replace(/\.?0+$/, '').replace('.', ',');
+  }
+  return formatted.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
 function shouldEnableFormulaInput(input) {
