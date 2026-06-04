@@ -3261,6 +3261,7 @@ async function renderCustomBudgetRows() {
   initDynamicElements();
   setupFormulaEvaluation();
   restoreBudgetInputs(currentValues);
+  applyBudgetCategoryVisibility(categories);
 }
 
 async function addCustomBudgetLine(type) {
@@ -6580,6 +6581,9 @@ window.onload=async ()=>{
   setupFormulaEvaluation();
   await refreshCategoryLabels();
   await loadMonth();
+  await renderCustomBudgetRows();
+  await refreshCategoryLabels();
+  updateAll();
   buildHistory();
   if (typeof refreshNexoraNotificationSettingsUI === 'function') {
     await refreshNexoraNotificationSettingsUI();
