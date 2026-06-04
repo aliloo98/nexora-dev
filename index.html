@@ -1778,7 +1778,7 @@ function convertCheckboxesToPaidInputs() {
         container.style.justifyContent = 'flex-end';
 
         container.innerHTML = `
-          <input class="budget-input paid-input" type="text" placeholder="0" data-key="${key}" oninput="updateAll()" style="flex: 1; min-width: 0;">
+          <input class="budget-input paid-input" type="text" value="0" placeholder="0" data-key="${key}" oninput="updateAll()" style="flex: 1; min-width: 0;">
           <button type="button" class="quick-pay-btn" id="btn-quick-${baseKey}" onclick="toggleQuickPay('${baseKey}')" title="Tout payer / Réinitialiser">
             <span class="quick-pay-inner">✓</span>
           </button>
@@ -1990,6 +1990,9 @@ async function loadMonth(){
 
   document.querySelectorAll('[data-key]').forEach(el=>{
     el.value=data[el.dataset.key]||'';
+  });
+  document.querySelectorAll('[data-key$="_paye"]').forEach(el => {
+    if (el.value === '') el.value = '0';
   });
 
   // Update notes icons states after loading values
@@ -2634,7 +2637,11 @@ function updatePremiumAnalytics() {
 function snapshotBudgetInputs() {
   const values = {};
   document.querySelectorAll('[data-key]').forEach(el => {
-    values[el.dataset.key] = el.value;
+    if (el.type === 'checkbox') {
+      values[el.dataset.key] = el.checked ? '1' : '0';
+    } else {
+      values[el.dataset.key] = el.value;
+    }
   });
   return values;
 }
@@ -2986,8 +2993,19 @@ function getDuplicateCategoryNameMessage(type, name, ignoredCategoryId = null) {
     && category.id !== ignoredCategoryId
     && normalizeCategoryNameForCompare(category.name) === normalizedName
   ));
+  if (hasDuplicate) return 'Ce nom existe déjà';
 
-  return hasDuplicate ? 'Ce nom existe déjà' : null;
+  const hiddenDuplicate = budgetCategoriesCache.find(category => (
+    category.type === type
+    && category.is_active === false
+    && category.id !== ignoredCategoryId
+    && normalizeCategoryNameForCompare(category.name) === normalizedName
+  ));
+  if (hiddenDuplicate) {
+    return `Ce nom existe déjà dans une ligne masquée. Restaurer "${hiddenDuplicate.name}" ?`;
+  }
+
+  return null;
 }
 
 function setBudgetRowLabelText(label, text) {

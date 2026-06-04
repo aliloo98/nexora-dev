@@ -161,10 +161,28 @@ const mergeWithDefaults = (categories, ownerId) => {
   return sortCategories([...byId.values()])
 }
 
+const mergeCategoriesByUpdatedAt = (primaryCategories = [], secondaryCategories = [], ownerId) => {
+  const byId = new Map()
+  const add = (category) => {
+    const normalized = normalizeCategory(category, ownerId)
+    const existing = byId.get(normalized.id)
+    if (!existing || normalized.updated_at >= existing.updated_at) {
+      byId.set(normalized.id, normalized)
+    }
+  }
+  primaryCategories.forEach(add)
+  secondaryCategories.forEach(add)
+  return [...byId.values()]
+}
+
 const readLocalCategories = (ownerId) => {
   const store = readLocalStore()
   const ownerCategories = Array.isArray(store[ownerId]) ? store[ownerId] : []
-  const merged = mergeWithDefaults(ownerCategories, ownerId)
+  const anonymousCategories = ownerId !== LOCAL_USER_ID && Array.isArray(store[LOCAL_USER_ID]) ? store[LOCAL_USER_ID] : []
+  const mergedOwnerCategories = anonymousCategories.length > 0
+    ? mergeCategoriesByUpdatedAt(ownerCategories, anonymousCategories, ownerId)
+    : ownerCategories
+  const merged = mergeWithDefaults(mergedOwnerCategories, ownerId)
   store[ownerId] = merged
   writeLocalStore(store)
   return merged
@@ -250,7 +268,8 @@ const getBudgetCategories = async ({ includeInactive = false, userId } = {}) => 
     if (sessionUserId && isOnline()) {
       const remoteCategories = await readSupabaseCategories(sessionUserId)
       if (remoteCategories.length > 0) {
-        categories = mergeWithDefaults(remoteCategories, sessionUserId)
+        const mergedRemoteLocal = mergeCategoriesByUpdatedAt(remoteCategories, categories, sessionUserId)
+        categories = mergeWithDefaults(mergedRemoteLocal, sessionUserId)
         writeLocalCategories(sessionUserId, categories)
       }
     }
