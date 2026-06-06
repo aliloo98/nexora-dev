@@ -19,7 +19,11 @@ const GOLDEN_ANGLE = 137.508
 
 const formatEuro = (value) => {
   const amount = Number(value) || 0
-  return `${Math.round(amount).toLocaleString('fr-FR')} €`
+  const hasDecimals = !Number.isInteger(amount)
+  return `${amount.toLocaleString('fr-FR', {
+    minimumFractionDigits: hasDecimals ? 2 : 0,
+    maximumFractionDigits: hasDecimals ? 2 : 0
+  })} €`
 }
 
 const riskLabel = (risk) => {
