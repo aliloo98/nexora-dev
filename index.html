@@ -1923,12 +1923,27 @@ document.addEventListener('input', (event) => {
 });
 
 // Ensure all .budget-input fields trigger updateAll() on input/change (debounced)
+// Patch #2: Debounce optimization + timestamp guard to reduce duplicate updateAll() calls
 let __updateAllTimeout = null;
+let __lastUpdateAllTime = 0;  // Track last updateAll() execution time
+const __updateAllMinInterval = 100;  // Minimum ms between updateAll() calls
+const __debounceDuration = 300;  // Increased from 80ms to 300ms
+
 function __debouncedUpdateAll() {
   clearTimeout(__updateAllTimeout);
   __updateAllTimeout = setTimeout(() => {
-    try { if (typeof updateAll === 'function') updateAll(); } catch (e) { console.warn('updateAll error', e); }
-  }, 80);
+    const now = Date.now();
+    // Guard: Skip if updateAll() was called within the last 100ms (oninput handler)
+    if (now - __lastUpdateAllTime < __updateAllMinInterval) {
+      return;  // Skip this debounce call - updateAll() is recent enough
+    }
+    try {
+      if (typeof updateAll === 'function') {
+        __lastUpdateAllTime = Date.now();  // Update timestamp before calling
+        updateAll();
+      }
+    } catch (e) { console.warn('updateAll error', e); }
+  }, __debounceDuration);
 }
 
 document.addEventListener('change', (event) => {
@@ -6693,6 +6708,15 @@ function updateTrendIndicators() {
       }
     }
   });
+}
+
+// Patch #2: Wrapper updateAll() to track execution time for debounce guard
+if (typeof window.updateAll === 'function') {
+  const __originalUpdateAll = window.updateAll;
+  window.updateAll = function() {
+    __lastUpdateAllTime = Date.now();  // Track when updateAll is called (from oninput or anywhere)
+    return __originalUpdateAll.apply(this, arguments);
+  };
 }
 
 window.onload=async ()=>{
