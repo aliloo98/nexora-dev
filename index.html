@@ -2161,7 +2161,14 @@ function getVal(key){
   return el?parseBudgetNumber(el.value):0;
 }
 
-function fmt(n){return n.toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:0})+' €'}
+function fmt(n){
+  const value = Number(n) || 0;
+  const fractionDigits = Number.isInteger(value) ? 0 : 2;
+  return value.toLocaleString('fr-FR', {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits
+  }) + ' €';
+}
 
 function readLocalJsonArray(key) {
   try {
