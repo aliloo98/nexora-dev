@@ -6507,15 +6507,14 @@ body.mode-simple .home-goal-summary {
 
 .nexora-core-layout--signature {
   align-items: stretch;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(220px, 0.75fr);
   gap: clamp(20px, 4vw, 32px);
 }
 
 .nexora-core-hero {
   align-items: center;
-  display: flex;
-  flex-direction: column;
+  display: contents;
   gap: clamp(14px, 3vw, 22px);
   text-align: center;
   width: 100%;
@@ -6563,10 +6562,22 @@ body.mode-simple .home-goal-summary {
 
 .nexora-core-globe-wrap {
   display: grid;
-  min-height: clamp(140px, 32vw, 160px);
+  min-height: clamp(180px, 24vw, 260px);
   place-items: center;
   position: relative;
   z-index: 1;
+}
+
+.nexora-core-stage {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  order: 3;
+}
+
+.nexora-core-globe {
+  height: clamp(176px, 24vw, 260px);
+  opacity: 0.86;
+  width: clamp(176px, 24vw, 260px);
 }
 
 /* core globe + center-data depth rules are defined above */
@@ -6633,9 +6644,12 @@ body.mode-simple .home-goal-summary {
 
 
 .nexora-core-hero-copy {
-  max-width: 28rem;
+  grid-column: 1;
+  max-width: none;
   min-width: 0;
+  order: 1;
   padding: 0 8px;
+  text-align: left;
   width: 100%;
 }
 
@@ -6653,11 +6667,11 @@ body.mode-simple .home-goal-summary {
   background: linear-gradient(180deg, #fff 0%, rgba(229, 192, 96, 0.92) 120%);
   -webkit-background-clip: text;
   background-clip: text;
-  font-size: clamp(26px, 6vw, 40px);
+  font-size: clamp(24px, 4vw, 34px);
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.08em;
   line-height: 1.05;
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   -webkit-text-fill-color: transparent;
   text-transform: uppercase;
   word-break: normal;
@@ -6668,32 +6682,39 @@ body.mode-simple .home-goal-summary {
   font-size: clamp(13px, 2.8vw, 15px);
   line-height: 1.45;
   margin: 0;
+  max-width: 30rem;
 }
 
 .nexora-core-copy {
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  margin: 0 auto;
-  max-width: 36rem;
+  border-top: 0;
+  grid-column: 1;
+  margin: 0;
+  max-width: none;
   min-width: 0;
-  padding-top: clamp(12px, 2vw, 16px);
-  text-align: center;
+  order: 2;
+  padding-top: 0;
+  text-align: left;
   width: 100%;
 }
 
 .nexora-core-detail {
-  color: var(--text2);
-  font-size: 13px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  color: var(--text);
+  font-size: 14px;
   line-height: 1.5;
-  margin: 0 auto 14px;
-  max-width: 32rem;
+  margin: 14px 0;
+  max-width: none;
+  padding: 12px 14px;
 }
 
 .nexora-core-metrics {
   display: grid;
   gap: 12px 20px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 12px auto 18px;
-  max-width: 32rem;
+  margin: 12px 0 16px;
+  max-width: none;
 }
 
 .nexora-core-metrics>div {
@@ -6720,11 +6741,20 @@ body.mode-simple .home-goal-summary {
   overflow-wrap: anywhere;
 }
 
+.nexora-core-metric--balance {
+  grid-column: 1 / -1;
+}
+
+.nexora-core-metric--balance dd {
+  color: var(--gold);
+  font-size: clamp(24px, 4vw, 34px);
+}
+
 .nexora-core-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 #nexora-core-panel[data-health="solid"] .nexora-core-title {
@@ -6764,6 +6794,29 @@ body.mode-simple .home-goal-summary {
 @media (max-width: 820px) {
   #section-dashboard .dashboard-secondary-kpis {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nexora-core-layout--signature {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .nexora-core-hero {
+    display: flex;
+  }
+
+  .nexora-core-hero-copy,
+  .nexora-core-copy {
+    text-align: center;
+  }
+
+  .nexora-core-actions,
+  .nexora-core-legend {
+    justify-content: center;
+  }
+
+  .nexora-core-stage {
+    width: 100%;
   }
 }
 
@@ -6816,23 +6869,23 @@ body.mode-simple .home-goal-summary {
   }
 
   .nexora-core-globe {
-    height: min(400px, 42vh);
-    width: min(400px, 42vh);
+    height: min(260px, 32vh);
+    width: min(260px, 32vh);
   }
 
   .nexora-core-globe-wrap {
-    min-height: min(420px, 44vh);
+    min-height: min(280px, 34vh);
   }
 }
 
 @media (min-width: 1280px) and (max-height: 800px) {
   .nexora-core-globe {
-    height: min(320px, 38vh);
-    width: min(320px, 38vh);
+    height: min(240px, 34vh);
+    width: min(240px, 34vh);
   }
 
   .nexora-core-globe-wrap {
-    min-height: min(340px, 40vh);
+    min-height: min(260px, 36vh);
   }
 
   .nexora-core-title {
@@ -6901,7 +6954,7 @@ body.mode-simple .home-goal-summary {
 .nexora-core-legend {
   display: flex;
   gap: 20px;
-  justify-content: center;
+  justify-content: flex-start;
   margin: 16px auto 8px;
   font-size: 11px;
   font-weight: 700;
