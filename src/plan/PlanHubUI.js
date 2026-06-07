@@ -471,7 +471,6 @@ const buildPlanData = async () => {
 
   const scheduledRevenue = revenues.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
   const budgetRevenue = (fetchedRevenues || []).reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
-  const totalRevenue = Math.max(scheduledRevenue, budgetRevenue)
   const totalCharges = charges.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
   const { toPayNow } = TreasuryService.suggestPayments({
     baseBalance,
@@ -485,7 +484,8 @@ const buildPlanData = async () => {
     ? (window.NexoraMetricsCache?.getCachedMonthMetrics
       ? window.NexoraMetricsCache.getCachedMonthMetrics(monthKey, () => window.getMonthMetrics(monthKey, { fromDom: true }))
       : window.getMonthMetrics(monthKey, { fromDom: true }))
-    : { income: totalRevenue, expenses: totalCharges, paidExpenses: 0 }
+    : { income: Math.max(scheduledRevenue, budgetRevenue), expenses: totalCharges, paidExpenses: 0 }
+  const totalRevenue = Number(monthMetrics?.income) || 0
   const cycleBalances = computeCycleBalancesFromMetrics(monthMetrics)
 
   return {
