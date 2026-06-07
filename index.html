@@ -458,6 +458,23 @@
       <button type="button" class="add-budget-line-btn" onclick="addCustomBudgetLine('income')">+ Ajouter une ligne</button>
     </div>
 
+    <!-- MODELES ENREGISTRES -->
+    <div class="budget-block" id="saved-models-block">
+      <div class="budget-block-header">
+        <span class="budget-block-title">📋 Modèles enregistrés</span>
+        <span class="budget-block-total" id="saved-models-sub">Applique tes revenus et charges enregistrés dans les paramètres au budget du mois.</span>
+      </div>
+      <div class="budget-row">
+        <div></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+          <button type="button" class="btn btn-outline" onclick="applySavedRevenues()">Appliquer revenus</button>
+          <button type="button" class="btn btn-outline" onclick="applySavedExpenses()">Appliquer dépenses</button>
+          <button type="button" class="btn btn-gold" onclick="applySavedAll()">Appliquer tout</button>
+        </div>
+      </div>
+    </div>
+    </div>
+
     <!-- CHARGES FIXES -->
     <div class="budget-block">
       <div class="budget-block-header">
@@ -2179,6 +2196,136 @@ function readLocalJsonArray(key) {
   }
 }
 
+// --- Modèles enregistrés : handlers minimalistes ---
+function _askConfirm(title, message, onConfirm) {
+  if (typeof customConfirm === 'function') return customConfirm(title, message, onConfirm);
+  if (confirm(message)) onConfirm();
+}
+
+async function applySavedRevenues(force = false) {
+  const { SettingsService } = await import('/src/settings/settingsService.js');
+  const recurringIncomes = await SettingsService.loadRecurringIncomes();
+  if (!recurringIncomes.length) { showToast('Aucun revenu enregistré'); return; }
+  const incomeKeys = getBudgetKeysByType('income');
+  const categoriesById = new Map(budgetCategoriesCache.map(c => [c.id, c]));
+  const budgetData = getResolvedBudgetSnapshot();
+  const resolved = window.NexoraRecurringResolver?.resolveBudgetWithRecurring
+    ? (window.NexoraRecurringResolver.resolveBudgetWithRecurring({ budgetData, incomeKeys, expenseKeys: [], categoriesById, recurringIncomes, billSchedules: [] }) || {}).resolved || {}
+    : {};
+
+  const toOverwrite = [];
+  let applied = 0;
+  incomeKeys.forEach(key => {
+    const el = document.querySelector('[data-key="' + key + '"]');
+    if (!el) return;
+    const cur = getVal(key);
+    const val = Number(resolved[key] || 0);
+    if (!val || val === 0) return;
+    if (cur === 0) {
+      el.value = String(val);
+      applied++;
+    } else {
+      toOverwrite.push({ key, el, cur, val });
+    }
+  });
+
+  if (toOverwrite.length && !force) {
+    _askConfirm('Écraser les champs revenus ?', `${toOverwrite.length} champs ont déjà une valeur non nulle. Voulez-vous les écraser ?`, () => applySavedRevenues(true));
+    return;
+  }
+
+  if (force) {
+    toOverwrite.forEach(item => { item.el.value = String(item.val); applied++; });
+  }
+
+  if (typeof updateAll === 'function') updateAll();
+  showToast(`✅ Revenus appliqués${applied ? ' — ' + applied + ' champs remplis' : ''}`);
+}
+
+async function applySavedExpenses(force = false) {
+  const { SettingsService } = await import('/src/settings/settingsService.js');
+  const billSchedules = await SettingsService.loadBillSchedules();
+  if (!billSchedules.length) { showToast('Aucun modèle de dépense'); return; }
+  const expenseKeys = getAllExpenseKeys();
+  const categoriesById = new Map(budgetCategoriesCache.map(c => [c.id, c]));
+  const budgetData = getResolvedBudgetSnapshot();
+  const resolved = window.NexoraRecurringResolver?.resolveBudgetWithRecurring
+    ? (window.NexoraRecurringResolver.resolveBudgetWithRecurring({ budgetData, incomeKeys: [], expenseKeys, categoriesById, recurringIncomes: [], billSchedules }) || {}).resolved || {}
+    : {};
+
+  const toOverwrite = [];
+  let applied = 0;
+  expenseKeys.forEach(key => {
+    const el = document.querySelector('[data-key="' + key + '"]');
+    if (!el) return;
+    const cur = getVal(key);
+    const val = Number(resolved[key] || 0);
+    if (!val || val === 0) return;
+    if (cur === 0) {
+      el.value = String(val);
+      applied++;
+    } else {
+      toOverwrite.push({ key, el, cur, val });
+    }
+  });
+
+  if (toOverwrite.length && !force) {
+    _askConfirm('Écraser les champs dépenses ?', `${toOverwrite.length} champs ont déjà une valeur non nulle. Voulez-vous les écraser ?`, () => applySavedExpenses(true));
+    return;
+  }
+
+  if (force) {
+    toOverwrite.forEach(item => { item.el.value = String(item.val); applied++; });
+  }
+
+  if (typeof updateAll === 'function') updateAll();
+  showToast(`✅ Dépenses appliquées${applied ? ' — ' + applied + ' champs remplis' : ''}`);
+}
+
+async function applySavedAll(force = false) {
+  const { SettingsService } = await import('/src/settings/settingsService.js');
+  const recurringIncomes = await SettingsService.loadRecurringIncomes();
+  const billSchedules = await SettingsService.loadBillSchedules();
+  if (!recurringIncomes.length && !billSchedules.length) { showToast('Aucun modèle enregistré'); return; }
+  const incomeKeys = getBudgetKeysByType('income');
+  const expenseKeys = getAllExpenseKeys();
+  const categoriesById = new Map(budgetCategoriesCache.map(c => [c.id, c]));
+  const budgetData = getResolvedBudgetSnapshot();
+  const resolved = window.NexoraRecurringResolver?.resolveBudgetWithRecurring
+    ? (window.NexoraRecurringResolver.resolveBudgetWithRecurring({ budgetData, incomeKeys, expenseKeys, categoriesById, recurringIncomes, billSchedules }) || {}).resolved || {}
+    : {};
+
+  const toOverwrite = [];
+  let applied = 0;
+  [...incomeKeys, ...expenseKeys].forEach(key => {
+    const el = document.querySelector('[data-key="' + key + '"]');
+    if (!el) return;
+    const cur = getVal(key);
+    const val = Number(resolved[key] || 0);
+    if (!val || val === 0) return;
+    if (cur === 0) {
+      el.value = String(val);
+      applied++;
+    } else {
+      toOverwrite.push({ key, el, cur, val });
+    }
+  });
+
+  if (toOverwrite.length && !force) {
+    _askConfirm('Écraser les champs existants ?', `${toOverwrite.length} champs ont déjà une valeur non nulle. Voulez-vous les écraser ?`, () => applySavedAll(true));
+    return;
+  }
+
+  if (force) {
+    toOverwrite.forEach(item => { item.el.value = String(item.val); applied++; });
+  }
+
+  if (typeof updateAll === 'function') updateAll();
+  showToast(`✅ Modèles appliqués au budget du mois${applied ? ' — ' + applied + ' champs remplis' : ''}`);
+}
+
+// --- fin modèles enregistrés ---
+
 function getResolvedBudgetSnapshot() {
   const budgetData = {};
   document.querySelectorAll('[data-key]').forEach(el => {
@@ -2925,7 +3072,10 @@ function formatFormulaResult(value) {
 }
 
 function shouldEnableFormulaInput(input) {
+  // Only enable formula parsing/validation for amount fields.
+  // Avoid applying financial expression validation to name/label fields.
   return input.matches('input.budget-input[data-key]')
+    && input.dataset.key === 'amount'
     && !input.classList.contains('note-input')
     && input.type !== 'date'
     && input.type !== 'color';
