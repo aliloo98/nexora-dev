@@ -2203,6 +2203,19 @@ function fmt(n){
   }) + ' €';
 }
 
+function getNexoraOfficialSituation({ revReel = 0, solde = 0, tauxCh = 0, variablesPct = 0 } = {}) {
+  const income = Number(revReel || 0);
+  const balance = Number(solde || 0);
+  const charges = Number(tauxCh || 0);
+  const variables = Number(variablesPct || 0);
+
+  if (income <= 0) return { state: 'neutral', label: 'Synthèse à compléter', riskLabel: 'à compléter' };
+  if (balance < 0) return { state: 'fragile', label: 'Critique', riskLabel: 'élevé' };
+  if (charges > 85 || variables > 40) return { state: 'fragile', label: 'Fragile', riskLabel: 'élevé' };
+  if (charges > 75 || variables > 35) return { state: 'watch', label: 'À surveiller', riskLabel: 'modéré' };
+  return { state: 'stable', label: 'Stable', riskLabel: 'faible' };
+}
+
 function readLocalJsonArray(key) {
   try {
     const parsed = JSON.parse(SafeStorage.getItem(key) || localStorage.getItem(key) || '[]');
@@ -4272,19 +4285,12 @@ function updateDashboardSynthesisHero(metrics = {}) {
   let actionDetail = 'Nexora préparera une action dès que le budget sera complet.';
 
   if (revReel > 0) {
-    const riskLabel = solde < 0 || tauxCh > 85 || variablesPct > 40 ? 'élevé' : tauxCh > 75 || variablesPct > 35 ? 'modéré' : 'faible';
-    if (solde < 0) {
-      state = 'fragile';
-      status = 'Situation fragile';
-    } else if (tauxCh > 75 || variablesPct > 35) {
-      state = 'watch';
-      status = 'À surveiller';
-    } else {
-      state = 'stable';
-      status = 'Situation stable';
-    }
+    const situation = getNexoraOfficialSituation({ revReel, solde, tauxCh, variablesPct });
+    window.__nexoraDashboardSituation = situation;
+    state = situation.state;
+    status = situation.label;
     title = `Il te restera ${fmt(solde)} en fin de cycle`;
-    meta = `Charges ${tauxCh}% · Variables ${variablesPct}% · Risque ${riskLabel}`;
+    meta = `Charges ${tauxCh}% · Variables ${variablesPct}% · Risque ${situation.riskLabel}`;
     actionTitle = document.getElementById('priority-action-title')?.textContent?.trim() || 'Voir le plan';
     actionDetail = document.getElementById('priority-action-detail')?.textContent?.trim() || 'Ouvre le plan pour voir les prochaines étapes.';
   }
@@ -4464,9 +4470,8 @@ function updateDashboardGreeting({ revReel = 0, solde = 0 } = {}) {
 
   const balanceText = fmt(solde);
   if (subtitleEl) {
-    subtitleEl.textContent = solde >= 0
-      ? `Situation stable · solde fin de cycle ${balanceText}`
-      : `Attention · solde fin de cycle ${balanceText}`;
+    const situationLabel = window.__nexoraDashboardSituation?.label || (solde >= 0 ? 'Stable' : 'Critique');
+    subtitleEl.textContent = `${situationLabel} · solde fin de cycle ${balanceText}`;
   }
 }
 

@@ -9,6 +9,15 @@ const escapeHtml = (value) => String(value ?? '')
   .replace(/"/g, '&quot;')
   .replace(/'/g, '&#039;')
 
+const formatCurrency = (value) => {
+  const amount = Number(value) || 0
+  const fractionDigits = Number.isInteger(amount) ? 0 : 2
+  return `${amount.toLocaleString('fr-FR', {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits
+  })} €`
+}
+
 export async function renderDashboardMaster(rootId, TreasuryService) {
   const root = document.getElementById(rootId)
   if (!root) return
@@ -54,7 +63,7 @@ export async function renderDashboardMaster(rootId, TreasuryService) {
       <div class="dashboard-master-plan" style="max-height:160px;overflow:auto;padding-right:6px">
         <strong style="display:block;margin-bottom:6px">Plan 7 jours</strong>
         <ol id="dm-7day-list" style="padding-left:18px;margin:0">
-          ${plan.slice(0,7).map(p => `<li style="margin-bottom:6px"><strong>${new Date(p.date).toLocaleDateString()}</strong> — Solde: ${p.balance} €</li>`).join('')}
+          ${plan.slice(0,7).map(p => `<li style="margin-bottom:6px"><strong>${new Date(p.date).toLocaleDateString()}</strong> — Solde: ${formatCurrency(p.balance)}</li>`).join('')}
         </ol>
       </div>`}
     </div>
