@@ -275,15 +275,20 @@
         <p id="month-forecast-detail">Ajoutez vos revenus et dépenses pour calculer la projection.</p>
       </section>
       <section class="wow-card available-money-card" id="available-money-card">
-        <span>Argent disponible</span>
-        <strong id="available-money-value">0 €</strong>
-        <p id="available-money-detail">Aucun montant disponible non affecté.</p>
-        <div class="wow-actions">
-          <button type="button" class="btn btn-outline" onclick="showSection('objectifs')">Affecter à un objectif</button>
-          <button type="button" class="btn btn-outline" onclick="showSection('dettes')">Affecter à une dette</button>
-          <button type="button" class="btn btn-outline" onclick="showToast('Montant gardé disponible')">Garder disponible</button>
-          <button type="button" class="btn btn-gold" onclick="openTreasuryPlanner()">Voir le plan</button>
+        <div class="available-money-head">
+          <span>Argent disponible</span>
+          <strong id="available-money-value">0 €</strong>
+          <p id="available-money-detail">Aucun montant disponible non affecté.</p>
         </div>
+        <div class="available-money-decision">
+          <span id="available-money-question">Que faire avec cet argent ?</span>
+          <div class="wow-actions available-money-actions">
+            <button type="button" class="btn btn-gold available-money-cta available-money-cta--primary" onclick="showSection('objectifs')">Alimenter l’objectif</button>
+            <button type="button" class="btn btn-outline available-money-cta" onclick="showSection('dettes')">Réduire une dette</button>
+            <button type="button" class="btn btn-outline available-money-cta" onclick="showSection('plan')">Garder disponible</button>
+          </div>
+        </div>
+        <p class="available-money-suggestion" id="available-money-suggestion">Suggestion Nexora : complète ton budget pour obtenir une recommandation.</p>
       </section>
       <section class="wow-card week-plan-card" id="week-plan-card">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -4338,15 +4343,24 @@ function updateAvailableMoney(metrics = {}) {
   const card = document.getElementById('available-money-card');
   const valueEl = document.getElementById('available-money-value');
   const detailEl = document.getElementById('available-money-detail');
+  const suggestionEl = document.getElementById('available-money-suggestion');
   if (!card || !valueEl || !detailEl) return;
 
   const debtMonthly = getDebtSummary().monthly;
   const goalMonthly = parseBudgetNumber(document.getElementById('goal-monthly-contrib')?.value || 0);
   const available = Math.max(0, Number(metrics.solde || 0) - debtMonthly - goalMonthly);
+  const rawGoalName = document.getElementById('dashboard-primary-goal-name')?.textContent?.replace(/^🎯\s*/, '').trim();
+  const goalName = rawGoalName && !/^aucun objectif/i.test(rawGoalName) ? rawGoalName : 'ton objectif principal';
+  const suggestionAmount = Math.min(150, available);
   valueEl.textContent = fmt(available);
   detailEl.textContent = available > 0
     ? `${fmt(debtMonthly)} déjà prévu pour les dettes, ${fmt(goalMonthly)} pour les objectifs.`
     : 'Tout le solde prévu est déjà absorbé par les dépenses, dettes ou objectifs.';
+  if (suggestionEl) {
+    suggestionEl.textContent = available > 0
+      ? `Suggestion Nexora : tu peux affecter ${fmt(suggestionAmount)} à ${goalName} tout en conservant une marge de sécurité.`
+      : 'Suggestion Nexora : garde le budget sous surveillance avant d’affecter un nouveau montant.';
+  }
   card.classList.remove('is-positive', 'is-warning', 'is-negative', 'is-neutral');
   card.classList.add(available > 100 ? 'is-positive' : available > 0 ? 'is-warning' : 'is-neutral');
 }

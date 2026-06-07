@@ -1291,7 +1291,7 @@ body.mode-simple .assistant-timeline-section {
 }
 
 body.mode-simple .available-money-card .wow-actions {
-  display: none !important;
+  display: grid !important;
 }
 
 body.mode-simple .dashboard-greeting-card .btn {
@@ -6469,9 +6469,129 @@ body.mode-simple .home-goal-summary {
 }
 
 #section-dashboard .dashboard-essentials-grid .month-forecast-card,
-#section-dashboard .dashboard-essentials-grid .available-money-card,
 #section-dashboard .dashboard-essentials-grid .week-plan-card {
   display: none;
+}
+
+#section-dashboard .available-money-card {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.014) 1px, transparent 1px),
+    radial-gradient(circle at 16% 0%, rgba(229, 192, 96, 0.14), transparent 38%),
+    radial-gradient(circle at 88% 16%, rgba(16, 185, 129, 0.08), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.018));
+  background-size: 28px 28px, 28px 28px, auto, auto, auto;
+  border: 1px solid rgba(229, 192, 96, 0.18);
+  border-radius: 22px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    0 18px 52px rgba(0, 0, 0, 0.28);
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 0.85fr) minmax(260px, 1.15fr);
+  margin-top: 0;
+  overflow: hidden;
+  padding: clamp(18px, 4vw, 24px);
+  position: relative;
+}
+
+#section-dashboard .available-money-card::before {
+  background: linear-gradient(90deg, rgba(229, 192, 96, 0.62), transparent 70%);
+  content: '';
+  height: 2px;
+  left: 18px;
+  position: absolute;
+  right: 18px;
+  top: 0;
+}
+
+#section-dashboard .available-money-card::after {
+  background:
+    radial-gradient(circle at 18% 78%, rgba(229, 192, 96, 0.12), transparent 32%),
+    radial-gradient(circle at 86% 38%, rgba(255, 255, 255, 0.08), transparent 28%);
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.available-money-head,
+.available-money-decision,
+.available-money-suggestion {
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.available-money-head>span,
+.available-money-decision>span {
+  color: var(--text2);
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.available-money-head strong {
+  color: var(--gold);
+  display: block;
+  font-size: clamp(34px, 6vw, 50px);
+  font-weight: 900;
+  line-height: 1.02;
+  margin-top: 8px;
+}
+
+.available-money-head p {
+  color: var(--text2);
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 10px 0 0;
+}
+
+.available-money-decision {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.028)),
+    rgba(10, 10, 16, 0.46);
+  border: 1px solid rgba(229, 192, 96, 0.14);
+  border-radius: 16px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    0 16px 38px rgba(0, 0, 0, 0.2);
+  padding: 16px;
+}
+
+.available-money-actions {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 12px;
+}
+
+.available-money-cta {
+  justify-content: center;
+  min-height: 42px;
+  text-align: center;
+}
+
+.available-money-cta--primary {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent 32%),
+    var(--gold-gradient);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.available-money-suggestion {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  color: var(--text);
+  font-size: 14px;
+  grid-column: 1 / -1;
+  line-height: 1.45;
+  margin: 0;
+  padding: 12px 14px;
 }
 
 .dashboard-synthesis-hero {
@@ -7051,6 +7171,10 @@ body.mode-simple .home-goal-summary {
     width: 100%;
   }
 
+  #section-dashboard .available-money-card {
+    grid-template-columns: 1fr;
+  }
+
   .nexora-core-layout--signature {
     display: flex;
     flex-direction: column;
@@ -7092,6 +7216,14 @@ body.mode-simple .home-goal-summary {
 
   .nexora-core-nucleus {
     inset: 18%;
+  }
+
+  .available-money-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .available-money-cta {
+    width: 100%;
   }
 }
 
