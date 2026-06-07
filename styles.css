@@ -109,6 +109,29 @@
 }
 
 :root {
+/* Nexora Core Action Hub — inline compact styles (mobile-first) */
+.nexora-core-inline-card { 
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+}
+.nexora-core-inline-card .available-money-head span {
+  display:block;
+  font-size:12px;
+  color:var(--text2);
+}
+.nexora-core-inline-card .available-money-head strong {
+  display:block;
+  font-size:18px;
+  margin-top:6px;
+}
+.nexora-core-inline-card .available-money-decision { margin-top:10px; }
+@media(min-width: 960px) {
+  .nexora-core-inline-card { padding:14px; }
+}
+
   --bg-gradient: radial-gradient(circle at top right, #121225 0%, #07070d 60%, #030306 100%);
   --bg: #07070d;
   --bg2: rgba(18, 18, 28, 0.65);
@@ -1315,6 +1338,17 @@ body.mode-simple .assistant-title {
 
 body.mode-simple .assistant-analysis {
   display: none;
+}
+
+.assistant-details[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  .assistant-toggle {
+    justify-content: center;
+    width: 100%;
+  }
 }
 
 body.mode-simple .goal-card-footer,
@@ -6569,6 +6603,23 @@ body.mode-simple .home-goal-summary {
   margin-top: 12px;
 }
 
+#available-money-card .available-money-head p {
+  display: none;
+}
+
+#available-money-actions[hidden] {
+  display: none;
+}
+
+.available-money-options-toggle {
+  width: 100%;
+  min-height: 42px;
+}
+
+.available-money-options-toggle + #available-money-actions {
+  margin-top: 12px;
+}
+
 .available-money-cta {
   justify-content: center;
   min-height: 42px;
@@ -6616,6 +6667,10 @@ body.mode-simple .home-goal-summary {
   overflow: hidden;
   padding: clamp(18px, 4vw, 28px);
   position: relative;
+}
+
+.dashboard-synthesis-hero--merged {
+  display: none !important;
 }
 
 .dashboard-synthesis-hero::before {
@@ -6828,6 +6883,7 @@ body.mode-simple .home-goal-summary {
     0 24px 80px rgba(0, 0, 0, 0.35),
     0 0 58px rgba(229, 192, 96, 0.035);
   margin-bottom: 22px;
+  margin-top: 0;
   min-height: 0;
   overflow: hidden;
   position: relative;
@@ -6853,8 +6909,8 @@ body.mode-simple .home-goal-summary {
 .nexora-core-layout--signature {
   align-items: stretch;
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(220px, 0.75fr);
-  gap: clamp(20px, 4vw, 32px);
+  grid-template-columns: minmax(0, 1.05fr) minmax(240px, 0.95fr);
+  gap: clamp(20px, 4vw, 36px);
 }
 
 .nexora-core-hero {
@@ -6909,7 +6965,7 @@ body.mode-simple .home-goal-summary {
 
 .nexora-core-globe-wrap {
   display: grid;
-  min-height: clamp(180px, 24vw, 260px);
+  min-height: clamp(210px, 28vw, 320px);
   place-items: center;
   position: relative;
   z-index: 1;
@@ -6922,10 +6978,10 @@ body.mode-simple .home-goal-summary {
 }
 
 .nexora-core-globe {
-  height: clamp(176px, 24vw, 260px);
-  opacity: 0.86;
+  height: clamp(210px, 28vw, 320px);
+  opacity: 0.94;
   filter: drop-shadow(0 20px 54px rgba(0, 0, 0, 0.48));
-  width: clamp(176px, 24vw, 260px);
+  width: clamp(210px, 28vw, 320px);
 }
 
 /* core globe + center-data depth rules are defined above */
@@ -7009,6 +7065,45 @@ body.mode-simple .home-goal-summary {
   letter-spacing: 0.12em;
   margin-bottom: 8px;
   text-transform: uppercase;
+}
+
+.nexora-core-status-badge {
+  align-items: center;
+  border: 1px solid rgba(229, 192, 96, 0.2);
+  border-radius: 999px;
+  color: var(--gold);
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 800;
+  gap: 8px;
+  letter-spacing: 0.08em;
+  margin: 0 0 10px;
+  padding: 6px 10px;
+  text-transform: uppercase;
+}
+
+.nexora-core-status-badge::before {
+  background: currentColor;
+  border-radius: 999px;
+  box-shadow: 0 0 12px currentColor;
+  content: '';
+  height: 7px;
+  width: 7px;
+}
+
+#nexora-core-panel[data-state="stable"] .nexora-core-status-badge {
+  border-color: rgba(16, 185, 129, 0.28);
+  color: #34d399;
+}
+
+#nexora-core-panel[data-state="watch"] .nexora-core-status-badge {
+  border-color: rgba(245, 158, 11, 0.34);
+  color: #fbbf24;
+}
+
+#nexora-core-panel[data-state="fragile"] .nexora-core-status-badge {
+  border-color: rgba(244, 63, 94, 0.34);
+  color: #fb7185;
 }
 
 .nexora-core-title {
@@ -7109,11 +7204,61 @@ body.mode-simple .home-goal-summary {
   font-size: clamp(24px, 4vw, 34px);
 }
 
+.nexora-core-mission {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.026)),
+    rgba(10, 10, 16, 0.46);
+  border: 1px solid rgba(229, 192, 96, 0.14);
+  border-radius: 16px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    0 16px 38px rgba(0, 0, 0, 0.18);
+  margin: 8px 0 10px;
+  padding: 14px;
+  position: relative;
+}
+
+.nexora-core-mission::before {
+  background: linear-gradient(180deg, rgba(229, 192, 96, 0.75), rgba(229, 192, 96, 0));
+  border-radius: 999px;
+  content: '';
+  height: 54px;
+  left: 0;
+  position: absolute;
+  top: 16px;
+  width: 2px;
+}
+
+.nexora-core-mission>span {
+  color: var(--text2);
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nexora-core-mission strong {
+  color: var(--text);
+  display: block;
+  font-size: clamp(17px, 3vw, 21px);
+  line-height: 1.22;
+  margin-top: 7px;
+}
+
+.nexora-core-mission p {
+  color: var(--text2);
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 8px 0 0;
+}
+
 .nexora-core-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   justify-content: flex-start;
+  margin: 0 0 12px;
 }
 
 #nexora-core-panel[data-health="solid"] .nexora-core-title {
@@ -7197,6 +7342,14 @@ body.mode-simple .home-goal-summary {
   .nexora-core-stage {
     width: 100%;
   }
+
+  .nexora-core-status-badge {
+    justify-content: center;
+  }
+
+  .nexora-core-mission {
+    text-align: left;
+  }
 }
 
 @media (max-width: 720px) {
@@ -7206,12 +7359,12 @@ body.mode-simple .home-goal-summary {
   }
 
   .nexora-core-globe-wrap {
-    min-height: clamp(160px, 45vw, 220px);
+    min-height: clamp(178px, 48vw, 232px);
   }
 
   .nexora-core-globe {
-    height: clamp(140px, 42vw, 200px);
-    width: clamp(140px, 42vw, 200px);
+    height: clamp(164px, 46vw, 220px);
+    width: clamp(164px, 46vw, 220px);
   }
 
   .nexora-core-nucleus {
@@ -7247,6 +7400,43 @@ body.mode-simple .home-goal-summary {
   .nexora-core-panel--signature {
     padding-left: 12px;
     padding-right: 12px;
+  }
+}
+
+@media (max-width: 390px) {
+  .nexora-core-panel {
+    padding: 14px 10px;
+  }
+
+  .nexora-core-globe-wrap {
+    min-height: 160px;
+  }
+
+  .nexora-core-globe {
+    height: 160px;
+    width: 160px;
+  }
+
+  .nexora-core-actions {
+    gap: 8px;
+  }
+
+  .nexora-core-mission {
+    margin: 6px 0 8px;
+    padding: 12px;
+  }
+
+  .nexora-core-detail,
+  .nexora-core-legend {
+    display: none;
+  }
+
+  .available-money-options-toggle {
+    font-size: 14px;
+  }
+
+  .available-money-actions {
+    gap: 8px;
   }
 }
 

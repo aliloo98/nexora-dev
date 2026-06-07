@@ -125,7 +125,7 @@
         </div>
       </div>
     </div>
-    <section class="dashboard-synthesis-hero wow-card" id="dashboard-synthesis-hero" data-state="neutral" aria-label="Synthèse du mois">
+    <section class="dashboard-synthesis-hero dashboard-synthesis-hero--merged wow-card" id="dashboard-synthesis-hero" data-state="neutral" aria-label="Synthèse du mois">
       <div class="dashboard-synthesis-main">
         <span class="dashboard-synthesis-status" id="dashboard-synthesis-status">Synthèse à compléter</span>
         <h2 id="dashboard-synthesis-title">Complète ton budget pour obtenir ta synthèse</h2>
@@ -188,12 +188,46 @@
             <div class="nexora-core-tooltip" id="nexora-core-tooltip" role="tooltip" hidden></div>
           </div>
           <div class="nexora-core-hero-copy">
-            <span id="dashboard-greeting-hello" class="nexora-core-hello">Bonjour 👋</span>
+            <span id="nexora-core-status-badge" class="nexora-core-status-badge">Synthèse à compléter</span>
             <h3 id="dashboard-greeting-title" class="nexora-core-title">NEXORA CORE</h3>
             <p id="dashboard-greeting-subtitle" class="nexora-core-subtitle">Centre de contrôle financier</p>
           </div>
         </header>
         <div class="nexora-core-copy">
+          <div class="nexora-core-mission" aria-label="Mission du jour">
+            <span>Mission du jour</span>
+            <strong id="nexora-core-mission-title">Voir le plan</strong>
+            <p id="nexora-core-mission-detail">Nexora préparera une action dès que le budget sera complet.</p>
+          </div>
+          <!-- Début fusion : priority-action-card (déplacé dans Nexora Core, masqué) -->
+          <section class="wow-card priority-action-card nexora-core-inline-card" id="priority-action-card" style="display:none;" aria-hidden="true">
+            <span>Action recommandée</span>
+            <strong id="priority-action-title">Aucun risque détecté</strong>
+            <p id="priority-action-detail">Le budget ne demande pas d’action urgente.</p>
+          </section>
+          <!-- Fin fusion priority-action-card -->
+          <!-- Début fusion : available-money-card (déplacé dans Nexora Core) -->
+          <section class="wow-card available-money-card nexora-core-inline-card" id="available-money-card">
+            <div class="available-money-head">
+              <span>Argent disponible</span>
+              <strong id="available-money-value">0 €</strong>
+              <p id="available-money-detail">Aucun montant disponible non affecté.</p>
+            </div>
+            <div class="available-money-decision">
+            <button type="button" class="btn btn-gold available-money-options-toggle" id="available-money-options-toggle" aria-expanded="false" onclick="toggleAvailableMoneyOptions()">Voir les options</button>
+            <div class="wow-actions available-money-actions" id="available-money-actions" hidden>
+              <button type="button" class="btn btn-gold available-money-cta available-money-cta--primary" onclick="showSection('objectifs')">Alimenter l’objectif</button>
+              <button type="button" class="btn btn-outline available-money-cta" onclick="showSection('dettes')">Réduire une dette</button>
+              <button type="button" class="btn btn-outline available-money-cta" onclick="showSection('plan')">Garder disponible</button>
+            </div>
+          </div>
+          <p class="available-money-suggestion" id="available-money-suggestion">Suggestion Nexora : complète ton budget pour obtenir une recommandation.</p>
+          </section>
+          <!-- Fin fusion available-money-card -->
+          <div class="nexora-core-actions">
+            <button type="button" id="nexora-core-primary-cta" class="btn btn-gold nexora-core-cta nexora-core-cta--primary" onclick="window.NexoraCore?.openNexoraCoreAction?.()">Prochaine action</button>
+            <button type="button" class="btn btn-outline nexora-core-cta nexora-core-cta--secondary" onclick="showSection('saisie')">Mettre à jour</button>
+          </div>
           <p id="nexora-core-detail" class="nexora-core-detail">Complète ton budget pour activer la lecture unifiée.</p>
           <div class="nexora-core-legend">
             <span class="nexora-core-legend--goal"><i></i> Objectifs</span>
@@ -205,10 +239,6 @@
             <div class="nexora-core-metric nexora-core-metric--balance"><dt>Solde fin de cycle</dt><dd id="nexora-core-balance">—</dd></div>
             <div class="nexora-core-metric nexora-core-metric--goal"><dt>Objectif principal</dt><dd id="nexora-core-goal">—</dd></div>
           </dl>
-          <div class="nexora-core-actions">
-            <button type="button" class="btn btn-gold nexora-core-cta nexora-core-cta--primary" onclick="window.NexoraCore?.openNexoraCoreAction?.()">Prochaine action</button>
-            <button type="button" class="btn btn-outline nexora-core-cta nexora-core-cta--secondary" onclick="showSection('saisie')">Mettre à jour</button>
-          </div>
         </div>
       </div>
     </section>
@@ -264,31 +294,11 @@
       <section class="wow-card dashboard-coach-card" id="dashboard-coach-card">
         <div id="dashboard-master-root"></div>
       </section>
-      <section class="wow-card priority-action-card" id="priority-action-card">
-        <span>Action recommandée</span>
-        <strong id="priority-action-title">Aucun risque détecté</strong>
-        <p id="priority-action-detail">Le budget ne demande pas d’action urgente.</p>
-      </section>
+      <!-- priority-action-card et available-money-card fusionnés dans Nexora Core (déplacés) -->
       <section class="wow-card month-forecast-card" id="month-forecast-card">
         <span>Prévision du mois</span>
         <strong id="month-forecast-title">Prévision indisponible</strong>
         <p id="month-forecast-detail">Ajoutez vos revenus et dépenses pour calculer la projection.</p>
-      </section>
-      <section class="wow-card available-money-card" id="available-money-card">
-        <div class="available-money-head">
-          <span>Argent disponible</span>
-          <strong id="available-money-value">0 €</strong>
-          <p id="available-money-detail">Aucun montant disponible non affecté.</p>
-        </div>
-        <div class="available-money-decision">
-          <span id="available-money-question">Que faire avec cet argent ?</span>
-          <div class="wow-actions available-money-actions">
-            <button type="button" class="btn btn-gold available-money-cta available-money-cta--primary" onclick="showSection('objectifs')">Alimenter l’objectif</button>
-            <button type="button" class="btn btn-outline available-money-cta" onclick="showSection('dettes')">Réduire une dette</button>
-            <button type="button" class="btn btn-outline available-money-cta" onclick="showSection('plan')">Garder disponible</button>
-          </div>
-        </div>
-        <p class="available-money-suggestion" id="available-money-suggestion">Suggestion Nexora : complète ton budget pour obtenir une recommandation.</p>
       </section>
       <section class="wow-card week-plan-card" id="week-plan-card">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -4084,7 +4094,9 @@ function updateAll(){
   });
   updateDashboardGreeting({
     revReel,
-    solde
+    solde,
+    tauxCh,
+    variablesPct
   });
   if (typeof updateDashboardPrimaryGoal === 'function') {
     updateDashboardPrimaryGoal().catch(err => console.warn('[Goals] dashboard primary goal update failed', err));
@@ -4276,6 +4288,11 @@ function updateDashboardSynthesisHero(metrics = {}) {
   const actionTitleEl = document.getElementById('dashboard-synthesis-action-title');
   const actionDetailEl = document.getElementById('dashboard-synthesis-action-detail');
   const primaryBtn = document.getElementById('dashboard-synthesis-primary');
+  const coreStatusEl = document.getElementById('nexora-core-status-badge');
+  const coreMissionTitleEl = document.getElementById('nexora-core-mission-title');
+  const coreMissionDetailEl = document.getElementById('nexora-core-mission-detail');
+  const corePrimaryCta = document.getElementById('nexora-core-primary-cta');
+  const corePanel = document.getElementById('nexora-core-panel');
   if (!hero || !statusEl || !titleEl || !metaEl || !actionTitleEl || !actionDetailEl || !primaryBtn) return;
 
   const revReel = Number(metrics.revReel || 0);
@@ -4306,6 +4323,11 @@ function updateDashboardSynthesisHero(metrics = {}) {
   metaEl.textContent = meta;
   actionTitleEl.textContent = actionTitle || 'Voir le plan';
   actionDetailEl.textContent = actionDetail || 'Ouvre le plan pour voir les prochaines étapes.';
+  if (coreStatusEl) coreStatusEl.textContent = status;
+  if (coreMissionTitleEl) coreMissionTitleEl.textContent = actionTitle || 'Voir le plan';
+  if (coreMissionDetailEl) coreMissionDetailEl.textContent = actionDetail || 'Ouvre le plan pour voir les prochaines étapes.';
+  if (corePrimaryCta) corePrimaryCta.textContent = actionTitle || 'Voir le plan d’action';
+  if (corePanel) corePanel.dataset.state = state;
   primaryBtn.onclick = () => {
     const coachAction = document.getElementById('dashboard-coach-action');
     if (coachAction) coachAction.click();
@@ -4363,6 +4385,22 @@ function updateAvailableMoney(metrics = {}) {
   }
   card.classList.remove('is-positive', 'is-warning', 'is-negative', 'is-neutral');
   card.classList.add(available > 100 ? 'is-positive' : available > 0 ? 'is-warning' : 'is-neutral');
+}
+
+function toggleAvailableMoneyOptions() {
+  const actions = document.getElementById('available-money-actions');
+  const toggleBtn = document.getElementById('available-money-options-toggle');
+  if (!actions || !toggleBtn) return;
+  const isOpen = actions.hasAttribute('hidden');
+  if (isOpen) {
+    actions.removeAttribute('hidden');
+    toggleBtn.setAttribute('aria-expanded', 'true');
+    toggleBtn.textContent = 'Masquer les options';
+  } else {
+    actions.setAttribute('hidden', '');
+    toggleBtn.setAttribute('aria-expanded', 'false');
+    toggleBtn.textContent = 'Voir les options';
+  }
 }
 
 function updateWinsCard(metrics = {}) {
@@ -4466,7 +4504,7 @@ function getNexoraDisplayName() {
 
   return 'Vous';
 }
-function updateDashboardGreeting({ revReel = 0, solde = 0 } = {}) {
+function updateDashboardGreeting({ revReel = 0, solde = 0, tauxCh = 0, variablesPct = 0 } = {}) {
   const helloEl = document.getElementById('dashboard-greeting-hello');
   const titleEl = document.getElementById('dashboard-greeting-title');
   const subtitleEl = document.getElementById('dashboard-greeting-subtitle');
@@ -4482,10 +4520,15 @@ function updateDashboardGreeting({ revReel = 0, solde = 0 } = {}) {
     return;
   }
 
-  const balanceText = fmt(solde);
+  const situation = getNexoraOfficialSituation({ revReel, solde, tauxCh, variablesPct });
+  const score = getFinancialScore({
+    income: Number(revReel || 0),
+    expenses: Math.max(0, Number(revReel || 0) - Number(solde || 0)),
+    savings: Number(solde || 0)
+  }).score;
+
   if (subtitleEl) {
-    const situationLabel = window.__nexoraDashboardSituation?.label || (solde >= 0 ? 'Stable' : 'Critique');
-    subtitleEl.textContent = `${situationLabel} · solde fin de cycle ${balanceText}`;
+    subtitleEl.textContent = `Score Nexora ${score}% · Risque ${situation.riskLabel}`;
   }
 }
 

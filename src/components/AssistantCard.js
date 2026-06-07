@@ -10,7 +10,7 @@ function createAssistantCard() {
     <div class="assistant-header">
       <div>
         <div class="assistant-eyebrow">Assistant Nexora</div>
-        <h3 class="assistant-title">Assistant financier IA</h3>
+        <h3 class="assistant-title">Assistant Nexora</h3>
       </div>
       <div class="assistant-labels">
         <div class="assistant-badge">Assistant IA</div>
@@ -21,8 +21,10 @@ function createAssistantCard() {
       <div class="assistant-situation assistant-block">
         <strong>Situation actuelle</strong>
         <p id="assistant-situation-text">Les tendances financières seront affichées ici dès que vous aurez saisi vos revenus et dépenses.</p>
+        <button type="button" class="btn btn-outline assistant-toggle" id="assistant-toggle-details">Voir l’analyse</button>
       </div>
 
+      <div class="assistant-details" id="assistant-details" hidden>
       <!-- Diagnostic & Actions -->
       <div class="assistant-main-grid">
         <div class="assistant-analysis assistant-block">
@@ -79,6 +81,7 @@ function createAssistantCard() {
           <div class="vertical-timeline-line"></div>
           <div class="assistant-timeline-items" id="assistant-timeline-items"></div>
         </div>
+      </div>
       </div>
     </div>
   `
@@ -162,7 +165,15 @@ function createAssistantCard() {
     .assistant-body {
       display: grid;
       grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .assistant-details {
+      display: grid;
+      grid-template-columns: 1fr;
       gap: 16px;
+    }
+    .assistant-details[hidden] {
+      display: none !important;
     }
     .assistant-main-grid {
       display: grid;
@@ -181,6 +192,27 @@ function createAssistantCard() {
       line-height: 1.5;
       color: var(--text);
       margin: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .assistant-header {
+      display: none;
+    }
+    .assistant-situation {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: auto;
+      padding: 12px 14px;
+    }
+    .assistant-situation strong {
+      display: none !important;
+    }
+    .assistant-toggle {
+      justify-self: start;
+      margin-top: 0;
     }
     .assistant-block strong, .assistant-analysis strong, .assistant-situation strong {
       display: block;
@@ -483,6 +515,16 @@ function createAssistantCard() {
       .assistant-situation {
         padding: 12px;
       }
+      .assistant-situation p {
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+      }
+      .assistant-toggle {
+        justify-content: center;
+        width: 100%;
+      }
     }
     @media(max-width: 576px) {
       .proj-speeds {
@@ -527,7 +569,19 @@ async function renderAssistantCard() {
   const trajectoryEl = existing.querySelector('#assistant-trajectory')
   const vigilanceList = existing.querySelector('#assistant-vigilance-list')
   const actionList = existing.querySelector('#assistant-action-list')
+  const toggleDetailsBtn = existing.querySelector('#assistant-toggle-details')
+  const detailsEl = existing.querySelector('#assistant-details')
   const isSimpleMode = document.body?.classList?.contains('mode-simple')
+
+  if (toggleDetailsBtn && detailsEl && !toggleDetailsBtn.dataset.bound) {
+    toggleDetailsBtn.dataset.bound = 'true'
+    toggleDetailsBtn.onclick = () => {
+      const shouldOpen = detailsEl.hasAttribute('hidden')
+      if (shouldOpen) detailsEl.removeAttribute('hidden')
+      else detailsEl.setAttribute('hidden', '')
+      toggleDetailsBtn.textContent = shouldOpen ? 'Masquer l’analyse' : 'Voir l’analyse'
+    }
+  }
 
   if (trajectoryEl) {
     trajectoryEl.textContent = result.trajectoryLabel || 'Analyse en cours'
@@ -536,7 +590,8 @@ async function renderAssistantCard() {
 
   if (situationEl) {
     const situation = result.currentSituation || 'Les tendances financières seront affichées ici.'
-    situationEl.textContent = isSimpleMode ? situation.split(/[.!?]/).filter(Boolean)[0].trim() + '.' : situation
+    const summary = (situation.split(/[.!?]/).filter(Boolean)[0] || situation).trim()
+    situationEl.textContent = `Assistant Nexora : ${summary}${summary.endsWith('.') ? '' : '.'}`
   }
 
   // Populate formatted structured bullet points for Analysis
