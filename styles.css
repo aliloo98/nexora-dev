@@ -555,10 +555,21 @@ body,
   #nexora-core-panel.nexora-core--v8 .nexora-core-center-data {
     position: absolute;
     inset: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     display:flex;
     align-items:center;
     justify-content:center;
     flex-direction:column;
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
     pointer-events: none;
   }
 
@@ -682,6 +693,7 @@ body,
   @media (max-width: 420px) {
     #nexora-core-panel.nexora-core--v8 { padding: 12px; gap: 8px }
     #nexora-core-panel.nexora-core--v8 .nexora-core-globe { width: 200px; height:200px }
+    #nexora-core-panel.nexora-core--v8 .nexora-core-center-data { width: 100% !important; height: 100% !important; transform: none !important }
     #nexora-core-panel.nexora-core--v8 .nexora-core-center-value { font-size: 28px }
     #nexora-core-panel.nexora-core--v8 .nexora-core-center-label { font-size: 12px }
     #nexora-core-panel.nexora-core--v8 .nexora-core-mission { font-size: 15px; padding: 10px }
@@ -7879,11 +7891,42 @@ body.mode-simple .home-goal-summary {
 #nexora-core-panel.nexora-core--v8 .nexora-core-center-data {
   position: absolute;
   inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  height: 100%;
+  transform: none;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
   pointer-events: none;
+}
+
+#nexora-core-panel.nexora-core--v8 .nexora-core-center-data::before,
+#nexora-core-panel.nexora-core--v8 .nexora-core-center-data::after {
+  display: none;
+}
+
+#nexora-core-panel.nexora-core--v8 .nexora-core-ring,
+#nexora-core-panel.nexora-core--v8 .nexora-core-graph {
+  inset: 0;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform: none !important;
+}
+
+#nexora-core-panel.nexora-core--v8 .nexora-core-ring-track,
+#nexora-core-panel.nexora-core--v8 .nexora-core-ring-progress {
+  transform: rotate(-90deg) !important;
+  transform-origin: 50% 50%;
 }
 
 #nexora-core-panel.nexora-core--v8 .nexora-core-center-value {
@@ -8136,6 +8179,34 @@ body.mode-simple .home-goal-summary {
     height: 180px;
     min-width: 180px;
     min-height: 180px;
+    margin: 0 auto;
+    overflow: visible;
+  }
+  #nexora-core-panel.nexora-core--v8 .nexora-core-center-data {
+    position: absolute;
+    inset: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+  #nexora-core-panel.nexora-core--v8 .nexora-core-stage,
+  #nexora-core-panel.nexora-core--v8 .nexora-core-globe-wrap {
+    display: grid;
+    justify-items: center;
+    min-height: 190px;
+    width: 100%;
+  }
+  #nexora-core-panel.nexora-core--v8 .nexora-core-hero-copy {
+    margin-top: 8px;
+    position: relative;
+    z-index: 6;
   }
   #nexora-core-panel.nexora-core--v8 .nexora-core-center-value {
     font-size: 26px;
