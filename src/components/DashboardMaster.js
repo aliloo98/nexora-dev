@@ -1,5 +1,6 @@
 import DashboardService from '../dashboard/dashboardService.js'
 import { getProactiveCoach } from '../advisor/proactiveCoachService.js'
+import TreasuryAdapter from '../treasury/treasuryAdapter.js'
 
 const escapeHtml = (value) => String(value ?? '')
   .replace(/&/g, '&amp;')
@@ -14,8 +15,16 @@ export async function renderDashboardMaster(rootId, TreasuryService) {
   root.classList.add('dashboard-coach-root', 'fade-in')
   // gather minimal inputs from global services if available
   const baseBalance = (window?.MonthlyBudgetStateService?.getCurrentBalanceSync && typeof window.MonthlyBudgetStateService.getCurrentBalanceSync === 'function') ? window.MonthlyBudgetStateService.getCurrentBalanceSync() : 0
-  const revenues = []
-  const charges = []
+  const monthKey = typeof window.getMonth === 'function' ? window.getMonth() : new Date().toISOString().slice(0, 7)
+  let revenues = []
+  let charges = []
+  try {
+    const flows = await TreasuryAdapter.fetchCurrentMonthBudget(monthKey)
+    revenues = Array.isArray(flows?.revenues) ? flows.revenues : []
+    charges = Array.isArray(flows?.charges) ? flows.charges : []
+  } catch (error) {
+    console.warn('[DashboardMaster] treasury flows unavailable, using empty fallback', error)
+  }
   const plan = DashboardService.get7DayPlan({ fromDate: new Date(), baseBalance, revenues, charges })
   const action = DashboardService.getActionOfDay(plan)
   const coach = await getProactiveCoach().catch(() => null)
