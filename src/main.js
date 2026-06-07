@@ -572,3 +572,35 @@ if (document.readyState === 'loading') {
 
 // Exposed for manual recovery from the browser console if startup is interrupted.
 window.initApp = initApp
+
+// Minimal V7 toggle helper (no runtime side-effects beyond class toggle)
+window.enableNexoraV7 = (enable = true) => {
+  try {
+    const panel = document.getElementById('nexora-core-panel')
+    if (!panel) return false
+    panel.classList.toggle('nexora-core--v7', !!enable)
+    return true
+  } catch (e) {
+    console.warn('enableNexoraV7 failed', e)
+    return false
+  }
+}
+
+window.disableNexoraV7 = () => window.enableNexoraV7(false)
+
+// Minimal V8 toggle helpers for Jarvis Command Center (manual QA only)
+window.enableNexoraV8 = (enable = true) => {
+  try {
+    const panel = document.getElementById('nexora-core-panel')
+    if (!panel) return false
+    panel.classList.toggle('nexora-core--v8', !!enable)
+    // ensure metrics hidden by default unless explicitly expanded
+    if (!enable) panel.removeAttribute('data-details')
+    return true
+  } catch (e) {
+    console.warn('enableNexoraV8 failed', e)
+    return false
+  }
+}
+
+window.disableNexoraV8 = () => window.enableNexoraV8(false)

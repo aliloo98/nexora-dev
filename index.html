@@ -141,7 +141,7 @@
         </div>
       </div>
     </section>
-    <section class="nexora-core-panel nexora-core-panel--signature nexora-core-panel--masterpiece wow-card" id="nexora-core-panel" aria-label="Nexora Core — centre de contrôle financier">
+    <section class="nexora-core-panel nexora-core-panel--signature nexora-core-panel--masterpiece nexora-core--v8 wow-card" id="nexora-core-panel" aria-label="Nexora Core — centre de contrôle financier">
       <div class="nexora-core-layout nexora-core-layout--signature">
         <header class="nexora-core-hero">
           <div class="nexora-core-stage" id="nexora-core-stage">
@@ -194,12 +194,21 @@
           </div>
         </header>
         <div class="nexora-core-copy">
-          <div class="nexora-core-mission" aria-label="Mission du jour">
-            <span>Mission du jour</span>
-            <strong id="nexora-core-mission-title">Voir le plan</strong>
-            <p id="nexora-core-mission-detail">Nexora préparera une action dès que le budget sera complet.</p>
+          <!-- V8 JARVIS: Mission + CTA as primary decision block -->
+          <div class="nexora-core-decision-block">
+            <div class="nexora-core-mission" aria-label="Mission du jour">
+              <span>Mission du jour</span>
+              <strong id="nexora-core-mission-title">Voir le plan</strong>
+              <p id="nexora-core-mission-detail">Nexora préparera une action dès que le budget sera complet.</p>
+            </div>
+            <div class="nexora-core-actions">
+              <button type="button" id="nexora-core-primary-cta" class="btn btn-gold nexora-core-cta nexora-core-cta--primary" onclick="window.NexoraCore?.openNexoraCoreAction?.()">Prochaine action</button>
+              <button type="button" class="btn btn-outline nexora-core-cta nexora-core-cta--secondary" onclick="showSection('saisie')">Mettre à jour</button>
+            </div>
           </div>
-          <!-- Début fusion : priority-action-card (déplacé dans Nexora Core, masqué) -->
+
+          <!-- V8 JARVIS: Secondary details section -->
+          <div class="nexora-core-details-section">
           <section class="wow-card priority-action-card nexora-core-inline-card" id="priority-action-card" style="display:none;" aria-hidden="true">
             <span>Action recommandée</span>
             <strong id="priority-action-title">Aucun risque détecté</strong>
@@ -224,10 +233,6 @@
           <p class="available-money-suggestion" id="available-money-suggestion">Suggestion Nexora : complète ton budget pour obtenir une recommandation.</p>
           </section>
           <!-- Fin fusion available-money-card -->
-          <div class="nexora-core-actions">
-            <button type="button" id="nexora-core-primary-cta" class="btn btn-gold nexora-core-cta nexora-core-cta--primary" onclick="window.NexoraCore?.openNexoraCoreAction?.()">Prochaine action</button>
-            <button type="button" class="btn btn-outline nexora-core-cta nexora-core-cta--secondary" onclick="showSection('saisie')">Mettre à jour</button>
-          </div>
           <p id="nexora-core-detail" class="nexora-core-detail">Complète ton budget pour activer la lecture unifiée.</p>
           <div class="nexora-core-legend">
             <span class="nexora-core-legend--goal"><i></i> Objectifs</span>
@@ -239,6 +244,7 @@
             <div class="nexora-core-metric nexora-core-metric--balance"><dt>Solde fin de cycle</dt><dd id="nexora-core-balance">—</dd></div>
             <div class="nexora-core-metric nexora-core-metric--goal"><dt>Objectif principal</dt><dd id="nexora-core-goal">—</dd></div>
           </dl>
+          </div>
         </div>
       </div>
     </section>
