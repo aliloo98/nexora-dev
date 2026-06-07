@@ -125,6 +125,22 @@
         </div>
       </div>
     </div>
+    <section class="dashboard-synthesis-hero wow-card" id="dashboard-synthesis-hero" data-state="neutral" aria-label="Synthèse du mois">
+      <div class="dashboard-synthesis-main">
+        <span class="dashboard-synthesis-status" id="dashboard-synthesis-status">Synthèse à compléter</span>
+        <h2 id="dashboard-synthesis-title">Complète ton budget pour obtenir ta synthèse</h2>
+        <p id="dashboard-synthesis-meta">Ajoute tes revenus et charges pour calculer la situation du mois.</p>
+      </div>
+      <div class="dashboard-synthesis-action">
+        <span>Action du jour</span>
+        <strong id="dashboard-synthesis-action-title">Voir le plan</strong>
+        <p id="dashboard-synthesis-action-detail">Nexora préparera une action dès que le budget sera complet.</p>
+        <div class="dashboard-synthesis-actions">
+          <button type="button" class="btn btn-gold" id="dashboard-synthesis-primary">Faire l’action recommandée</button>
+          <button type="button" class="btn btn-outline" onclick="showSection('saisie')">Mettre à jour le budget</button>
+        </div>
+      </div>
+    </section>
     <section class="nexora-core-panel nexora-core-panel--signature nexora-core-panel--masterpiece wow-card" id="nexora-core-panel" aria-label="Nexora Core — centre de contrôle financier">
       <div class="nexora-core-layout nexora-core-layout--signature">
         <header class="nexora-core-hero">
@@ -4011,6 +4027,12 @@ function updateAll(){
     totalDepRestant,
     variablesPct
   });
+  updateDashboardSynthesisHero({
+    revReel,
+    solde,
+    tauxCh,
+    variablesPct
+  });
   updateMonthForecast({
     revReel,
     solde
@@ -4226,6 +4248,58 @@ function updatePriorityAction(metrics = {}) {
   card.classList.add(`is-${state}`);
   titleEl.textContent = title;
   detailEl.textContent = detail;
+}
+
+function updateDashboardSynthesisHero(metrics = {}) {
+  const hero = document.getElementById('dashboard-synthesis-hero');
+  const statusEl = document.getElementById('dashboard-synthesis-status');
+  const titleEl = document.getElementById('dashboard-synthesis-title');
+  const metaEl = document.getElementById('dashboard-synthesis-meta');
+  const actionTitleEl = document.getElementById('dashboard-synthesis-action-title');
+  const actionDetailEl = document.getElementById('dashboard-synthesis-action-detail');
+  const primaryBtn = document.getElementById('dashboard-synthesis-primary');
+  if (!hero || !statusEl || !titleEl || !metaEl || !actionTitleEl || !actionDetailEl || !primaryBtn) return;
+
+  const revReel = Number(metrics.revReel || 0);
+  const solde = Number(metrics.solde || 0);
+  const tauxCh = Number(metrics.tauxCh || 0);
+  const variablesPct = Number(metrics.variablesPct || 0);
+  let state = 'neutral';
+  let status = 'Synthèse à compléter';
+  let title = 'Complète ton budget pour obtenir ta synthèse';
+  let meta = 'Ajoute tes revenus et charges pour calculer la situation du mois.';
+  let actionTitle = 'Voir le plan';
+  let actionDetail = 'Nexora préparera une action dès que le budget sera complet.';
+
+  if (revReel > 0) {
+    const riskLabel = solde < 0 || tauxCh > 85 || variablesPct > 40 ? 'élevé' : tauxCh > 75 || variablesPct > 35 ? 'modéré' : 'faible';
+    if (solde < 0) {
+      state = 'fragile';
+      status = 'Situation fragile';
+    } else if (tauxCh > 75 || variablesPct > 35) {
+      state = 'watch';
+      status = 'À surveiller';
+    } else {
+      state = 'stable';
+      status = 'Situation stable';
+    }
+    title = `Il te restera ${fmt(solde)} en fin de cycle`;
+    meta = `Charges ${tauxCh}% · Variables ${variablesPct}% · Risque ${riskLabel}`;
+    actionTitle = document.getElementById('priority-action-title')?.textContent?.trim() || 'Voir le plan';
+    actionDetail = document.getElementById('priority-action-detail')?.textContent?.trim() || 'Ouvre le plan pour voir les prochaines étapes.';
+  }
+
+  hero.dataset.state = state;
+  statusEl.textContent = status;
+  titleEl.textContent = title;
+  metaEl.textContent = meta;
+  actionTitleEl.textContent = actionTitle || 'Voir le plan';
+  actionDetailEl.textContent = actionDetail || 'Ouvre le plan pour voir les prochaines étapes.';
+  primaryBtn.onclick = () => {
+    const coachAction = document.getElementById('dashboard-coach-action');
+    if (coachAction) coachAction.click();
+    else showSection('plan');
+  };
 }
 
 function updateMonthForecast(metrics = {}) {
