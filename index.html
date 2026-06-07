@@ -132,12 +132,12 @@
         <p id="dashboard-synthesis-meta">Ajoute tes revenus et charges pour calculer la situation du mois.</p>
       </div>
       <div class="dashboard-synthesis-action">
-        <span>Action du jour</span>
+        <span>Mission du jour</span>
         <strong id="dashboard-synthesis-action-title">Voir le plan</strong>
         <p id="dashboard-synthesis-action-detail">Nexora préparera une action dès que le budget sera complet.</p>
         <div class="dashboard-synthesis-actions">
-          <button type="button" class="btn btn-gold" id="dashboard-synthesis-primary">Faire l’action recommandée</button>
-          <button type="button" class="btn btn-outline" onclick="showSection('saisie')">Mettre à jour le budget</button>
+          <button type="button" class="btn btn-gold dashboard-synthesis-cta dashboard-synthesis-cta--primary" id="dashboard-synthesis-primary">Faire l’action recommandée</button>
+          <button type="button" class="btn btn-outline dashboard-synthesis-cta dashboard-synthesis-cta--secondary" onclick="showSection('saisie')">Mettre à jour le budget</button>
         </div>
       </div>
     </section>
@@ -200,14 +200,14 @@
             <span class="nexora-core-legend--debt"><i></i> Dettes</span>
           </div>
           <dl class="nexora-core-metrics">
-            <div class="nexora-core-metric nexora-core-metric--health"><dt>Situation</dt><dd id="nexora-core-health">—</dd></div>
+            <div class="nexora-core-metric nexora-core-metric--health"><dt>Score Nexora</dt><dd id="nexora-core-health">—</dd></div>
             <div class="nexora-core-metric nexora-core-metric--risk"><dt>Risque</dt><dd id="nexora-core-risk">—</dd></div>
             <div class="nexora-core-metric nexora-core-metric--balance"><dt>Solde fin de cycle</dt><dd id="nexora-core-balance">—</dd></div>
             <div class="nexora-core-metric nexora-core-metric--goal"><dt>Objectif principal</dt><dd id="nexora-core-goal">—</dd></div>
           </dl>
           <div class="nexora-core-actions">
-            <button type="button" class="btn btn-gold" onclick="window.NexoraCore?.openNexoraCoreAction?.()">Prochaine action</button>
-            <button type="button" class="btn btn-outline" onclick="showSection('saisie')">Mettre à jour</button>
+            <button type="button" class="btn btn-gold nexora-core-cta nexora-core-cta--primary" onclick="window.NexoraCore?.openNexoraCoreAction?.()">Prochaine action</button>
+            <button type="button" class="btn btn-outline nexora-core-cta nexora-core-cta--secondary" onclick="showSection('saisie')">Mettre à jour</button>
           </div>
         </div>
       </div>
