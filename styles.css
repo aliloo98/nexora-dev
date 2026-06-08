@@ -566,11 +566,32 @@ body,
     width: 100% !important;
     height: 100% !important;
     transform: none !important;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
     backdrop-filter: none;
     pointer-events: none;
+  }
+
+  #nexora-core-panel.nexora-core--v8 .nexora-core-center-data > * {
+    position: relative;
+    z-index: 3;
+  }
+
+  #nexora-core-panel.nexora-core--v8 .nexora-core-center-data::before,
+  #nexora-core-panel.nexora-core--v8 .nexora-core-center-data::after,
+  #nexora-core-panel.nexora-core--v8 .nexora-core-globe::before,
+  #nexora-core-panel.nexora-core--v8 .nexora-core-globe::after {
+    content: none !important;
+    display: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  #nexora-core-panel.nexora-core--v8 .nexora-core-center-data [class*="dot"],
+  #nexora-core-panel.nexora-core--v8 .nexora-core-center-data [class*="node"],
+  #nexora-core-panel.nexora-core--v8 .nexora-core-center-data [class*="pulse"] {
+    display: none !important;
   }
 
   /* central amount (primary) */
@@ -580,6 +601,8 @@ body,
     font-weight: 900;
     color: var(--text);
     letter-spacing: -0.02em;
+    position: relative;
+    z-index: 4;
     pointer-events: auto;
   }
 
@@ -589,6 +612,8 @@ body,
     color: var(--text2);
     margin-top: 8px;
     font-weight:700;
+    position: relative;
+    z-index: 4;
   }
 
   /* State badges map to human language (stable/watch/fragile) — keep existing data attributes handling */
@@ -7902,16 +7927,49 @@ body.mode-simple .home-goal-summary {
   width: 100%;
   height: 100%;
   transform: none;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
   backdrop-filter: none;
   pointer-events: none;
 }
 
+#nexora-core-panel.nexora-core--v8 .nexora-core-center-data {
+  background: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  z-index: 20 !important;
+  pointer-events: none;
+}
+
+#nexora-core-panel.nexora-core--v8 .nexora-core-center-data > * {
+  position: relative;
+  z-index: 3;
+}
+
 #nexora-core-panel.nexora-core--v8 .nexora-core-center-data::before,
 #nexora-core-panel.nexora-core--v8 .nexora-core-center-data::after {
-  display: none;
+  content: none !important;
+  display: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#nexora-core-panel.nexora-core--v8 .nexora-core-globe::before,
+#nexora-core-panel.nexora-core--v8 .nexora-core-globe::after {
+  content: none !important;
+  display: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#nexora-core-panel.nexora-core--v8 .nexora-core-center-data [class*="dot"],
+#nexora-core-panel.nexora-core--v8 .nexora-core-center-data [class*="node"],
+#nexora-core-panel.nexora-core--v8 .nexora-core-center-data [class*="pulse"] {
+  display: none !important;
 }
 
 #nexora-core-panel.nexora-core--v8 .nexora-core-ring,
@@ -7921,6 +7979,56 @@ body.mode-simple .home-goal-summary {
   width: 100%;
   height: 100%;
   transform: none !important;
+}
+
+#nexora-core-panel.nexora-core--v8 .nexora-core-ring {
+  z-index: 1 !important;
+}
+
+#nexora-core-panel.nexora-core--v8 .nexora-core-graph {
+  z-index: 2 !important;
+}
+
+#nexora-core-panel.nexora-core--v8 .nexora-core-graph,
+#nexora-core-panel.nexora-core--v8 .nexora-core-satellite-rig,
+#nexora-core-panel.nexora-core--v8 .nexora-core-orbit-node {
+  z-index: 2 !important;
+}
+
+#nexora-core-panel.nexora-core--v8 .nexora-core-center-data,
+#nexora-core-panel.nexora-core--v8 .nexora-core-center-value,
+#nexora-core-panel.nexora-core--v8 .nexora-core-center-label {
+  position: relative;
+  z-index: 30 !important;
+}
+
+#nexora-core-panel.nexora-core--v8 .nexora-core-orbit-node {
+  opacity: 0.92;
+}
+
+#nexora-core-panel.nexora-core--v8 .nexora-core-orbit-node {
+  z-index: 2 !important;
+}
+
+#nexora-core-panel.nexora-core--v8 .nexora-core-orbit-node:hover,
+#nexora-core-panel.nexora-core--v8 .nexora-core-orbit-node:focus {
+  z-index: 3 !important;
+}
+
+#nexora-core-panel.nexora-core--v8 .nexora-core-center-data {
+  z-index: 50 !important;
+  pointer-events: none !important;
+}
+
+#nexora-core-panel.nexora-core--v8 .nexora-core-center-value,
+#nexora-core-panel.nexora-core--v8 .nexora-core-center-label {
+  position: relative;
+  z-index: 60 !important;
+  pointer-events: none !important;
+}
+
+#nexora-core-panel.nexora-core--v8 .nexora-core-orbit-node:empty {
+  display: none !important;
 }
 
 #nexora-core-panel.nexora-core--v8 .nexora-core-ring-track,
@@ -7935,6 +8043,8 @@ body.mode-simple .home-goal-summary {
   line-height: 1;
   color: var(--text);
   letter-spacing: -0.02em;
+  position: relative;
+  z-index: 21 !important;
   pointer-events: auto;
 }
 
@@ -7943,6 +8053,8 @@ body.mode-simple .home-goal-summary {
   font-weight: 700;
   color: var(--text2);
   margin-top: 6px;
+  position: relative;
+  z-index: 21 !important;
 }
 
 /* === ORDER 2: STATE / BADGE === */
