@@ -1497,7 +1497,7 @@ function readNexoraAiSettings() {
     if (window.NexoraAiSettingsService?.readAiSettings) {
       return window.NexoraAiSettingsService.readAiSettings();
     }
-    return { ...getDefaultNexoraAiSettings(), ...(JSON.parse(SafeStorage.getItem('nexora_ai_settings_v1') || '{}')) };
+    return { ...getDefaultNexoraAiSettings(), ...(JSON.parse(SafeStorage.getItem(syncedSettingStorageKey('nexora_ai_settings_v1')) || '{}')) };
   } catch {
     return getDefaultNexoraAiSettings();
   }
@@ -1538,7 +1538,7 @@ function saveNexoraAiSettingsFromUI() {
     if (window.NexoraAiSettingsService?.updateAiSettings) {
       window.NexoraAiSettingsService.updateAiSettings(next);
     } else {
-      SafeStorage.setItem('nexora_ai_settings_v1', JSON.stringify(next));
+      SafeStorage.setItem(syncedSettingStorageKey('nexora_ai_settings_v1'), JSON.stringify(next));
     }
     applyNexoraAiSettingsUI();
     if (typeof window.refreshDashboardCoach === 'function') window.refreshDashboardCoach().catch(() => {});

@@ -40,10 +40,13 @@ const todayKey = (date = new Date()) => {
   return Number.isNaN(d.getTime()) ? new Date().toISOString().slice(0, 10) : d.toISOString().slice(0, 10)
 }
 
+const getLocalStorageKey = (key) => UserAppSettingsService?.getLocalStorageKey?.(key) || key
+
 const readJson = (key, fallback) => {
   try {
     const runtime = typeof window !== 'undefined' ? window : globalThis
-    const raw = runtime?.SafeStorage?.getItem?.(key) || runtime?.localStorage?.getItem?.(key)
+    const storageKey = getLocalStorageKey(key)
+    const raw = runtime?.SafeStorage?.getItem?.(storageKey) || runtime?.localStorage?.getItem?.(storageKey)
     if (!raw) return fallback
     const parsed = JSON.parse(raw)
     return parsed && typeof parsed === 'object' ? parsed : fallback
@@ -55,9 +58,10 @@ const readJson = (key, fallback) => {
 const writeJson = (key, value) => {
   try {
     const runtime = typeof window !== 'undefined' ? window : globalThis
+    const storageKey = getLocalStorageKey(key)
     const serialized = JSON.stringify(value)
-    if (runtime?.SafeStorage?.setItem) runtime.SafeStorage.setItem(key, serialized)
-    else runtime?.localStorage?.setItem?.(key, serialized)
+    if (runtime?.SafeStorage?.setItem) runtime.SafeStorage.setItem(storageKey, serialized)
+    else runtime?.localStorage?.setItem?.(storageKey, serialized)
     if (UserAppSettingsService?.saveSetting) {
       UserAppSettingsService.saveSetting(key, value)
         .then(() => UserAppSettingsService.syncLocalSettingToCloud?.(key))
