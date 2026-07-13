@@ -7,6 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status",
+    "supabase:reset": "supabase db reset --local",
+    "supabase:lint": "supabase db lint --local --level warning",
+    "test:supabase:layout": "node ./supabase/validate-layout.js",
+    "test:db": "supabase test db --local",
     "test:assistant": "node ./src/utils/parseBudgetNumber-tests.js && node ./src/finance/financialExpression-tests.js && node ./src/finance/cycleBalance-tests.js && node ./src/advisor/scenario-display-tests.js && node ./src/assistant/run-tests.js && node ./src/couple/ui-tests.js && node ./src/treasury/treasury-tests.js && node ./src/debt/debt-tests.js && node ./src/advisor/advisor-tests.js && node ./src/auth/userDisplayName-tests.js && node ./src/settings/recurringIncome-sync-tests.js",
     "test:e2e": "npx playwright test tests/playwright --config=./playwright.config.js"
   },
@@ -17,6 +24,7 @@
   "devDependencies": {
     "@playwright/test": "^1.60.0",
     "playwright": "^1.60.0",
+    "supabase": "^2.109.1",
     "vite": "^5.0.0"
   }
 }
