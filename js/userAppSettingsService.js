@@ -198,6 +198,8 @@ const mergeSyncedArrayValue = (key, localValue, cloudValue) => {
 const UserAppSettingsService = {
   log: () => {},
 
+  getLocalStorageKey: getNamespacedStorageKey,
+
   warn: (message, data) => {
     if (typeof console !== 'undefined' && console.warn) {
       console.warn('[UserAppSettingsService]', message, data || '')

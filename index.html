@@ -1183,12 +1183,21 @@ const SafeStorage = (() => {
 })();
 
 function getMonth(){return document.getElementById('monthSelect').value}
+function getCurrentStorageOwnerId(){
+  const userId = window.AuthContext?.getCurrentUser?.()?.id;
+  return typeof userId === 'string' ? userId.replace(/[^a-zA-Z0-9_-]/g, '_') : null;
+}
 function storageKey(m){
   const serviceKey = window.MonthlyBudgetStateService?.getLocalStorageKey?.(m);
   if (serviceKey) return serviceKey;
-  const userId = window.AuthContext?.getCurrentUser?.()?.id;
-  const ownerId = typeof userId === 'string' ? userId.replace(/[^a-zA-Z0-9_-]/g, '_') : null;
+  const ownerId = getCurrentStorageOwnerId();
   return ownerId ? `budget_${ownerId}_${m}` : `budget_${m}`;
+}
+function syncedSettingStorageKey(key){
+  const serviceKey = window.UserAppSettingsService?.getLocalStorageKey?.(key);
+  if (serviceKey) return serviceKey;
+  const ownerId = getCurrentStorageOwnerId();
+  return ownerId ? `${key}::user:${ownerId}` : key;
 }
 
 const BUDGET_CYCLE_SETTINGS_KEY = 'nexora_budget_cycle_settings_v1';
@@ -1541,7 +1550,7 @@ function saveNexoraAiSettingsFromUI() {
 
 function readDebts() {
   try {
-    const parsed = JSON.parse(SafeStorage.getItem(DEBTS_STORAGE_KEY) || '[]');
+    const parsed = JSON.parse(SafeStorage.getItem(syncedSettingStorageKey(DEBTS_STORAGE_KEY)) || '[]');
     return filterTechnicalRecords(Array.isArray(parsed) ? parsed : [], (debt) => debt?.name);
   } catch {
     return [];
@@ -1553,7 +1562,7 @@ function saveDebts(debts) {
   const normalized = Array.isArray(debts)
     ? debts.map(debt => ({ ...debt, updated_at: debt.updated_at || now }))
     : [];
-  SafeStorage.setItem(DEBTS_STORAGE_KEY, JSON.stringify(normalized));
+  SafeStorage.setItem(syncedSettingStorageKey(DEBTS_STORAGE_KEY), JSON.stringify(normalized));
   if (window.UserAppSettingsService?.saveSetting) {
     window.UserAppSettingsService.saveSetting(DEBTS_STORAGE_KEY, normalized)
       .then(() => window.UserAppSettingsService.syncLocalSettingToCloud?.(DEBTS_STORAGE_KEY))
