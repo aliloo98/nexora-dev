@@ -48,7 +48,8 @@ export const SettingsService = {
   async loadRecurringIncomes() {
     try {
       const { value } = await UserAppSettingsService.getSetting(STORAGE_KEYS.recurringIncomes)
-      const raw = value === null ? localStorage.getItem(this.RECURRING_INCOMES_KEY) : null
+      const storageKey = UserAppSettingsService.getLocalStorageKey(this.RECURRING_INCOMES_KEY)
+      const raw = value === null ? localStorage.getItem(storageKey) : null
       const parsed = value !== null ? value : (raw ? JSON.parse(raw) : [])
       return normalizeRecurringIncomeList(
         Array.isArray(parsed) ? parsed : [],
@@ -64,7 +65,6 @@ export const SettingsService = {
     try {
       const normalized = Array.isArray(entries) ? entries.map((entry) => this.normalizeRecurringIncome({ ...entry, updated_at: entry.updated_at || nowIso() })) : []
       await UserAppSettingsService.saveSetting(STORAGE_KEYS.recurringIncomes, normalized)
-      localStorage.setItem(this.RECURRING_INCOMES_KEY, JSON.stringify(normalized))
       await UserAppSettingsService.syncLocalSettingToCloud(STORAGE_KEYS.recurringIncomes).catch((err) => {
         console.warn('[SettingsService] recurring incomes cloud sync failed', err)
       })
@@ -78,7 +78,8 @@ export const SettingsService = {
   async loadBillSchedules() {
     try {
       const { value } = await UserAppSettingsService.getSetting(STORAGE_KEYS.billSchedules)
-      const raw = value === null ? localStorage.getItem(this.BILL_SCHEDULES_KEY) : null
+      const storageKey = UserAppSettingsService.getLocalStorageKey(this.BILL_SCHEDULES_KEY)
+      const raw = value === null ? localStorage.getItem(storageKey) : null
       const parsed = value !== null ? value : (raw ? JSON.parse(raw) : [])
       return Array.isArray(parsed) ? parsed.map((entry) => this.normalizeBillSchedule(entry)) : []
     } catch (error) {
@@ -91,7 +92,6 @@ export const SettingsService = {
     try {
       const normalized = Array.isArray(entries) ? entries.map((entry) => this.normalizeBillSchedule({ ...entry, updated_at: entry.updated_at || nowIso() })) : []
       await UserAppSettingsService.saveSetting(STORAGE_KEYS.billSchedules, normalized)
-      localStorage.setItem(this.BILL_SCHEDULES_KEY, JSON.stringify(normalized))
       await UserAppSettingsService.syncLocalSettingToCloud(STORAGE_KEYS.billSchedules).catch((err) => {
         console.warn('[SettingsService] bill schedules cloud sync failed', err)
       })

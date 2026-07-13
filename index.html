@@ -2265,7 +2265,8 @@ function getNexoraOfficialSituation({ revReel = 0, solde = 0, tauxCh = 0, variab
 
 function readLocalJsonArray(key) {
   try {
-    const parsed = JSON.parse(SafeStorage.getItem(key) || localStorage.getItem(key) || '[]');
+    const storageKey = syncedSettingStorageKey(key);
+    const parsed = JSON.parse(SafeStorage.getItem(storageKey) || localStorage.getItem(storageKey) || '[]');
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -4478,7 +4479,8 @@ function updateWeekPlan(metrics = {}) {
   const descEl = document.getElementById('week-plan-description');
   const hasProgrammedIncome = (() => {
     try {
-      const raw = SafeStorage.getItem('nexora_recurring_incomes') || localStorage.getItem('nexora_recurring_incomes') || '[]';
+      const storageKey = syncedSettingStorageKey('nexora_recurring_incomes');
+      const raw = SafeStorage.getItem(storageKey) || localStorage.getItem(storageKey) || '[]';
       const incomes = JSON.parse(raw);
       return Array.isArray(incomes) && incomes.some(income => {
         const amount = parseBudgetNumber(income?.amount || 0);
