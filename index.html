@@ -1183,7 +1183,13 @@ const SafeStorage = (() => {
 })();
 
 function getMonth(){return document.getElementById('monthSelect').value}
-function storageKey(m){return'budget_'+m}
+function storageKey(m){
+  const serviceKey = window.MonthlyBudgetStateService?.getLocalStorageKey?.(m);
+  if (serviceKey) return serviceKey;
+  const userId = window.AuthContext?.getCurrentUser?.()?.id;
+  const ownerId = typeof userId === 'string' ? userId.replace(/[^a-zA-Z0-9_-]/g, '_') : null;
+  return ownerId ? `budget_${ownerId}_${m}` : `budget_${m}`;
+}
 
 const BUDGET_CYCLE_SETTINGS_KEY = 'nexora_budget_cycle_settings_v1';
 
@@ -7097,7 +7103,7 @@ function deleteCagnotte(index) {
 function updateTrendIndicators() {
   const currentMonth = getMonth();
   const prevMonthKey = monthShift(currentMonth, -1);
-  const prevData = JSON.parse(SafeStorage.getItem('budget_' + prevMonthKey) || 'null');
+  const prevData = JSON.parse(SafeStorage.getItem(storageKey(prevMonthKey)) || 'null');
 
   document.querySelectorAll('.budget-row').forEach(row => {
     const oldBadge = row.querySelector('.trend-badge');

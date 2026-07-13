@@ -374,6 +374,7 @@ const getCurrentBalance = async (monthKey) => {
 }
 
 export const MonthlyBudgetStateService = {
+  getLocalStorageKey: storageKey,
   getMonthlyBudgetState,
   saveMonthlyBudgetState,
   deleteMonthlyBudgetState,
