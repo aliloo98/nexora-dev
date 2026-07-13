@@ -5233,9 +5233,10 @@ function getExportStorageLookupKey(key, currentUserId = getCurrentExportUserId()
 }
 
 function sanitizeBudgetCategoriesForExport(value, currentUserId = getCurrentExportUserId()) {
-  if (!currentUserId || !value || typeof value !== 'object' || Array.isArray(value)) return value;
-  const categories = Array.isArray(value[currentUserId]) ? value[currentUserId] : [];
-  return { [currentUserId]: categories };
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
+  const ownerId = currentUserId || 'local';
+  const categories = Array.isArray(value[ownerId]) ? value[ownerId] : [];
+  return { [ownerId]: categories };
 }
 
 async function exportData(){
@@ -5354,6 +5355,21 @@ function isImportableStorageKey(key) {
   return isBudgetMonthStorageKey(key) || NEXORA_IMPORTABLE_STORAGE_KEYS.has(key);
 }
 
+function getImportStorageLookupKey(key, currentUserId = getCurrentExportUserId()) {
+  const normalizedKey = String(key || '');
+  if (!currentUserId || normalizedKey === 'nexora_budget_categories_v1') return normalizedKey;
+  return isUnscopedAuthenticatedExportKey(normalizedKey, currentUserId)
+    ? `${normalizedKey}::user:${currentUserId}`
+    : normalizedKey;
+}
+
+function sanitizeBudgetCategoriesForImport(value, currentUserId = getCurrentExportUserId()) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const ownerId = currentUserId || 'local';
+  const categories = Array.isArray(value[ownerId]) ? value[ownerId] : [];
+  return { [ownerId]: categories };
+}
+
 function normalizeImportedStorageValue(value) {
   if (typeof value === 'undefined' || value === null) return null;
   return typeof value === 'object' ? JSON.stringify(value) : String(value);
@@ -5465,6 +5481,16 @@ function mergeImportedStorageValue(currentValue, importedValue, summary) {
   return importedValue;
 }
 
+function mergeImportedBudgetCategories(currentValue, importedValue, summary, currentUserId = getCurrentExportUserId()) {
+  const ownerId = currentUserId || 'local';
+  const currentStore = currentValue && typeof currentValue === 'object' && !Array.isArray(currentValue) ? currentValue : {};
+  const importedStore = sanitizeBudgetCategoriesForImport(importedValue, currentUserId);
+  return {
+    ...currentStore,
+    [ownerId]: mergeImportedArray(currentStore[ownerId], importedStore[ownerId], summary)
+  };
+}
+
 async function writeImportedBudgetMonth(month, importedData, mode) {
   let currentData = {};
   try {
@@ -5486,19 +5512,26 @@ async function writeImportedBudgetMonth(month, importedData, mode) {
 }
 
 async function writeImportedStorageKey(key, value, summary) {
+  const currentUserId = getCurrentExportUserId();
+  const lookupKey = getImportStorageLookupKey(key, currentUserId);
   let currentValue = null;
   try {
-    const raw = SafeStorage.getItem(key);
+    const raw = SafeStorage.getItem(lookupKey);
     currentValue = raw ? JSON.parse(raw) : null;
   } catch {
-    currentValue = SafeStorage.getItem(key);
+    currentValue = SafeStorage.getItem(lookupKey);
   }
-  const nextValue = mergeImportedStorageValue(currentValue, value, summary);
+  const nextValue = key === 'nexora_budget_categories_v1'
+    ? mergeImportedBudgetCategories(currentValue, value, summary, currentUserId)
+    : mergeImportedStorageValue(currentValue, value, summary);
   const storeValue = normalizeImportedStorageValue(nextValue);
   if (storeValue === null) return false;
-  SafeStorage.setItem(key, storeValue);
-  if (typeof StorageManager !== 'undefined') await StorageManager.setItem(key, storeValue);
-  if (window.UserAppSettingsService?.saveSetting && NEXORA_IMPORTABLE_STORAGE_KEYS.has(key)) {
+  SafeStorage.setItem(lookupKey, storeValue);
+  if (typeof StorageManager !== 'undefined') await StorageManager.setItem(lookupKey, storeValue);
+  const shouldSyncUserSetting = currentUserId
+    && key !== 'nexora_budget_categories_v1'
+    && isUnscopedAuthenticatedExportKey(key, currentUserId);
+  if (window.UserAppSettingsService?.saveSetting && shouldSyncUserSetting) {
     await window.UserAppSettingsService.saveSetting(key, nextValue).catch(() => {});
     await window.UserAppSettingsService.syncLocalSettingToCloud?.(key).catch(() => {});
   }
