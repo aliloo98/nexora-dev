@@ -24,12 +24,16 @@ function extractFunction(source, name) {
 const isSensitiveExportStorageKey = eval(`(${extractFunction(html, 'isSensitiveExportStorageKey')})`)
 const getCurrentExportUserId = eval(`(${extractFunction(html, 'getCurrentExportUserId')})`)
 const isStorageKeyOwnedByAnotherUser = eval(`(${extractFunction(html, 'isStorageKeyOwnedByAnotherUser')})`)
+const getPortableExportStorageKey = eval(`(${extractFunction(html, 'getPortableExportStorageKey')})`)
+const isBudgetMonthStorageKey = eval(`(${extractFunction(html, 'isBudgetMonthStorageKey')})`)
 
 assert.match(
   extractFunction(html, 'exportData'),
   /isSensitiveExportStorageKey\(k\) \|\| isStorageKeyOwnedByAnotherUser\(k, currentUserId\)/,
   'JSON export must apply security and ownership guards before reading storage values'
 )
+assert.match(extractFunction(html, 'exportData'), /version: 1/, 'JSON export should identify backup format version 1')
+assert.match(extractFunction(html, 'exportData'), /exportPriorities/, 'JSON export should prioritize namespaced data over legacy mirrors')
 
 assert.equal(isSensitiveExportStorageKey('nexora_auth_user'), true, 'stored auth user must never be exported')
 assert.equal(isSensitiveExportStorageKey('nexora_auth_session'), true, 'stored auth session must never be exported')
@@ -62,5 +66,13 @@ assert.equal(isStorageKeyOwnedByAnotherUser('budget_2026-07', 'user-a'), false, 
 assert.equal(isStorageKeyOwnedByAnotherUser('budget_app_theme', 'user-a'), false, 'global preferences should remain exportable')
 assert.equal(isStorageKeyOwnedByAnotherUser('nexora_goals_v1::user:user-a', null), true, 'anonymous export must not include authenticated settings')
 assert.equal(isStorageKeyOwnedByAnotherUser('budget_user-a_2026-07', null), true, 'anonymous export must not include authenticated snapshots')
+
+assert.equal(getPortableExportStorageKey('nexora_goals_v1::user:user-a', 'user-a'), 'nexora_goals_v1', 'current user settings should use the importable base key')
+assert.equal(getPortableExportStorageKey('nexora_goals_v1::user:user-b', 'user-a'), null, 'another user settings should have no portable export key')
+assert.equal(getPortableExportStorageKey('budget_user-a_2026-07', 'user-a'), 'budget_2026-07', 'current user snapshot should use the importable month key')
+assert.equal(isBudgetMonthStorageKey(getPortableExportStorageKey('budget_user-a_2026-07', 'user-a')), true, 'normalized snapshots should be recognized by the existing importer')
+assert.equal(getPortableExportStorageKey('budget_user-a_other_2026-07', 'user-a'), null, 'similar snapshot owner prefixes should not normalize')
+assert.equal(getPortableExportStorageKey('budget_2026-07', 'user-a'), 'budget_2026-07', 'legacy month keys should remain backward compatible')
+assert.equal(getPortableExportStorageKey('budget_app_theme', 'user-a'), 'budget_app_theme', 'global preferences should retain their key')
 
 console.log('exportSecurity-tests: OK')

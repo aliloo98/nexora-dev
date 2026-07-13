@@ -5145,19 +5145,52 @@ function isStorageKeyOwnedByAnotherUser(key, currentUserId = getCurrentExportUse
   return false;
 }
 
+function getPortableExportStorageKey(key, currentUserId = getCurrentExportUserId()) {
+  const normalizedKey = String(key || '');
+  const userNamespaceToken = '::user:';
+  const namespaceIndex = normalizedKey.lastIndexOf(userNamespaceToken);
+
+  if (namespaceIndex !== -1) {
+    const ownerId = normalizedKey.slice(namespaceIndex + userNamespaceToken.length);
+    if (!currentUserId || ownerId !== currentUserId) return null;
+    return normalizedKey.slice(0, namespaceIndex);
+  }
+
+  if (/^budget_.+_\d{4}-\d{2}$/.test(normalizedKey)) {
+    const ownerId = normalizedKey.slice('budget_'.length, -'_YYYY-MM'.length);
+    if (!currentUserId || ownerId !== currentUserId) return null;
+    return `budget_${normalizedKey.slice(-'YYYY-MM'.length)}`;
+  }
+
+  return normalizedKey || null;
+}
+
 async function exportData(){
   try {
-    const all = {};
     const currentUserId = getCurrentExportUserId();
+    const all = {
+      __nexora_backup: {
+        format: 'nexora-backup',
+        version: 1,
+        exported_at: new Date().toISOString(),
+        scope: currentUserId ? 'authenticated' : 'anonymous'
+      }
+    };
+    const exportPriorities = {};
 
     for (let i = 0; i < SafeStorage.length; i++) {
       const k = SafeStorage.key(i);
       if (!k || isSensitiveExportStorageKey(k) || isStorageKeyOwnedByAnotherUser(k, currentUserId)) continue;
+      const exportKey = getPortableExportStorageKey(k, currentUserId);
+      if (!exportKey) continue;
+      const priority = exportKey === k ? 0 : 1;
+      if ((exportPriorities[exportKey] ?? -1) > priority) continue;
       try {
-        all[k] = JSON.parse(SafeStorage.getItem(k));
+        all[exportKey] = JSON.parse(SafeStorage.getItem(k));
       } catch {
-        all[k] = SafeStorage.getItem(k);
+        all[exportKey] = SafeStorage.getItem(k);
       }
+      exportPriorities[exportKey] = priority;
     }
 
     const storageKeys = [
@@ -5199,7 +5232,7 @@ async function exportData(){
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'budget-ali-megane.json';
+    a.download = `nexora-backup-${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
