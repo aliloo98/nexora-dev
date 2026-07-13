@@ -16,8 +16,17 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#07070a">
+<style>
+body.auth-locked > .sidebar,
+body.auth-locked > main,
+body.auth-locked > .save-bar,
+body.auth-locked > #treasury-planner-root,
+body.auth-locked > #nexora-status-bar {
+  display: none !important;
+}
+</style>
 </head>
-<body>
+<body class="auth-locked">
 
 <!-- SIDEBAR / BOTTOM BAR -->
 <nav class="sidebar" role="navigation" aria-label="Navigation principale">

@@ -61,6 +61,7 @@ export const AuthPages = {
     const main = document.querySelector('main')
     const sidebar = document.querySelector('.sidebar')
 
+    document.body.classList.add('auth-locked')
     if (authContainer) authContainer.style.display = 'flex'
     if (main) main.style.display = 'none'
     if (sidebar) sidebar.style.display = 'none'
@@ -74,6 +75,7 @@ export const AuthPages = {
     const main = document.querySelector('main')
     const sidebar = document.querySelector('.sidebar')
 
+    document.body.classList.remove('auth-locked')
     if (authContainer) authContainer.style.display = 'none'
     if (main) main.style.display = 'block'
     if (sidebar) sidebar.style.display = 'flex'
