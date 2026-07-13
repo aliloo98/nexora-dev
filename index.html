@@ -5112,13 +5112,22 @@ function exportBudgetCsv(){
   }
 }
 
+function isSensitiveExportStorageKey(key) {
+  const normalizedKey = String(key || '');
+  return normalizedKey === 'nexora_auth_user'
+    || normalizedKey === 'nexora_auth_session'
+    || normalizedKey === 'nexora_last_sync_v1'
+    || normalizedKey.startsWith('nexora_sync_')
+    || normalizedKey.startsWith('sb-');
+}
+
 async function exportData(){
   try {
     const all = {};
 
     for (let i = 0; i < SafeStorage.length; i++) {
       const k = SafeStorage.key(i);
-      if (!k) continue;
+      if (!k || isSensitiveExportStorageKey(k)) continue;
       try {
         all[k] = JSON.parse(SafeStorage.getItem(k));
       } catch {
