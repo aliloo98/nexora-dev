@@ -2841,26 +2841,35 @@ function renderFinancialHistoryInsights(entries) {
   }
 }
 
-function getAnalyticsGoals() {
-  const defaults = [
-    { name: 'Voyage de noces', target: 5000, current: 0 },
-    { name: "Fonds d'urgence", target: 3000, current: 0 },
-    { name: 'Voiture', target: 8000, current: 0 },
-    { name: 'Maison', target: 20000, current: 0 }
-  ];
+const CAGNOTTES_STORAGE_KEY = 'budget_cagnottes';
+
+function readCagnottes() {
   try {
-    const parsed = JSON.parse(SafeStorage.getItem('budget_cagnottes') || '[]');
-    const cagnottes = Array.isArray(parsed) ? parsed : [];
-    return cagnottes.length > 0 ? cagnottes : defaults;
+    const parsed = JSON.parse(SafeStorage.getItem(syncedSettingStorageKey(CAGNOTTES_STORAGE_KEY)) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    return defaults;
+    return [];
   }
+}
+
+function writeCagnottes(cagnottes) {
+  const normalized = Array.isArray(cagnottes) ? cagnottes : [];
+  SafeStorage.setItem(syncedSettingStorageKey(CAGNOTTES_STORAGE_KEY), JSON.stringify(normalized));
+  return normalized;
+}
+
+function getAnalyticsGoals() {
+  return readCagnottes();
 }
 
 function renderAnalyticsGoals() {
   const container = document.getElementById('analytics-goals');
   if (!container) return;
   const goals = getAnalyticsGoals().slice(0, 4);
+  if (goals.length === 0) {
+    container.innerHTML = '<div class="history-insight-row">Ajoutez un projet d’épargne pour suivre sa progression ici.</div>';
+    return;
+  }
   container.innerHTML = goals.map(goal => {
     const pct = goal.target > 0 ? clamp(Math.round((Number(goal.current || 0) / Number(goal.target || 0)) * 100), 0, 100) : 0;
     return `
@@ -6999,14 +7008,6 @@ function applyCSVTransactions() {
   showToast(`✅ Brouillon CSV enregistré (${selected.length} opération(s))`);
 }
 
-// Seed demo cagnottes if empty
-if (!SafeStorage.getItem('budget_cagnottes')) {
-  SafeStorage.setItem('budget_cagnottes', JSON.stringify([
-    { name: '✈️ Voyage Japon', target: 3000, current: 1200 },
-    { name: '🚗 Apport Voiture', target: 8000, current: 2500 }
-  ]));
-}
-
 function toggleCagnottes() {
   const content = document.getElementById('cagnottes-content');
   const indicator = document.getElementById('cagnottes-toggle-indicator');
@@ -7021,7 +7022,7 @@ function renderCagnottes() {
   const container = document.getElementById('cagnottes-list');
   if (!container) return;
 
-  const cagnottes = JSON.parse(SafeStorage.getItem('budget_cagnottes') || '[]');
+  const cagnottes = readCagnottes();
 
   if (cagnottes.length === 0) {
     container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--text2); font-size: 13px;">Aucun projet d'épargne en cours. Créez-en un ci-dessous !</div>`;
@@ -7065,10 +7066,10 @@ function renderCagnottes() {
 }
 
 function adjustCagnotte(index, val) {
-  const cagnottes = JSON.parse(SafeStorage.getItem('budget_cagnottes') || '[]');
+  const cagnottes = readCagnottes();
   if (cagnottes[index]) {
     cagnottes[index].current = Math.max(0, cagnottes[index].current + val);
-    SafeStorage.setItem('budget_cagnottes', JSON.stringify(cagnottes));
+    writeCagnottes(cagnottes);
     renderCagnottes();
   }
 }
@@ -7089,9 +7090,9 @@ function addCagnotte() {
     return;
   }
 
-  const cagnottes = JSON.parse(SafeStorage.getItem('budget_cagnottes') || '[]');
+  const cagnottes = readCagnottes();
   cagnottes.push({ name, target, current });
-  SafeStorage.setItem('budget_cagnottes', JSON.stringify(cagnottes));
+  writeCagnottes(cagnottes);
 
   nameEl.value = '';
   targetEl.value = '';
@@ -7103,9 +7104,9 @@ function addCagnotte() {
 
 function deleteCagnotte(index) {
   customConfirm('Supprimer le projet', 'Êtes-vous sûr de vouloir supprimer ce projet d\'épargne ?', () => {
-    const cagnottes = JSON.parse(SafeStorage.getItem('budget_cagnottes') || '[]');
+    const cagnottes = readCagnottes();
     cagnottes.splice(index, 1);
-    SafeStorage.setItem('budget_cagnottes', JSON.stringify(cagnottes));
+    writeCagnottes(cagnottes);
     renderCagnottes();
     showToast('🗑️ Projet d\'épargne supprimé');
   });
