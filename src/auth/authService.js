@@ -74,11 +74,35 @@ const removeStoredValue = (key) => {
   sessionStorage.removeItem(key)
 }
 
+export const subscribeToSupabaseAuthChanges = ({
+  configured = isSupabaseConfigured,
+  auth = supabase.auth,
+  callback
+} = {}) => {
+  if (!configured || typeof auth?.onAuthStateChange !== 'function' || typeof callback !== 'function') {
+    return () => {}
+  }
+
+  const { data } = auth.onAuthStateChange((event, session) => {
+    callback({
+      event,
+      session: session || null,
+      user: session?.user || null
+    })
+  })
+
+  return () => data?.subscription?.unsubscribe?.()
+}
+
 /**
  * Authentication Service
  * All functions designed to work with real Supabase once credentials are configured
  */
 export const AuthService = {
+  subscribeToAuthChanges(callback) {
+    return subscribeToSupabaseAuthChanges({ callback })
+  },
+
   /**
    * Sign up new user with email, password, and username
    *

@@ -33,6 +33,7 @@ export const AuthContext = {
 
   // Array of listeners to notify on state changes
   _listeners: [],
+  _authUnsubscribe: null,
 
   /**
    * Subscribe to auth state changes
@@ -145,6 +146,41 @@ export const AuthContext = {
   },
 
   /**
+   * Keep the local context aligned with Supabase token and session events.
+   * @private
+   */
+  _setupAuthListener() {
+    if (typeof this._authUnsubscribe === 'function') {
+      this._authUnsubscribe()
+    }
+
+    this._authUnsubscribe = AuthService.subscribeToAuthChanges(({ event, user, session }) => {
+      if (event === 'SIGNED_OUT') {
+        this._state.user = null
+        this._state.session = null
+        this._state.isAuthenticated = false
+        this._state.error = null
+        AuthService.clearSessionPlaceholder()
+        this._notifyListeners()
+        return
+      }
+
+      if (!user) return
+
+      const previousUserId = this._state.user?.id || null
+      this._state.user = user
+      this._state.session = session || null
+      this._state.isAuthenticated = true
+      this._state.error = null
+      this._notifyListeners()
+
+      if (event === 'SIGNED_IN' && previousUserId !== user.id && !this._state.isLoading) {
+        this._syncSupabaseToLocalAfterLogin()
+      }
+    })
+  },
+
+  /**
    * Initialize auth context - Check if user is already logged in
    * Called when app starts
    */
@@ -175,6 +211,7 @@ export const AuthContext = {
       console.error('❌ AuthContext init error:', error)
       this._state.error = error
     } finally {
+      this._setupAuthListener()
       this._setLoading(false)
     }
   },
