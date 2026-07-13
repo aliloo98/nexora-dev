@@ -1,4 +1,5 @@
 import TreasuryService from '../treasury/treasuryService.js'
+import { escapeHtml } from '../utils/htmlEscape.js'
 
 export async function renderTreasuryPlanner(rootId, options = {}) {
   const root = document.getElementById(rootId)
@@ -35,7 +36,7 @@ export async function renderTreasuryPlanner(rootId, options = {}) {
     const amount = (typeof item.amount === 'number' && Number.isFinite(item.amount)) ? item.amount : 0
     const balance = (typeof item.balance === 'number' && Number.isFinite(item.balance)) ? item.balance : 0
     const dateLabel = item.date || (item.dateEstimated ? `${item.date || ''} (date estimée)` : 'date inconnue')
-    row.innerHTML = `<div class="t-date">${dateLabel}</div><div class="t-title">${item.title || 'Événement'} <span class="t-badge">${priority}</span></div><div class="t-amount">${amount>0?'+':''}${amount}€</div><div class="t-balance">${balance}€</div>`
+    row.innerHTML = `<div class="t-date">${escapeHtml(dateLabel)}</div><div class="t-title">${escapeHtml(item.title || 'Événement')} <span class="t-badge">${escapeHtml(priority)}</span></div><div class="t-amount">${amount>0?'+':''}${amount}€</div><div class="t-balance">${balance}€</div>`
     list.appendChild(row)
   })
   timelineEl.appendChild(list)

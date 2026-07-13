@@ -59,6 +59,7 @@ import { getUserDisplayName } from './auth/userDisplayName.js'
 import SyncDiagnostics from './sync/syncDiagnostics.js'
 import { readSyncedArray } from '../js/syncedSettingAccess.js'
 import { filterUserFacingRecords } from './utils/userFacingFilter.js'
+import { escapeHtml } from './utils/htmlEscape.js'
 
 // Expose modules globally for HTML event handlers and old code
 window.StorageManager = StorageManager
@@ -167,8 +168,8 @@ const createShareToggle = (type, id, label) => {
   const checked = CoupleService.isLocalItemShared(type, id)
   return `
     <label class="couple-share-toggle">
-      <span>${label}</span>
-      <select data-share-type="${type}" data-share-id="${id}">
+      <span>${escapeHtml(label)}</span>
+      <select data-share-type="${escapeHtml(type)}" data-share-id="${escapeHtml(id)}">
         <option value="private" ${checked ? '' : 'selected'}>Privé</option>
         <option value="shared" ${checked ? 'selected' : ''}>Partagé</option>
       </select>
@@ -214,10 +215,10 @@ window.renderCoupleSection = async () => {
       <section class="couple-hero-card">
         <div>
           <span>Foyer</span>
-          <h2>${household.name || 'Foyer Nexora'}</h2>
-          <p>Utilisateur actuel : ${household.currentUser || 'Moi'} · Partenaire : ${household.partnerName || household.partnerEmail || 'invitation en attente'}</p>
+          <h2>${escapeHtml(household.name || 'Foyer Nexora')}</h2>
+          <p>Utilisateur actuel : ${escapeHtml(household.currentUser || 'Moi')} · Partenaire : ${escapeHtml(household.partnerName || household.partnerEmail || 'invitation en attente')}</p>
         </div>
-        <div class="couple-code-box">${household.invitationCode}</div>
+        <div class="couple-code-box">${escapeHtml(household.invitationCode || '—')}</div>
       </section>
 
       <section class="couple-grid">
@@ -252,7 +253,7 @@ window.renderCoupleSection = async () => {
             const target = Number(goal.target) || 0
             const pct = target > 0 ? Math.min(100, Math.round(current / target * 100)) : 0
             return `<div class="couple-list-row">
-              <div><strong>${goal.icon || '🎯'} ${goal.name || 'Objectif'}</strong><span>${formatEuro(current)} / ${formatEuro(target)} · ${pct}%</span></div>
+              <div><strong>${escapeHtml(goal.icon || '🎯')} ${escapeHtml(goal.name || 'Objectif')}</strong><span>${formatEuro(current)} / ${formatEuro(target)} · ${pct}%</span></div>
               ${createShareToggle('goal', goal.id, CoupleService.isLocalItemShared('goal', goal.id) ? 'Partagé' : 'Privé')}
             </div>`
           }).join('') : '<div class="empty-state">Aucun objectif à partager.</div>'}
@@ -271,7 +272,7 @@ window.renderCoupleSection = async () => {
           ${debts.length ? debts.map((debt, index) => {
             const id = debt.id || index
             return `<div class="couple-list-row">
-              <div><strong>💳 ${debt.name || 'Dette'}</strong><span>${formatEuro(debt.remaining)} restants · ${formatEuro(debt.monthly)}/mois</span></div>
+              <div><strong>💳 ${escapeHtml(debt.name || 'Dette')}</strong><span>${formatEuro(debt.remaining)} restants · ${formatEuro(debt.monthly)}/mois</span></div>
               ${createShareToggle('debt', id, CoupleService.isLocalItemShared('debt', id) ? 'Partagée' : 'Privée')}
             </div>`
           }).join('') : '<div class="empty-state">Aucune dette à partager.</div>'}

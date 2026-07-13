@@ -7,6 +7,7 @@ import { computeCycleBalancesFromMetrics } from '../finance/cycleBalance.js'
 import { filterUserFacingRecords } from '../utils/userFacingFilter.js'
 import { STORAGE_KEYS } from '../constants/storageKeys.js'
 import { readSyncedArray, writeSyncedArray } from '../../js/syncedSettingAccess.js'
+import { escapeHtml } from '../utils/htmlEscape.js'
 
 const formatCurrency = (value) => {
   const amount = Number(value) || 0
@@ -22,11 +23,7 @@ const formatShortDate = (value) => {
   return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
 }
 
-const escapeAttr = (value) => String(value ?? '')
-  .replace(/&/g, '&amp;')
-  .replace(/"/g, '&quot;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
+const escapeAttr = escapeHtml
 
 const parseAmount = (value) => {
   const parsed = parseFinancialExpression(value, { fallback: null })
@@ -93,11 +90,14 @@ const buildPlanRows = (items, options = {}) => {
 
   return visibleItems.map((item) => {
     const amount = Math.abs(Number(item.amount) || 0)
+    const scheduleLabel = item.date
+      ? `${formatShortDate(item.date)}${item.dateEstimated ? ' · estimé' : ''}`
+      : item.priority || 'date estimée'
     return `
       <div class="plan-row">
         <div>
-          <strong>${item.title || (positive ? 'Revenu' : 'Charge')}</strong>
-          <span>${item.date ? `${formatShortDate(item.date)}${item.dateEstimated ? ' · estimé' : ''}` : item.priority || 'date estimée'}</span>
+          <strong>${escapeHtml(item.title || (positive ? 'Revenu' : 'Charge'))}</strong>
+          <span>${escapeHtml(scheduleLabel)}</span>
         </div>
         <em class="${positive ? 'positive' : 'negative'}">${positive ? '+' : '-'}${formatCurrency(amount)}</em>
       </div>

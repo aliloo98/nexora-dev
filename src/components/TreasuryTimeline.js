@@ -1,6 +1,8 @@
 /**
  * Simple DOM renderer for treasury timeline (mobile-first minimal)
  */
+import { escapeHtml } from '../utils/htmlEscape.js'
+
 const formatCurrency = (value) => {
   const amount = Number(value) || 0
   return `${amount.toLocaleString('fr-FR', {
@@ -49,7 +51,7 @@ export function renderTreasuryTimeline(containerId, timeline = []) {
     row.innerHTML = `
       <div class="t-date">📅 ${formatDate(item.date)}</div>
       <div class="t-main">
-        <strong>${iconFor(item)} ${item.title || 'Événement'}</strong>
+        <strong>${iconFor(item)} ${escapeHtml(item.title || 'Événement')}</strong>
         <span>Solde après opération : ${formatCurrency(balance)}</span>
         ${item.dateEstimated ? '<em>date estimée</em>' : ''}
       </div>

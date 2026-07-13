@@ -4,6 +4,7 @@ import createGoalCard from '../components/GoalCard.js'
 import { STORAGE_KEYS } from '../constants/storageKeys.js'
 import { parseFinancialExpression } from '../finance/financialExpression.js'
 import { filterUserFacingRecords } from '../utils/userFacingFilter.js'
+import { escapeHtml } from '../utils/htmlEscape.js'
 
 const GOALS_STORAGE_KEY = STORAGE_KEYS.goals
 
@@ -235,7 +236,7 @@ const GoalsPage = {
     const primary = await GoalsService.getPrimaryGoal()
     if (!primary) return
     const wrapper = document.createElement('div')
-    wrapper.innerHTML = `<div style="font-weight:700">Principal: ${primary.name} — ${Math.round((primary.current/primary.target)*100)||0}%</div><div style="font-size:13px;color:var(--text2)">Total: ${totalCurrent.toLocaleString()} € / ${totalTarget.toLocaleString()} € — ${progressPct}%</div>`
+    wrapper.innerHTML = `<div style="font-weight:700">Principal: ${escapeHtml(primary.name || 'Objectif')} — ${Math.round((primary.current/primary.target)*100)||0}%</div><div style="font-size:13px;color:var(--text2)">Total: ${totalCurrent.toLocaleString()} € / ${totalTarget.toLocaleString()} € — ${progressPct}%</div>`
     GoalsPage.analyticsTarget.appendChild(wrapper)
   }
 }

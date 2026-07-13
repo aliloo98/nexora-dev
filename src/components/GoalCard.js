@@ -1,3 +1,5 @@
+import { escapeHtml } from '../utils/htmlEscape.js'
+
 export default function createGoalCard(goal, handlers = {}) {
   const { onEdit, onDelete, onSetPrimary } = handlers
   const card = document.createElement('div')
@@ -76,7 +78,7 @@ export default function createGoalCard(goal, handlers = {}) {
   const forecastBlock = document.createElement('div')
   forecastBlock.className = `goal-forecast ${forecastTone}`
   forecastBlock.innerHTML = `
-    <strong>${forecast.projectedLabel || 'Projection indisponible'}</strong>
+    <strong>${escapeHtml(forecast.projectedLabel || 'Projection indisponible')}</strong>
     <span>${recommendedText}</span>
   `
 
