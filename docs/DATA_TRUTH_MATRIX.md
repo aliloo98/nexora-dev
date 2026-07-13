@@ -4,7 +4,7 @@
 
 | Donnée | Source officielle | Clé / table | Miroirs (lecture fallback) | Pont legacy (ne pas étendre) |
 |--------|-------------------|-------------|----------------------------|------------------------------|
-| Budget mensuel (montants, payé, notes) | `MonthlyBudgetStateService` | `budget_{userId}_{YYYY-MM}` → Supabase `monthly_budget_states` | `SafeStorage`, `localStorage` | `TransactionsService` + `syncMonthTransactionsToSupabase` |
+| Budget mensuel (montants, payé, notes) | `MonthlyBudgetStateService` | `budget_{userId}_{YYYY-MM}` → Supabase `monthly_budget_states` | `SafeStorage`, `localStorage` | `TransactionsService` local uniquement ; cloud désactivé |
 | Objectifs | `UserAppSettingsService` | `nexora_goals_v1` → `user_app_settings` | `SafeStorage` / IDB namespacé | — |
 | Dettes | `UserAppSettingsService` | `nexora_debts_v1` → `user_app_settings` | `SafeStorage` (via `readDebts` / bridge) | `localStorage` direct dans anciens modules |
 | Réglages IA | `UserAppSettingsService` | `nexora_ai_settings_v1` | `SafeStorage` (coach local) | — |
@@ -20,13 +20,13 @@
 
 ## Doublons identifiés (V6.4)
 
-1. **Budget :** `MonthlyBudgetStateService` **et** `TransactionsService` écrivent tous deux après `saveData`.
+1. **Budget :** `MonthlyBudgetStateService` est seul autorisé à écrire dans Supabase. Le pont cloud `TransactionsService` est désactivé par défaut depuis la reconstruction du backend.
 2. **Dettes :** `index.html` (SafeStorage + UAS) vs `PlanHubUI` (localStorage seul) → **corrigé V6.4** via `syncedSettingAccess`.
 3. **Stockage :** `StorageManager` (IDB) + `SafeStorage` + `localStorage` + clés non namespacées miroir dans `userAppSettingsService`.
 4. **Réglages IA :** `proactiveCoachService.readJson` + `UserAppSettingsService` (écriture double volontaire, lecture UAS prioritaire au save).
 
 ## Actions V6.4 (sans suppression brutale)
 
-- Budget : conserver `TransactionsService` comme pont ; commentaire explicite dans `saveData`.
+- Budget : conserver temporairement le fallback local `TransactionsService`, sans appel cloud. Ne définir `VITE_ENABLE_LEGACY_TRANSACTION_SYNC=true` qu'après alignement et validation du schéma transactionnel.
 - Dettes / récurrents / objectifs : **toujours** passer par `UserAppSettingsService` pour l’écriture cloud.
 - Activer logs sync temporaires : `localStorage.nexora_sync_debug_v1 = '1'`.

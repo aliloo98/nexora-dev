@@ -2133,8 +2133,9 @@ async function saveData(){
   SafeStorage.setItem(storageKey(m), JSON.stringify(data));
   await persistMonthSnapshot(m, data);
 
-  // Pont legacy TransactionsService — source officielle : MonthlyBudgetStateService (voir docs/DATA_TRUTH_MATRIX.md).
-  if (typeof window.TransactionsService !== 'undefined') {
+  // Pont cloud legacy désactivé par défaut tant que son schéma n'est pas aligné.
+  // Source officielle : MonthlyBudgetStateService (voir docs/DATA_TRUTH_MATRIX.md).
+  if (window.TransactionsService?.isLegacyCloudSyncEnabled?.() === true) {
     syncMonthTransactionsToSupabase(m, data).catch(err => {
       console.error('[Phase2B] sync error:', err);
     });

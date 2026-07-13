@@ -1,11 +1,10 @@
 /**
  * Nexora - TransactionsService
- * Phase 2A - Lecture prioritaire Supabase + fallback localStorage
+ * Pont transactionnel historique avec fallback localStorage.
  *
- * ARCHITECTURE OFFLINE-FIRST:
- * 1. Si authenticated + online → lit Supabase
- * 2. Si offline/erreur/non-auth → lit localStorage (SafeStorage)
- * 3. En arriere-plan : sync silent des donnees locales vers Supabase
+ * La synchronisation cloud legacy reste desactivee par defaut tant que ses
+ * tables et son contrat de donnees ne sont pas alignes avec le backend actuel.
+ * Le budget mensuel canonique est gere par MonthlyBudgetStateService.
  *
  * IMPORTANT: Ne modifie AUCUNE logique metier.
  * Les calculs (updateAll, buildHistory) restent inchanges.
@@ -17,6 +16,13 @@ import AuthContext from '../src/auth/authContext.js'
 import { getCurrentUserId } from './userStorage.js'
 
 const log = () => {}
+const env = typeof import.meta !== 'undefined' ? import.meta.env || {} : {}
+
+export const shouldEnableLegacyTransactionCloudSync = (value = env.VITE_ENABLE_LEGACY_TRANSACTION_SYNC) => (
+  value === 'true'
+)
+
+const isLegacyCloudSyncEnabled = () => shouldEnableLegacyTransactionCloudSync()
 
 // ─────────────────────────────────────────────
 // HELPERS
@@ -260,6 +266,8 @@ const readBudgetMonthObject = (storage, month) => {
 // LECTURE DEPUIS SUPABASE
 // ─────────────────────────────────────────────
 const readFromSupabase = async (month, userId) => {
+  if (!isLegacyCloudSyncEnabled()) return null
+
   try {
     log('supa', `Lecture Supabase pour ${month} (user: ${userId?.slice(0,8)}...)`)
 
@@ -297,6 +305,8 @@ const readFromSupabase = async (month, userId) => {
 
 // Lire tous les mois disponibles depuis Supabase
 const readAllMonthsFromSupabase = async (userId) => {
+  if (!isLegacyCloudSyncEnabled()) return null
+
   try {
     log('supa', `Lecture historique Supabase (user: ${userId?.slice(0,8)}...)`)
 
@@ -403,12 +413,50 @@ const getBudgetMonthSync = (month) => {
 const getSyncState = () => ({
   isOnline: isOnline(),
   isAuthenticated: getCurrentUser() !== null,
-  userId: getCurrentUser()?.id || null
+  userId: getCurrentUser()?.id || null,
+  legacyCloudSyncEnabled: isLegacyCloudSyncEnabled()
 })
+
+const persistTransactionFallback = (normalized) => {
+  const localId = normalized.metadata?.local_id
+  const ownerId = getFallbackOwner(normalized)
+  const fallback = readTransactionFallback()
+  const existingIndex = localId
+    ? fallback.findIndex(item => item.metadata?.local_id === localId && item.user_id === ownerId)
+    : -1
+
+  normalized.user_id = ownerId
+  if (existingIndex !== -1) {
+    fallback[existingIndex] = normalized
+  } else {
+    fallback.push(normalized)
+  }
+
+  writeTransactionFallback(fallback)
+  return normalized
+}
+
+const removeTransactionFallback = ({ userId, localId, month, category }) => {
+  const fallback = readTransactionFallback()
+  const updated = fallback.filter((item) => {
+    if (userId && item.user_id && item.user_id !== userId) return true
+    if (localId) return item.metadata?.local_id !== localId
+    if (month && item.metadata?.month !== month) return true
+    if (category && item.metadata?.category !== category) return true
+    return false
+  })
+
+  writeTransactionFallback(updated)
+  return true
+}
 
 const create = async (transaction) => {
   const normalized = normalizeTransaction(transaction)
   const localId = normalized.metadata?.local_id
+
+  if (!isLegacyCloudSyncEnabled()) {
+    return persistTransactionFallback(normalized)
+  }
 
   let session = null
   let sessionError = null
@@ -468,25 +516,17 @@ const create = async (transaction) => {
     })
   }
 
-  const fallback = readTransactionFallback()
-  const existingIndex = localId
-    ? fallback.findIndex(item => item.metadata?.local_id === localId && item.user_id === normalized.user_id)
-    : -1
-
-  if (existingIndex !== -1) {
-    fallback[existingIndex] = normalized
-  } else {
-    fallback.push(normalized)
-  }
-
-  writeTransactionFallback(fallback)
   log('local', `Transaction stockee en fallback local: ${localId}`, { id: normalized.id })
-  return normalized
+  return persistTransactionFallback(normalized)
 }
 
 const update = async (transaction) => {
   const normalized = normalizeTransaction({ ...transaction, updated_at: new Date().toISOString() })
   const localId = normalized.metadata?.local_id
+
+  if (!isLegacyCloudSyncEnabled()) {
+    return persistTransactionFallback(normalized)
+  }
 
   let session = null
   let sessionError = null
@@ -539,27 +579,22 @@ const update = async (transaction) => {
     })
   }
 
-  const fallback = readTransactionFallback()
-  const ownerId = getFallbackOwner(normalized)
-  const existingIndex = localId
-    ? fallback.findIndex(item => item.metadata?.local_id === localId && item.user_id === ownerId)
-    : -1
-
-  normalized.user_id = ownerId
-  if (existingIndex !== -1) {
-    fallback[existingIndex] = normalized
-  } else {
-    fallback.push(normalized)
-  }
-
-  writeTransactionFallback(fallback)
-  return normalized
+  return persistTransactionFallback(normalized)
 }
 
 const remove = async ({ user_id, local_id, month, category } = {}) => {
   if (!local_id && !month) {
     console.warn('[Phase2C] delete skipped: missing local_id or month')
     return false
+  }
+
+  if (!isLegacyCloudSyncEnabled()) {
+    return removeTransactionFallback({
+      userId: user_id || getCurrentUser()?.id || null,
+      localId: local_id,
+      month,
+      category
+    })
   }
 
   let session = null
@@ -604,20 +639,19 @@ const remove = async ({ user_id, local_id, month, category } = {}) => {
     })
   }
 
-  const fallback = readTransactionFallback()
-  const updated = fallback.filter((item) => {
-    if (userId && item.user_id && item.user_id !== userId) return true
-    if (local_id) return item.metadata?.local_id !== local_id
-    if (month && item.metadata?.month !== month) return true
-    if (category && item.metadata?.category !== category) return true
-    return false
+  return removeTransactionFallback({
+    userId,
+    localId: local_id,
+    month,
+    category
   })
-
-  writeTransactionFallback(updated)
-  return true
 }
 
 const syncSupabaseToLocal = async () => {
+  if (!isLegacyCloudSyncEnabled()) {
+    return { synced: 0, skipped: 0, fallback: true, reason: 'legacy-cloud-sync-disabled' }
+  }
+
   console.info('[Phase2D] sync started')
 
   if (!isOnline()) {
@@ -744,6 +778,7 @@ export const TransactionsService = {
   getBudgetMonthSync,
   getAvailableMonths,
   getSyncState,
+  isLegacyCloudSyncEnabled,
   create,
   update,
   delete: remove,
