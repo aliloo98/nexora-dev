@@ -16,6 +16,7 @@ const isSupabaseConfigured = Boolean(
 )
 
 export const shouldUsePlaceholderAuth = (configured = isSupabaseConfigured) => !configured
+export const shouldPersistPlaceholderAuth = (configured = isSupabaseConfigured) => !configured
 
 const AUTH_USER_KEY = 'nexora_auth_user'
 const AUTH_SESSION_KEY = 'nexora_auth_session'
@@ -263,18 +264,23 @@ export const AuthService = {
   async getCurrentUser() {
     try {
       const storedUser = readStoredJson(AUTH_USER_KEY)
-      const storedSession = readStoredJson(AUTH_SESSION_KEY)
 
       if (isSupabaseConfigured) {
-        if (storedUser && shouldUseStoredAuthFallback({ session: storedSession, user: storedUser })) {
-          return { user: storedUser, error: null }
+        removeStoredValue(AUTH_USER_KEY)
+        removeStoredValue(AUTH_SESSION_KEY)
+
+        if (!isOnline()) {
+          const { data: { session }, error } = await supabase.auth.getSession()
+          if (error) throw error
+          const user = session?.user || null
+          if (!shouldUseStoredAuthFallback({ configured: true, online: false, session, user })) {
+            return { user: null, error: null }
+          }
+          return { user, error: null }
         }
 
         const { data: { user }, error } = await supabase.auth.getUser()
         if (error) throw error
-        if (user) {
-          writeStoredJson(AUTH_USER_KEY, user)
-        }
         return { user, error: null }
       }
 
@@ -290,7 +296,7 @@ export const AuthService = {
     } catch (error) {
       const storedUser = readStoredJson(AUTH_USER_KEY)
       const storedSession = readStoredJson(AUTH_SESSION_KEY)
-      if (storedUser && shouldUseStoredAuthFallback({ session: storedSession, user: storedUser })) {
+      if (!isSupabaseConfigured && storedUser && shouldUseStoredAuthFallback({ session: storedSession, user: storedUser })) {
         console.warn('⚠️ Auth cloud restore unavailable, using local session:', error.message)
         return { user: storedUser, error: null }
       }
@@ -311,20 +317,20 @@ export const AuthService = {
   async getSession() {
     try {
       const storedSession = readStoredJson(AUTH_SESSION_KEY)
-      const storedUser = readStoredJson(AUTH_USER_KEY)
 
       if (isSupabaseConfigured) {
-        if (storedSession && shouldUseStoredAuthFallback({ session: storedSession, user: storedUser })) {
-          return { session: storedSession, error: null }
-        }
+        removeStoredValue(AUTH_USER_KEY)
+        removeStoredValue(AUTH_SESSION_KEY)
 
         const { data: { session }, error } = await supabase.auth.getSession()
         if (error) throw error
-        if (session) {
-          writeStoredJson(AUTH_SESSION_KEY, session)
-          if (session.user) {
-            writeStoredJson(AUTH_USER_KEY, session.user)
-          }
+        if (!isOnline() && session && !shouldUseStoredAuthFallback({
+          configured: true,
+          online: false,
+          session,
+          user: session.user
+        })) {
+          return { session: null, error: null }
         }
         return { session, error: null }
       }
@@ -341,7 +347,7 @@ export const AuthService = {
     } catch (error) {
       const storedSession = readStoredJson(AUTH_SESSION_KEY)
       const storedUser = readStoredJson(AUTH_USER_KEY)
-      if (storedSession && shouldUseStoredAuthFallback({ session: storedSession, user: storedUser })) {
+      if (!isSupabaseConfigured && storedSession && shouldUseStoredAuthFallback({ session: storedSession, user: storedUser })) {
         console.warn('⚠️ Auth cloud session unavailable, using local session:', error.message)
         return { session: storedSession, error: null }
       }
@@ -361,10 +367,15 @@ export const AuthService = {
    * @param {object} session - Session object
    */
   storeSessionPlaceholder(user, session) {
+    if (!shouldPersistPlaceholderAuth()) {
+      this.clearSessionPlaceholder()
+      return false
+    }
     writeStoredJson(AUTH_USER_KEY, user)
     if (session) {
       writeStoredJson(AUTH_SESSION_KEY, session)
     }
+    return true
   },
 
   /**
