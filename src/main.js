@@ -340,6 +340,24 @@ const injectAuthStyles = () => {
   document.head.appendChild(styleElement)
 }
 
+const initializeLegacyUiForAuthState = async (state = AuthContext.getState()) => {
+  if (!state?.isAuthenticated || !state?.user) return null
+  if (typeof window.initLegacyBudgetUi !== 'function') return null
+  return window.initLegacyBudgetUi()
+}
+
+const waitForAuthenticatedState = () => {
+  const currentState = AuthContext.getState()
+  if (currentState.isAuthenticated && currentState.user) return Promise.resolve(currentState)
+  return new Promise((resolve) => {
+    const unsubscribe = AuthContext.subscribe((state) => {
+      if (!state?.isAuthenticated || !state?.user) return
+      unsubscribe()
+      resolve(state)
+    })
+  })
+}
+
 /**
  * Initialize Application
  * Runs after DOM is loaded
@@ -368,7 +386,11 @@ const initApp = async () => {
       console.warn('⚠️ Couple UI styles injection failed', err)
     }
 
-    // Initialize local notifications layer
+    // Initialize authentication routing (handles login/register/dashboard)
+    await initAuthRouting()
+    const authenticatedState = await waitForAuthenticatedState()
+
+    // User-scoped services must never hydrate before the owner is known.
     await NotificationsService.init()
 
     // Keep the connection check for early failure visibility without blocking offline usage.
@@ -378,8 +400,7 @@ const initApp = async () => {
       console.info('📴 Supabase connection check skipped while offline')
     }
 
-    // Initialize authentication routing (handles login/register/dashboard)
-    await initAuthRouting()
+    await initializeLegacyUiForAuthState(authenticatedState)
     await updateCoupleNavigation()
     AuthContext.subscribe(() => {
       if (typeof window.updateCoupleNavigation === 'function') {

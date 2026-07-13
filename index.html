@@ -7182,40 +7182,44 @@ if (typeof window.updateAll === 'function') {
   };
 }
 
-window.onload=async ()=>{
-  // Initialize modules
-  if (typeof ThemeManager !== 'undefined') await ThemeManager.init();
-  if (typeof LogoManager !== 'undefined') await LogoManager.init();
+let legacyBudgetUiInitPromise = null;
+window.initLegacyBudgetUi = () => {
+  if (legacyBudgetUiInitPromise) return legacyBudgetUiInitPromise;
+  legacyBudgetUiInitPromise = (async () => {
+    // Initialize modules
+    if (typeof ThemeManager !== 'undefined') await ThemeManager.init();
+    if (typeof LogoManager !== 'undefined') await LogoManager.init();
 
-  // Initialize app
-  loadPersonalization();
-  updateSaveBarSpacer();
-  initBudgetCycleSettings();
-  await syncBudgetCycleSettingsFromCloud({ update: false });
-  installMonthlyHistorySnapshotHook();
-  applyNexoraUxMode();
-  applyNexoraDemoMode();
-  applyNexoraAiSettingsUI();
-  await renderCustomBudgetRows();
-  convertCheckboxesToPaidInputs();
-  initDynamicElements();
-  setupFormulaEvaluation();
-  await refreshCategoryLabels();
-  await loadMonth();
-  await renderCustomBudgetRows();
-  await refreshCategoryLabels();
-  updateAll();
-  buildHistory();
-  if (typeof refreshNexoraNotificationSettingsUI === 'function') {
-    await refreshNexoraNotificationSettingsUI();
-  }
-  if (typeof renderNexoraNotificationCenter === 'function') {
-    await renderNexoraNotificationCenter();
-  }
-  const initialHash = window.location.hash.replace('#section-', '') || 'dashboard';
-  window.addEventListener('load', () => {
-    showSection(initialHash)
-  })
+    // Initialize app only after the modern entry point has resolved authentication.
+    loadPersonalization();
+    updateSaveBarSpacer();
+    initBudgetCycleSettings();
+    await syncBudgetCycleSettingsFromCloud({ update: false });
+    installMonthlyHistorySnapshotHook();
+    applyNexoraUxMode();
+    applyNexoraDemoMode();
+    applyNexoraAiSettingsUI();
+    await renderCustomBudgetRows();
+    convertCheckboxesToPaidInputs();
+    initDynamicElements();
+    setupFormulaEvaluation();
+    await refreshCategoryLabels();
+    await loadMonth();
+    await renderCustomBudgetRows();
+    await refreshCategoryLabels();
+    updateAll();
+    buildHistory();
+    if (typeof refreshNexoraNotificationSettingsUI === 'function') {
+      await refreshNexoraNotificationSettingsUI();
+    }
+    if (typeof renderNexoraNotificationCenter === 'function') {
+      await renderNexoraNotificationCenter();
+    }
+    const initialHash = window.location.hash.replace('#section-', '') || 'dashboard';
+    if (document.readyState === 'complete') showSection(initialHash);
+    else window.addEventListener('load', () => showSection(initialHash), { once: true });
+  })();
+  return legacyBudgetUiInitPromise;
 };
 
 window.addEventListener('hashchange', () => {
