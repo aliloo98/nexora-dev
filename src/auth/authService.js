@@ -22,6 +22,31 @@ const AUTH_SESSION_KEY = 'nexora_auth_session'
 
 const isOnline = () => typeof navigator === 'undefined' || navigator.onLine !== false
 
+export const isStoredSessionValid = ({ session, user, nowSeconds = Math.floor(Date.now() / 1000) } = {}) => {
+  const expiresAt = Number(session?.expires_at)
+  const sessionUserId = session?.user?.id
+  return Boolean(
+    session?.access_token &&
+    user?.id &&
+    sessionUserId &&
+    sessionUserId === user.id &&
+    Number.isFinite(expiresAt) &&
+    expiresAt > nowSeconds
+  )
+}
+
+export const shouldUseStoredAuthFallback = ({
+  configured = isSupabaseConfigured,
+  online = isOnline(),
+  session,
+  user,
+  nowSeconds
+} = {}) => {
+  if (!configured) return true
+  if (online) return false
+  return isStoredSessionValid({ session, user, nowSeconds })
+}
+
 const readStoredJson = (key) => {
   const rawValue =
     localStorage.getItem(key) ||
@@ -238,9 +263,10 @@ export const AuthService = {
   async getCurrentUser() {
     try {
       const storedUser = readStoredJson(AUTH_USER_KEY)
+      const storedSession = readStoredJson(AUTH_SESSION_KEY)
 
       if (isSupabaseConfigured) {
-        if (!isOnline() && storedUser) {
+        if (storedUser && shouldUseStoredAuthFallback({ session: storedSession, user: storedUser })) {
           return { user: storedUser, error: null }
         }
 
@@ -263,7 +289,8 @@ export const AuthService = {
       return { user: null, error: null }
     } catch (error) {
       const storedUser = readStoredJson(AUTH_USER_KEY)
-      if (storedUser) {
+      const storedSession = readStoredJson(AUTH_SESSION_KEY)
+      if (storedUser && shouldUseStoredAuthFallback({ session: storedSession, user: storedUser })) {
         console.warn('⚠️ Auth cloud restore unavailable, using local session:', error.message)
         return { user: storedUser, error: null }
       }
@@ -284,9 +311,10 @@ export const AuthService = {
   async getSession() {
     try {
       const storedSession = readStoredJson(AUTH_SESSION_KEY)
+      const storedUser = readStoredJson(AUTH_USER_KEY)
 
       if (isSupabaseConfigured) {
-        if (!isOnline() && storedSession) {
+        if (storedSession && shouldUseStoredAuthFallback({ session: storedSession, user: storedUser })) {
           return { session: storedSession, error: null }
         }
 
@@ -312,7 +340,8 @@ export const AuthService = {
       return { session: null, error: null }
     } catch (error) {
       const storedSession = readStoredJson(AUTH_SESSION_KEY)
-      if (storedSession) {
+      const storedUser = readStoredJson(AUTH_USER_KEY)
+      if (storedSession && shouldUseStoredAuthFallback({ session: storedSession, user: storedUser })) {
         console.warn('⚠️ Auth cloud session unavailable, using local session:', error.message)
         return { session: storedSession, error: null }
       }
