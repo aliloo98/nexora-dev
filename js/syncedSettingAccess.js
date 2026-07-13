@@ -24,7 +24,6 @@ const writeSafeStorageJson = (key, value) => {
   try {
     if (typeof SafeStorage !== 'undefined') {
       SafeStorage.setItem(namespaced, serialized)
-      if (namespaced !== key) SafeStorage.setItem(key, serialized)
     }
   } catch {
     // continue
@@ -32,7 +31,6 @@ const writeSafeStorageJson = (key, value) => {
   try {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(namespaced, serialized)
-      if (namespaced !== key) localStorage.setItem(key, serialized)
     }
   } catch {
     // continue

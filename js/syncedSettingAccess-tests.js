@@ -32,7 +32,7 @@ globalThis.localStorage = storage
 globalThis.SafeStorage = storage
 
 const { default: AuthContext } = await import('../src/auth/authContext.js')
-const { readSyncedArray } = await import('./syncedSettingAccess.js')
+const { readSyncedArray, writeSyncedArray } = await import('./syncedSettingAccess.js')
 const { UserAppSettingsService } = await import('./userAppSettingsService.js')
 const originalAuthState = { ...AuthContext._state }
 
@@ -97,6 +97,17 @@ try {
     'owner B must not fall back to the global mirror written by owner A'
   )
   assert.deepEqual(readDebts(), [], 'legacy debt UI must not expose owner A debt to owner B')
+  await writeSyncedArray('nexora_debts_v1', [{ id: 'synced-owner-b' }])
+  assert.equal(
+    JSON.parse(storage.getItem('nexora_debts_v1::user:owner-b'))[0].id,
+    'synced-owner-b',
+    'synced writes should use owner B namespace'
+  )
+  assert.deepEqual(
+    JSON.parse(storage.getItem('nexora_debts_v1')),
+    [{ id: 'legacy-owner-a' }],
+    'authenticated synced writes should preserve the legacy global value'
+  )
   saveDebts([{ id: 'owner-b-debt', name: 'Crédit B', remaining: 400 }])
   assert.equal(
     JSON.parse(storage.getItem('nexora_debts_v1::user:owner-b'))[0].id,

@@ -124,16 +124,6 @@ const setLocalItem = async (key, value) => {
       // Keep going even if localStorage is unavailable
     }
   }
-  if (DEFAULT_KEYS.includes(key) && namespacedKey !== key) {
-    try {
-      await StorageManager.setItem(key, value)
-      if (typeof SafeStorage !== 'undefined') SafeStorage.setItem(key, value)
-      if (typeof window !== 'undefined' && window.SafeStorage) window.SafeStorage.setItem(key, value)
-      if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem(key, value)
-    } catch {
-      // Legacy mirrors are best effort only; the namespaced key remains authoritative.
-    }
-  }
 }
 
 const forceWriteLocalSetting = async (key, value, updatedAt) => {

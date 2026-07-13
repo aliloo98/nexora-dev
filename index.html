@@ -5645,7 +5645,7 @@ let historyPeriod = 6;
 
 function readMonthlyHistoryStore() {
   try {
-    const parsed = JSON.parse(SafeStorage.getItem(MONTHLY_HISTORY_SNAPSHOTS_KEY) || '{}');
+    const parsed = JSON.parse(SafeStorage.getItem(syncedSettingStorageKey(MONTHLY_HISTORY_SNAPSHOTS_KEY)) || '{}');
     return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
       ? { version: 1, snapshots: {}, ...parsed }
       : { version: 1, snapshots: {} };
@@ -5660,9 +5660,10 @@ function writeMonthlyHistoryStore(store) {
     updated_at: new Date().toISOString(),
     snapshots: store.snapshots || {}
   }
-  SafeStorage.setItem(MONTHLY_HISTORY_SNAPSHOTS_KEY, JSON.stringify(payload));
+  const localKey = syncedSettingStorageKey(MONTHLY_HISTORY_SNAPSHOTS_KEY);
+  SafeStorage.setItem(localKey, JSON.stringify(payload));
   if (typeof StorageManager !== 'undefined') {
-    StorageManager.setItem(MONTHLY_HISTORY_SNAPSHOTS_KEY, JSON.stringify(payload)).catch(() => {})
+    StorageManager.setItem(localKey, JSON.stringify(payload)).catch(() => {})
   }
   if (window.UserAppSettingsService && typeof window.UserAppSettingsService.syncLocalSettingToCloud === 'function') {
     window.UserAppSettingsService.saveSetting(MONTHLY_HISTORY_SNAPSHOTS_KEY, payload)
@@ -5673,11 +5674,20 @@ function writeMonthlyHistoryStore(store) {
   }
 }
 
+function getBudgetMonthFromStorageKey(key, currentUserId = getCurrentStorageOwnerId()) {
+  const normalizedKey = String(key || '');
+  const prefix = currentUserId ? `budget_${currentUserId}_` : 'budget_';
+  if (!normalizedKey.startsWith(prefix)) return null;
+  const month = normalizedKey.slice(prefix.length);
+  return /^\d{4}-\d{2}$/.test(month) ? month : null;
+}
+
 function getHistoryMonthsFromStorage() {
   const months = new Set(Object.keys(readMonthlyHistoryStore().snapshots || {}));
   for (let i = 0; i < SafeStorage.length; i++) {
     const key = SafeStorage.key(i);
-    if (/^budget_\d{4}-\d{2}$/.test(key)) months.add(key.replace('budget_', ''));
+    const month = getBudgetMonthFromStorageKey(key);
+    if (month) months.add(month);
   }
   return [...months].sort((a, b) => a.localeCompare(b));
 }
