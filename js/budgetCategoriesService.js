@@ -104,7 +104,7 @@ const normalizeCategory = (category, ownerId = LOCAL_USER_ID) => {
 
   return {
     id: String(category.id || generateId(type)),
-    user_id: category.user_id || ownerId,
+    user_id: ownerId,
     name: String(category.name || '').trim(),
     type,
     position: Number.isFinite(Number(category.position)) ? Number(category.position) : 0,
@@ -178,11 +178,7 @@ const mergeCategoriesByUpdatedAt = (primaryCategories = [], secondaryCategories 
 const readLocalCategories = (ownerId) => {
   const store = readLocalStore()
   const ownerCategories = Array.isArray(store[ownerId]) ? store[ownerId] : []
-  const anonymousCategories = ownerId !== LOCAL_USER_ID && Array.isArray(store[LOCAL_USER_ID]) ? store[LOCAL_USER_ID] : []
-  const mergedOwnerCategories = anonymousCategories.length > 0
-    ? mergeCategoriesByUpdatedAt(ownerCategories, anonymousCategories, ownerId)
-    : ownerCategories
-  const merged = mergeWithDefaults(mergedOwnerCategories, ownerId)
+  const merged = mergeWithDefaults(ownerCategories, ownerId)
   store[ownerId] = merged
   writeLocalStore(store)
   return merged
@@ -265,7 +261,7 @@ const getBudgetCategories = async ({ includeInactive = false, userId } = {}) => 
     const { session } = await getSupabaseSession()
     const sessionUserId = session?.user?.id
 
-    if (sessionUserId && isOnline()) {
+    if (sessionUserId === ownerId && ownerId !== LOCAL_USER_ID && isOnline()) {
       const remoteCategories = await readSupabaseCategories(sessionUserId)
       if (remoteCategories.length > 0) {
         const mergedRemoteLocal = mergeCategoriesByUpdatedAt(remoteCategories, categories, sessionUserId)
@@ -295,7 +291,7 @@ const renameBudgetCategory = async (id, name, { userId } = {}) => {
 
   try {
     const { session } = await getSupabaseSession()
-    if (session?.user?.id && isOnline()) {
+    if (session?.user?.id === ownerId && ownerId !== LOCAL_USER_ID && isOnline()) {
       return normalizeCategory(await upsertSupabaseCategory({ ...updated, user_id: session.user.id }), session.user.id)
     }
   } catch (err) {
@@ -331,7 +327,7 @@ const createBudgetCategory = async ({ name, type, position, userId } = {}) => {
 
   try {
     const { session } = await getSupabaseSession()
-    if (session?.user?.id && isOnline()) {
+    if (session?.user?.id === ownerId && ownerId !== LOCAL_USER_ID && isOnline()) {
       const remoteCategory = { ...category, user_id: session.user.id }
       return normalizeCategory(await upsertSupabaseCategory(remoteCategory), session.user.id)
     }
@@ -355,7 +351,7 @@ const disableBudgetCategory = async (id, { userId } = {}) => {
 
   try {
     const { session } = await getSupabaseSession()
-    if (session?.user?.id && isOnline()) {
+    if (session?.user?.id === ownerId && ownerId !== LOCAL_USER_ID && isOnline()) {
       return normalizeCategory(await upsertSupabaseCategory({ ...updated, user_id: session.user.id }), session.user.id)
     }
   } catch (err) {
@@ -378,7 +374,7 @@ const restoreBudgetCategory = async (id, { userId } = {}) => {
 
   try {
     const { session } = await getSupabaseSession()
-    if (session?.user?.id && isOnline()) {
+    if (session?.user?.id === ownerId && ownerId !== LOCAL_USER_ID && isOnline()) {
       return normalizeCategory(await upsertSupabaseCategory({ ...updated, user_id: session.user.id }), session.user.id)
     }
   } catch (err) {
@@ -405,7 +401,7 @@ const deleteBudgetCategory = async (id, { userId } = {}) => {
 
   try {
     const { session } = await getSupabaseSession()
-    if (session?.user?.id && isOnline()) {
+    if (session?.user?.id === ownerId && ownerId !== LOCAL_USER_ID && isOnline()) {
       const { error } = await supabase.from(TABLE_NAME).delete().eq('id', id).eq('user_id', session.user.id)
       if (error) throw error
     }
