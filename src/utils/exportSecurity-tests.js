@@ -26,6 +26,9 @@ const getCurrentExportUserId = eval(`(${extractFunction(html, 'getCurrentExportU
 const isStorageKeyOwnedByAnotherUser = eval(`(${extractFunction(html, 'isStorageKeyOwnedByAnotherUser')})`)
 const getPortableExportStorageKey = eval(`(${extractFunction(html, 'getPortableExportStorageKey')})`)
 const isBudgetMonthStorageKey = eval(`(${extractFunction(html, 'isBudgetMonthStorageKey')})`)
+const isUnscopedAuthenticatedExportKey = eval(`(${extractFunction(html, 'isUnscopedAuthenticatedExportKey')})`)
+const getExportStorageLookupKey = eval(`(${extractFunction(html, 'getExportStorageLookupKey')})`)
+const sanitizeBudgetCategoriesForExport = eval(`(${extractFunction(html, 'sanitizeBudgetCategoriesForExport')})`)
 
 assert.match(
   extractFunction(html, 'exportData'),
@@ -34,6 +37,16 @@ assert.match(
 )
 assert.match(extractFunction(html, 'exportData'), /version: 1/, 'JSON export should identify backup format version 1')
 assert.match(extractFunction(html, 'exportData'), /exportPriorities/, 'JSON export should prioritize namespaced data over legacy mirrors')
+assert.match(
+  extractFunction(html, 'exportData'),
+  /isUnscopedAuthenticatedExportKey\(k, currentUserId\)/,
+  'authenticated exports must skip unscoped user-data mirrors'
+)
+assert.match(
+  extractFunction(html, 'exportData'),
+  /getExportStorageLookupKey\(key, currentUserId\)/,
+  'IndexedDB exports must read the authenticated namespace'
+)
 
 assert.equal(isSensitiveExportStorageKey('nexora_auth_user'), true, 'stored auth user must never be exported')
 assert.equal(isSensitiveExportStorageKey('nexora_auth_session'), true, 'stored auth session must never be exported')
@@ -74,5 +87,27 @@ assert.equal(isBudgetMonthStorageKey(getPortableExportStorageKey('budget_user-a_
 assert.equal(getPortableExportStorageKey('budget_user-a_other_2026-07', 'user-a'), null, 'similar snapshot owner prefixes should not normalize')
 assert.equal(getPortableExportStorageKey('budget_2026-07', 'user-a'), 'budget_2026-07', 'legacy month keys should remain backward compatible')
 assert.equal(getPortableExportStorageKey('budget_app_theme', 'user-a'), 'budget_app_theme', 'global preferences should retain their key')
+
+assert.equal(isUnscopedAuthenticatedExportKey('nexora_goals_v1', 'user-a'), true, 'authenticated goals mirror is user-scoped')
+assert.equal(isUnscopedAuthenticatedExportKey('budget_2026-07', 'user-a'), true, 'authenticated legacy month is user-scoped')
+assert.equal(isUnscopedAuthenticatedExportKey('budget_app_theme', 'user-a'), false, 'theme remains a global preference')
+assert.equal(isUnscopedAuthenticatedExportKey('nexora_goals_v1', null), false, 'anonymous exports keep legacy mirrors')
+assert.equal(isUnscopedAuthenticatedExportKey('nexora_goals_v1::user:user-a', 'user-a'), false, 'namespaced settings are not legacy mirrors')
+
+assert.equal(getExportStorageLookupKey('nexora_goals_v1', 'user-a'), 'nexora_goals_v1::user:user-a', 'authenticated IndexedDB lookup uses the owner namespace')
+assert.equal(getExportStorageLookupKey('nexora_budget_categories_v1', 'user-a'), 'nexora_budget_categories_v1', 'category store keeps its multi-owner storage key before filtering')
+assert.equal(getExportStorageLookupKey('budget_app_theme', 'user-a'), 'budget_app_theme', 'global preferences keep their storage key')
+assert.equal(getExportStorageLookupKey('nexora_goals_v1', null), 'nexora_goals_v1', 'anonymous lookup keeps the legacy key')
+
+const sanitizedCategories = sanitizeBudgetCategoriesForExport({
+  'user-a': [{ id: 'category-a' }],
+  'user-b': [{ id: 'category-b' }],
+  local: [{ id: 'anonymous-category' }]
+}, 'user-a')
+assert.deepEqual(sanitizedCategories, {
+  'user-a': [{ id: 'category-a' }]
+}, 'authenticated category export contains only the current owner')
+assert.equal(JSON.stringify(sanitizedCategories).includes('category-b'), false, 'another owner categories must not be exported')
+assert.equal(JSON.stringify(sanitizedCategories).includes('anonymous-category'), false, 'anonymous categories must not leak into authenticated exports')
 
 console.log('exportSecurity-tests: OK')

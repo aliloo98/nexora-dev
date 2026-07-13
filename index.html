@@ -5175,6 +5175,43 @@ function getPortableExportStorageKey(key, currentUserId = getCurrentExportUserId
   return normalizedKey || null;
 }
 
+function isUnscopedAuthenticatedExportKey(key, currentUserId = getCurrentExportUserId()) {
+  if (!currentUserId) return false;
+  const normalizedKey = String(key || '');
+  if (/^budget_\d{4}-\d{2}$/.test(normalizedKey)) return true;
+  return new Set([
+    'nexora_goals_v1',
+    'nexora_debts_v1',
+    'nexora_budget_cycle_settings_v1',
+    'nexora_monthly_history_snapshots_v1',
+    'nexora_notifications_settings_v1',
+    'nexora_notifications_history_v1',
+    'nexora_ai_settings_v1',
+    'nexora_financial_memory_v1',
+    'nexora_recurring_incomes',
+    'nexora_bill_schedules',
+    'nexora_couple_household',
+    'nexora_budget_categories_v1',
+    'nexora_csv_learning_v1',
+    'nexora_csv_import_drafts_v1',
+    'budget_cagnottes'
+  ]).has(normalizedKey);
+}
+
+function getExportStorageLookupKey(key, currentUserId = getCurrentExportUserId()) {
+  const normalizedKey = String(key || '');
+  if (!currentUserId || normalizedKey === 'nexora_budget_categories_v1') return normalizedKey;
+  return isUnscopedAuthenticatedExportKey(normalizedKey, currentUserId)
+    ? `${normalizedKey}::user:${currentUserId}`
+    : normalizedKey;
+}
+
+function sanitizeBudgetCategoriesForExport(value, currentUserId = getCurrentExportUserId()) {
+  if (!currentUserId || !value || typeof value !== 'object' || Array.isArray(value)) return value;
+  const categories = Array.isArray(value[currentUserId]) ? value[currentUserId] : [];
+  return { [currentUserId]: categories };
+}
+
 async function exportData(){
   try {
     const currentUserId = getCurrentExportUserId();
@@ -5191,6 +5228,7 @@ async function exportData(){
     for (let i = 0; i < SafeStorage.length; i++) {
       const k = SafeStorage.key(i);
       if (!k || isSensitiveExportStorageKey(k) || isStorageKeyOwnedByAnotherUser(k, currentUserId)) continue;
+      if (isUnscopedAuthenticatedExportKey(k, currentUserId) && k !== 'nexora_budget_categories_v1') continue;
       const exportKey = getPortableExportStorageKey(k, currentUserId);
       if (!exportKey) continue;
       const priority = exportKey === k ? 0 : 1;
@@ -5199,6 +5237,9 @@ async function exportData(){
         all[exportKey] = JSON.parse(SafeStorage.getItem(k));
       } catch {
         all[exportKey] = SafeStorage.getItem(k);
+      }
+      if (k === 'nexora_budget_categories_v1') {
+        all[exportKey] = sanitizeBudgetCategoriesForExport(all[exportKey], currentUserId);
       }
       exportPriorities[exportKey] = priority;
     }
@@ -5226,12 +5267,16 @@ async function exportData(){
     if (typeof StorageManager !== 'undefined') {
       for (const key of storageKeys) {
         if (!(key in all)) {
-          const value = await StorageManager.getItem(key);
+          const lookupKey = getExportStorageLookupKey(key, currentUserId);
+          const value = await StorageManager.getItem(lookupKey);
           if (value !== null && value !== undefined) {
             try {
               all[key] = JSON.parse(value);
             } catch {
               all[key] = value;
+            }
+            if (key === 'nexora_budget_categories_v1') {
+              all[key] = sanitizeBudgetCategoriesForExport(all[key], currentUserId);
             }
           }
         }
