@@ -8,12 +8,29 @@
  */
 
 import AuthContext from '../auth/authContext.js'
+import { shouldUsePlaceholderAuth } from '../auth/authService.js'
 
 /**
  * Create Login Form HTML
  * Returns HTML string for login form
  */
-export const createLoginForm = () => {
+export const createLoginForm = ({ demoModeEnabled = shouldUsePlaceholderAuth() } = {}) => {
+  const demoButton = demoModeEnabled
+    ? `
+          <button
+            type="button"
+            id="loginDemoBtn"
+            class="btn btn-secondary btn-outline"
+            style="width: 100%; margin-top: 0.5rem;"
+            title="Démonstration avec données fictives"
+          >
+            🧪 Mode test
+          </button>`
+    : ''
+  const authStatusCopy = demoModeEnabled
+    ? 'Mode local de développement actif.'
+    : 'Authentification Supabase active.'
+
   return `
     <div class="auth-form-container">
       <div class="auth-form-card">
@@ -75,24 +92,14 @@ export const createLoginForm = () => {
             Se connecter
           </button>
 
-          <!-- Demo Button -->
-          <button
-            type="button"
-            id="loginDemoBtn"
-            class="btn btn-secondary btn-outline"
-            style="width: 100%; margin-top: 0.5rem;"
-            title="Démonstration avec données fictives"
-          >
-            🧪 Mode test
-          </button>
+          ${demoButton}
         </form>
 
         <!-- Link to Register -->
         <div class="auth-form-footer">
           <p>Pas encore de compte? <a href="#" onclick="switchToRegister(event); return false;" class="auth-link">S'inscrire</a></p>
           <p style="font-size: 12px; color: var(--text2); margin-top: 1rem;">
-            🔐 Authentification Supabase active<br/>
-            Les données ne sont pas persistées en mode test.
+            🔐 ${authStatusCopy}
           </p>
         </div>
       </div>
@@ -175,7 +182,7 @@ export const attachLoginFormListeners = () => {
   })
 
   // Demo mode
-  demoBtn.addEventListener('click', async (e) => {
+  demoBtn?.addEventListener('click', async (e) => {
     e.preventDefault()
 
     // Populate with demo credentials

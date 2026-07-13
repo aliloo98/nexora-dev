@@ -15,6 +15,8 @@ const isSupabaseConfigured = Boolean(
   env.VITE_SUPABASE_ANON_KEY
 )
 
+export const shouldUsePlaceholderAuth = (configured = isSupabaseConfigured) => !configured
+
 const AUTH_USER_KEY = 'nexora_auth_user'
 const AUTH_SESSION_KEY = 'nexora_auth_session'
 
@@ -154,9 +156,8 @@ export const AuthService = {
    */
   async signIn(email, password) {
     try {
-      const shouldUsePlaceholder = !isSupabaseConfigured || email === 'demo@nexora.local'
-      if (shouldUsePlaceholder) {
-        // PLACEHOLDER: Simulate successful login for demo/test mode or when Supabase is unavailable
+      if (shouldUsePlaceholderAuth()) {
+        // PLACEHOLDER: Simulate successful login only when Supabase is not configured.
         await new Promise(resolve => setTimeout(resolve, 800))
         const mockSession = {
           access_token: 'mock_token_' + Math.random().toString(36).substr(2, 20),
