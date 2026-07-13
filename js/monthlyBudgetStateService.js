@@ -60,7 +60,8 @@ const writeJson = (key, value) => {
 const readLocalMonth = (monthKey) => readJson(storageKey(monthKey), {})
 const writeLocalMonth = (monthKey, data) => writeJson(storageKey(monthKey), data)
 
-const readMeta = () => readJson(getNamespacedStorageKey(META_KEY), {})
+const metaStorageKey = () => getNamespacedStorageKey(META_KEY)
+const readMeta = () => readJson(metaStorageKey(), {})
 
 const writeMeta = (monthKey, meta) => {
   const current = readMeta()
@@ -69,13 +70,13 @@ const writeMeta = (monthKey, meta) => {
     ...meta,
     cached_at: new Date().toISOString()
   }
-  return writeJson(META_KEY, current)
+  return writeJson(metaStorageKey(), current)
 }
 
 const removeMeta = (monthKey) => {
   const current = readMeta()
   delete current[monthKey]
-  return writeJson(META_KEY, current)
+  return writeJson(metaStorageKey(), current)
 }
 
 const getLocalUpdatedAt = (monthKey) => {
