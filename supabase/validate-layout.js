@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { SYNCED_APP_SETTING_KEYS } from '../src/constants/storageKeys.js'
 
 const root = resolve(import.meta.dirname)
 const migrationsDir = resolve(root, 'migrations')
@@ -8,6 +9,11 @@ const testsDir = resolve(root, 'tests')
 
 const config = readFileSync(resolve(root, 'config.toml'), 'utf8')
 const packageJson = JSON.parse(readFileSync(resolve(root, '..', 'package.json'), 'utf8'))
+
+for (const key of SYNCED_APP_SETTING_KEYS) {
+  assert.match(key, /^nexora_[a-z0-9_]+$/, `cloud setting key is not SQL-compatible: ${key}`)
+  assert.ok(key.length <= 128, `cloud setting key is too long for SQL: ${key}`)
+}
 
 assert.match(config, /^project_id = "nexora-dev"$/m)
 assert.match(config, /^site_url = "http:\/\/127\.0\.0\.1:5173"$/m)
