@@ -22,11 +22,13 @@ function extractFunction(source, name) {
 }
 
 const isSensitiveExportStorageKey = eval(`(${extractFunction(html, 'isSensitiveExportStorageKey')})`)
+const getCurrentExportUserId = eval(`(${extractFunction(html, 'getCurrentExportUserId')})`)
+const isStorageKeyOwnedByAnotherUser = eval(`(${extractFunction(html, 'isStorageKeyOwnedByAnotherUser')})`)
 
 assert.match(
   extractFunction(html, 'exportData'),
-  /if \(!k \|\| isSensitiveExportStorageKey\(k\)\) continue;/,
-  'JSON export must apply the sensitive-key guard before reading storage values'
+  /isSensitiveExportStorageKey\(k\) \|\| isStorageKeyOwnedByAnotherUser\(k, currentUserId\)/,
+  'JSON export must apply security and ownership guards before reading storage values'
 )
 
 assert.equal(isSensitiveExportStorageKey('nexora_auth_user'), true, 'stored auth user must never be exported')
@@ -43,5 +45,22 @@ assert.equal(isSensitiveExportStorageKey('budget_user-a_2026-07'), false, 'names
 assert.equal(isSensitiveExportStorageKey('nexora_goals_v1::user:user-a'), false, 'namespaced business data should remain exportable')
 assert.equal(isSensitiveExportStorageKey('budget_app_theme'), false, 'non-sensitive preferences should remain exportable')
 assert.equal(isSensitiveExportStorageKey(null), false, 'missing keys should be ignored without being classified as sensitive')
+
+globalThis.window = {
+  AuthContext: {
+    getCurrentUser: () => ({ id: 'user.a@example.com' })
+  }
+}
+
+assert.equal(getCurrentExportUserId(), 'user_a_example_com', 'current user id should use the storage namespace normalization')
+assert.equal(isStorageKeyOwnedByAnotherUser('nexora_goals_v1::user:user-a', 'user-a'), false, 'current user settings should remain exportable')
+assert.equal(isStorageKeyOwnedByAnotherUser('nexora_goals_v1::user:user-b', 'user-a'), true, 'another user settings must not be exported')
+assert.equal(isStorageKeyOwnedByAnotherUser('budget_user-a_2026-07', 'user-a'), false, 'current user monthly snapshot should remain exportable')
+assert.equal(isStorageKeyOwnedByAnotherUser('budget_user-b_2026-07', 'user-a'), true, 'another user monthly snapshot must not be exported')
+assert.equal(isStorageKeyOwnedByAnotherUser('budget_user-a_other_2026-07', 'user-a'), true, 'similar owner prefixes must remain isolated')
+assert.equal(isStorageKeyOwnedByAnotherUser('budget_2026-07', 'user-a'), false, 'legacy monthly data should remain unchanged in this task')
+assert.equal(isStorageKeyOwnedByAnotherUser('budget_app_theme', 'user-a'), false, 'global preferences should remain exportable')
+assert.equal(isStorageKeyOwnedByAnotherUser('nexora_goals_v1::user:user-a', null), true, 'anonymous export must not include authenticated settings')
+assert.equal(isStorageKeyOwnedByAnotherUser('budget_user-a_2026-07', null), true, 'anonymous export must not include authenticated snapshots')
 
 console.log('exportSecurity-tests: OK')

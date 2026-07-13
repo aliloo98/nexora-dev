@@ -5121,13 +5121,38 @@ function isSensitiveExportStorageKey(key) {
     || normalizedKey.startsWith('sb-');
 }
 
+function getCurrentExportUserId() {
+  const userId = window.AuthContext?.getCurrentUser?.()?.id;
+  if (!userId || typeof userId !== 'string') return null;
+  return userId.replace(/[^a-zA-Z0-9_-]/g, '_');
+}
+
+function isStorageKeyOwnedByAnotherUser(key, currentUserId = getCurrentExportUserId()) {
+  const normalizedKey = String(key || '');
+  const userNamespaceToken = '::user:';
+  const namespaceIndex = normalizedKey.lastIndexOf(userNamespaceToken);
+
+  if (namespaceIndex !== -1) {
+    const ownerId = normalizedKey.slice(namespaceIndex + userNamespaceToken.length);
+    return !currentUserId || ownerId !== currentUserId;
+  }
+
+  if (/^budget_.+_\d{4}-\d{2}$/.test(normalizedKey)) {
+    const ownerId = normalizedKey.slice('budget_'.length, -'_YYYY-MM'.length);
+    return !currentUserId || ownerId !== currentUserId;
+  }
+
+  return false;
+}
+
 async function exportData(){
   try {
     const all = {};
+    const currentUserId = getCurrentExportUserId();
 
     for (let i = 0; i < SafeStorage.length; i++) {
       const k = SafeStorage.key(i);
-      if (!k || isSensitiveExportStorageKey(k)) continue;
+      if (!k || isSensitiveExportStorageKey(k) || isStorageKeyOwnedByAnotherUser(k, currentUserId)) continue;
       try {
         all[k] = JSON.parse(SafeStorage.getItem(k));
       } catch {
