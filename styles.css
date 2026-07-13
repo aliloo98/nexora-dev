@@ -693,7 +693,7 @@ body,
   }
 
   /* Assistant reduced to a one-line summary with 'Voir l'analyse' trigger */
-  #nexora-core-panel.nexora-core--v8 #assistant-card .assistant-details { display: none; }
+  #nexora-core-panel.nexora-core--v8 #assistant-card .assistant-details:not([hidden]) { display: grid; }
   #nexora-core-panel.nexora-core--v8 #assistant-card .assistant-summary,
   #nexora-core-panel.nexora-core--v8 .assistant-summary {
     display: block;
@@ -8181,8 +8181,8 @@ body.mode-simple .home-goal-summary {
   padding: 8px 12px;
 }
 
-#nexora-core-panel.nexora-core--v8 #assistant-card .assistant-details {
-  display: none;
+#nexora-core-panel.nexora-core--v8 #assistant-card .assistant-details:not([hidden]) {
+  display: grid;
 }
 
 #nexora-core-panel.nexora-core--v8 #assistant-card .assistant-summary,

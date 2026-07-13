@@ -1,0 +1,113 @@
+name: Supabase CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  database-and-app:
+    name: Ephemeral database and application checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: "true"
+      DO_NOT_TRACK: "1"
+      SUPABASE_TELEMETRY_DISABLED: "1"
+      VITE_SUPABASE_ANON_KEY: ""
+      VITE_SUPABASE_URL: ""
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install locked npm dependencies
+        run: npm ci
+        timeout-minutes: 5
+
+      - name: Install Supabase CLI 2.109.1
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+
+      - name: Verify toolchain and Docker
+        run: |
+          echo "Node.js $(node --version)"
+          echo "npm $(npm --version)"
+          echo "Supabase CLI $(supabase --version)"
+          docker info --format 'Docker server version: {{.ServerVersion}}'
+        timeout-minutes: 2
+
+      - name: Validate local Supabase layout and CI safety gates
+        run: npm run test:supabase:layout
+        timeout-minutes: 2
+
+      - name: Start ephemeral Supabase stack
+        run: |
+          echo "Starting the isolated Supabase stack..."
+          start_output="$RUNNER_TEMP/supabase-start.json"
+          trap 'rm -f "$start_output"' EXIT
+          supabase start --output json > "$start_output"
+          echo "Supabase stack started successfully."
+        timeout-minutes: 12
+
+      - name: Rebuild database from versioned migrations
+        run: |
+          echo "Resetting the local database and applying every migration..."
+          supabase db reset --local --no-seed
+          echo "Database reconstruction completed."
+        timeout-minutes: 5
+
+      - name: Lint database schema
+        run: |
+          echo "Running SQL lint with warnings treated as failures..."
+          supabase db lint --local --level warning --fail-on warning
+          echo "SQL lint completed successfully."
+        timeout-minutes: 3
+
+      - name: Run pgTAP and RLS tests
+        run: |
+          echo "Running transactional pgTAP and RLS tests..."
+          supabase test db --local
+          echo "Database tests completed successfully."
+        timeout-minutes: 5
+
+      - name: Run all Node.js tests
+        run: npm run test:js
+        timeout-minutes: 5
+
+      - name: Install Chromium for Playwright
+        run: npx --no-install playwright install --with-deps chromium
+        timeout-minutes: 8
+
+      - name: Run Playwright application tests
+        run: npm run test:e2e
+        timeout-minutes: 5
+
+      - name: Build Vite production bundle
+        run: npm run build
+        timeout-minutes: 5
+
+      - name: Stop ephemeral Supabase stack
+        if: always()
+        continue-on-error: true
+        run: |
+          echo "Stopping and deleting the ephemeral Supabase stack..."
+          supabase stop --project-id nexora-dev --no-backup
+          echo "Supabase cleanup completed."
+        timeout-minutes: 5

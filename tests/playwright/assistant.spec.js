@@ -11,6 +11,8 @@ test.describe('Assistant E2E', () => {
     await page.click('#loginDemoBtn');
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 });
     await page.waitForSelector('#assistant-card', { state: 'visible', timeout: 30000 });
+    await page.getByRole('button', { name: 'Voir l’analyse' }).click();
+    await expect(page.locator('#assistant-details')).toBeVisible();
   });
 
   test('assistant visible and KPIs', async ({ page }) => {
