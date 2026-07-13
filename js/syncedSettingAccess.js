@@ -7,10 +7,9 @@ import { getNamespacedStorageKey } from './userStorage.js'
 const readSafeStorageJson = (key, fallback) => {
   try {
     const namespaced = getNamespacedStorageKey(key)
-    const raw = (typeof SafeStorage !== 'undefined' ? SafeStorage.getItem(namespaced) : null)
-      || (typeof SafeStorage !== 'undefined' ? SafeStorage.getItem(key) : null)
-      || (typeof localStorage !== 'undefined' ? localStorage.getItem(namespaced) : null)
-      || (typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null)
+    const storageKey = namespaced === key ? key : namespaced
+    const raw = (typeof SafeStorage !== 'undefined' ? SafeStorage.getItem(storageKey) : null)
+      || (typeof localStorage !== 'undefined' ? localStorage.getItem(storageKey) : null)
     if (!raw) return fallback
     const parsed = JSON.parse(raw)
     return parsed ?? fallback
