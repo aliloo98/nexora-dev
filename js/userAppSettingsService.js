@@ -7,9 +7,14 @@ import {
   normalizeRecurringIncomeList
 } from '../src/settings/recurringIncomeSync.js'
 import {
+  applyArrayTombstones,
+  createArraySyncEnvelope,
+  decodeArraySyncEnvelope,
   getArrayItemIdentity,
   getArrayItemTimestamp,
   isStrictIdentitySubset,
+  mergeArrayTombstones,
+  normalizeArrayTombstones,
   recordArrayDeletions
 } from '../src/sync/arrayTombstones.js'
 
@@ -116,11 +121,13 @@ const setLocalItem = async (key, value) => {
   }
 }
 
-const forceWriteLocalSetting = async (key, value, updatedAt) => {
+const forceWriteLocalSetting = async (key, value, updatedAt, tombstones) => {
   const serialized = JSON.stringify(value)
   await setLocalItem(key, serialized)
   if (updatedAt) {
-    await setLocalItem(key + META_SUFFIX, JSON.stringify({ updated_at: updatedAt }))
+    const meta = { updated_at: updatedAt }
+    if (Array.isArray(tombstones)) meta.tombstones = normalizeArrayTombstones(tombstones)
+    await setLocalItem(key + META_SUFFIX, JSON.stringify(meta))
   }
   return UserAppSettingsService.getSetting(key)
 }
@@ -235,7 +242,14 @@ const UserAppSettingsService = {
       UserAppSettingsService.log('No local value for key', key)
       return { ok: false, reason: 'no-local' }
     }
-    const payload = { user_id: userId, key, data: value }
+    const data = Array.isArray(value)
+      ? createArraySyncEnvelope(
+          applyArrayTombstones(value, meta?.tombstones, { fallbackUpdatedAt: meta?.updated_at }),
+          meta?.tombstones
+        )
+      : value
+    const payload = { user_id: userId, key, data }
+    if (Array.isArray(value)) payload.data_version = 2
     if (meta && meta.updated_at) payload.updated_at = meta.updated_at
 
     try {
@@ -302,9 +316,27 @@ const UserAppSettingsService = {
     }
 
     const cloudUpdated = row.updated_at ? new Date(row.updated_at).getTime() : 0
-    const { value: localValue, meta: localMeta } = await UserAppSettingsService.getSetting(key)
+    const { value: rawLocalValue, meta: localMeta } = await UserAppSettingsService.getSetting(key)
     const localUpdated = localMeta && localMeta.updated_at ? new Date(localMeta.updated_at).getTime() : 0
-    const cloudValue = row.data
+    const decodedCloudValue = decodeArraySyncEnvelope(row.data)
+    const isArraySync = decodedCloudValue.isEnvelope || Array.isArray(row.data)
+    const mergedTombstones = isArraySync
+      ? mergeArrayTombstones(localMeta?.tombstones, decodedCloudValue.tombstones)
+      : undefined
+    const localValue = isArraySync && Array.isArray(rawLocalValue)
+      ? applyArrayTombstones(rawLocalValue, mergedTombstones, { fallbackUpdatedAt: localMeta?.updated_at })
+      : rawLocalValue
+    const cloudValue = isArraySync
+      ? applyArrayTombstones(decodedCloudValue.items, mergedTombstones, { fallbackUpdatedAt: row.updated_at })
+      : row.data
+    const localArrayStateChanged = isArraySync && (
+      JSON.stringify(localValue) !== JSON.stringify(rawLocalValue) ||
+      JSON.stringify(normalizeArrayTombstones(localMeta?.tombstones)) !== JSON.stringify(mergedTombstones)
+    )
+    const cloudArrayStateChanged = isArraySync && (
+      JSON.stringify(cloudValue) !== JSON.stringify(decodedCloudValue.items) ||
+      JSON.stringify(decodedCloudValue.tombstones) !== JSON.stringify(mergedTombstones)
+    )
 
     const hasEmptyArrayConflict = (
       isEmptyArray(localValue) && isNonEmptyArray(cloudValue)
@@ -314,6 +346,9 @@ const UserAppSettingsService = {
 
     if (hasEmptyArrayConflict) {
       if (localUpdated > cloudUpdated) {
+        if (localArrayStateChanged) {
+          await forceWriteLocalSetting(key, localValue, localMeta?.updated_at || new Date().toISOString(), mergedTombstones)
+        }
         const pushResult = await UserAppSettingsService.syncLocalSettingToCloud(key)
         if (!pushResult.ok) {
           UserAppSettingsService.warn('Failed to push newer local array state', { key, pushResult })
@@ -324,7 +359,11 @@ const UserAppSettingsService = {
         return { ok: true, action: 'local-to-cloud-empty-conflict' }
       }
 
-      await forceWriteLocalSetting(key, normalizeSyncedArrayValue(key, cloudValue), row.updated_at)
+      await forceWriteLocalSetting(key, normalizeSyncedArrayValue(key, cloudValue), row.updated_at, mergedTombstones)
+      if (cloudArrayStateChanged) {
+        const pushResult = await UserAppSettingsService.syncLocalSettingToCloud(key)
+        if (!pushResult.ok) UserAppSettingsService.warn('Failed to converge cloud array deletion metadata', { key, pushResult })
+      }
       if (key === STORAGE_KEYS.goals) await refreshGoalsUiAfterCloudMerge()
       if (key === STORAGE_KEYS.budgetCycleSettings) await refreshBudgetCycleUiAfterCloudMerge()
       if (key === STORAGE_KEYS.recurringIncomes) await refreshRecurringIncomesUiAfterCloudMerge()
@@ -335,6 +374,9 @@ const UserAppSettingsService = {
 
     if (isNonEmptyArray(localValue) && isNonEmptyArray(cloudValue)) {
       if (localUpdated > cloudUpdated && isStrictIdentitySubset(localValue, cloudValue)) {
+        if (localArrayStateChanged) {
+          await forceWriteLocalSetting(key, localValue, localMeta?.updated_at || new Date().toISOString(), mergedTombstones)
+        }
         const pushResult = await UserAppSettingsService.syncLocalSettingToCloud(key)
         if (!pushResult.ok) {
           UserAppSettingsService.warn('Failed to push newer partial local deletion', { key, pushResult })
@@ -346,7 +388,11 @@ const UserAppSettingsService = {
       }
 
       if (cloudUpdated > localUpdated && isStrictIdentitySubset(cloudValue, localValue)) {
-        await forceWriteLocalSetting(key, normalizeSyncedArrayValue(key, cloudValue), row.updated_at)
+        await forceWriteLocalSetting(key, normalizeSyncedArrayValue(key, cloudValue), row.updated_at, mergedTombstones)
+        if (cloudArrayStateChanged) {
+          const pushResult = await UserAppSettingsService.syncLocalSettingToCloud(key)
+          if (!pushResult.ok) UserAppSettingsService.warn('Failed to converge cloud partial deletion metadata', { key, pushResult })
+        }
         if (key === STORAGE_KEYS.goals) await refreshGoalsUiAfterCloudMerge()
         if (key === STORAGE_KEYS.budgetCycleSettings) await refreshBudgetCycleUiAfterCloudMerge()
         if (key === STORAGE_KEYS.recurringIncomes) await refreshRecurringIncomesUiAfterCloudMerge()
@@ -359,7 +405,7 @@ const UserAppSettingsService = {
       const normalizedMerged = normalizeSyncedArrayValue(key, merged.value)
       if (JSON.stringify(normalizedMerged) !== JSON.stringify(localValue) || merged.conflicts.length) {
         const newest = cloudUpdated > localUpdated ? row.updated_at : localMeta?.updated_at
-        await forceWriteLocalSetting(key, normalizedMerged, newest || new Date().toISOString())
+        await forceWriteLocalSetting(key, normalizedMerged, newest || new Date().toISOString(), mergedTombstones)
         await appendConflictLog(key, merged.conflicts)
         await UserAppSettingsService.syncLocalSettingToCloud(key)
         if (key === STORAGE_KEYS.goals) await refreshGoalsUiAfterCloudMerge()
@@ -372,7 +418,7 @@ const UserAppSettingsService = {
 
     if (!localValue && cloudValue) {
       // no local, cloud present -> write cloud to local
-      await forceWriteLocalSetting(key, normalizeSyncedArrayValue(key, cloudValue), row.updated_at)
+      await forceWriteLocalSetting(key, normalizeSyncedArrayValue(key, cloudValue), row.updated_at, mergedTombstones)
       if (key === STORAGE_KEYS.goals) {
         await refreshGoalsUiAfterCloudMerge()
       }
@@ -389,7 +435,11 @@ const UserAppSettingsService = {
 
     if (cloudUpdated > localUpdated) {
       // cloud newer -> replace local
-      await forceWriteLocalSetting(key, normalizeSyncedArrayValue(key, cloudValue), row.updated_at)
+      await forceWriteLocalSetting(key, normalizeSyncedArrayValue(key, cloudValue), row.updated_at, mergedTombstones)
+      if (cloudArrayStateChanged) {
+        const pushResult = await UserAppSettingsService.syncLocalSettingToCloud(key)
+        if (!pushResult.ok) UserAppSettingsService.warn('Failed to converge newer cloud array metadata', { key, pushResult })
+      }
       if (key === STORAGE_KEYS.goals) {
         await refreshGoalsUiAfterCloudMerge()
       }
@@ -406,6 +456,9 @@ const UserAppSettingsService = {
 
     if (localUpdated > cloudUpdated) {
       // local newer -> push to cloud
+      if (localArrayStateChanged) {
+        await forceWriteLocalSetting(key, localValue, localMeta?.updated_at || new Date().toISOString(), mergedTombstones)
+      }
       const pushResult = await UserAppSettingsService.syncLocalSettingToCloud(key)
       if (!pushResult.ok) {
         UserAppSettingsService.warn('Failed to push newer local setting to cloud', { key, pushResult })
@@ -415,6 +468,21 @@ const UserAppSettingsService = {
       UserAppSettingsService.log('Local setting is newer; pushed to cloud', key)
       logSyncEvent('pull', key, { ok: true, action: 'local-to-cloud' })
       return { ok: true, action: 'local-to-cloud' }
+    }
+
+    if (isArraySync && (localArrayStateChanged || cloudArrayStateChanged)) {
+      if (localArrayStateChanged) {
+        await forceWriteLocalSetting(key, localValue, localMeta?.updated_at || row.updated_at || new Date().toISOString(), mergedTombstones)
+      }
+      if (cloudArrayStateChanged) {
+        const pushResult = await UserAppSettingsService.syncLocalSettingToCloud(key)
+        if (!pushResult.ok) {
+          UserAppSettingsService.warn('Failed to converge equal-timestamp array metadata', { key, pushResult })
+          return { ok: false, error: pushResult.error, reason: pushResult.reason }
+        }
+      }
+      logSyncEvent('pull', key, { ok: true, action: 'merged-array-metadata' })
+      return { ok: true, action: 'merged-array-metadata' }
     }
 
     UserAppSettingsService.log('No sync action needed; local and cloud timestamps equal', key)

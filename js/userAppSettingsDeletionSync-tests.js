@@ -38,6 +38,7 @@ globalThis.window = {
 
 const { default: AuthContext } = await import('../src/auth/authContext.js')
 const { STORAGE_KEYS } = await import('../src/constants/storageKeys.js')
+const { createArraySyncEnvelope, decodeArraySyncEnvelope } = await import('../src/sync/arrayTombstones.js')
 const { UserAppSettingsService } = await import('./userAppSettingsService.js')
 
 AuthContext._state = {
@@ -48,10 +49,11 @@ AuthContext._state = {
 
 const ownerKey = (key) => `${key}::user:owner-a`
 const ownerMetaKey = (key) => `${key}::meta::user:owner-a`
-const setLocalVersion = (key, value, updatedAt) => {
+const setLocalVersion = (key, value, updatedAt, metadata = {}) => {
   values.set(ownerKey(key), JSON.stringify(value))
-  if (updatedAt) values.set(ownerMetaKey(key), JSON.stringify({ updated_at: updatedAt }))
+  if (updatedAt) values.set(ownerMetaKey(key), JSON.stringify({ updated_at: updatedAt, ...metadata }))
 }
+const pushedArray = (index = 0) => decodeArraySyncEnvelope(cloud.pushed[index]?.data)
 const resetCase = () => {
   storage.clear()
   cloud.row = null
@@ -79,7 +81,8 @@ cloud.row = {
 }
 result = await UserAppSettingsService.syncCloudSettingToLocal(STORAGE_KEYS.billSchedules)
 assert.equal(result.action, 'local-to-cloud-empty-conflict', 'a newer local deletion must win over stale cloud items')
-assert.deepEqual(cloud.pushed[0].data, [], 'the explicit local deletion must be synchronized to the cloud')
+assert.deepEqual(pushedArray().items, [], 'the explicit local deletion must be synchronized to the cloud')
+assert.equal(cloud.pushed[0].data_version, 2, 'new array envelopes must declare their cloud schema version')
 assert.deepEqual(JSON.parse(values.get(ownerKey(STORAGE_KEYS.billSchedules))), [], 'the local deletion must remain intact')
 
 resetCase()
@@ -91,7 +94,7 @@ cloud.row = {
 }
 result = await UserAppSettingsService.syncCloudSettingToLocal(STORAGE_KEYS.goals)
 assert.equal(result.action, 'local-to-cloud-empty-conflict', 'goal deletion must follow the same timestamp rule as other arrays')
-assert.deepEqual(cloud.pushed[0].data, [], 'deleted goals must not be restored by the former special-case hydration')
+assert.deepEqual(pushedArray().items, [], 'deleted goals must not be restored by the former special-case hydration')
 
 resetCase()
 setLocalVersion(STORAGE_KEYS.debts, [{ id: 'current-debt', name: 'Dette actuelle' }], '2026-07-05T10:00:00.000Z')
@@ -102,7 +105,7 @@ cloud.row = {
 }
 result = await UserAppSettingsService.syncCloudSettingToLocal(STORAGE_KEYS.debts)
 assert.equal(result.action, 'local-to-cloud-empty-conflict', 'newer local items must still be protected from an older empty cloud state')
-assert.equal(cloud.pushed[0].data[0].id, 'current-debt', 'newer local items should be pushed without data loss')
+assert.equal(pushedArray().items[0].id, 'current-debt', 'newer local items should be pushed without data loss')
 
 resetCase()
 cloud.row = {
@@ -126,7 +129,7 @@ cloud.row = {
 }
 result = await UserAppSettingsService.syncCloudSettingToLocal(STORAGE_KEYS.debts)
 assert.equal(result.action, 'local-to-cloud-subset-deletion', 'a newer local strict subset must represent a partial deletion')
-assert.deepEqual(cloud.pushed[0].data.map(item => item.id), ['kept-debt'], 'the removed local item must not be merged back from stale cloud data')
+assert.deepEqual(pushedArray().items.map(item => item.id), ['kept-debt'], 'the removed local item must not be merged back from stale cloud data')
 
 resetCase()
 setLocalVersion(STORAGE_KEYS.goals, [
@@ -177,12 +180,44 @@ assert.deepEqual(
   deletionMeta,
   'the deletion metadata must be persisted in the same user namespace as the setting'
 )
+const deletionPush = await UserAppSettingsService.syncLocalSettingToCloud(STORAGE_KEYS.debts)
+assert.equal(deletionPush.ok, true, 'a locally recorded deletion must remain pushable')
+assert.equal(pushedArray().isEnvelope, true, 'array state must use the versioned cloud envelope')
+assert.deepEqual(pushedArray().items.map(item => item.id), ['kept-debt'], 'the envelope must contain only active items')
+assert.deepEqual(pushedArray().tombstones, deletionMeta.tombstones, 'the envelope must retain the deletion across devices')
 
 const recreationMeta = await UserAppSettingsService.saveSetting(STORAGE_KEYS.debts, [
   { id: 'kept-debt', name: 'Dette conservée' },
   { id: 'deleted-debt', name: 'Dette recréée' }
 ])
 assert.deepEqual(recreationMeta.tombstones, [], 'explicitly recreating an item must clear its previous tombstone')
+
+resetCase()
+setLocalVersion(STORAGE_KEYS.debts, [
+  { id: 'kept-debt', name: 'Dette conservée' },
+  { id: 'deleted-debt', name: 'Dette obsolète' }
+], '2026-07-12T10:00:00.000Z')
+cloud.row = {
+  key: STORAGE_KEYS.debts,
+  data: createArraySyncEnvelope(
+    [{ id: 'kept-debt', name: 'Dette conservée' }],
+    [{ identity: 'id:deleted-debt', deleted_at: '2026-07-13T10:00:00.000Z' }]
+  ),
+  data_version: 2,
+  updated_at: '2026-07-13T10:00:00.000Z'
+}
+result = await UserAppSettingsService.syncCloudSettingToLocal(STORAGE_KEYS.debts)
+assert.equal(result.action, 'cloud-to-local', 'a newer cloud tombstone must reconcile even when active arrays already match')
+assert.deepEqual(
+  JSON.parse(values.get(ownerKey(STORAGE_KEYS.debts))).map(item => item.id),
+  ['kept-debt'],
+  'an envelope tombstone must remove a stale item from another device'
+)
+assert.deepEqual(
+  JSON.parse(values.get(ownerMetaKey(STORAGE_KEYS.debts))).tombstones,
+  [{ identity: 'id:deleted-debt', deleted_at: '2026-07-13T10:00:00.000Z' }],
+  'cloud tombstones must be retained locally for future pushes'
+)
 
 resetCase()
 setLocalVersion(STORAGE_KEYS.aiSettings, { enabled: true }, '2026-07-13T10:00:00.000Z')
@@ -192,5 +227,8 @@ assert.deepEqual(
   ['updated_at'],
   'non-array settings must keep their existing metadata shape'
 )
+await UserAppSettingsService.syncLocalSettingToCloud(STORAGE_KEYS.aiSettings)
+assert.deepEqual(cloud.pushed[0].data, { enabled: false }, 'non-array cloud payloads must remain backward compatible')
+assert.equal('data_version' in cloud.pushed[0], false, 'non-array cloud rows must keep their current schema version behavior')
 
 console.info('userAppSettingsDeletionSync-tests: newer explicit deletions cannot be resurrected — OK')
