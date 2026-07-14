@@ -19,8 +19,11 @@ import {
 } from '../src/sync/arrayTombstones.js'
 
 const META_SUFFIX = '::meta'
+const PENDING_SYNC_KEY = 'nexora_user_app_settings_pending_v1'
 
 const DEFAULT_KEYS = SYNCED_APP_SETTING_KEYS
+let pendingQueueMutation = Promise.resolve()
+let onlineReplayAttached = false
 
 const parseJson = (raw) => {
   if (raw === null || raw === undefined) return null
@@ -121,6 +124,41 @@ const setLocalItem = async (key, value) => {
   }
 }
 
+const normalizePendingKeys = (value) => (
+  [...new Set((Array.isArray(value) ? value : []).filter(key => typeof key === 'string' && key.startsWith('nexora_')))]
+)
+
+const readPendingSettingKeys = async () => {
+  await pendingQueueMutation
+  const queueStorageKey = getNamespacedStorageKey(PENDING_SYNC_KEY)
+  return normalizePendingKeys(parseJson(await getLocalItem(queueStorageKey)))
+}
+
+const mutatePendingSettingKeys = (mutation) => {
+  const queueStorageKey = getNamespacedStorageKey(PENDING_SYNC_KEY)
+  const operation = pendingQueueMutation.then(async () => {
+    const current = normalizePendingKeys(parseJson(await getLocalItem(queueStorageKey)))
+    const next = normalizePendingKeys(mutation(current))
+    await setLocalItem(queueStorageKey, JSON.stringify(next))
+    return next
+  })
+  pendingQueueMutation = operation.catch(() => {})
+  return operation
+}
+
+const enqueuePendingSetting = (key) => mutatePendingSettingKeys(keys => keys.concat(key))
+const dequeuePendingSetting = (key) => mutatePendingSettingKeys(keys => keys.filter(entry => entry !== key))
+
+const attachOnlineReplay = () => {
+  if (onlineReplayAttached || typeof window === 'undefined' || typeof window.addEventListener !== 'function') return
+  onlineReplayAttached = true
+  window.addEventListener('online', () => {
+    UserAppSettingsService.replayPendingSettings().catch((err) => {
+      UserAppSettingsService.warn('Failed to replay pending settings after reconnect', err)
+    })
+  })
+}
+
 const forceWriteLocalSetting = async (key, value, updatedAt, tombstones) => {
   const serialized = JSON.stringify(value)
   await setLocalItem(key, serialized)
@@ -195,6 +233,7 @@ const UserAppSettingsService = {
 
   init: async () => {
     await StorageManager.initIndexedDB()
+    attachOnlineReplay()
   },
 
   getSetting: async (key) => {
@@ -220,6 +259,7 @@ const UserAppSettingsService = {
     await setLocalItem(key, serialized)
     const meta = Array.isArray(value) ? { updated_at, tombstones } : { updated_at }
     await setLocalItem(key + META_SUFFIX, JSON.stringify(meta))
+    await enqueuePendingSetting(key)
     return meta
   },
 
@@ -262,12 +302,37 @@ const UserAppSettingsService = {
         logSyncEvent('push', key, { ok: false, error: error?.message })
         return { ok: false, error }
       }
+      await dequeuePendingSetting(key).catch((queueError) => {
+        UserAppSettingsService.warn('Cloud setting saved but pending queue cleanup failed', { key, queueError })
+      })
       logSyncEvent('push', key, { ok: true })
       return { ok: true }
     } catch (err) {
       UserAppSettingsService.warn('Supabase upsert failed', { key, err })
       return { ok: false, error: err }
     }
+  },
+
+  getPendingSettingKeys: readPendingSettingKeys,
+
+  replayPendingSettings: async () => {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      return { ok: false, reason: 'offline', pending: await readPendingSettingKeys() }
+    }
+
+    const keys = await readPendingSettingKeys()
+    const results = {}
+    for (const key of keys) {
+      let result = await UserAppSettingsService.syncCloudSettingToLocal(key)
+      if (result?.reason === 'no-cloud') {
+        result = await UserAppSettingsService.syncLocalSettingToCloud(key)
+      }
+      results[key] = result
+      if (result?.ok) {
+        await dequeuePendingSetting(key)
+      }
+    }
+    return { ok: Object.values(results).every(result => result?.ok), results, pending: await readPendingSettingKeys() }
   },
 
   // Pull cloud row and merge to local using last-write-wins on updated_at
@@ -510,6 +575,7 @@ const UserAppSettingsService = {
           }
         }
         results[key] = res
+        if (res?.ok) await dequeuePendingSetting(key)
       } catch (e) {
         results[key] = { ok: false, error: e }
       }
