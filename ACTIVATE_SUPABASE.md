@@ -46,16 +46,11 @@ Secret Key:         sbp_xxxxxxxxxxxxx... (⚠️ NE PAS UTILISER)
 nano /Users/macbookair/Desktop/Nexora-dev/.env
 ```
 
-### 2.2 Remplacer les placeholders
+### 2.2 Configurer `nexora-prod`
 
 ```env
-# AVANT (placeholder):
-VITE_SUPABASE_URL=https://fwzwqzrgffkvsbzwjdmv.supabase.co
-VITE_SUPABASE_ANON_KEY=MA_PUBLISHABLE_KEY
-
-# APRÈS (vos vraies clés):
-VITE_SUPABASE_URL=https://xxxxxxxxxxxxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+VITE_SUPABASE_URL=https://aedxaaiswoqjcdpcvdej.supabase.co
+VITE_SUPABASE_ANON_KEY=<clé_publishable_de_nexora-prod>
 ```
 
 ### 2.3 Sauvegarder

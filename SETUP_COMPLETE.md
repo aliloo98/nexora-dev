@@ -110,8 +110,8 @@ npm run preview
 
 ### Variables d'environnement (.env)
 ```env
-VITE_SUPABASE_URL=https://fwzwqzrgffkvsbzwjdmv.supabase.co
-VITE_SUPABASE_ANON_KEY=MA_PUBLISHABLE_KEY
+VITE_SUPABASE_URL=https://aedxaaiswoqjcdpcvdej.supabase.co
+VITE_SUPABASE_ANON_KEY=<clé_publishable_de_nexora-prod>
 ```
 
 ### ⚠️ Points importants
