@@ -114,4 +114,51 @@ result = await UserAppSettingsService.syncCloudSettingToLocal(STORAGE_KEYS.goals
 assert.equal(result.action, 'cloud-to-local', 'a device with no local version must still hydrate from cloud')
 assert.equal(JSON.parse(values.get(ownerKey(STORAGE_KEYS.goals)))[0].id, 'cloud-goal', 'initial hydration must preserve cloud data')
 
+resetCase()
+setLocalVersion(STORAGE_KEYS.debts, [{ id: 'kept-debt', name: 'Dette conservée' }], '2026-07-08T10:00:00.000Z')
+cloud.row = {
+  key: STORAGE_KEYS.debts,
+  data: [
+    { id: 'kept-debt', name: 'Dette conservée' },
+    { id: 'deleted-debt', name: 'Dette supprimée' }
+  ],
+  updated_at: '2026-07-07T10:00:00.000Z'
+}
+result = await UserAppSettingsService.syncCloudSettingToLocal(STORAGE_KEYS.debts)
+assert.equal(result.action, 'local-to-cloud-subset-deletion', 'a newer local strict subset must represent a partial deletion')
+assert.deepEqual(cloud.pushed[0].data.map(item => item.id), ['kept-debt'], 'the removed local item must not be merged back from stale cloud data')
+
+resetCase()
+setLocalVersion(STORAGE_KEYS.goals, [
+  { id: 'kept-goal', name: 'Objectif conservé' },
+  { id: 'deleted-goal', name: 'Objectif supprimé' }
+], '2026-07-09T10:00:00.000Z')
+cloud.row = {
+  key: STORAGE_KEYS.goals,
+  data: [{ id: 'kept-goal', name: 'Objectif conservé' }],
+  updated_at: '2026-07-10T10:00:00.000Z'
+}
+result = await UserAppSettingsService.syncCloudSettingToLocal(STORAGE_KEYS.goals)
+assert.equal(result.action, 'cloud-to-local-subset-deletion', 'a newer cloud strict subset must represent a partial deletion')
+assert.deepEqual(
+  JSON.parse(values.get(ownerKey(STORAGE_KEYS.goals))).map(item => item.id),
+  ['kept-goal'],
+  'the removed cloud item must be deleted locally instead of resurrected'
+)
+
+resetCase()
+setLocalVersion(STORAGE_KEYS.debts, [{ id: 'local-debt', name: 'Dette locale' }], '2026-07-11T10:00:00.000Z')
+cloud.row = {
+  key: STORAGE_KEYS.debts,
+  data: [{ id: 'cloud-debt', name: 'Dette cloud' }],
+  updated_at: '2026-07-10T10:00:00.000Z'
+}
+result = await UserAppSettingsService.syncCloudSettingToLocal(STORAGE_KEYS.debts)
+assert.equal(result.action, 'merged-array', 'independent concurrent additions must still be merged')
+assert.deepEqual(
+  new Set(JSON.parse(values.get(ownerKey(STORAGE_KEYS.debts))).map(item => item.id)),
+  new Set(['local-debt', 'cloud-debt']),
+  'the subset deletion rule must not discard independent additions'
+)
+
 console.info('userAppSettingsDeletionSync-tests: newer explicit deletions cannot be resurrected — OK')

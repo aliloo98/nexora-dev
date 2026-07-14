@@ -39,6 +39,15 @@ const identityForItem = (item, index) => {
   return `index:${index}`
 }
 
+const identitySetForArray = (items = []) => new Set(items.map((item, index) => identityForItem(item, index)))
+
+const isStrictIdentitySubset = (candidate = [], reference = []) => {
+  const candidateIds = identitySetForArray(candidate)
+  const referenceIds = identitySetForArray(reference)
+  if (candidateIds.size >= referenceIds.size) return false
+  return [...candidateIds].every(identity => referenceIds.has(identity))
+}
+
 const mergeArrayByIdentity = (localValue = [], cloudValue = []) => {
   const conflicts = []
   const merged = new Map()
@@ -334,6 +343,27 @@ const UserAppSettingsService = {
     }
 
     if (isNonEmptyArray(localValue) && isNonEmptyArray(cloudValue)) {
+      if (localUpdated > cloudUpdated && isStrictIdentitySubset(localValue, cloudValue)) {
+        const pushResult = await UserAppSettingsService.syncLocalSettingToCloud(key)
+        if (!pushResult.ok) {
+          UserAppSettingsService.warn('Failed to push newer partial local deletion', { key, pushResult })
+          return { ok: false, error: pushResult.error, reason: pushResult.reason }
+        }
+        UserAppSettingsService.log('Newer partial local deletion pushed to cloud', key)
+        logSyncEvent('pull', key, { ok: true, action: 'local-to-cloud-subset-deletion' })
+        return { ok: true, action: 'local-to-cloud-subset-deletion' }
+      }
+
+      if (cloudUpdated > localUpdated && isStrictIdentitySubset(cloudValue, localValue)) {
+        await forceWriteLocalSetting(key, normalizeSyncedArrayValue(key, cloudValue), row.updated_at)
+        if (key === STORAGE_KEYS.goals) await refreshGoalsUiAfterCloudMerge()
+        if (key === STORAGE_KEYS.budgetCycleSettings) await refreshBudgetCycleUiAfterCloudMerge()
+        if (key === STORAGE_KEYS.recurringIncomes) await refreshRecurringIncomesUiAfterCloudMerge()
+        UserAppSettingsService.log('Newer partial cloud deletion written locally', key)
+        logSyncEvent('pull', key, { ok: true, action: 'cloud-to-local-subset-deletion' })
+        return { ok: true, action: 'cloud-to-local-subset-deletion' }
+      }
+
       const merged = mergeSyncedArrayValue(key, localValue, cloudValue)
       const normalizedMerged = normalizeSyncedArrayValue(key, merged.value)
       if (JSON.stringify(normalizedMerged) !== JSON.stringify(localValue) || merged.conflicts.length) {
