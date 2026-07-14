@@ -77,19 +77,15 @@ const writeMeta = (monthKey, meta, userId) => {
   return writeJson(metaStorageKey(userId), current)
 }
 
-const removeMeta = (monthKey, userId) => {
-  const current = readMeta(userId)
-  delete current[monthKey]
-  return writeJson(metaStorageKey(userId), current)
-}
-
 const getLocalUpdatedAt = (monthKey, userId) => {
   const meta = readMeta(userId)[monthKey] || {}
   return meta.local_updated_at || meta.cloud_updated_at || null
 }
 
 const getPendingMonthKeys = (userId = getCurrentUserId()) => Object.entries(readMeta(userId))
-  .filter(([monthKey, meta]) => MONTH_KEY_PATTERN.test(monthKey) && meta?.pending_operation === 'upsert')
+  .filter(([monthKey, meta]) => (
+    MONTH_KEY_PATTERN.test(monthKey) && ['upsert', 'delete'].includes(meta?.pending_operation)
+  ))
   .map(([monthKey]) => monthKey)
   .sort()
 
@@ -167,6 +163,8 @@ const performMonthlyBudgetPush = async (monthKey, snapshot, localUpdatedAt, pend
       source: 'cloud',
       cloud_updated_at: cloudUpdatedAt,
       local_updated_at: cloudUpdatedAt,
+      local_deleted_at: null,
+      cloud_deleted_at: null,
       pending_operation: null,
       pending_since: null,
       pending_token: null
@@ -184,12 +182,67 @@ const performMonthlyBudgetPush = async (monthKey, snapshot, localUpdatedAt, pend
   }
 }
 
-const pushMonthlyBudgetState = (monthKey, snapshot, localUpdatedAt, pendingToken, ownerId) => {
+const performMonthlyBudgetDelete = async (monthKey, deletedAt, pendingToken, ownerId) => {
+  if (!monthKey || !isOnline()) {
+    return { deleted: true, source: 'local', synced: false, reason: 'offline' }
+  }
+
+  try {
+    const { session, error: sessionError } = await getSupabaseSession()
+    const userId = session?.user?.id
+
+    if (!userId) {
+      return {
+        deleted: true,
+        source: 'local',
+        synced: false,
+        reason: sessionError ? 'session-error' : 'no-session'
+      }
+    }
+    if (userId !== ownerId) {
+      return { deleted: true, source: 'local', synced: false, reason: 'owner-changed' }
+    }
+
+    const { data: saved, error } = await supabase
+      .from(TABLE_NAME)
+      .upsert({
+        user_id: userId,
+        month_key: monthKey,
+        data: {},
+        updated_at: deletedAt
+      }, { onConflict: 'user_id,month_key' })
+      .select('updated_at')
+      .single()
+
+    if (error) throw error
+
+    const cloudDeletedAt = saved?.updated_at || deletedAt
+    const currentMeta = readMeta(ownerId)[monthKey] || {}
+    if (pendingToken && currentMeta.pending_token !== pendingToken) {
+      return { deleted: true, source: 'local', synced: false, reason: 'local-changed-during-sync' }
+    }
+    writeMeta(monthKey, {
+      source: 'cloud',
+      cloud_deleted_at: cloudDeletedAt,
+      local_deleted_at: deletedAt,
+      pending_operation: null,
+      pending_since: null,
+      pending_token: null
+    }, ownerId)
+
+    return { deleted: true, source: 'cloud', synced: true, deleted_at: cloudDeletedAt }
+  } catch (err) {
+    console.warn('[MonthlyBudgetStateService] cloud delete fallback:', err)
+    return { deleted: true, source: 'local', synced: false, reason: 'cloud-error', error: err }
+  }
+}
+
+const queueMonthlyOperation = (monthKey, ownerId, task) => {
   const operationKey = `${ownerId || 'anonymous'}:${monthKey}`
   const previous = monthlyPushes.get(operationKey) || Promise.resolve()
   const operation = previous
     .catch(() => {})
-    .then(() => performMonthlyBudgetPush(monthKey, snapshot, localUpdatedAt, pendingToken, ownerId))
+    .then(task)
   monthlyPushes.set(operationKey, operation)
   operation.then(
     () => {
@@ -201,6 +254,22 @@ const pushMonthlyBudgetState = (monthKey, snapshot, localUpdatedAt, pendingToken
   )
   return operation
 }
+
+const pushMonthlyBudgetState = (monthKey, snapshot, localUpdatedAt, pendingToken, ownerId) => (
+  queueMonthlyOperation(
+    monthKey,
+    ownerId,
+    () => performMonthlyBudgetPush(monthKey, snapshot, localUpdatedAt, pendingToken, ownerId)
+  )
+)
+
+const pushMonthlyBudgetDelete = (monthKey, deletedAt, pendingToken, ownerId) => (
+  queueMonthlyOperation(
+    monthKey,
+    ownerId,
+    () => performMonthlyBudgetDelete(monthKey, deletedAt, pendingToken, ownerId)
+  )
+)
 
 const DEFAULT_CATEGORY_GROUPS = {
   income: ['rev_ali', 'rev_megane', 'rev_excep'],
@@ -269,6 +338,15 @@ const getMonthlyBudgetState = async (monthKey) => {
   const localMeta = readMeta(ownerId)[monthKey] || {}
   if (localMeta.pending_operation === 'upsert') {
     return pushMonthlyBudgetState(monthKey, localData, localUpdatedAt, localMeta.pending_token, ownerId)
+  }
+  if (localMeta.pending_operation === 'delete') {
+    const deleteResult = await pushMonthlyBudgetDelete(
+      monthKey,
+      localMeta.local_deleted_at || localMeta.pending_since || new Date().toISOString(),
+      localMeta.pending_token,
+      ownerId
+    )
+    return { data: {}, ...deleteResult }
   }
 
   try {
@@ -351,48 +429,20 @@ const saveMonthlyBudgetState = async (monthKey, data) => {
 
 const deleteMonthlyBudgetState = async (monthKey) => {
   const ownerId = getCurrentUserId()
+  const deletedAt = new Date().toISOString()
+  const pendingToken = createPendingToken()
   const storage = getStorageClient()
   if (storage) storage.removeItem(storageKey(monthKey, ownerId))
-  removeMeta(monthKey, ownerId)
+  writeMeta(monthKey, {
+    source: 'local',
+    local_updated_at: deletedAt,
+    local_deleted_at: deletedAt,
+    pending_operation: 'delete',
+    pending_since: deletedAt,
+    pending_token: pendingToken
+  }, ownerId)
 
-  if (!monthKey || !isOnline()) {
-    return { deleted: true, source: 'local', synced: false, reason: 'offline' }
-  }
-
-  try {
-    const { session, error: sessionError } = await getSupabaseSession()
-    const userId = session?.user?.id
-
-    if (!userId) {
-      return {
-        deleted: true,
-        source: 'local',
-        synced: false,
-        reason: sessionError ? 'session-error' : 'no-session'
-      }
-    }
-    if (userId !== ownerId) {
-      return { deleted: true, source: 'local', synced: false, reason: 'owner-changed' }
-    }
-
-    const { error } = await supabase
-      .from(TABLE_NAME)
-      .delete()
-      .eq('user_id', userId)
-      .eq('month_key', monthKey)
-
-    if (error) throw error
-
-    writeMeta(monthKey, {
-      source: 'cloud',
-      cloud_deleted_at: new Date().toISOString()
-    }, ownerId)
-
-    return { deleted: true, source: 'cloud', synced: true }
-  } catch (err) {
-    console.warn('[MonthlyBudgetStateService] cloud delete fallback:', err)
-    return { deleted: true, source: 'local', synced: false, reason: 'cloud-error', error: err }
-  }
+  return pushMonthlyBudgetDelete(monthKey, deletedAt, pendingToken, ownerId)
 }
 
 /**
@@ -455,7 +505,14 @@ const replayPendingChanges = () => {
       const localData = readLocalMonth(monthKey, ownerId)
       const localMeta = readMeta(ownerId)[monthKey] || {}
       const localUpdatedAt = localMeta.local_updated_at || localMeta.cloud_updated_at || null
-      results[monthKey] = await pushMonthlyBudgetState(monthKey, localData, localUpdatedAt, localMeta.pending_token, ownerId)
+      results[monthKey] = localMeta.pending_operation === 'delete'
+        ? await pushMonthlyBudgetDelete(
+            monthKey,
+            localMeta.local_deleted_at || localMeta.pending_since || new Date().toISOString(),
+            localMeta.pending_token,
+            ownerId
+          )
+        : await pushMonthlyBudgetState(monthKey, localData, localUpdatedAt, localMeta.pending_token, ownerId)
     }
     const pending = getPendingMonthKeys(ownerId)
     return {

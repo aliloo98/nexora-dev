@@ -12,8 +12,12 @@ const storage = {
 
 const remote = {
   userId: 'owner-a',
+  row: null,
   error: null,
+  deleteError: null,
   pushed: [],
+  deleted: [],
+  events: [],
   defer: false,
   releases: []
 }
@@ -47,15 +51,22 @@ try {
     error: null
   })
   supabase.from = () => ({
+    select() { return this },
+    eq() { return this },
+    maybeSingle: async () => ({ data: remote.row, error: null }),
     upsert(payload) {
+      const isDeletionTombstone = Object.keys(payload.data || {}).length === 0
       remote.pushed.push(payload)
+      if (isDeletionTombstone) remote.deleted.push(payload.month_key)
+      remote.events.push(isDeletionTombstone ? 'delete' : `upsert:${payload.month_key}`)
       return {
         select() {
           return {
             single: async () => {
+              const operationError = isDeletionTombstone ? remote.deleteError : remote.error
               const response = {
-                data: remote.error ? null : { data: payload.data, updated_at: '2026-07-14T10:00:00.000Z' },
-                error: remote.error
+                data: operationError ? null : { data: payload.data, updated_at: '2026-07-14T10:00:00.000Z' },
+                error: operationError
               }
               if (!remote.defer) return response
               return new Promise(resolve => remote.releases.push(() => resolve(response)))
@@ -141,12 +152,57 @@ try {
     user: { id: 'owner-a' },
     isAuthenticated: true
   }
+  remote.userId = 'owner-a'
+  globalThis.navigator.onLine = false
+  await MonthlyBudgetStateService.saveMonthlyBudgetState('2026-12', { rev_ali: 3200 })
+  result = await MonthlyBudgetStateService.deleteMonthlyBudgetState('2026-12')
+  assert.equal(result.reason, 'offline', 'an offline deletion must complete locally without hiding its pending state')
+  assert.equal(storage.getItem('budget_owner-a_2026-12'), null, 'offline deletion must remove the local snapshot immediately')
+  assert.deepEqual(MonthlyBudgetStateService.getPendingMonthKeys(), ['2026-12'], 'the deleted month must remain pending')
+
+  globalThis.navigator.onLine = true
+  result = await MonthlyBudgetStateService.replayPendingChanges()
+  assert.equal(result.ok, true, 'the pending monthly deletion must replay after reconnect')
+  assert.deepEqual(result.pending, [], 'a successful remote deletion must clear its pending marker')
+  assert.equal(remote.deleted.includes('2026-12'), true, 'replay must publish a durable empty tombstone for the deleted month')
+
+  storage.setItem('budget_owner-a_2026-12', JSON.stringify({ rev_ali: 9999 }))
+  storage.setItem('nexora_monthly_budget_states_meta_v1::user:owner-a', JSON.stringify({
+    '2026-12': { local_updated_at: '2026-07-13T10:00:00.000Z' }
+  }))
+  remote.row = { data: {}, updated_at: '2026-07-14T10:00:00.000Z' }
+  result = await MonthlyBudgetStateService.getMonthlyBudgetState('2026-12')
+  assert.equal(result.synced, true, 'a stale second device must hydrate the server deletion tombstone')
+  assert.deepEqual(result.data, {}, 'the server tombstone must clear stale monthly values on another device')
+  assert.deepEqual(JSON.parse(storage.getItem('budget_owner-a_2026-12')), {}, 'the stale local month must be cleared durably')
+  remote.row = null
+
+  await MonthlyBudgetStateService.saveMonthlyBudgetState('2027-01', { rev_ali: 3300 })
+  remote.deleteError = { message: 'temporary delete failure' }
+  result = await MonthlyBudgetStateService.deleteMonthlyBudgetState('2027-01')
+  assert.equal(result.reason, 'cloud-error', 'a failed remote deletion must fall back safely')
+  assert.deepEqual(MonthlyBudgetStateService.getPendingMonthKeys(), ['2027-01'], 'failed deletes must retain their tombstone')
+  remote.deleteError = null
+  assert.equal((await MonthlyBudgetStateService.replayPendingChanges()).ok, true, 'a failed deletion must remain replayable')
+
+  await MonthlyBudgetStateService.saveMonthlyBudgetState('2027-02', { rev_ali: 3400 })
+  remote.events = []
+  const deleteThenRecreate = MonthlyBudgetStateService.deleteMonthlyBudgetState('2027-02')
+  const recreatedSave = MonthlyBudgetStateService.saveMonthlyBudgetState('2027-02', { rev_ali: 3500 })
+  await Promise.all([deleteThenRecreate, recreatedSave])
+  assert.deepEqual(remote.events, ['delete', 'upsert:2027-02'], 'delete then recreate must reach Supabase in the same order')
+  assert.deepEqual(
+    JSON.parse(storage.getItem('budget_owner-a_2027-02')),
+    { rev_ali: 3500 },
+    'recreating a month after deletion must preserve the newer snapshot'
+  )
+
   remote.userId = null
   result = await MonthlyBudgetStateService.saveMonthlyBudgetState('2026-09', { rev_ali: 2800 })
   assert.equal(result.reason, 'no-session', 'no monthly snapshot may be sent without a session')
   assert.deepEqual(MonthlyBudgetStateService.getPendingMonthKeys(), ['2026-09'], 'no-session saves must remain queued')
 
-  console.info('monthlyBudgetStateReplay-tests: offline monthly saves are durable and replayable — OK')
+  console.info('monthlyBudgetStateReplay-tests: offline monthly saves and deletions are durable — OK')
 } finally {
   AuthContext._state = originalAuthState
   supabase.auth.getSession = originalGetSession

@@ -100,7 +100,11 @@ try {
   AuthContext._state.user = { id: 'user-a' }
   await MonthlyBudgetStateService.deleteMonthlyBudgetState('2026-07')
 
-  assert.equal(JSON.parse(storage.getItem(metaKeyFor('user-a')))['2026-07'], undefined, 'user A deletion should remove only user A metadata')
+  assert.equal(
+    JSON.parse(storage.getItem(metaKeyFor('user-a')))['2026-07'].pending_operation,
+    'delete',
+    'user A offline deletion should retain a replayable tombstone'
+  )
   assert.equal(JSON.parse(storage.getItem(metaKeyFor('user-b')))['2026-08'].source, 'local', 'user A deletion should preserve user B metadata')
   assert.equal(storage.getItem(META_KEY), legacyMetaRaw, 'authenticated deletion should not alter legacy global metadata')
 
@@ -118,7 +122,9 @@ try {
 
   await MonthlyBudgetStateService.deleteMonthlyBudgetState('2026-09')
 
-  assert.deepEqual(JSON.parse(storage.getItem(META_KEY)), legacyMeta, 'anonymous deletion should preserve unrelated global metadata')
+  const anonymousMetaAfterDelete = JSON.parse(storage.getItem(META_KEY))
+  assert.deepEqual(anonymousMetaAfterDelete['2026-01'], legacyMeta['2026-01'], 'anonymous deletion should preserve unrelated global metadata')
+  assert.equal(anonymousMetaAfterDelete['2026-09'].pending_operation, 'delete', 'anonymous deletion should retain its local tombstone')
   assert.equal(storage.getItem(metaKeyFor('user-b')) !== null, true, 'anonymous operations should preserve authenticated metadata')
 
   const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8')
