@@ -160,6 +160,64 @@ try {
   assert.equal(afterDelete.transactions.length, 0)
   assert.equal(cloudCalls, 0)
 
+  let monthlyBudgetStateUpserts = 0
+  let lastMonthlyBudgetPayload = null
+  const originalSupabaseFrom = supabase.from
+  const originalGetSession = supabase.auth.getSession
+
+  AuthContext._state = {
+    ...AuthContext._state,
+    user: { id: 'transaction-user-sync' },
+    session: { user: { id: 'transaction-user-sync' }, access_token: 'test-token' },
+    isAuthenticated: true
+  }
+
+  supabase.auth.getSession = async () => ({
+    data: { session: { user: { id: 'transaction-user-sync' } } },
+    error: null
+  })
+  supabase.from = (table) => {
+    if (table !== 'monthly_budget_states') {
+      throw new Error(`unexpected table ${table}`)
+    }
+
+    monthlyBudgetStateUpserts += 1
+    return {
+      upsert(payload) {
+        lastMonthlyBudgetPayload = payload
+        return {
+          select() {
+            return {
+              single: async () => ({
+                data: { data: payload.data, updated_at: payload.updated_at },
+                error: null
+              })
+            }
+          }
+        }
+      }
+    }
+  }
+
+  await TransactionsService.update({
+    user_id: 'transaction-user-sync',
+    local_id: '2026-07_sync_income',
+    amount: 250,
+    transaction_type: 'income',
+    metadata: {
+      month: '2026-07',
+      category: 'sync_income'
+    }
+  })
+
+  assert.equal(monthlyBudgetStateUpserts, 1)
+  assert.equal(lastMonthlyBudgetPayload.user_id, 'transaction-user-sync')
+  assert.equal(lastMonthlyBudgetPayload.month_key, '2026-07')
+  assert.equal(lastMonthlyBudgetPayload.data.sync_income, 250)
+
+  supabase.from = originalSupabaseFrom
+  supabase.auth.getSession = originalGetSession
+
   console.info('transactionsService-tests: legacy cloud bridge disabled, local fallback preserved — OK')
 } finally {
   AuthContext._state = originalAuthState

@@ -14,6 +14,7 @@
 import { supabase } from '../src/supabase.js'
 import AuthContext from '../src/auth/authContext.js'
 import { getCurrentUserId } from './userStorage.js'
+import { MonthlyBudgetStateService } from './monthlyBudgetStateService.js'
 
 const log = () => {}
 const env = typeof import.meta !== 'undefined' ? import.meta.env || {} : {}
@@ -24,6 +25,27 @@ export const shouldEnableLegacyTransactionCloudSync = (value = env.VITE_ENABLE_L
 
 const isLegacyCloudSyncEnabled = () => shouldEnableLegacyTransactionCloudSync()
 
+const syncTransactionToMonthlyBudgetState = async (transaction) => {
+  const user = getCurrentUser()
+  const ownerId = transaction.user_id || user?.id || getCurrentUserId()
+  const month = transaction.metadata?.month || transaction.month || null
+  const category = transaction.metadata?.category || transaction.category || null
+
+  if (!ownerId || !month || !category) {
+    return { synced: false, reason: 'missing-metadata' }
+  }
+
+  const snapshot = { [category]: Number(transaction.amount) || 0 }
+  const result = await MonthlyBudgetStateService.saveMonthlyBudgetState(month, snapshot)
+  return {
+    synced: result?.synced === true,
+    result,
+    month,
+    category,
+    ownerId
+  }
+}
+
 // ─────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────
@@ -33,6 +55,15 @@ const getCurrentUser = () => {
   try {
     const state = AuthContext.getState()
     return state?.isAuthenticated ? state.user : null
+  } catch {
+    return null
+  }
+}
+
+const getAuthContextSession = () => {
+  try {
+    const state = AuthContext.getState()
+    return state?.session || null
   } catch {
     return null
   }
@@ -454,51 +485,40 @@ const create = async (transaction) => {
   const normalized = normalizeTransaction(transaction)
   const localId = normalized.metadata?.local_id
 
-  if (!isLegacyCloudSyncEnabled()) {
-    return persistTransactionFallback(normalized)
+  let session = getAuthContextSession()
+  let sessionError = null
+  let shouldUseCloudSync = Boolean(session?.user?.id || session?.access_token)
+
+  if (!session && (isLegacyCloudSyncEnabled() || Boolean(getCurrentUser()?.id && getAuthContextSession()?.access_token))) {
+    try {
+      const authState = await getSupabaseSession()
+      session = authState.session
+      sessionError = authState.error
+      shouldUseCloudSync = Boolean(session?.user?.id || session?.access_token)
+    } catch (err) {
+      sessionError = err
+      console.warn('[Phase2B][TransactionsService] Supabase getSession threw:', err)
+    }
   }
 
-  let session = null
-  let sessionError = null
-  try {
-    const authState = await getSupabaseSession()
-    session = authState.session
-    sessionError = authState.error
-  } catch (err) {
-    sessionError = err
-    console.warn('[Phase2B][TransactionsService] Supabase getSession threw:', err)
+  if (!session?.user?.id && normalized.user_id && getCurrentUser()?.id === normalized.user_id) {
+    session = { user: { id: normalized.user_id } }
   }
 
   if (session?.user?.id) {
     normalized.user_id = session.user.id
   }
 
-  if (normalized.user_id && session?.user?.id && isOnline()) {
+  if (shouldUseCloudSync && normalized.user_id && session?.user?.id && isOnline()) {
     try {
-      const supabasePayload = toSupabaseTransactionPayload(normalized)
-      const existing = await findSupabaseTransactionByLocalId(normalized.user_id, localId)
-      if (existing) {
-        const { id, created_at, ...updatePayload } = supabasePayload
-        const { data, error } = await supabase
-          .from('transactions')
-          .update(updatePayload)
-          .eq('id', existing.id)
-          .eq('user_id', normalized.user_id)
-          .select()
-          .single()
-
-        if (error) throw error
-        return data
+      const syncResult = await syncTransactionToMonthlyBudgetState(normalized)
+      if (syncResult.synced) {
+        normalized.sync_status = 'synced'
+        normalized.synced_at = new Date().toISOString()
+        return normalized
       }
 
-      const { data, error } = await supabase
-        .from('transactions')
-        .insert(supabasePayload)
-        .select()
-        .single()
-
-      if (error) throw error
-      return data
+      console.warn('[Phase2B][TransactionsService] monthly budget sync fallback:', syncResult)
     } catch (err) {
       console.error('[Phase2B][TransactionsService] Supabase create full error:', err)
       log('warn', `Create Supabase indisponible, fallback local: ${localId}`, err.message)
@@ -524,46 +544,41 @@ const update = async (transaction) => {
   const normalized = normalizeTransaction({ ...transaction, updated_at: new Date().toISOString() })
   const localId = normalized.metadata?.local_id
 
-  if (!isLegacyCloudSyncEnabled()) {
-    return persistTransactionFallback(normalized)
+  let session = getAuthContextSession()
+  let sessionError = null
+  let shouldUseCloudSync = Boolean(session?.user?.id || session?.access_token)
+
+  if (!session && (isLegacyCloudSyncEnabled() || Boolean(getCurrentUser()?.id && getAuthContextSession()?.access_token))) {
+    try {
+      const authState = await getSupabaseSession()
+      session = authState.session
+      sessionError = authState.error
+      shouldUseCloudSync = Boolean(session?.user?.id || session?.access_token)
+    } catch (err) {
+      sessionError = err
+      console.warn('[Phase2C][TransactionsService] fallback activated: session unavailable for update', err)
+    }
   }
 
-  let session = null
-  let sessionError = null
-  try {
-    const authState = await getSupabaseSession()
-    session = authState.session
-    sessionError = authState.error
-  } catch (err) {
-    sessionError = err
-    console.warn('[Phase2C][TransactionsService] fallback activated: session unavailable for update', err)
+  if (!session?.user?.id && normalized.user_id && getCurrentUser()?.id === normalized.user_id) {
+    session = { user: { id: normalized.user_id } }
   }
 
   if (session?.user?.id) {
     normalized.user_id = session.user.id
   }
 
-  if (normalized.user_id && session?.user?.id && isOnline()) {
+  if (shouldUseCloudSync && normalized.user_id && session?.user?.id && isOnline()) {
     try {
-      const supabasePayload = toSupabaseTransactionPayload(normalized)
-      const existing = await findSupabaseTransactionByLocalId(normalized.user_id, localId)
-
-      if (!existing) {
-        return create(normalized)
+      const syncResult = await syncTransactionToMonthlyBudgetState(normalized)
+      if (syncResult.synced) {
+        normalized.sync_status = 'synced'
+        normalized.synced_at = new Date().toISOString()
+        console.info('[Phase2C] update synced', { local_id: localId })
+        return normalized
       }
 
-      const { id, created_at, ...updatePayload } = supabasePayload
-      const { data, error } = await supabase
-        .from('transactions')
-        .update(updatePayload)
-        .eq('id', existing.id)
-        .eq('user_id', normalized.user_id)
-        .select()
-        .single()
-
-      if (error) throw error
-      console.info('[Phase2C] update synced', { local_id: localId })
-      return data
+      console.warn('[Phase2C] fallback activated: update sync error', syncResult)
     } catch (err) {
       console.warn('[Phase2C] fallback activated: update sync error', err)
     }
@@ -588,41 +603,38 @@ const remove = async ({ user_id, local_id, month, category } = {}) => {
     return false
   }
 
-  if (!isLegacyCloudSyncEnabled()) {
-    return removeTransactionFallback({
-      userId: user_id || getCurrentUser()?.id || null,
-      localId: local_id,
-      month,
-      category
-    })
+  let session = getAuthContextSession()
+  let sessionError = null
+  const effectiveUserId = user_id || getCurrentUser()?.id || null
+  let shouldUseCloudSync = Boolean(session?.user?.id || session?.access_token)
+
+  if (!session && (isLegacyCloudSyncEnabled() || Boolean(getCurrentUser()?.id && getAuthContextSession()?.access_token))) {
+    try {
+      const authState = await getSupabaseSession()
+      session = authState.session
+      sessionError = authState.error
+      shouldUseCloudSync = Boolean(session?.user?.id || session?.access_token)
+    } catch (err) {
+      sessionError = err
+      console.warn('[Phase2C][TransactionsService] fallback activated: session unavailable for delete', err)
+    }
   }
 
-  let session = null
-  let sessionError = null
-  try {
-    const authState = await getSupabaseSession()
-    session = authState.session
-    sessionError = authState.error
-  } catch (err) {
-    sessionError = err
-    console.warn('[Phase2C][TransactionsService] fallback activated: session unavailable for delete', err)
+  if (!session?.user?.id && effectiveUserId && getCurrentUser()?.id === effectiveUserId) {
+    session = { user: { id: effectiveUserId } }
   }
 
   const userId = session?.user?.id || user_id || getCurrentUser()?.id || null
 
-  if (userId && session?.user?.id && isOnline()) {
+  if (shouldUseCloudSync && userId && session?.user?.id && isOnline()) {
     try {
-      let query = supabase.from('transactions').delete().eq('user_id', userId)
-      if (local_id) {
-        query = query.eq('local_id', local_id)
-      } else {
-        query = query.eq('month', month)
-        if (category) query = query.eq('category', category)
+      if (month && category) {
+        const snapshot = { [category]: 0 }
+        const result = await MonthlyBudgetStateService.saveMonthlyBudgetState(month, snapshot)
+        if (result?.synced) {
+          console.info('[Phase2C] delete synced', { local_id, month, category })
+        }
       }
-
-      const { error } = await query
-      if (error) throw error
-      console.info('[Phase2C] delete synced', { local_id, month, category })
     } catch (err) {
       console.warn('[Phase2C] fallback activated: delete sync error', err)
     }
