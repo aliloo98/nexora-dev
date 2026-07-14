@@ -6,6 +6,11 @@ import {
   mergeRecurringIncomeArrays,
   normalizeRecurringIncomeList
 } from '../src/settings/recurringIncomeSync.js'
+import {
+  getArrayItemIdentity,
+  getArrayItemTimestamp,
+  isStrictIdentitySubset
+} from '../src/sync/arrayTombstones.js'
 
 const META_SUFFIX = '::meta'
 
@@ -23,44 +28,19 @@ const parseJson = (raw) => {
 const isEmptyArray = (value) => Array.isArray(value) && value.length === 0
 const isNonEmptyArray = (value) => Array.isArray(value) && value.length > 0
 
-const itemTimestamp = (item) => {
-  const value = item?.updated_at || item?.updatedAt || item?.modified_at || item?.created_at || item?.createdAt || 0
-  const time = value ? new Date(value).getTime() : 0
-  return Number.isFinite(time) ? time : 0
-}
-
-const identityForItem = (item, index) => {
-  if (!item || typeof item !== 'object') return `primitive:${String(item)}:${index}`
-  const id = item.id || item.local_id || item.key || item.categoryKey
-  if (id) return `id:${String(id).toLowerCase()}`
-  const name = item.name || item.title || item.label
-  const type = item.type || item.frequency || item.priority || ''
-  if (name) return `name:${String(name).trim().toLowerCase()}::${String(type).trim().toLowerCase()}`
-  return `index:${index}`
-}
-
-const identitySetForArray = (items = []) => new Set(items.map((item, index) => identityForItem(item, index)))
-
-const isStrictIdentitySubset = (candidate = [], reference = []) => {
-  const candidateIds = identitySetForArray(candidate)
-  const referenceIds = identitySetForArray(reference)
-  if (candidateIds.size >= referenceIds.size) return false
-  return [...candidateIds].every(identity => referenceIds.has(identity))
-}
-
 const mergeArrayByIdentity = (localValue = [], cloudValue = []) => {
   const conflicts = []
   const merged = new Map()
   const add = (item, source, index) => {
-    const identity = identityForItem(item, index)
+    const identity = getArrayItemIdentity(item, index)
     const existing = merged.get(identity)
     if (!existing) {
       merged.set(identity, { item, source })
       return
     }
 
-    const existingTime = itemTimestamp(existing.item)
-    const incomingTime = itemTimestamp(item)
+    const existingTime = getArrayItemTimestamp(existing.item)
+    const incomingTime = getArrayItemTimestamp(item)
     if (incomingTime > existingTime) {
       conflicts.push({ identity, kept: source, replaced: existing.source })
       merged.set(identity, { item, source })
