@@ -306,21 +306,31 @@ const UserAppSettingsService = {
     const localUpdated = localMeta && localMeta.updated_at ? new Date(localMeta.updated_at).getTime() : 0
     const cloudValue = row.data
 
-    if (key === STORAGE_KEYS.goals && isNonEmptyArray(cloudValue) && !isNonEmptyArray(localValue)) {
-      await forceWriteLocalSetting(key, normalizeSyncedArrayValue(key, cloudValue), row.updated_at)
-      await refreshGoalsUiAfterCloudMerge()
-      UserAppSettingsService.log('Injected non-empty cloud goals into local storage', key)
-      return { ok: true, action: 'cloud-to-local-goals-forced' }
-    }
+    const hasEmptyArrayConflict = (
+      isEmptyArray(localValue) && isNonEmptyArray(cloudValue)
+    ) || (
+      isNonEmptyArray(localValue) && isEmptyArray(cloudValue)
+    )
 
-    if (isEmptyArray(cloudValue) && isNonEmptyArray(localValue)) {
-      const pushResult = await UserAppSettingsService.syncLocalSettingToCloud(key)
-      if (!pushResult.ok) {
-        UserAppSettingsService.warn('Failed to protect non-empty local setting from empty cloud', { key, pushResult })
-        return { ok: false, error: pushResult.error, reason: pushResult.reason }
+    if (hasEmptyArrayConflict) {
+      if (localUpdated > cloudUpdated) {
+        const pushResult = await UserAppSettingsService.syncLocalSettingToCloud(key)
+        if (!pushResult.ok) {
+          UserAppSettingsService.warn('Failed to push newer local array state', { key, pushResult })
+          return { ok: false, error: pushResult.error, reason: pushResult.reason }
+        }
+        UserAppSettingsService.log('Newer local array state pushed to cloud', key)
+        logSyncEvent('pull', key, { ok: true, action: 'local-to-cloud-empty-conflict' })
+        return { ok: true, action: 'local-to-cloud-empty-conflict' }
       }
-      UserAppSettingsService.log('Local non-empty setting kept over empty cloud', key)
-      return { ok: true, action: 'local-to-cloud-empty-cloud-protected' }
+
+      await forceWriteLocalSetting(key, normalizeSyncedArrayValue(key, cloudValue), row.updated_at)
+      if (key === STORAGE_KEYS.goals) await refreshGoalsUiAfterCloudMerge()
+      if (key === STORAGE_KEYS.budgetCycleSettings) await refreshBudgetCycleUiAfterCloudMerge()
+      if (key === STORAGE_KEYS.recurringIncomes) await refreshRecurringIncomesUiAfterCloudMerge()
+      UserAppSettingsService.log('Newer cloud array state written locally', key)
+      logSyncEvent('pull', key, { ok: true, action: 'cloud-to-local-empty-conflict' })
+      return { ok: true, action: 'cloud-to-local-empty-conflict' }
     }
 
     if (isNonEmptyArray(localValue) && isNonEmptyArray(cloudValue)) {
