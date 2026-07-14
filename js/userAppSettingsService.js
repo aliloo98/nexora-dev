@@ -9,7 +9,8 @@ import {
 import {
   getArrayItemIdentity,
   getArrayItemTimestamp,
-  isStrictIdentitySubset
+  isStrictIdentitySubset,
+  recordArrayDeletions
 } from '../src/sync/arrayTombstones.js'
 
 const META_SUFFIX = '::meta'
@@ -198,11 +199,21 @@ const UserAppSettingsService = {
   },
 
   saveSetting: async (key, value) => {
+    const { value: previousValue, meta: previousMeta } = await UserAppSettingsService.getSetting(key)
+    const updated_at = new Date().toISOString()
+    const tombstones = Array.isArray(value)
+      ? recordArrayDeletions({
+          previousItems: Array.isArray(previousValue) ? previousValue : [],
+          nextItems: value,
+          tombstones: previousMeta?.tombstones,
+          updatedAt: updated_at
+        })
+      : null
     const serialized = JSON.stringify(value)
     await setLocalItem(key, serialized)
-    const updated_at = new Date().toISOString()
-    await setLocalItem(key + META_SUFFIX, JSON.stringify({ updated_at }))
-    return { updated_at }
+    const meta = Array.isArray(value) ? { updated_at, tombstones } : { updated_at }
+    await setLocalItem(key + META_SUFFIX, JSON.stringify(meta))
+    return meta
   },
 
   // Push local value to Supabase user_app_settings row

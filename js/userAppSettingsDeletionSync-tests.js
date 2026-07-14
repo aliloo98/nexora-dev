@@ -161,4 +161,36 @@ assert.deepEqual(
   'the subset deletion rule must not discard independent additions'
 )
 
+resetCase()
+setLocalVersion(STORAGE_KEYS.debts, [
+  { id: 'kept-debt', name: 'Dette conservée' },
+  { id: 'deleted-debt', name: 'Dette supprimée' }
+], '2026-07-12T10:00:00.000Z')
+const deletionMeta = await UserAppSettingsService.saveSetting(
+  STORAGE_KEYS.debts,
+  [{ id: 'kept-debt', name: 'Dette conservée' }]
+)
+assert.equal(deletionMeta.tombstones.length, 1, 'saving a partial deletion must record one local tombstone')
+assert.equal(deletionMeta.tombstones[0].identity, 'id:deleted-debt', 'the tombstone must use the stable item identity')
+assert.deepEqual(
+  JSON.parse(values.get(ownerMetaKey(STORAGE_KEYS.debts))),
+  deletionMeta,
+  'the deletion metadata must be persisted in the same user namespace as the setting'
+)
+
+const recreationMeta = await UserAppSettingsService.saveSetting(STORAGE_KEYS.debts, [
+  { id: 'kept-debt', name: 'Dette conservée' },
+  { id: 'deleted-debt', name: 'Dette recréée' }
+])
+assert.deepEqual(recreationMeta.tombstones, [], 'explicitly recreating an item must clear its previous tombstone')
+
+resetCase()
+setLocalVersion(STORAGE_KEYS.aiSettings, { enabled: true }, '2026-07-13T10:00:00.000Z')
+const objectMeta = await UserAppSettingsService.saveSetting(STORAGE_KEYS.aiSettings, { enabled: false })
+assert.deepEqual(
+  Object.keys(objectMeta),
+  ['updated_at'],
+  'non-array settings must keep their existing metadata shape'
+)
+
 console.info('userAppSettingsDeletionSync-tests: newer explicit deletions cannot be resurrected — OK')
