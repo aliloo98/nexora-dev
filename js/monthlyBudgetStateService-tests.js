@@ -59,6 +59,7 @@ try {
 
   const userAMeta = JSON.parse(storage.getItem(metaKeyFor('user-a')))
   assert.equal(userAMeta['2026-07'].source, 'local', 'user A metadata should use its namespace')
+  assert.equal(userAMeta['2026-07'].pending_operation, 'upsert', 'offline saves should remain marked for replay')
   assert.deepEqual(
     JSON.parse(storage.getItem('budget_user-a_2026-07')),
     { rev_ali: 2400 },
@@ -78,6 +79,11 @@ try {
 
   const userBMeta = JSON.parse(storage.getItem(metaKeyFor('user-b')))
   assert.equal(userBMeta['2026-08'].source, 'local', 'user B metadata should use its namespace')
+  assert.deepEqual(
+    MonthlyBudgetStateService.getPendingMonthKeys(),
+    ['2026-07', '2026-08'],
+    'pending month discovery should stay inside the current user namespace'
+  )
   assert.deepEqual(
     JSON.parse(storage.getItem('budget_user-b_2026-07')),
     { rev_ali: 3100 },

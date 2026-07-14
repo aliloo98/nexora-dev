@@ -393,6 +393,7 @@ const initApp = async () => {
 
     // User-scoped services must never hydrate before the owner is known.
     await NotificationsService.init()
+    await MonthlyBudgetStateService.init()
 
     // Keep the connection check for early failure visibility without blocking offline usage.
     if (navigator.onLine !== false) {
