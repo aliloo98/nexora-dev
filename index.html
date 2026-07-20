@@ -232,7 +232,7 @@ body.auth-locked > #nexora-status-bar {
               <p id="available-money-detail">Aucun montant disponible non affecté.</p>
             </div>
             <div class="available-money-decision">
-            <button type="button" class="btn btn-gold available-money-options-toggle" id="available-money-options-toggle" aria-expanded="false" onclick="toggleAvailableMoneyOptions()">Voir les options</button>
+            <button type="button" class="btn btn-gold available-money-options-toggle" id="available-money-options-toggle" aria-expanded="false" aria-controls="available-money-actions" onclick="toggleAvailableMoneyOptions(document.getElementById('available-money-options-toggle'), document.getElementById('available-money-actions'))">Voir les options</button>
             <div class="wow-actions available-money-actions" id="available-money-actions" hidden>
               <button type="button" class="btn btn-gold available-money-cta available-money-cta--primary" onclick="showSection('objectifs')">Alimenter l’objectif</button>
               <button type="button" class="btn btn-outline available-money-cta" onclick="showSection('dettes')">Réduire une dette</button>
@@ -471,6 +471,7 @@ body.auth-locked > #nexora-status-bar {
 
   <!-- SAISIE -->
   <div id="section-saisie" class="section">
+    <div id="budget-entry-guide-root" class="budget-entry-guide-root"></div>
 
     <!-- REVENUS -->
     <div class="budget-block">
@@ -3862,7 +3863,7 @@ function validateRevenueInput(element) {
 }
 
 function updateAll(){
-  const resolvedBudget = getResolvedBudgetSnapshot();
+    const resolvedBudget = getResolvedBudgetSnapshot();
   const readResolved = (key) => Object.prototype.hasOwnProperty.call(resolvedBudget, key) ? parseBudgetNumber(resolvedBudget[key]) : getVal(key);
   const revReel = getBudgetKeysByType('income').reduce((total, key) => total + readResolved(key), 0);
 
@@ -3919,6 +3920,80 @@ function updateAll(){
   setDashboardGuidanceText('total-revenus', fmt(revReel));
   setDashboardGuidanceText('total-fixes', fmt(fixReel));
   setDashboardGuidanceText('total-variables', fmt(varReel));
+
+  if (typeof window.renderBudgetCoach === 'function') {
+    const coachRoot = document.getElementById('budget-entry-guide-root');
+        const coachMarkup = window.renderBudgetCoach(coachRoot, {
+      rev_ali: getVal('rev_ali'),
+      rev_megane: getVal('rev_megane'),
+      rev_excep: getVal('rev_excep'),
+      loyer: getVal('loyer'),
+      credit: getVal('credit'),
+      assauto: getVal('assauto'),
+      gasoil: getVal('gasoil'),
+      elec: getVal('elec'),
+      eau: getVal('eau'),
+      psy: getVal('psy'),
+      diete: getVal('diete'),
+      itou: getVal('itou'),
+      sante: getVal('sante'),
+      impots: getVal('impots'),
+      box: getVal('box'),
+      tel_ali: getVal('tel_ali'),
+      tel_meg: getVal('tel_meg'),
+      stream: getVal('stream'),
+      ps: getVal('ps'),
+      cb: getVal('cb'),
+      impfix: getVal('impfix'),
+      courses: getVal('courses'),
+      tabac: getVal('tabac'),
+      sport: getVal('sport'),
+      ongles: getVal('ongles'),
+      cadeaux: getVal('cadeaux'),
+      impvar: getVal('impvar')
+    });
+    if (coachMarkup) {
+      const actionBtn = coachRoot?.querySelector('.budget-coach-action');
+      if (actionBtn) {
+        actionBtn.addEventListener('click', () => {
+          const target = actionBtn.dataset.target;
+          if (target === 'revenues') {
+            showSection('saisie');
+            setTimeout(() => {
+              const field = document.querySelector('#section-saisie input[data-key="rev_ali"]');
+              field?.focus();
+              field?.select?.();
+            }, 120);
+            return;
+          }
+          if (target === 'fixed-expenses') {
+            showSection('saisie');
+            setTimeout(() => {
+              const field = document.querySelector('#section-saisie input[data-key="loyer"]');
+              field?.focus();
+              field?.select?.();
+            }, 120);
+            return;
+          }
+          if (target === 'variable-expenses') {
+            showSection('saisie');
+            setTimeout(() => {
+              const field = document.querySelector('#section-saisie input[data-key="courses"]');
+              field?.focus();
+              field?.select?.();
+            }, 120);
+            return;
+          }
+          if (target === 'dashboard') {
+            showSection('dashboard');
+          }
+          if (target === 'budget') {
+            showSection('saisie');
+          }
+        });
+      }
+    }
+  }
 
   // Dashboard Cards
   setDashboardGuidanceText('kpi-revenus', fmt(revReel));
@@ -4642,54 +4717,33 @@ function updateDashboardGuidance(metrics) {
     variablesPct
   } = metrics;
 
-  let situationTitle = 'Budget à compléter';
-  let situationText = 'Ajoute les revenus et dépenses du mois pour obtenir une lecture fiable.';
-  if (revReel > 0 && solde >= 0) {
-    situationTitle = `Solde fin de cycle positif : ${fmt(solde)}`;
-    situationText = `Après toutes les dépenses prévues, le budget garde ${tauxEp}% d'épargne.`;
-  } else if (revReel > 0) {
-    situationTitle = `Déficit prévu : ${fmt(Math.abs(solde))}`;
-    situationText = 'Le total des dépenses prévues dépasse les revenus du mois.';
-  }
+  const guidance = window.NexoraDashboardGuidance?.buildDashboardGuidance
+    ? window.NexoraDashboardGuidance.buildDashboardGuidance({
+        revReel,
+        totalDepRestant,
+        solde,
+        soldeEstime,
+        tauxEp,
+        tauxCh,
+        depPayesPct,
+        fixesPct,
+        variablesPct
+      })
+    : {
+        situationTitle: 'Budget à compléter',
+        situationText: 'Ajoute les revenus et dépenses du mois pour obtenir une lecture fiable.',
+        watchTitle: 'Rien de critique',
+        watchText: `${fmt(totalDepRestant)} restent à payer.`,
+        actionTitle: 'Sauvegarder le mois',
+        actionText: 'Une fois les montants vérifiés, utilise le bouton Sauvegarder.'
+      };
 
-  let watchTitle = 'Rien de critique';
-  let watchText = `${fmt(totalDepRestant)} restent à payer.`;
-  if (revReel === 0) {
-    watchTitle = 'Données insuffisantes';
-    watchText = 'Ajoutez vos revenus pour commencer.';
-  } else if (soldeEstime < 0) {
-    watchTitle = 'Solde actuel négatif';
-    watchText = 'Les paiements déjà saisis dépassent les revenus disponibles.';
-  } else if (fixesPct > 60) {
-    watchTitle = 'Charges fixes élevées';
-    watchText = `Les charges fixes représentent ${fixesPct}% des revenus.`;
-  } else if (variablesPct > 40) {
-    watchTitle = 'Variables à surveiller';
-    watchText = `Les dépenses variables atteignent ${variablesPct}% des revenus.`;
-  } else if (tauxCh > 85) {
-    watchTitle = 'Taux de charges élevé';
-    watchText = `Les charges consomment ${tauxCh}% des revenus.`;
-  }
-
-  let actionTitle = 'Sauvegarder le mois';
-  let actionText = 'Une fois les montants vérifiés, utilise le bouton Sauvegarder.';
-  if (revReel === 0) {
-    actionTitle = 'Saisir les revenus';
-    actionText = 'Commence par renseigner les revenus pour débloquer les indicateurs.';
-  } else if (depPayesPct < 50 && totalDepRestant > 0) {
-    actionTitle = 'Mettre à jour les paiements';
-    actionText = 'Complète les champs déjà payé pour suivre le reste à régler.';
-  } else if (tauxEp < 10) {
-    actionTitle = 'Réduire une dépense';
-    actionText = 'Cherche une variable ou un abonnement facile à réduire.';
-  }
-
-  setDashboardGuidanceText('dashboard-situation-title', situationTitle);
-  setDashboardGuidanceText('dashboard-situation-text', situationText);
-  setDashboardGuidanceText('dashboard-watch-title', watchTitle);
-  setDashboardGuidanceText('dashboard-watch-text', watchText);
-  setDashboardGuidanceText('dashboard-action-title', actionTitle);
-  setDashboardGuidanceText('dashboard-action-text', actionText);
+  setDashboardGuidanceText('dashboard-situation-title', guidance.situationTitle);
+  setDashboardGuidanceText('dashboard-situation-text', guidance.situationText);
+  setDashboardGuidanceText('dashboard-watch-title', guidance.watchTitle);
+  setDashboardGuidanceText('dashboard-watch-text', guidance.watchText);
+  setDashboardGuidanceText('dashboard-action-title', guidance.actionTitle);
+  setDashboardGuidanceText('dashboard-action-text', guidance.actionText);
 }
 
 let coupleView = 'global';
@@ -4987,7 +5041,7 @@ function updateDonutChart(fix, vari, soldeVal, rev) {
 }
 
 function showSection(id){
-  const targetSection = document.getElementById('section-' + id);
+    const targetSection = document.getElementById('section-' + id);
   if (!targetSection) {
     id = 'dashboard';
     if (!document.getElementById('section-dashboard')) return;
@@ -5012,7 +5066,7 @@ function showSection(id){
   }
 
   const nextHash = '#section-' + id;
-  if (window.location.hash !== nextHash) {
+    if (window.location.hash !== nextHash) {
     history.replaceState(null, '', nextHash);
   }
 

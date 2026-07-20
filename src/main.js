@@ -50,6 +50,9 @@ import { parseFinancialExpression } from './finance/financialExpression.js'
 import { computeCycleBalances, computeCycleBalancesFromMetrics } from './finance/cycleBalance.js'
 import NexoraRecurringResolver from './finance/recurringResolution.js'
 import NexoraCore from './ui/nexoraCore.js'
+import { toggleAvailableMoneyOptions } from './ui/availableMoneyOptions.js'
+import { buildDashboardGuidance } from './ui/dashboardGuidance.js'
+import { renderBudgetCoach, buildBudgetCoachState } from './ui/budgetCoach.js'
 import NexoraSections from './app/sectionLoader.js'
 import { getSyncStatusSnapshot, recordLastSync } from './app/syncStatus.js'
 import { APP_VERSION, formatBuildLabel } from './app/buildInfo.js'
@@ -74,6 +77,10 @@ window.NexoraMotion = NexoraMotion
 window.NexoraRecurringResolver = NexoraRecurringResolver
 window.NexoraCore = NexoraCore
 window.NexoraSections = NexoraSections
+window.toggleAvailableMoneyOptions = toggleAvailableMoneyOptions
+window.NexoraDashboardGuidance = { buildDashboardGuidance }
+window.renderBudgetCoach = renderBudgetCoach
+window.buildBudgetCoachState = buildBudgetCoachState
 window.NexoraBuild = { version: APP_VERSION, label: formatBuildLabel }
 window.getUserDisplayName = (user) => getUserDisplayName(user || AuthContext.getCurrentUser())
 window.NexoraSyncDiagnostics = SyncDiagnostics

@@ -167,6 +167,110 @@ body {
   overflow-y: auto;
 }
 
+.budget-entry-guide-root {
+  margin-bottom: 12px;
+}
+
+.budget-coach-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  column-gap: 18px;
+  row-gap: 4px;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-left: 2px solid var(--gold);
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.04);
+}
+
+.budget-coach-card.info {
+  border-left-color: var(--gold);
+}
+
+.budget-coach-card.success {
+  border-left-color: var(--green);
+}
+
+.budget-coach-card.warning {
+  border-left-color: var(--orange);
+}
+
+.budget-coach-head {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+}
+
+.budget-coach-kicker {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text2);
+  margin-bottom: 4px;
+}
+
+.budget-coach-head h3 {
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.budget-coach-reason {
+  grid-column: 1;
+  grid-row: 2;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text2);
+}
+
+.budget-coach-action {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  min-height: 40px;
+  margin: 0;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 9px 12px;
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+
+.budget-coach-action:hover,
+.budget-coach-action:focus-visible {
+  background: rgba(255,255,255,0.14);
+}
+
+.budget-coach-action:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+@media(max-width: 430px) {
+  .budget-coach-card {
+    column-gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .budget-coach-reason {
+    max-width: 22ch;
+  }
+
+  .budget-coach-action {
+    min-width: 112px;
+    max-width: 128px;
+    white-space: normal;
+    line-height: 1.2;
+  }
+}
+
 html,
 body,
 .main,
@@ -566,32 +670,11 @@ body,
     width: 100% !important;
     height: 100% !important;
     transform: none !important;
-    background: transparent !important;
-    border: 0 !important;
-    box-shadow: none !important;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
     backdrop-filter: none;
     pointer-events: none;
-  }
-
-  #nexora-core-panel.nexora-core--v8 .nexora-core-center-data > * {
-    position: relative;
-    z-index: 3;
-  }
-
-  #nexora-core-panel.nexora-core--v8 .nexora-core-center-data::before,
-  #nexora-core-panel.nexora-core--v8 .nexora-core-center-data::after,
-  #nexora-core-panel.nexora-core--v8 .nexora-core-globe::before,
-  #nexora-core-panel.nexora-core--v8 .nexora-core-globe::after {
-    content: none !important;
-    display: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-  }
-
-  #nexora-core-panel.nexora-core--v8 .nexora-core-center-data [class*="dot"],
-  #nexora-core-panel.nexora-core--v8 .nexora-core-center-data [class*="node"],
-  #nexora-core-panel.nexora-core--v8 .nexora-core-center-data [class*="pulse"] {
-    display: none !important;
   }
 
   /* central amount (primary) */
@@ -601,8 +684,6 @@ body,
     font-weight: 900;
     color: var(--text);
     letter-spacing: -0.02em;
-    position: relative;
-    z-index: 4;
     pointer-events: auto;
   }
 
@@ -612,8 +693,6 @@ body,
     color: var(--text2);
     margin-top: 8px;
     font-weight:700;
-    position: relative;
-    z-index: 4;
   }
 
   /* State badges map to human language (stable/watch/fragile) — keep existing data attributes handling */
@@ -693,7 +772,7 @@ body,
   }
 
   /* Assistant reduced to a one-line summary with 'Voir l'analyse' trigger */
-  #nexora-core-panel.nexora-core--v8 #assistant-card .assistant-details:not([hidden]) { display: grid; }
+  #nexora-core-panel.nexora-core--v8 #assistant-card .assistant-details { display: none; }
   #nexora-core-panel.nexora-core--v8 #assistant-card .assistant-summary,
   #nexora-core-panel.nexora-core--v8 .assistant-summary {
     display: block;
@@ -6673,6 +6752,10 @@ body.mode-simple .home-goal-summary {
   margin-top: 12px;
 }
 
+.available-money-actions.is-visible {
+  display: grid;
+}
+
 .available-money-cta {
   justify-content: center;
   min-height: 42px;
@@ -7927,49 +8010,16 @@ body.mode-simple .home-goal-summary {
   width: 100%;
   height: 100%;
   transform: none;
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
   backdrop-filter: none;
   pointer-events: none;
 }
 
-#nexora-core-panel.nexora-core--v8 .nexora-core-center-data {
-  background: none !important;
-  background-color: transparent !important;
-  box-shadow: none !important;
-  border-color: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  z-index: 20 !important;
-  pointer-events: none;
-}
-
-#nexora-core-panel.nexora-core--v8 .nexora-core-center-data > * {
-  position: relative;
-  z-index: 3;
-}
-
 #nexora-core-panel.nexora-core--v8 .nexora-core-center-data::before,
 #nexora-core-panel.nexora-core--v8 .nexora-core-center-data::after {
-  content: none !important;
-  display: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-#nexora-core-panel.nexora-core--v8 .nexora-core-globe::before,
-#nexora-core-panel.nexora-core--v8 .nexora-core-globe::after {
-  content: none !important;
-  display: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-#nexora-core-panel.nexora-core--v8 .nexora-core-center-data [class*="dot"],
-#nexora-core-panel.nexora-core--v8 .nexora-core-center-data [class*="node"],
-#nexora-core-panel.nexora-core--v8 .nexora-core-center-data [class*="pulse"] {
-  display: none !important;
+  display: none;
 }
 
 #nexora-core-panel.nexora-core--v8 .nexora-core-ring,
@@ -7979,56 +8029,6 @@ body.mode-simple .home-goal-summary {
   width: 100%;
   height: 100%;
   transform: none !important;
-}
-
-#nexora-core-panel.nexora-core--v8 .nexora-core-ring {
-  z-index: 1 !important;
-}
-
-#nexora-core-panel.nexora-core--v8 .nexora-core-graph {
-  z-index: 2 !important;
-}
-
-#nexora-core-panel.nexora-core--v8 .nexora-core-graph,
-#nexora-core-panel.nexora-core--v8 .nexora-core-satellite-rig,
-#nexora-core-panel.nexora-core--v8 .nexora-core-orbit-node {
-  z-index: 2 !important;
-}
-
-#nexora-core-panel.nexora-core--v8 .nexora-core-center-data,
-#nexora-core-panel.nexora-core--v8 .nexora-core-center-value,
-#nexora-core-panel.nexora-core--v8 .nexora-core-center-label {
-  position: relative;
-  z-index: 30 !important;
-}
-
-#nexora-core-panel.nexora-core--v8 .nexora-core-orbit-node {
-  opacity: 0.92;
-}
-
-#nexora-core-panel.nexora-core--v8 .nexora-core-orbit-node {
-  z-index: 2 !important;
-}
-
-#nexora-core-panel.nexora-core--v8 .nexora-core-orbit-node:hover,
-#nexora-core-panel.nexora-core--v8 .nexora-core-orbit-node:focus {
-  z-index: 3 !important;
-}
-
-#nexora-core-panel.nexora-core--v8 .nexora-core-center-data {
-  z-index: 50 !important;
-  pointer-events: none !important;
-}
-
-#nexora-core-panel.nexora-core--v8 .nexora-core-center-value,
-#nexora-core-panel.nexora-core--v8 .nexora-core-center-label {
-  position: relative;
-  z-index: 60 !important;
-  pointer-events: none !important;
-}
-
-#nexora-core-panel.nexora-core--v8 .nexora-core-orbit-node:empty {
-  display: none !important;
 }
 
 #nexora-core-panel.nexora-core--v8 .nexora-core-ring-track,
@@ -8043,8 +8043,6 @@ body.mode-simple .home-goal-summary {
   line-height: 1;
   color: var(--text);
   letter-spacing: -0.02em;
-  position: relative;
-  z-index: 21 !important;
   pointer-events: auto;
 }
 
@@ -8053,8 +8051,6 @@ body.mode-simple .home-goal-summary {
   font-weight: 700;
   color: var(--text2);
   margin-top: 6px;
-  position: relative;
-  z-index: 21 !important;
 }
 
 /* === ORDER 2: STATE / BADGE === */
@@ -8181,8 +8177,8 @@ body.mode-simple .home-goal-summary {
   padding: 8px 12px;
 }
 
-#nexora-core-panel.nexora-core--v8 #assistant-card .assistant-details:not([hidden]) {
-  display: grid;
+#nexora-core-panel.nexora-core--v8 #assistant-card .assistant-details {
+  display: none;
 }
 
 #nexora-core-panel.nexora-core--v8 #assistant-card .assistant-summary,
@@ -8343,3 +8339,593 @@ body.mode-simple .home-goal-summary {
 }
 
 /* End Nexora V8 block */
+
+/* ==================================================
+   Dashboard — hierarchy, rhythm and responsive system
+   Scope: real dashboard only. No business state changes.
+   ================================================== */
+#section-dashboard {
+  --dashboard-space-1: 4px;
+  --dashboard-space-2: 8px;
+  --dashboard-space-3: 12px;
+  --dashboard-space-4: 16px;
+  --dashboard-space-5: 24px;
+  --dashboard-surface: rgba(255, 255, 255, 0.025);
+  --dashboard-surface-raised: rgba(255, 255, 255, 0.04);
+  --dashboard-border: rgba(255, 255, 255, 0.085);
+  --dashboard-border-strong: rgba(229, 192, 96, 0.2);
+  display: flex;
+  flex-direction: column;
+  margin-inline: auto;
+  max-width: 1180px;
+  width: 100%;
+}
+
+#section-dashboard .dashboard-clean-header {
+  align-items: center;
+  border-bottom: 1px solid var(--dashboard-border);
+  display: grid;
+  gap: 2px var(--dashboard-space-4);
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  margin: 0 0 var(--dashboard-space-4);
+  order: 1;
+  padding: 0 0 var(--dashboard-space-4);
+}
+
+#section-dashboard .dashboard-clean-header > span {
+  color: var(--gold);
+  font-size: 10px;
+  font-weight: 800;
+  grid-column: 1;
+  grid-row: 1;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+#section-dashboard .dashboard-clean-header h2 {
+  font-size: clamp(22px, 2vw, 28px);
+  font-weight: 800;
+  grid-column: 1;
+  grid-row: 2;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+#section-dashboard .home-mode-switch {
+  align-items: center;
+  align-self: center;
+  display: flex;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  margin: 0;
+}
+
+#section-dashboard .home-mode-switch > span {
+  display: none;
+}
+
+#section-dashboard .home-mode-switch .mode-toggle {
+  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid var(--dashboard-border);
+  border-radius: 10px;
+  display: grid;
+  gap: 2px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 188px;
+  padding: 3px;
+}
+
+#section-dashboard .home-mode-switch .mode-toggle-btn {
+  border-radius: 7px;
+  font-size: 12px;
+  min-height: 32px;
+  padding: 6px 10px;
+}
+
+#section-dashboard .home-mode-switch .mode-toggle-btn.active {
+  background: rgba(229, 192, 96, 0.12);
+  box-shadow: none;
+  color: var(--gold2);
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8 {
+  align-items: stretch;
+  background: var(--dashboard-surface);
+  border: 1px solid var(--dashboard-border-strong);
+  border-radius: 24px;
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.22);
+  color: var(--text);
+  display: block;
+  margin: 0;
+  max-width: none;
+  order: 2;
+  overflow: hidden;
+  padding: var(--dashboard-space-5);
+  width: 100%;
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8::before {
+  display: none;
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-globe {
+  animation: none;
+  background: rgba(255, 255, 255, 0.018);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.035);
+  filter: none;
+  margin: 0;
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-ring {
+  opacity: 0.82;
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-graph {
+  opacity: 0.16;
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-center-value {
+  color: var(--text);
+  font-size: clamp(34px, 4vw, 48px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-center-label {
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  margin-top: var(--dashboard-space-2);
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-hero-copy {
+  align-items: flex-start;
+  gap: var(--dashboard-space-2);
+  padding: 0;
+  text-align: left;
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8 #nexora-core-status-badge {
+  background: rgba(229, 192, 96, 0.07);
+  border: 1px solid rgba(229, 192, 96, 0.18);
+  color: var(--gold2);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  margin: 0;
+  padding: 6px 9px;
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8 #nexora-core-status-badge::before {
+  box-shadow: none;
+  height: 5px;
+  width: 5px;
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-copy {
+  align-items: stretch;
+  gap: var(--dashboard-space-3);
+  width: 100%;
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-decision-block {
+  align-items: flex-start;
+  gap: var(--dashboard-space-4);
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-mission {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--text);
+  max-width: 680px;
+  padding: 0;
+  text-align: left;
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-mission span {
+  color: var(--text2);
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--dashboard-space-2);
+  text-transform: uppercase;
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-mission strong {
+  display: none;
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-mission p {
+  color: var(--text);
+  font-size: clamp(15px, 1.4vw, 18px);
+  font-weight: 650;
+  line-height: 1.45;
+  margin: 0;
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-actions {
+  justify-content: flex-start;
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8 #nexora-core-primary-cta {
+  background: transparent;
+  border: 1px solid rgba(229, 192, 96, 0.34);
+  border-radius: 10px;
+  box-shadow: none;
+  color: var(--gold2);
+  font-size: 13px;
+  font-weight: 800;
+  min-height: 42px;
+  min-width: 170px;
+  padding: 10px 15px;
+  width: auto;
+}
+
+#section-dashboard #nexora-core-panel.nexora-core--v8 #nexora-core-primary-cta:hover {
+  background: rgba(229, 192, 96, 0.08);
+  border-color: rgba(229, 192, 96, 0.52);
+}
+
+#section-dashboard .dashboard-essentials-grid {
+  display: contents;
+}
+
+#section-dashboard #dashboard-coach-card {
+  background: var(--dashboard-surface);
+  border: 1px solid var(--dashboard-border);
+  border-radius: 18px;
+  box-shadow: none;
+  margin: var(--dashboard-space-4) 0 0;
+  order: 3;
+  padding: var(--dashboard-space-4);
+}
+
+#section-dashboard #dashboard-coach-card:hover {
+  border-color: rgba(229, 192, 96, 0.18);
+  box-shadow: none;
+  transform: none;
+}
+
+#section-dashboard .dashboard-coach-content {
+  align-items: stretch;
+  display: grid !important;
+  gap: var(--dashboard-space-3);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+#section-dashboard .dashboard-coach-content > div:first-child {
+  align-items: end;
+  display: grid;
+  gap: 2px var(--dashboard-space-3);
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+#section-dashboard .dashboard-coach-content > div:first-child span {
+  color: var(--gold);
+  font-size: 10px;
+  font-weight: 800;
+  grid-column: 1;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+#section-dashboard .dashboard-coach-content > div:first-child strong {
+  font-size: clamp(17px, 2vw, 22px);
+  font-weight: 750;
+  grid-column: 1;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+#section-dashboard .dashboard-coach-content > div:first-child em {
+  color: var(--text2);
+  font-size: 11px;
+  font-style: normal;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+#section-dashboard .dashboard-coach-content .action-highlight,
+#section-dashboard .dashboard-coach-content .dashboard-master-plan {
+  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 12px;
+  box-shadow: none;
+  margin: 0;
+  min-width: 0;
+  padding: var(--dashboard-space-3);
+}
+
+#section-dashboard #dashboard-coach-action {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #09090d;
+  font-size: 12px;
+  font-weight: 850;
+  margin-top: var(--dashboard-space-3);
+  min-height: 40px;
+}
+
+#section-dashboard .dashboard-secondary-kpis {
+  background: var(--dashboard-surface);
+  border: 1px solid var(--dashboard-border);
+  border-radius: 18px;
+  display: grid;
+  gap: 0;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  margin: var(--dashboard-space-4) 0 0;
+  order: 4;
+  overflow: hidden;
+}
+
+#section-dashboard .dashboard-secondary-kpis .kpi-card {
+  background: transparent;
+  border: 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 96px;
+  padding: 14px 12px;
+  transition: background-color 160ms ease;
+}
+
+#section-dashboard .dashboard-secondary-kpis .kpi-card:first-child {
+  border-left: 0;
+}
+
+#section-dashboard .dashboard-secondary-kpis .kpi-card:hover {
+  background: rgba(255, 255, 255, 0.025);
+  border-color: rgba(255, 255, 255, 0.07);
+  box-shadow: none;
+  transform: none;
+}
+
+#section-dashboard .dashboard-secondary-kpis .kpi-label {
+  color: var(--text2);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+}
+
+#section-dashboard .dashboard-secondary-kpis .kpi-value {
+  font-size: clamp(18px, 2vw, 24px);
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  margin-top: var(--dashboard-space-2);
+}
+
+#section-dashboard .dashboard-secondary-kpis .kpi-sub {
+  color: var(--text2);
+  font-size: 10px;
+  line-height: 1.35;
+  margin-top: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#section-dashboard .dashboard-secondary-kpis .kpi-icon {
+  display: none;
+}
+
+#section-dashboard .dashboard-secondary-kpis .kpi-progress {
+  height: 2px;
+  margin-top: var(--dashboard-space-2);
+}
+
+#section-dashboard #dashboard-primary-goal {
+  background: transparent;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 18px;
+  box-shadow: none;
+  margin: var(--dashboard-space-4) 0 0;
+  order: 5;
+  padding: var(--dashboard-space-4);
+}
+
+#section-dashboard button:focus-visible,
+#section-dashboard [role="button"]:focus-visible {
+  outline: 2px solid var(--gold2);
+  outline-offset: 3px;
+}
+
+@media (min-width: 720px) {
+  #section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-layout--signature {
+    align-items: center;
+    display: grid;
+    gap: var(--dashboard-space-5) 34px;
+    grid-template-columns: 240px minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+  }
+
+  #section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-hero {
+    display: contents;
+  }
+
+  #section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-stage {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    min-height: 220px;
+    width: 240px;
+  }
+
+  #section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-globe-wrap {
+    min-height: 220px;
+  }
+
+  #section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-globe {
+    height: 220px;
+    min-height: 220px;
+    min-width: 220px;
+    width: 220px;
+  }
+
+  #section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-hero-copy {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  #section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-copy {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
+
+@media (max-width: 980px) {
+  #section-dashboard .dashboard-secondary-kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  #section-dashboard .dashboard-secondary-kpis .kpi-card:nth-child(5) {
+    border-left: 0;
+  }
+
+  #section-dashboard .dashboard-secondary-kpis .kpi-card:nth-child(n + 5) {
+    border-top: 1px solid rgba(255, 255, 255, 0.055);
+  }
+}
+
+@media (max-width: 719px) {
+  #section-dashboard #nexora-core-panel.nexora-core--v8 {
+    border-radius: 20px;
+    padding: 18px 16px;
+  }
+
+  #section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-layout--signature {
+    align-items: stretch;
+    display: flex;
+    flex-direction: column;
+    gap: var(--dashboard-space-2);
+  }
+
+  #section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-hero {
+    display: flex;
+    gap: var(--dashboard-space-2);
+  }
+
+  #section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-hero-copy {
+    align-items: flex-start;
+    order: 1;
+  }
+
+  #section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-stage {
+    min-height: 132px;
+    order: 2;
+  }
+
+  #section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-globe-wrap {
+    min-height: 132px;
+  }
+
+  #section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-globe {
+    height: 128px;
+    min-height: 128px;
+    min-width: 128px;
+    width: 128px;
+  }
+
+  #section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-copy {
+    order: 3;
+  }
+
+  #section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-actions {
+    width: 100%;
+  }
+
+  #section-dashboard #nexora-core-panel.nexora-core--v8 #nexora-core-primary-cta {
+    min-width: 0;
+    width: 100%;
+  }
+
+  #section-dashboard .dashboard-coach-content {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #section-dashboard .dashboard-coach-content .dashboard-coach-highlight {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 480px) {
+  #section-dashboard .dashboard-clean-header {
+    gap: 2px 10px;
+    margin-bottom: var(--dashboard-space-2);
+    padding-bottom: var(--dashboard-space-3);
+  }
+
+  #section-dashboard .dashboard-clean-header h2 {
+    font-size: 20px;
+  }
+
+  #section-dashboard .home-mode-switch .mode-toggle {
+    min-width: 154px;
+  }
+
+  #section-dashboard .home-mode-switch .mode-toggle-btn {
+    font-size: 11px;
+    min-height: 30px;
+    padding-inline: 6px;
+  }
+
+  #section-dashboard #nexora-core-panel.nexora-core--v8 {
+    padding: 16px 14px;
+  }
+
+  #section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-mission p {
+    font-size: 14px;
+  }
+
+  #section-dashboard #dashboard-coach-card {
+    margin-top: var(--dashboard-space-2);
+    padding: 14px;
+  }
+
+  #section-dashboard .dashboard-coach-content > div:first-child em {
+    display: none;
+  }
+
+  #section-dashboard .dashboard-secondary-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #section-dashboard .dashboard-secondary-kpis .kpi-card,
+  #section-dashboard .dashboard-secondary-kpis .kpi-card:nth-child(5) {
+    border-left: 1px solid rgba(255, 255, 255, 0.055);
+    border-top: 1px solid rgba(255, 255, 255, 0.055);
+    min-height: 82px;
+    padding: 11px 10px;
+  }
+
+  #section-dashboard .dashboard-secondary-kpis .kpi-card:nth-child(odd) {
+    border-left: 0;
+  }
+
+  #section-dashboard .dashboard-secondary-kpis .kpi-card:nth-child(-n + 2) {
+    border-top: 0;
+  }
+
+  #section-dashboard .dashboard-secondary-kpis .kpi-value {
+    font-size: 19px;
+  }
+
+  #section-dashboard #dashboard-primary-goal {
+    padding: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #section-dashboard *,
+  #section-dashboard *::before,
+  #section-dashboard *::after {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
