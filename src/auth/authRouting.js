@@ -126,19 +126,24 @@ export const NavigationMiddleware = {
       }
     })
 
-    // Intercept existing showSection function
-    if (typeof window.showSection === 'function') {
-      const originalShowSection = window.showSection
-      window.showSection = function(sectionName) {
+    const wrapShowSection = (originalShowSection) => {
+      if (typeof originalShowSection !== 'function') return originalShowSection
+      if (originalShowSection.__nexoraWrappedShowSection) return originalShowSection
+
+      const wrappedShowSection = function(sectionName) {
         try {
           if (window.__navDebug) console.log(`[NAV-DBG] wrapped.showSection ENTRY id:${sectionName} readyState:${document.readyState}`)
 
           if (sectionName === 'dashboard' && window.__navDebug) {
             try {
-              console.log('[NAV-DBG] DASHBOARD CALL STACK', new Error('dashboard caller').stack)
-              console.log('[NAV-DBG] DASHBOARD META', { perf: performance.now(), href: location.href, hash: location.hash, readyState: document.readyState, eventType: window.event?.type, eventTarget: (window.event && window.event.target && window.event.target.outerHTML) ? String(window.event.target.outerHTML).slice(0,300) : null })
               const before = Array.from(document.querySelectorAll('.section.active')).map(s => s.id)
-              console.log('[NAV-DBG] DASHBOARD activeSections BEFORE', JSON.stringify(before))
+              console.log('[NAV-DBG] DASHBOARD ENTRY', {
+                stack: new Error('dashboard caller').stack,
+                perf: performance.now(),
+                hash: location.hash,
+                eventType: window.event?.type ?? null,
+                beforeActiveSections: before
+              })
             } catch (e) { console.warn('[NAV-DBG] DASHBOARD log failed', e) }
           }
 
@@ -152,7 +157,12 @@ export const NavigationMiddleware = {
           if (sectionName === 'dashboard' && window.__navDebug) {
             try {
               const after = Array.from(document.querySelectorAll('.section.active')).map(s => s.id)
-              console.log('[NAV-DBG] DASHBOARD activeSections AFTER', JSON.stringify(after))
+              console.log('[NAV-DBG] DASHBOARD EXIT', {
+                perf: performance.now(),
+                hash: location.hash,
+                eventType: window.event?.type ?? null,
+                afterActiveSections: after
+              })
             } catch (e) { console.warn('[NAV-DBG] DASHBOARD after log failed', e) }
           }
 
@@ -163,7 +173,77 @@ export const NavigationMiddleware = {
           throw err
         }
       }
+
+      try {
+        Object.defineProperty(wrappedShowSection, '__nexoraWrappedShowSection', {
+          value: true,
+          enumerable: false,
+          configurable: false,
+          writable: false
+        })
+      } catch (ignore) {}
+
+      return wrappedShowSection
     }
+
+    const patchShowSectionProperty = () => {
+      const descriptor = Object.getOwnPropertyDescriptor(window, 'showSection')
+      if (window.__navDebug) {
+        try {
+          console.log('[NAV-DBG] patchShowSectionProperty descriptor', JSON.stringify({
+            configurable: descriptor?.configurable,
+            enumerable: descriptor?.enumerable,
+            writable: descriptor?.writable,
+            hasGetter: !!descriptor?.get,
+            hasSetter: !!descriptor?.set,
+            currentType: typeof window.showSection
+          }))
+        } catch (ignore) {}
+      }
+
+      if (descriptor && descriptor.configurable === false) {
+        if (window.__navDebug) console.warn('[NAV-DBG] showSection property not configurable; skipping wrapper installation')
+        return
+      }
+
+      const wrapAssigned = (value) => {
+        return typeof value === 'function' ? wrapShowSection(value) : value
+      }
+
+      if (descriptor && (descriptor.get || descriptor.set)) {
+        const existingGetter = descriptor.get
+        const existingSetter = descriptor.set
+
+        Object.defineProperty(window, 'showSection', {
+          configurable: true,
+          enumerable: descriptor.enumerable !== false,
+          get() {
+            return existingGetter ? existingGetter.call(window) : undefined
+          },
+          set(value) {
+            const wrapped = wrapAssigned(value)
+            if (existingSetter) {
+              return existingSetter.call(window, wrapped)
+            }
+            if (descriptor.writable) {
+              Object.defineProperty(window, 'showSection', {
+                configurable: true,
+                enumerable: descriptor.enumerable !== false,
+                writable: true,
+                value: wrapped
+              })
+            }
+          }
+        })
+        return
+      }
+
+      if (typeof window.showSection === 'function') {
+        window.showSection = wrapShowSection(window.showSection)
+      }
+    }
+
+    patchShowSectionProperty()
 
     // Intercept nav buttons
     document.addEventListener('click', (e) => {
@@ -236,7 +316,17 @@ export const AuthStateSync = {
 
       // Show dashboard or requested section from hash
       const targetSection = window.location.hash.replace('#section-', '') || 'dashboard'
-      window.showSection(targetSection)
+      const currentShowSection = window.showSection
+      if (typeof currentShowSection !== 'function') {
+        console.warn('[NAV-DBG] AuthStateSync._onAuthStateChange showSection is not callable', typeof currentShowSection, currentShowSection)
+        try {
+          console.warn('[NAV-DBG] showSection descriptor', Object.getOwnPropertyDescriptor(window, 'showSection'))
+        } catch (e) {
+          console.warn('[NAV-DBG] showSection descriptor access failed', e)
+        }
+      } else {
+        currentShowSection.call(window, targetSection)
+      }
     } else {
       // User logged out or app initialized without user
 
