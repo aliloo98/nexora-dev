@@ -7363,8 +7363,16 @@ window.initLegacyBudgetUi = () => {
       const currentSection = window.location.hash.replace('#section-', '');
       const activeSectionEl = document.querySelector('.section.active');
       if (currentSection) {
+        if (window.__navDebug && currentSection === 'dashboard') {
+          try { console.log('[NAV-DBG] initLegacyBudgetUi -> about to showSection currentSection', currentSection, '
+'+new Error('initLegacyBudgetUi stack').stack, { perf: performance.now(), href: location.href, hash: location.hash, readyState: document.readyState }) } catch(e){}
+        }
         showSection(currentSection);
       } else if (!activeSectionEl) {
+        if (window.__navDebug) {
+          try { console.log('[NAV-DBG] initLegacyBudgetUi -> about to showSection dashboard', '
+'+new Error('initLegacyBudgetUi stack').stack, { perf: performance.now(), href: location.href, hash: location.hash, readyState: document.readyState }) } catch(e){}
+        }
         showSection('dashboard');
       }
     };

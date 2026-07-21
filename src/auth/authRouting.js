@@ -49,6 +49,7 @@ export const RouteGuard = {
     // Check if route exists
     const section = document.getElementById(`section-${sectionName}`)
     if (!section) {
+      if (window.__navDebug) try { console.log('[NAV-DBG] RouteGuard.navigateTo -> section not found:', sectionName, 'fallback:dashboard', new Error('navigateTo missing section').stack) } catch(e){}
       console.warn(`⚠️  Section not found: ${sectionName}`)
       return false
     }
@@ -126,17 +127,35 @@ export const NavigationMiddleware = {
     })
 
     // Intercept existing showSection function
-    if (window.showSection) {
+    if (typeof window.showSection === 'function') {
       const originalShowSection = window.showSection
       window.showSection = function(sectionName) {
         try {
           if (window.__navDebug) console.log(`[NAV-DBG] wrapped.showSection ENTRY id:${sectionName} readyState:${document.readyState}`)
+
+          if (sectionName === 'dashboard' && window.__navDebug) {
+            try {
+              console.log('[NAV-DBG] DASHBOARD CALL STACK', new Error('dashboard caller').stack)
+              console.log('[NAV-DBG] DASHBOARD META', { perf: performance.now(), href: location.href, hash: location.hash, readyState: document.readyState, eventType: window.event?.type, eventTarget: (window.event && window.event.target && window.event.target.outerHTML) ? String(window.event.target.outerHTML).slice(0,300) : null })
+              const before = Array.from(document.querySelectorAll('.section.active')).map(s => s.id)
+              console.log('[NAV-DBG] DASHBOARD activeSections BEFORE', JSON.stringify(before))
+            } catch (e) { console.warn('[NAV-DBG] DASHBOARD log failed', e) }
+          }
+
           if (!RouteGuard.navigateTo(sectionName)) {
             if (window.__navDebug) console.log(`[NAV-DBG] wrapped.showSection -> RouteGuard denied ${sectionName} before calling original`)
             return false
           }
 
           const res = originalShowSection.call(this, sectionName)
+
+          if (sectionName === 'dashboard' && window.__navDebug) {
+            try {
+              const after = Array.from(document.querySelectorAll('.section.active')).map(s => s.id)
+              console.log('[NAV-DBG] DASHBOARD activeSections AFTER', JSON.stringify(after))
+            } catch (e) { console.warn('[NAV-DBG] DASHBOARD after log failed', e) }
+          }
+
           if (window.__navDebug) console.log(`[NAV-DBG] wrapped.showSection EXIT id:${sectionName} result:${!!res} hash:${window.location.hash}`)
           return res
         } catch (err) {

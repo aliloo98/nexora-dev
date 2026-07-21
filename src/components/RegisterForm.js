@@ -216,8 +216,10 @@ export const attachRegisterFormListeners = () => {
 
       // Simulate page transition to dashboard
       setTimeout(() => {
+        if (window.__navDebug) { try { console.log('[NAV-DBG] RegisterForm -> about to set dashboard hash and call showSection', { perf: performance.now(), href: location.href, hash: location.hash, readyState: document.readyState }, new Error('register dashboard stack').stack); const before = Array.from(document.querySelectorAll('.section.active')).map(s=>s.id); console.log('[NAV-DBG] RegisterForm activeSections BEFORE', JSON.stringify(before)); } catch(e){console.warn('[NAV-DBG] RegisterForm log failed', e) } }
         window.location.hash = '#section-dashboard'
         window.showSection('dashboard')
+        if (window.__navDebug) { try { const after = Array.from(document.querySelectorAll('.section.active')).map(s=>s.id); console.log('[NAV-DBG] RegisterForm activeSections AFTER', JSON.stringify(after)); } catch(e){} }
       }, 500)
     } catch (error) {
       console.error('Register exception:', error)

@@ -168,8 +168,10 @@ export const attachLoginFormListeners = () => {
 
       // Simulate page transition
       setTimeout(() => {
+        if (window.__navDebug) { try { console.log('[NAV-DBG] LoginForm -> about to set dashboard hash and call showSection', { perf: performance.now(), href: location.href, hash: location.hash, readyState: document.readyState }, new Error('login dashboard stack').stack); const before = Array.from(document.querySelectorAll('.section.active')).map(s=>s.id); console.log('[NAV-DBG] LoginForm activeSections BEFORE', JSON.stringify(before)); } catch(e){console.warn('[NAV-DBG] LoginForm log failed', e) } }
         window.location.hash = '#section-dashboard'
         window.showSection('dashboard')
+        if (window.__navDebug) { try { const after = Array.from(document.querySelectorAll('.section.active')).map(s=>s.id); console.log('[NAV-DBG] LoginForm activeSections AFTER', JSON.stringify(after)); } catch(e){} }
       }, 500)
     } catch (error) {
       console.error('Login exception:', error)
@@ -208,8 +210,10 @@ export const attachLoginFormListeners = () => {
       window.showToast('✅ Mode test activé!')
 
       setTimeout(() => {
+        if (window.__navDebug) { try { console.log('[NAV-DBG] LoginForm -> about to set dashboard hash and call showSection', { perf: performance.now(), href: location.href, hash: location.hash, readyState: document.readyState }, new Error('login dashboard stack').stack); const before = Array.from(document.querySelectorAll('.section.active')).map(s=>s.id); console.log('[NAV-DBG] LoginForm activeSections BEFORE', JSON.stringify(before)); } catch(e){console.warn('[NAV-DBG] LoginForm log failed', e) } }
         window.location.hash = '#section-dashboard'
         window.showSection('dashboard')
+        if (window.__navDebug) { try { const after = Array.from(document.querySelectorAll('.section.active')).map(s=>s.id); console.log('[NAV-DBG] LoginForm activeSections AFTER', JSON.stringify(after)); } catch(e){} }
       }, 500)
     } catch (error) {
       console.error('Demo login error:', error)
