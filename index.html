@@ -5061,7 +5061,8 @@ function updateDonutChart(fix, vari, soldeVal, rev) {
 }
 
 function showSection(id){
-    try {
+  let nextSection = null;
+  try {
     if (window.__navDebug) console.log(`[NAV-DBG] showSection ENTRY id:${id} readyState:${document.readyState} window.showSectionPresent:${typeof window.showSection === 'function'}`)
   } catch (e) {}
 
@@ -5085,7 +5086,7 @@ function showSection(id){
       s.classList.remove('active');
       s.hidden = true;
     });
-    let nextSection = document.getElementById('section-' + id);
+    nextSection = document.getElementById('section-' + id);
     if (!nextSection) nextSection = document.getElementById('section-dashboard');
     nextSection.hidden = false;
     nextSection.classList.add('active');
