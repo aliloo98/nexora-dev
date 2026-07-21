@@ -87,6 +87,10 @@ const getSectionChildren = (root) => [
 
 const getCards = (root) => Array.from(root.querySelectorAll(cardSelector)).slice(0, 28)
 
+const setSectionVisible = (root) => {
+  gsap.set(root, { opacity: 1, visibility: 'visible', y: 0, scale: 1, filter: 'blur(0px)' })
+}
+
 const ensureNavPill = (button) => {
   const sidebar = button?.closest?.('.sidebar')
   if (!sidebar) return null
@@ -185,11 +189,23 @@ export function animateAdvisorResponse(container) {
 
 export function animateSectionTransition(container) {
   const root = resolveRoot(container)
-  if (!root || !canMotion()) return
+  if (!root) return
+  gsap.killTweensOf(root)
+  setSectionVisible(root)
+  if (!canMotion()) return
   gsap.fromTo(
     root,
-    { autoAlpha: 0, y: 18, scale: 0.992, filter: 'blur(8px)' },
-    { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.46, ease: 'power3.out', overwrite: 'auto' }
+    { y: 18, scale: 0.992, filter: 'blur(8px)' },
+    {
+      y: 0,
+      scale: 1,
+      filter: 'blur(0px)',
+      duration: 0.46,
+      ease: 'power3.out',
+      overwrite: 'auto',
+      onInterrupt: () => setSectionVisible(root),
+      onComplete: () => setSectionVisible(root)
+    }
   )
 }
 

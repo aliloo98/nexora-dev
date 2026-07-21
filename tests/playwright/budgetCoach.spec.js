@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
 
 const scenarios = [
@@ -81,15 +81,23 @@ const waitForSectionReady = async (page, sectionId) => {
   const section = page.locator(`#section-${sectionId}`);
   await page.waitForFunction((id) => {
     const sectionNode = document.getElementById(`section-${id}`);
-    const hashMatches = window.location.hash === `#section-${id}`;
+    const activeSections = Array.from(document.querySelectorAll('.section.active'));
+    const sectionStyle = sectionNode ? getComputedStyle(sectionNode) : null;
     return Boolean(
       sectionNode &&
       !sectionNode.hidden &&
-      getComputedStyle(sectionNode).display !== 'none' &&
-      (sectionNode.classList.contains('active') || hashMatches)
+      sectionStyle.display !== 'none' &&
+      sectionStyle.visibility === 'visible' &&
+      sectionStyle.opacity === '1' &&
+      sectionNode.classList.contains('active') &&
+      activeSections.length === 1 &&
+      activeSections[0] === sectionNode
     );
   }, sectionId, { timeout: 30000 });
   await expect(section).toHaveClass(/active/);
+  await expect.poll(async () => {
+    return section.evaluate((element) => getComputedStyle(element).opacity);
+  }).toBe('1');
 };
 
 const openBudgetSection = async (page) => {
@@ -97,120 +105,9 @@ const openBudgetSection = async (page) => {
   await waitForSectionReady(page, 'saisie');
 };
 
-const logBudgetCoachDebug = async (page, fieldKey) => {
-  const debugInfo = await page.evaluate((targetKey) => {
-    const section = document.querySelector('#section-saisie');
-    const navButton = document.querySelector('.sidebar .nav-btn[data-section="saisie"]');
-    const targetField = document.querySelector(`#section-saisie input[data-key="${targetKey}"]`);
-    const sectionStyle = section ? window.getComputedStyle(section) : null;
-    const sectionRect = section ? section.getBoundingClientRect() : null;
-    const targetFieldRect = targetField ? targetField.getBoundingClientRect() : null;
-    const overlayAtFieldCenter = targetFieldRect
-      ? document.elementFromPoint(
-          targetFieldRect.left + targetFieldRect.width / 2,
-          targetFieldRect.top + targetFieldRect.height / 2
-        )
-      : null;
-    const allSections = Array.from(document.querySelectorAll('section, [data-section], .section'));
-    const activeSections = allSections
-      .filter((node) => node.classList.contains('active'))
-      .map((node) => node.id || node.getAttribute('data-section') || node.className);
-    const visibleSections = allSections
-      .filter((node) => {
-        const style = window.getComputedStyle(node);
-        return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0' && !node.hidden && node.getAttribute('aria-hidden') !== 'true';
-      })
-      .map((node) => node.id || node.getAttribute('data-section') || node.className);
-    const fields = Array.from(section?.querySelectorAll('input[data-key]') ?? []).map((field) => {
-      const style = window.getComputedStyle(field);
-      const rect = field.getBoundingClientRect();
-      return {
-        'data-key': field.getAttribute('data-key'),
-        display: style.display,
-        visibility: style.visibility,
-        opacity: style.opacity,
-        disabled: field.disabled,
-        readonly: field.readOnly,
-        width: rect.width,
-        height: rect.height
-      };
-    });
-
-    const payload = {
-      targetFieldKey: targetKey,
-      url: window.location.href,
-      hash: window.location.hash,
-      navButtonMarkup: navButton ? navButton.outerHTML.slice(0, 1000) : null,
-      navButtonClasses: navButton ? Array.from(navButton.classList) : [],
-      sectionClasses: section ? Array.from(section.classList) : [],
-      sectionOuterHTML: section ? section.outerHTML.slice(0, 1000) : null,
-      sectionDisplay: sectionStyle?.display ?? null,
-      sectionVisibility: sectionStyle?.visibility ?? null,
-      sectionOpacity: sectionStyle?.opacity ?? null,
-      sectionHidden: section ? section.hidden : null,
-      sectionAriaHidden: section ? section.getAttribute('aria-hidden') : null,
-      sectionClientWidth: section ? section.clientWidth : null,
-      sectionClientHeight: section ? section.clientHeight : null,
-      sectionRect: sectionRect ? {
-        x: sectionRect.x,
-        y: sectionRect.y,
-        width: sectionRect.width,
-        height: sectionRect.height,
-        top: sectionRect.top,
-        left: sectionRect.left,
-        bottom: sectionRect.bottom,
-        right: sectionRect.right
-      } : null,
-      overlayAtFieldCenter: overlayAtFieldCenter ? {
-        tagName: overlayAtFieldCenter.tagName,
-        id: overlayAtFieldCenter.id,
-        classList: overlayAtFieldCenter.classList ? Array.from(overlayAtFieldCenter.classList) : [],
-        text: overlayAtFieldCenter.textContent?.slice(0, 200) || null,
-        outerHTML: overlayAtFieldCenter.outerHTML?.slice(0, 1000) || null
-      } : null,
-      activeSections,
-      visibleSections,
-      inputCount: fields.length,
-      fields
-    };
-
-    console.log('=== BUDGET COACH DEBUG ===');
-    console.log('window.location.href =', payload.url);
-    console.log('window.location.hash =', payload.hash);
-    console.log('navButton.outerHTML =', payload.navButtonMarkup);
-    console.log('navButton classes =', payload.navButtonClasses);
-    console.log('section-saisie classes =', payload.sectionClasses);
-    console.log('section-saisie outerHTML =', payload.sectionOuterHTML);
-    console.log('getComputedStyle(section).display =', payload.sectionDisplay);
-    console.log('visibility =', payload.sectionVisibility);
-    console.log('opacity =', payload.sectionOpacity);
-    console.log('hidden =', payload.sectionHidden);
-    console.log('aria-hidden =', payload.sectionAriaHidden);
-    console.log('clientWidth =', payload.sectionClientWidth);
-    console.log('clientHeight =', payload.sectionClientHeight);
-    console.log('getBoundingClientRect() =', payload.sectionRect);
-    console.log('overlay at field center =', payload.overlayAtFieldCenter);
-    console.log('active sections =', payload.activeSections);
-    console.log('visible sections =', payload.visibleSections);
-    console.log('input[data-key] count =', payload.inputCount);
-    console.log('field details =', payload.fields);
-    console.log('=== DEBUG END ===');
-    return payload;
-  }, fieldKey);
-
-  console.log('=== BUDGET COACH DEBUG PAYLOAD ===');
-  console.log(JSON.stringify(debugInfo, null, 2));
-  writeFileSync('test-results/budgetCoach-debug.json', JSON.stringify(debugInfo, null, 2));
-  await page.screenshot({ path: 'budgetCoach-debug.png', fullPage: true });
-  throw new Error('DEBUG COMPLETE');
-};
-
 const clearBudgetInputs = async (page) => {
   for (const key of budgetInputKeys) {
     const field = page.locator(`#section-saisie input[data-key="${key}"]`);
-    if (key === 'rev_ali') {
-      await logBudgetCoachDebug(page, key);
-    }
     await expect(field).toHaveCount(1);
     await expect(field).toBeVisible({ timeout: 30000 });
     await expect(field).toBeEditable({ timeout: 30000 });
@@ -276,12 +173,12 @@ test.describe('Budget coach E2E', () => {
 
       await actionButton.click();
 
-      const expectedSection = page.locator(`#${scenario.expectedSection}`);
-      await expect(expectedSection).toBeVisible({ timeout: 20000 });
-      await expect(expectedSection).toHaveClass(/active/);
+      await waitForSectionReady(page, scenario.expectedSection.replace('section-', ''));
 
       if (scenario.expectedFocus) {
         const targetField = page.locator(`#section-saisie input[data-key="${scenario.expectedFocus}"]`);
+        await expect(targetField).toBeVisible({ timeout: 20000 });
+        await expect(targetField).toBeEditable({ timeout: 20000 });
         await expect(targetField).toBeFocused({ timeout: 20000 });
       }
     }

@@ -1610,22 +1610,6 @@ body.mode-simple .goal-card-meta {
   display: none !important;
 }
 
-.section.active {
-  animation: sectionFadeUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes sectionFadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* CHART & DASHBOARD ROW */
 .dash-row {
   display: grid;
