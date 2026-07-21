@@ -36,9 +36,9 @@ export async function renderRecurringIncomeSettings() {
 
   root.innerHTML = `
     <div class="settings-panel">
-      ${list || '<div class="empty-state">Aucun revenu récurrent enregistré.</div>'}
+      ${list || '<div class="empty-state">Aucun revenu récurrent n’est encore défini.</div>'}
     </div>
-    <button class="btn btn-gold" type="button" id="add-recurring-income-btn">Ajouter un revenu récurrent</button>
+    <button class="btn btn-gold" type="button" id="add-recurring-income-btn">Ajouter un revenu</button>
   `
 
   root.querySelector('#add-recurring-income-btn')?.addEventListener('click', async () => {
@@ -77,7 +77,7 @@ export async function renderBillScheduleSettings() {
 
   root.innerHTML = `
     <div class="settings-panel">
-      ${list || '<div class="empty-state">Aucune échéance définie pour le moment.</div>'}
+      ${list || '<div class="empty-state">Aucune échéance n’est encore planifiée.</div>'}
     </div>
     <button class="btn btn-gold" type="button" id="add-bill-schedule-btn">Ajouter une échéance</button>
   `
@@ -156,7 +156,7 @@ export async function renderCoupleModeSettings() {
     <div class="settings-card couple-mode-card">
       <div class="couple-premium-empty">
         <strong>Mode couple</strong>
-        <p>Active un foyer local pour préparer un budget à deux. Rien n’est fusionné automatiquement : chaque partage reste explicite.</p>
+        <p>Active un foyer local pour coordonner un budget à deux sans fusionner les données automatiquement.</p>
       </div>
       <div class="couple-mode-actions">
         <input type="text" id="couple-household-name" class="budget-input" placeholder="Nom du foyer" aria-label="Nom du foyer" />

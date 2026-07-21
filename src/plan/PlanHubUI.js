@@ -32,9 +32,9 @@ const parseAmount = (value) => {
 
 const buildEmptyState = () => `
   <div class="empty-state plan-empty-state">
-    <p>Plan financier vide</p>
-    <p>Ajoute tes revenus et charges pour générer un plan de trésorerie.</p>
-    <button class="btn btn-gold" type="button" onclick="showSection('saisie')">Mettre à jour le budget</button>
+    <p>Plan du mois en attente</p>
+    <p>Renseigne les revenus et les charges pour générer un plan de trésorerie clair.</p>
+    <button class="btn btn-gold" type="button" onclick="showSection('saisie')">Saisir le mois</button>
   </div>
 `
 
@@ -135,7 +135,7 @@ const buildPlanContent = (data) => {
     <div class="plan-hub-grid">
       <section class="plan-card plan-balance-card">
         <div class="plan-card-header">
-          <h3>Solde fin de cycle</h3>
+          <h3>Solde du mois</h3>
           <span class="plan-status-pill ${getRiskClass(cycleBalanceDisplay)}">${getBalanceLabel(cycleBalanceDisplay)}</span>
         </div>
         <strong class="plan-balance-value ${getRiskClass(cycleBalanceDisplay)}">${formatCurrency(cycleBalanceDisplay)}</strong>
@@ -149,7 +149,7 @@ const buildPlanContent = (data) => {
       </section>
 
       <section class="plan-card">
-        <div class="plan-card-header"><h3>À payer maintenant</h3></div>
+        <div class="plan-card-header"><h3>À régler maintenant</h3></div>
         ${buildPlanRows(toPayNow, { emptyLabel: 'Aucune charge urgente détectée', limit: 3 })}
       </section>
 
@@ -159,7 +159,7 @@ const buildPlanContent = (data) => {
       </section>
 
       <section class="plan-card">
-        <div class="plan-card-header"><h3>Revenus à venir</h3></div>
+        <div class="plan-card-header"><h3>Entrées à venir</h3></div>
         ${buildPlanRows(upcomingRevenues, { emptyLabel: 'Aucun revenu prévu', positive: true, limit: 4 })}
       </section>
 
@@ -203,7 +203,7 @@ const buildPlanContent = (data) => {
         <div class="plan-create-form" id="plan-goal-create-form">
           <label class="premium-field" for="plan-new-goal-name"><span>Nouvel objectif</span><input class="budget-input" id="plan-new-goal-name" type="text" placeholder="Ex. Fonds de sécurité"></label>
           <label class="premium-field" for="plan-new-goal-target"><span>Cible</span><input class="budget-input" id="plan-new-goal-target" type="text" placeholder="0 €"></label>
-          <button class="btn btn-gold" id="plan-goal-create" type="button">Créer</button>
+          <button class="btn btn-gold" id="plan-goal-create" type="button">Ajouter</button>
         </div>
       </section>
 
@@ -238,7 +238,7 @@ const buildPlanContent = (data) => {
           <label class="premium-field" for="plan-new-debt-name"><span>Nouvelle dette</span><input class="budget-input" id="plan-new-debt-name" type="text" placeholder="Ex. Crédit voiture"></label>
           <label class="premium-field" for="plan-new-debt-remaining"><span>Capital restant</span><input class="budget-input" id="plan-new-debt-remaining" type="text" placeholder="0 €"></label>
           <label class="premium-field" for="plan-new-debt-monthly"><span>Mensualité</span><input class="budget-input" id="plan-new-debt-monthly" type="text" placeholder="0 €"></label>
-          <button class="btn btn-gold" id="plan-debt-create" type="button">Créer</button>
+          <button class="btn btn-gold" id="plan-debt-create" type="button">Ajouter</button>
         </div>
       </section>
     </div>

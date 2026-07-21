@@ -217,8 +217,8 @@ const GoalsPage = {
     })
     if (goals.length === 0) GoalsPage.listEl.innerHTML = `
       <div style="padding:20px;border-radius:16px;border:1px dashed rgba(229,192,96,0.3);background:rgba(255,255,255,0.03);color:var(--text2);text-align:center;">
-        <strong>Pas encore d'objectif</strong>
-        <div style="margin-top:8px;font-size:13px;">Commence par créer ton premier objectif pour suivre ton épargne.</div>
+        <strong>Aucun objectif pour le moment</strong>
+        <div style="margin-top:8px;font-size:13px;">Ajoute un premier objectif pour donner une direction claire à votre épargne.</div>
       </div>`
   },
 
@@ -229,7 +229,7 @@ const GoalsPage = {
     if (goals.length === 0) {
       GoalsPage.analyticsTarget.innerHTML = `
         <div style="padding:16px;border-radius:16px;background:rgba(255,255,255,0.04);color:var(--text2);min-height:80px;display:flex;align-items:center;justify-content:center;">
-          Aucune cible d'épargne définie pour le moment.
+          Aucun objectif n’est encore défini pour guider votre épargne.
         </div>`
       return
     }

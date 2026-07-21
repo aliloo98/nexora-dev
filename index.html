@@ -124,7 +124,7 @@ body.auth-locked > #nexora-status-bar {
   <!-- DASHBOARD -->
   <div id="section-dashboard" class="section active">
     <div class="dashboard-clean-header">
-      <span>Vue essentielle</span>
+      <span>Diagnostic</span>
       <h2>Tableau de bord</h2>
       <div class="home-mode-switch" aria-label="Mode d’affichage">
         <span>Mode</span>
@@ -136,17 +136,17 @@ body.auth-locked > #nexora-status-bar {
     </div>
     <section class="dashboard-synthesis-hero dashboard-synthesis-hero--merged wow-card" id="dashboard-synthesis-hero" data-state="neutral" aria-label="Synthèse du mois">
       <div class="dashboard-synthesis-main">
-        <span class="dashboard-synthesis-status" id="dashboard-synthesis-status">Synthèse à compléter</span>
-        <h2 id="dashboard-synthesis-title">Complète ton budget pour obtenir ta synthèse</h2>
-        <p id="dashboard-synthesis-meta">Ajoute tes revenus et charges pour calculer la situation du mois.</p>
+        <span class="dashboard-synthesis-status" id="dashboard-synthesis-status">Diagnostic en cours</span>
+        <h2 id="dashboard-synthesis-title">Voici où le mois en est</h2>
+        <p id="dashboard-synthesis-meta">Saisis les revenus et les dépenses pour obtenir une lecture fiable du mois.</p>
       </div>
       <div class="dashboard-synthesis-action">
-        <span>Mission du jour</span>
-        <strong id="dashboard-synthesis-action-title">Voir le plan</strong>
-        <p id="dashboard-synthesis-action-detail">Nexora préparera une action dès que le budget sera complet.</p>
+        <span>Priorité</span>
+        <strong id="dashboard-synthesis-action-title">Compléter le budget</strong>
+        <p id="dashboard-synthesis-action-detail">Le diagnostic devient utile dès que les montants du mois sont saisis.</p>
         <div class="dashboard-synthesis-actions">
-          <button type="button" class="btn btn-gold dashboard-synthesis-cta dashboard-synthesis-cta--primary" id="dashboard-synthesis-primary">Faire l’action recommandée</button>
-          <button type="button" class="btn btn-outline dashboard-synthesis-cta dashboard-synthesis-cta--secondary" onclick="showSection('saisie')">Mettre à jour le budget</button>
+          <button type="button" class="btn btn-gold dashboard-synthesis-cta dashboard-synthesis-cta--primary" id="dashboard-synthesis-primary">Voir la priorité</button>
+          <button type="button" class="btn btn-outline dashboard-synthesis-cta dashboard-synthesis-cta--secondary" onclick="showSection('saisie')">Saisir le mois</button>
         </div>
       </div>
     </section>
@@ -197,22 +197,22 @@ body.auth-locked > #nexora-status-bar {
             <div class="nexora-core-tooltip" id="nexora-core-tooltip" role="tooltip" hidden></div>
           </div>
           <div class="nexora-core-hero-copy">
-            <span id="nexora-core-status-badge" class="nexora-core-status-badge">Synthèse à compléter</span>
-            <h3 id="dashboard-greeting-title" class="nexora-core-title">NEXORA CORE</h3>
-            <p id="dashboard-greeting-subtitle" class="nexora-core-subtitle">Centre de contrôle financier</p>
+            <span id="nexora-core-status-badge" class="nexora-core-status-badge">Diagnostic en cours</span>
+            <h3 id="dashboard-greeting-title" class="nexora-core-title">Nexora lit votre mois</h3>
+            <p id="dashboard-greeting-subtitle" class="nexora-core-subtitle">Un seul jugement, une seule priorité</p>
           </div>
         </header>
         <div class="nexora-core-copy">
           <!-- V8 JARVIS: Mission + CTA as primary decision block -->
           <div class="nexora-core-decision-block">
             <div class="nexora-core-mission" aria-label="Mission du jour">
-              <span>Mission du jour</span>
-              <strong id="nexora-core-mission-title">Voir le plan</strong>
-              <p id="nexora-core-mission-detail">Nexora préparera une action dès que le budget sera complet.</p>
+              <span>Priorité</span>
+              <strong id="nexora-core-mission-title">Compléter le budget</strong>
+              <p id="nexora-core-mission-detail">Le jugement devient précis dès que les montants du mois sont renseignés.</p>
             </div>
             <div class="nexora-core-actions">
-              <button type="button" id="nexora-core-primary-cta" class="btn btn-gold nexora-core-cta nexora-core-cta--primary" onclick="window.NexoraCore?.openNexoraCoreAction?.()">Prochaine action</button>
-              <button type="button" class="btn btn-outline nexora-core-cta nexora-core-cta--secondary" onclick="showSection('saisie')">Mettre à jour</button>
+              <button type="button" id="nexora-core-primary-cta" class="btn btn-gold nexora-core-cta nexora-core-cta--primary" onclick="window.NexoraCore?.openNexoraCoreAction?.()">Voir la priorité</button>
+              <button type="button" class="btn btn-outline nexora-core-cta nexora-core-cta--secondary" onclick="showSection('saisie')">Saisir le mois</button>
             </div>
           </div>
 
@@ -239,10 +239,10 @@ body.auth-locked > #nexora-status-bar {
               <button type="button" class="btn btn-outline available-money-cta" onclick="showSection('plan')">Garder disponible</button>
             </div>
           </div>
-          <p class="available-money-suggestion" id="available-money-suggestion">Suggestion Nexora : complète ton budget pour obtenir une recommandation.</p>
+          <p class="available-money-suggestion" id="available-money-suggestion">Le prochain bon choix dépend du budget saisi.</p>
           </section>
           <!-- Fin fusion available-money-card -->
-          <p id="nexora-core-detail" class="nexora-core-detail">Complète ton budget pour activer la lecture unifiée.</p>
+          <p id="nexora-core-detail" class="nexora-core-detail">Le diagnostic devient utile quand le mois est renseigné.</p>
           <div class="nexora-core-legend">
             <span class="nexora-core-legend--goal"><i></i> Objectifs</span>
             <span class="nexora-core-legend--debt"><i></i> Dettes</span>
@@ -311,39 +311,39 @@ body.auth-locked > #nexora-status-bar {
       </section>
       <!-- priority-action-card et available-money-card fusionnés dans Nexora Core (déplacés) -->
       <section class="wow-card month-forecast-card" id="month-forecast-card">
-        <span>Prévision du mois</span>
-        <strong id="month-forecast-title">Prévision indisponible</strong>
-        <p id="month-forecast-detail">Ajoutez vos revenus et dépenses pour calculer la projection.</p>
+        <span>Contexte</span>
+        <strong id="month-forecast-title">Projection en attente</strong>
+        <p id="month-forecast-detail">Le mois doit être saisi pour obtenir une projection fiable.</p>
       </section>
       <section class="wow-card week-plan-card" id="week-plan-card">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
           <div>
-            <span>📈 Plan financier</span>
-            <strong id="week-plan-title" style="display:block;margin-top:8px;font-size:16px;">Aperçu essentiel</strong>
+            <span>📈 Plan du mois</span>
+            <strong id="week-plan-title" style="display:block;margin-top:8px;font-size:16px;">Ce qui compte à court terme</strong>
           </div>
           <button type="button" class="btn btn-gold" onclick="showSection('plan')">Ouvrir le plan</button>
         </div>
         <div class="week-plan-summary" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px;">
           <div style="padding:14px;background:rgba(255,255,255,0.03);border-radius:12px;">
-            <span>Solde fin de cycle</span>
+            <span>Solde du mois</span>
             <strong id="week-plan-balance">0 €</strong>
           </div>
           <div style="padding:14px;background:rgba(255,255,255,0.03);border-radius:12px;">
-            <span>Prochain revenu</span>
+            <span>Prochaine entrée</span>
             <strong id="week-plan-next-income">--/--</strong>
             <button type="button" class="inline-cta" id="week-plan-income-cta" onclick="showSection('parametres')" style="display:none">Définir un revenu</button>
           </div>
           <div style="padding:14px;background:rgba(255,255,255,0.03);border-radius:12px;">
-            <span>Charges à payer</span>
+            <span>À régler cette semaine</span>
             <strong id="week-plan-to-pay">0</strong>
           </div>
         </div>
-        <p id="week-plan-description" style="margin-top:14px;color:var(--text2);">Suivez le solde, les prochains revenus et les paiements urgents en un coup d’œil.</p>
+        <p id="week-plan-description" style="margin-top:14px;color:var(--text2);">Ce bloc rappelle la priorité du moment : le solde, les entrées à venir et les paiements urgents.</p>
       </section>
       <section class="dashboard-primary-goal wow-card" id="dashboard-primary-goal">
       <div class="dashboard-primary-goal-head">
         <div>
-          <span>Objectif principal</span>
+          <span>Objectif courant</span>
           <strong id="dashboard-primary-goal-name">Aucun objectif</strong>
         </div>
         <em id="dashboard-primary-goal-pct">0%</em>
@@ -353,7 +353,7 @@ body.auth-locked > #nexora-status-bar {
       </div>
       <div class="dashboard-primary-goal-focus">
         <div>
-          <span>Montant restant</span>
+          <span>Reste à financer</span>
           <strong id="dashboard-primary-goal-remaining">0 €</strong>
         </div>
         <div>
@@ -374,12 +374,12 @@ body.auth-locked > #nexora-status-bar {
     <div class="budget-block">
       <div class="budget-block-header">
         <span class="budget-block-title">📈 Plan financier</span>
-        <span style="font-size:12px;color:var(--text2)">Regarde tes objectifs, échéances et priorités en un seul endroit</span>
+        <span style="font-size:12px;color:var(--text2)">Le contexte du mois, des échéances et des objectifs en un seul regard</span>
       </div>
       <div class="param-row" style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
         <div>
-          <div class="param-label">Objectif d'épargne mensuel</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px">Ce montant aide Nexora à estimer ta capacité d'épargne.</div>
+          <div class="param-label">Objectif d’épargne mensuel</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Ce montant sert de repère pour estimer votre capacité d’épargne.</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
           <input class="budget-input" type="text" placeholder="500" data-key="target_epargne" oninput="updateAll()" style="width:120px">
@@ -405,13 +405,13 @@ body.auth-locked > #nexora-status-bar {
     <div class="budget-block">
       <div class="budget-block-header">
         <span class="budget-block-title">🎯 Objectifs</span>
-        <span style="font-size:12px;color:var(--text2)">Gestion des objectifs financiers (Premium)</span>
+        <span style="font-size:12px;color:var(--text2)">Chaque objectif doit rester clair, prioritaire et mesurable</span>
       </div>
       <div style="padding:16px">
         <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
           <div style="min-width:180px">
-            <label for="goal-monthly-contrib" style="font-size:12px;color:var(--text2);display:block;margin-bottom:3px">Contribution mensuelle aux objectifs</label>
-            <div style="font-size:11px;color:var(--text2);line-height:1.35">Utilisée uniquement pour estimer la date d’atteinte.</div>
+            <label for="goal-monthly-contrib" style="font-size:12px;color:var(--text2);display:block;margin-bottom:3px">Versement mensuel</label>
+            <div style="font-size:11px;color:var(--text2);line-height:1.35">Ce montant sert à estimer la date d’atteinte de chaque objectif.</div>
           </div>
           <input id="goal-monthly-contrib" type="text" class="budget-input" style="width:140px" value="0" oninput="if(window.GoalsPage) GoalsPage.render()">
         </div>
@@ -419,8 +419,8 @@ body.auth-locked > #nexora-status-bar {
         <div id="goals-list" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px"></div>
         <div class="premium-form-shell">
           <div class="premium-form-heading">
-            <h3>Nouvel objectif</h3>
-            <p>Définis une cible claire pour suivre sa progression dans le temps.</p>
+            <h3>Ajouter un objectif</h3>
+            <p>Choisis une cible claire, un montant de départ et une échéance.</p>
           </div>
           <div class="premium-form-grid premium-form-grid--goal">
             <label class="premium-field premium-field--wide" for="goal-new-name"><span>Nom</span><input type="text" id="goal-new-name" class="budget-input" placeholder="Ex. Voyage de noces" aria-label="Nom de l'objectif"></label>
@@ -482,9 +482,9 @@ body.auth-locked > #nexora-status-bar {
   <!-- SAISIE -->
   <div id="section-saisie" class="section">
     <div class="premium-page-header">
-      <span>Budget mensuel</span>
+      <span>Diagnostic</span>
       <h2>Budget</h2>
-      <p>Structure tes revenus et tes dépenses pour garder une vision claire du mois.</p>
+      <p>Renseigne le mois pour savoir où se situe votre priorité.</p>
     </div>
     <div id="budget-entry-guide-root" class="budget-entry-guide-root"></div>
 
@@ -751,9 +751,9 @@ body.auth-locked > #nexora-status-bar {
   <!-- HISTORIQUE -->
   <div id="section-historique" class="section">
     <div class="premium-page-header">
-      <span>Suivi mensuel</span>
+      <span>Contexte</span>
       <h2>Historique</h2>
-      <p>Retrouve les mois sauvegardés et compare leur évolution.</p>
+      <p>Compare les mois passés pour voir si la situation s’améliore ou se dégrade.</p>
     </div>
 
     <!-- SVG HISTORICAL CHART -->
@@ -781,6 +781,7 @@ body.auth-locked > #nexora-status-bar {
     <div class="settings-page-header">
       <span>Configuration</span>
       <h2>Paramètres</h2>
+      <p style="margin:6px 0 0;color:var(--text2);max-width:700px;">Réglez les repères qui structurent le jugement de Nexora sans changer votre budget.</p>
     </div>
     <div id="couple-fallback-message" style="display:none;margin-bottom:20px;padding:16px;border-radius:12px;background:rgba(16,185,129,0.12);color:var(--text);font-size:14px;line-height:1.5;">
       Mode couple activable depuis les paramètres pour partager le budget du foyer.

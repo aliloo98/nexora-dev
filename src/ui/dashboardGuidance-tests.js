@@ -15,8 +15,8 @@ const guidance = buildDashboardGuidance({
 
 assert.equal(guidance.actionTitle, 'Mettre à jour les paiements')
 assert.match(guidance.actionText, /paiements/)
-assert.equal(guidance.watchTitle, 'Charges fixes élevées')
-assert.equal(guidance.situationTitle, 'Solde fin de cycle positif : 300 €')
+assert.equal(guidance.watchTitle, 'Charges fixes lourdes')
+assert.equal(guidance.situationTitle, 'Solde du mois positif : 300 €')
 
 const guidance2 = buildDashboardGuidance({
   revReel: 0,

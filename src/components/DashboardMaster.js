@@ -39,15 +39,15 @@ export async function renderDashboardMaster(rootId, TreasuryService) {
   const coach = await getProactiveCoach().catch(() => null)
   const simpleMode = document.body?.classList?.contains('mode-simple')
   const showDetails = coach && !simpleMode
-  const coachAdvice = coach?.dailyAdvice || 'Complète ton budget pour recevoir un conseil fiable.'
-  const coachPriority = coach?.priority || 'Mettre à jour le budget'
-  const actionLabel = coach?.actionLabel || 'Mettre à jour'
+  const coachAdvice = coach?.dailyAdvice || 'Le diagnostic devient fiable dès que le budget du mois est renseigné.'
+  const coachPriority = coach?.priority || 'Compléter le budget'
+  const actionLabel = coach?.actionLabel || 'Voir la priorité'
   const actionTarget = coach?.actionTarget || 'saisie'
 
   root.innerHTML = `
     <div class="dashboard-coach-content" style="display:flex;flex-direction:column;gap:8px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-        <div><span>Priorité du jour</span><strong>${escapeHtml(coachPriority)}</strong></div>
+        <div><span>Priorité du moment</span><strong>${escapeHtml(coachPriority)}</strong></div>
         <em style="font-size:12px;color:var(--text2)">${new Date().toLocaleDateString()}</em>
       </div>
       <div class="action-highlight dashboard-coach-highlight">
