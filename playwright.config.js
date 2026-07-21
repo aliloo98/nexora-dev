@@ -10,7 +10,10 @@ export default {
     timeout: 60000
   },
   use: {
-    headless: true
+    headless: true,
+    trace: process.env.CI === 'true' ? 'retain-on-failure' : 'off',
+    screenshot: process.env.CI === 'true' ? 'only-on-failure' : 'off',
+    video: process.env.CI === 'true' ? 'retain-on-failure' : 'off'
   },
   projects: [
     { name: 'mobile', use: { viewport: { width: 390, height: 844 } } },
