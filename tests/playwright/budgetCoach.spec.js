@@ -101,8 +101,16 @@ const logBudgetCoachDebug = async (page, fieldKey) => {
   const debugInfo = await page.evaluate((targetKey) => {
     const section = document.querySelector('#section-saisie');
     const navButton = document.querySelector('.sidebar .nav-btn[data-section="saisie"]');
+    const targetField = document.querySelector(`#section-saisie input[data-key="${targetKey}"]`);
     const sectionStyle = section ? window.getComputedStyle(section) : null;
     const sectionRect = section ? section.getBoundingClientRect() : null;
+    const targetFieldRect = targetField ? targetField.getBoundingClientRect() : null;
+    const overlayAtFieldCenter = targetFieldRect
+      ? document.elementFromPoint(
+          targetFieldRect.left + targetFieldRect.width / 2,
+          targetFieldRect.top + targetFieldRect.height / 2
+        )
+      : null;
     const allSections = Array.from(document.querySelectorAll('section, [data-section], .section'));
     const activeSections = allSections
       .filter((node) => node.classList.contains('active'))
@@ -153,6 +161,13 @@ const logBudgetCoachDebug = async (page, fieldKey) => {
         bottom: sectionRect.bottom,
         right: sectionRect.right
       } : null,
+      overlayAtFieldCenter: overlayAtFieldCenter ? {
+        tagName: overlayAtFieldCenter.tagName,
+        id: overlayAtFieldCenter.id,
+        classList: overlayAtFieldCenter.classList ? Array.from(overlayAtFieldCenter.classList) : [],
+        text: overlayAtFieldCenter.textContent?.slice(0, 200) || null,
+        outerHTML: overlayAtFieldCenter.outerHTML?.slice(0, 1000) || null
+      } : null,
       activeSections,
       visibleSections,
       inputCount: fields.length,
@@ -174,6 +189,7 @@ const logBudgetCoachDebug = async (page, fieldKey) => {
     console.log('clientWidth =', payload.sectionClientWidth);
     console.log('clientHeight =', payload.sectionClientHeight);
     console.log('getBoundingClientRect() =', payload.sectionRect);
+    console.log('overlay at field center =', payload.overlayAtFieldCenter);
     console.log('active sections =', payload.activeSections);
     console.log('visible sections =', payload.visibleSections);
     console.log('input[data-key] count =', payload.inputCount);
