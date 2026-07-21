@@ -41,6 +41,99 @@ test.describe('Dashboard visual hierarchy', () => {
     });
   });
 
+  test('keeps the mobile Folded Ring free from opaque hidden overlays', async ({ page }) => {
+    const assertRingIsClear = async (width) => {
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto('http://127.0.0.1:5180/#section-dashboard');
+      await page.waitForSelector('#nexora-core-panel', { state: 'visible', timeout: 20000 });
+      await page.waitForTimeout(500);
+
+      const tooltipDisplay = await page.locator('#nexora-core-tooltip[hidden]').evaluate((node) => getComputedStyle(node).display);
+      expect(tooltipDisplay, `hidden tooltip must not render at ${width}px`).toBe('none');
+
+      const blockers = await page.evaluate(() => {
+        const ring = document.querySelector('.nexora-core-ring');
+        if (!ring) return [{ point: 'ring', selector: 'missing', reason: 'Folded Ring not found' }];
+
+        const rect = ring.getBoundingClientRect();
+        const points = [
+          { label: 'center', x: 0.5, y: 0.5 },
+          { label: 'ten-thirty', x: 0.31, y: 0.18 },
+          { label: 'eleven', x: 0.39, y: 0.12 },
+          { label: 'inner-left', x: 0.28, y: 0.42 },
+          { label: 'inner-right', x: 0.72, y: 0.42 }
+        ];
+
+        const allowedSelectors = [
+          '.nexora-core-ring',
+          '.nexora-core-ring *',
+          '.nexora-core-center-data',
+          '.nexora-core-center-data *',
+          '.nexora-core-graph',
+          '.nexora-core-graph *',
+          '.nexora-core-globe',
+          '.nexora-core-globe-wrap',
+          '.nexora-core-stage',
+          '.nexora-core-hero',
+          '.nexora-core-layout',
+          '#nexora-core-panel',
+          '#section-dashboard',
+          '.main',
+          'body',
+          'html'
+        ];
+
+        const alphaFromColor = (color) => {
+          const match = String(color || '').match(/rgba?\(([^)]+)\)/);
+          if (!match) return 0;
+          const parts = match[1].split(',').map((part) => part.trim());
+          return parts.length >= 4 ? Number(parts[3]) || 0 : 1;
+        };
+
+        const selectorFor = (node) => {
+          if (node.id) return `#${node.id}`;
+          const className = typeof node.className === 'string' ? node.className.trim().split(/\s+/).filter(Boolean).join('.') : '';
+          return `${node.tagName.toLowerCase()}${className ? `.${className}` : ''}`;
+        };
+
+        return points.flatMap((point) => {
+          const x = rect.left + rect.width * point.x;
+          const y = rect.top + rect.height * point.y;
+          return document.elementsFromPoint(x, y).flatMap((node) => {
+            const style = getComputedStyle(node);
+            if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0) return [];
+            if (allowedSelectors.some((selector) => node.matches(selector))) return [];
+
+            const hiddenRendered = node.hasAttribute('hidden');
+            const opaquePaint =
+              alphaFromColor(style.backgroundColor) >= 0.35 ||
+              style.backgroundImage !== 'none' ||
+              style.backdropFilter !== 'none' ||
+              style.boxShadow !== 'none';
+
+            if (!hiddenRendered && !opaquePaint) return [];
+
+            return [{
+              point: point.label,
+              selector: selectorFor(node),
+              display: style.display,
+              opacity: style.opacity,
+              backgroundColor: style.backgroundColor,
+              backgroundImage: style.backgroundImage,
+              zIndex: style.zIndex,
+              hidden: hiddenRendered
+            }];
+          });
+        });
+      });
+
+      expect(blockers).toEqual([]);
+    };
+
+    await assertRingIsClear(375);
+    await assertRingIsClear(390);
+  });
+
   test('keeps judgment, action and indicators compact and ordered', async ({ page }) => {
     const metrics = await page.evaluate(() => {
       const rect = (selector) => {

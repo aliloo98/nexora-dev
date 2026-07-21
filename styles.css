@@ -7764,6 +7764,11 @@ body.mode-simple .home-goal-summary {
   text-align: left;
 }
 
+.nexora-core-tooltip[hidden] {
+  display: none !important;
+  pointer-events: none;
+}
+
 .nexora-core-tooltip.is-pinned {
   border-color: rgba(229, 192, 96, 0.4);
   box-shadow: 0 20px 48px rgba(0, 0, 0, 0.7);
@@ -8653,6 +8658,12 @@ body.mode-simple .home-goal-summary {
   min-height: 40px;
 }
 
+#section-dashboard #dashboard-coach-action:focus-visible {
+  outline: 3px solid var(--gold2);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px rgba(7, 16, 23, 0.9);
+}
+
 #section-dashboard .dashboard-secondary-kpis {
   background: var(--dashboard-surface);
   border: 1px solid var(--dashboard-border);
@@ -8796,6 +8807,7 @@ body.mode-simple .home-goal-summary {
   #section-dashboard #nexora-core-panel.nexora-core--v8 {
     border-radius: 20px;
     padding: 18px 16px;
+    margin-bottom: 10px;
   }
 
   #section-dashboard #nexora-core-panel.nexora-core--v8 .nexora-core-layout--signature {
@@ -9436,4 +9448,197 @@ body .btn {
     padding: var(--nx-space-4);
   }
 
+}
+
+/* Nexora premium pass — targeted visual corrections inspired by 21st.dev patterns */
+@media(max-width: 768px) {
+  .sidebar {
+    background:
+      linear-gradient(180deg, rgba(12, 12, 18, 0.82), rgba(7, 7, 12, 0.98)),
+      rgba(10, 10, 15, 0.94);
+    gap: 6px;
+    justify-content: center;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .nav-btn {
+    border-color: rgba(255, 255, 255, 0.055);
+    border-radius: 13px;
+    flex: 0 0 46px;
+    height: 46px;
+    overflow: hidden;
+    width: 46px;
+  }
+
+  .nav-icon {
+    font-size: 18px;
+    opacity: 0.82;
+  }
+
+  .nav-btn.active {
+    background: rgba(229, 192, 96, 0.1);
+    border-color: rgba(229, 192, 96, 0.26);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    color: var(--gold2);
+    flex-basis: 112px;
+    gap: 8px;
+    justify-content: flex-start;
+    padding-inline: 11px;
+  }
+
+  .nav-btn.active::before {
+    display: none;
+  }
+
+  .sidebar .nav-active-pill {
+    display: none;
+  }
+
+  .nav-btn.active .nav-icon {
+    opacity: 1;
+  }
+
+  .nav-btn.active .nav-label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0;
+    max-width: 64px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+#section-saisie .budget-block {
+  margin-bottom: 18px;
+}
+
+#section-saisie .budget-row-label,
+.plan-create-form .premium-field > span {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+@media(max-width: 640px) {
+  #section-saisie .budget-entry-guide-root {
+    margin-bottom: 14px;
+  }
+
+  #section-saisie .budget-block {
+    border-radius: 16px;
+  }
+
+  #section-saisie .budget-block-header {
+    align-items: center;
+    flex-direction: row;
+    gap: 10px;
+    padding: 13px 14px;
+  }
+
+  #section-saisie .budget-block-title {
+    font-size: 13px;
+    min-width: 0;
+  }
+
+  #section-saisie .budget-row:has(.col-header) {
+    display: none;
+  }
+
+  #section-saisie .budget-row,
+  #section-saisie .custom-budget-row {
+    align-items: center;
+    gap: 8px 10px;
+    grid-template-columns: minmax(0, 1fr) minmax(106px, 118px) !important;
+    padding: 11px 14px;
+  }
+
+  #section-saisie .budget-row-label {
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.3;
+  }
+
+  #section-saisie .budget-input {
+    border-color: rgba(255, 255, 255, 0.09);
+    border-radius: 9px;
+    min-height: 38px;
+    padding: 9px 10px;
+    width: 100%;
+  }
+
+  #section-saisie .budget-category-divider {
+    background: rgba(255, 255, 255, 0.026);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    padding: 10px 14px;
+  }
+
+  #section-saisie .paid-container,
+  #section-saisie .row-progress {
+    grid-column: 1 / -1;
+  }
+}
+
+#section-plan > .budget-block > .param-row {
+  background: rgba(255, 255, 255, 0.018);
+  border-bottom: 1px solid var(--nx-border, rgba(255, 255, 255, 0.08));
+  margin: 0 !important;
+  padding: var(--nx-space-4, 16px) var(--nx-space-5, 24px);
+}
+
+#section-plan > .budget-block > .param-row .budget-input {
+  min-height: 42px;
+  text-align: right;
+  width: 128px !important;
+}
+
+#plan-root {
+  padding: var(--nx-space-4, 16px) !important;
+}
+
+.plan-create-form {
+  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid var(--nx-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--nx-radius-md, 14px);
+  margin-top: var(--nx-space-4, 16px);
+  padding: var(--nx-space-4, 16px);
+}
+
+.plan-create-form .premium-field > span {
+  color: var(--text2);
+  font-size: var(--nx-type-caption, 11px);
+  font-weight: 800;
+}
+
+.plan-create-form .btn {
+  border-radius: 10px;
+}
+
+@media(max-width: 640px) {
+  #section-plan > .budget-block > .param-row {
+    align-items: stretch !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 14px;
+  }
+
+  #section-plan > .budget-block > .param-row > div:last-child {
+    align-items: stretch !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  #section-plan > .budget-block > .param-row .budget-input {
+    width: 100% !important;
+  }
+
+  #plan-root {
+    padding: 14px !important;
+  }
+
+  .plan-create-form {
+    gap: 10px;
+    padding: 14px;
+  }
 }
