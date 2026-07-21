@@ -7334,9 +7334,17 @@ window.initLegacyBudgetUi = () => {
     if (typeof renderNexoraNotificationCenter === 'function') {
       await renderNexoraNotificationCenter();
     }
-    const initialHash = window.location.hash.replace('#section-', '') || 'dashboard';
-    if (document.readyState === 'complete') showSection(initialHash);
-    else window.addEventListener('load', () => showSection(initialHash), { once: true });
+    const applyInitialSection = () => {
+      const currentSection = window.location.hash.replace('#section-', '');
+      const activeSectionEl = document.querySelector('.section.active');
+      if (currentSection) {
+        showSection(currentSection);
+      } else if (!activeSectionEl) {
+        showSection('dashboard');
+      }
+    };
+    if (document.readyState === 'complete') applyInitialSection();
+    else window.addEventListener('load', applyInitialSection, { once: true });
   })();
   return legacyBudgetUiInitPromise;
 };

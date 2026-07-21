@@ -128,6 +128,36 @@ const applyScenarioValues = async (page, values) => {
 };
 
 test.describe('Budget coach E2E', () => {
+  test('validates non-regression: initLegacyBudgetUi does not overwrite active section-saisie navigation', async ({ page }) => {
+    await page.goto('http://127.0.0.1:5180/', { waitUntil: 'networkidle' });
+
+    await expect(page.locator('#auth-container')).toBeVisible({ timeout: 20000 });
+    await expect(page.locator('#loginDemoBtn')).toBeVisible({ timeout: 20000 });
+    await page.locator('#loginDemoBtn').click();
+
+    await expect.poll(async () => page.evaluate(() => window.AuthContext?.isAuthenticated?.()), { timeout: 20000 }).toBe(true);
+    await expect(page.locator('#auth-container')).toBeHidden({ timeout: 20000 });
+    await expect(page.locator('#section-dashboard')).toBeVisible({ timeout: 20000 });
+
+    await openBudgetSection(page);
+
+    // Simulate late window 'load' event execution that used to trigger late showSection('dashboard')
+    await page.evaluate(() => {
+      window.dispatchEvent(new Event('load'));
+    });
+
+    await waitForSectionReady(page, 'saisie');
+    expect(await page.evaluate(() => window.location.hash)).toBe('#section-saisie');
+
+    const field1 = page.locator('#section-saisie input[data-key="rev_ali"]');
+    await field1.fill('3000');
+    const field2 = page.locator('#section-saisie input[data-key="loyer"]');
+    await field2.fill('750');
+
+    await waitForSectionReady(page, 'saisie');
+    expect(await page.evaluate(() => window.location.hash)).toBe('#section-saisie');
+  });
+
   test('validates the official placeholder demo path and the six Budget Coach states', async ({ page }) => {
     mkdirSync('test-results', { recursive: true });
 

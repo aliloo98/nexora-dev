@@ -194,8 +194,9 @@ export const AuthStateSync = {
       // Hide auth pages
       AuthPages.hideAuthPages()
 
-      // Show dashboard
-      window.showSection('dashboard')
+      // Show dashboard or requested section from hash
+      const targetSection = window.location.hash.replace('#section-', '') || 'dashboard'
+      window.showSection(targetSection)
     } else {
       // User logged out or app initialized without user
 
