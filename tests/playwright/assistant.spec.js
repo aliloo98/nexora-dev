@@ -83,3 +83,74 @@ test.describe('Dashboard visual hierarchy', () => {
     }
   });
 });
+
+test.describe('Premium application coherence', () => {
+  test('keeps every product surface coherent at the five target widths', async ({ page }) => {
+    test.setTimeout(90000);
+
+    await page.goto('http://127.0.0.1:5180/');
+    await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 });
+    await page.click('#loginDemoBtn');
+    await page.waitForURL('**/#section-dashboard', { timeout: 20000 });
+
+    const targetWidths = [375, 390, 768, 1024, 1440];
+    const navSections = ['saisie', 'plan', 'nexora', 'parametres'];
+    const linkedSections = ['objectifs', 'dettes', 'historique'];
+
+    const assertSectionLayout = async (section) => {
+      const activeSection = page.locator(`#section-${section}`);
+      await expect(activeSection).toBeVisible({ timeout: 20000 });
+      await expect(activeSection).toHaveClass(/active/);
+      await page.evaluate(() => window.scrollTo(0, 0));
+
+      const layout = await activeSection.evaluate((node) => ({
+        documentOverflow: document.documentElement.scrollWidth > window.innerWidth,
+        sectionOverflow: node.scrollWidth > node.clientWidth + 1,
+        width: window.innerWidth
+      }));
+
+      expect(layout.documentOverflow, `${section} overflows at ${layout.width}px`).toBeFalsy();
+      expect(layout.sectionOverflow, `${section} section overflows at ${layout.width}px`).toBeFalsy();
+    };
+
+    for (const width of targetWidths) {
+      await page.setViewportSize({ width, height: width <= 390 ? 844 : 1000 });
+      await page.goto('http://127.0.0.1:5180/#section-dashboard');
+
+      for (const section of navSections) {
+        await page.locator(`.nav-btn[data-section="${section}"]`).click();
+        await assertSectionLayout(section);
+      }
+
+      for (const section of linkedSections) {
+        await page.goto(`http://127.0.0.1:5180/#section-${section}`);
+        await assertSectionLayout(section);
+      }
+    }
+
+    await expect(page.locator('#section-objectifs .premium-field')).toHaveCount(6);
+    await page.goto('http://127.0.0.1:5180/#section-dettes');
+    await expect(page.locator('#section-dettes .premium-field')).toHaveCount(5);
+    await page.goto('http://127.0.0.1:5180/#section-plan');
+    await expect(page.locator('#section-plan .plan-create-form .premium-field')).toHaveCount(5);
+
+    await page.goto('http://127.0.0.1:5180/#section-historique');
+    const emptyHistory = page.locator('#history-grid > p:only-child');
+    await expect(emptyHistory).toBeVisible();
+    expect(await emptyHistory.evaluate((node) => node.getBoundingClientRect().height)).toBeGreaterThanOrEqual(180);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('http://127.0.0.1:5180/#section-parametres');
+    const resetButton = page.getByRole('button', { name: 'Réinitialiser', exact: true });
+    await resetButton.scrollIntoViewIfNeeded();
+    await resetButton.click();
+    const modal = page.locator('#custom-modal .modal-card');
+    await expect(modal).toBeVisible();
+    const modalBox = await modal.boundingBox();
+    expect(modalBox?.width).toBeLessThanOrEqual(390 - 28);
+    await page.locator('#custom-modal .modal-close').focus();
+    await expect(page.locator('#custom-modal .modal-close')).toBeFocused();
+    expect(await page.locator('#custom-modal .modal-close').evaluate((node) => parseFloat(getComputedStyle(node).outlineWidth))).toBeGreaterThanOrEqual(2);
+    await page.locator('#modal-btn-cancel').click();
+  });
+});

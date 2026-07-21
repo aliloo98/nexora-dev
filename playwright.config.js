@@ -2,6 +2,7 @@
 /** To run: npx playwright test tests/playwright */
 export default {
   timeout: 60000,
+  workers: 1,
   webServer: {
     command: "VITE_SUPABASE_URL='' VITE_SUPABASE_ANON_KEY='' npm run dev -- --host 127.0.0.1 --strictPort --port 5180",
     url: 'http://127.0.0.1:5180',

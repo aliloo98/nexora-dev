@@ -61,3 +61,234 @@ html,body,#app-root { overflow-x: hidden }
 /* Planner root */
 #treasury-planner-root { pointer-events: auto }
 
+/* ==================================================
+   Nexora Premium V1 — shared product foundations
+   ================================================== */
+:root {
+  --nx-space-1: 4px;
+  --nx-space-2: 8px;
+  --nx-space-3: 12px;
+  --nx-space-4: 16px;
+  --nx-space-5: 24px;
+  --nx-space-6: 32px;
+  --nx-space-7: 48px;
+  --nx-radius-sm: 8px;
+  --nx-radius-md: 12px;
+  --nx-radius-lg: 18px;
+  --nx-radius-xl: 24px;
+  --nx-radius-pill: 999px;
+  --nx-type-caption: 11px;
+  --nx-type-small: 12px;
+  --nx-type-body: 14px;
+  --nx-type-title: 18px;
+  --nx-type-page: clamp(24px, 3vw, 30px);
+  --nx-line-body: 1.5;
+  --nx-surface: rgba(18, 18, 28, 0.72);
+  --nx-surface-raised: rgba(25, 25, 39, 0.86);
+  --nx-surface-soft: rgba(255, 255, 255, 0.035);
+  --nx-border: rgba(255, 255, 255, 0.08);
+  --nx-border-strong: rgba(255, 255, 255, 0.13);
+  --nx-focus: #f3d981;
+  --nx-shadow: 0 18px 48px rgba(0, 0, 0, 0.24);
+  --nx-transition: 160ms ease;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--nx-focus);
+  outline-offset: 2px;
+}
+
+.btn {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--nx-radius-md);
+  display: inline-flex;
+  font-size: var(--nx-type-body);
+  font-weight: 700;
+  gap: var(--nx-space-2);
+  justify-content: center;
+  line-height: 1.2;
+  min-height: 42px;
+  padding: 10px 16px;
+  text-transform: none;
+  transition: background-color var(--nx-transition), border-color var(--nx-transition), color var(--nx-transition), box-shadow var(--nx-transition), transform var(--nx-transition);
+}
+
+.btn-gold,
+.btn-primary {
+  background: var(--gold-gradient);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 22px rgba(229, 192, 96, 0.16);
+  color: #07070a;
+}
+
+.btn-outline,
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.025);
+  border-color: var(--nx-border-strong);
+  color: var(--text);
+}
+
+.btn-danger {
+  background: rgba(244, 63, 94, 0.07);
+  border-color: rgba(244, 63, 94, 0.26);
+  color: var(--red);
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn-gold:hover:not(:disabled),
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 12px 28px rgba(229, 192, 96, 0.24);
+  filter: brightness(1.06);
+}
+
+.btn-outline:hover:not(:disabled),
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(229, 192, 96, 0.07);
+  border-color: rgba(229, 192, 96, 0.34);
+  color: var(--gold2);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn:disabled,
+button:disabled {
+  cursor: not-allowed;
+  filter: none;
+  opacity: 0.48;
+  transform: none;
+}
+
+.budget-input,
+.budget-cycle-select,
+.form-input,
+select,
+textarea {
+  background: rgba(5, 5, 10, 0.52);
+  border: 1px solid var(--nx-border-strong);
+  border-radius: var(--nx-radius-md);
+  color: var(--text);
+  min-height: 42px;
+  outline: none;
+  transition: background-color var(--nx-transition), border-color var(--nx-transition), box-shadow var(--nx-transition);
+}
+
+.budget-input,
+.budget-cycle-select,
+.form-input,
+textarea {
+  padding: 10px 12px;
+}
+
+.budget-input:focus,
+.budget-cycle-select:focus,
+.form-input:focus,
+select:focus,
+textarea:focus {
+  background: rgba(5, 5, 10, 0.76);
+  border-color: rgba(229, 192, 96, 0.58);
+  box-shadow: 0 0 0 3px rgba(229, 192, 96, 0.11);
+}
+
+::placeholder {
+  color: rgba(191, 196, 200, 0.62);
+  opacity: 1;
+}
+
+.form-label,
+.premium-field > span,
+.plan-edit-grid label {
+  color: var(--text2);
+  font-size: var(--nx-type-caption);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.form-error,
+.form-error-box,
+.nexora-action-modal-error {
+  color: var(--red);
+  font-size: var(--nx-type-small);
+  line-height: var(--nx-line-body);
+}
+
+.form-error-box {
+  background: rgba(244, 63, 94, 0.07);
+  border: 1px solid rgba(244, 63, 94, 0.22);
+  border-radius: var(--nx-radius-md);
+  padding: var(--nx-space-3);
+}
+
+.plan-status-pill,
+.badge-coming,
+.csv-badge,
+.nexora-version-badge {
+  border-radius: var(--nx-radius-pill);
+  font-size: var(--nx-type-caption);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.toast {
+  background: var(--nx-surface-raised);
+  border: 1px solid rgba(229, 192, 96, 0.3);
+  border-radius: var(--nx-radius-md);
+  box-shadow: var(--nx-shadow);
+  font-size: var(--nx-type-body);
+  line-height: var(--nx-line-body);
+  padding: 14px 16px;
+}
+
+.modal-overlay {
+  background: rgba(3, 3, 7, 0.82);
+}
+
+.modal-card {
+  background: var(--nx-surface-raised);
+  border: 1px solid var(--nx-border-strong);
+  border-radius: var(--nx-radius-lg);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.5);
+}
+
+.modal-close {
+  align-items: center;
+  border-radius: var(--nx-radius-sm);
+  display: inline-flex;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+
+.csv-preview-table th {
+  color: var(--text2);
+  font-size: var(--nx-type-caption);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.csv-preview-table td {
+  line-height: var(--nx-line-body);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

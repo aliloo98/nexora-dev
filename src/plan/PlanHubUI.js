@@ -201,8 +201,8 @@ const buildPlanContent = (data) => {
         }).join('') : '<div class="plan-empty-line">Aucun objectif configuré.</div>'}
         </div>
         <div class="plan-create-form" id="plan-goal-create-form">
-          <input class="budget-input" id="plan-new-goal-name" type="text" placeholder="Nouvel objectif">
-          <input class="budget-input" id="plan-new-goal-target" type="text" placeholder="Cible">
+          <label class="premium-field" for="plan-new-goal-name"><span>Nouvel objectif</span><input class="budget-input" id="plan-new-goal-name" type="text" placeholder="Ex. Fonds de sécurité"></label>
+          <label class="premium-field" for="plan-new-goal-target"><span>Cible</span><input class="budget-input" id="plan-new-goal-target" type="text" placeholder="0 €"></label>
           <button class="btn btn-gold" id="plan-goal-create" type="button">Créer</button>
         </div>
       </section>
@@ -235,9 +235,9 @@ const buildPlanContent = (data) => {
         `).join('') : '<div class="plan-empty-line">Aucune dette enregistrée.</div>'}
         </div>
         <div class="plan-create-form" id="plan-debt-create-form">
-          <input class="budget-input" id="plan-new-debt-name" type="text" placeholder="Nouvelle dette">
-          <input class="budget-input" id="plan-new-debt-remaining" type="text" placeholder="Restant">
-          <input class="budget-input" id="plan-new-debt-monthly" type="text" placeholder="Mensualité">
+          <label class="premium-field" for="plan-new-debt-name"><span>Nouvelle dette</span><input class="budget-input" id="plan-new-debt-name" type="text" placeholder="Ex. Crédit voiture"></label>
+          <label class="premium-field" for="plan-new-debt-remaining"><span>Capital restant</span><input class="budget-input" id="plan-new-debt-remaining" type="text" placeholder="0 €"></label>
+          <label class="premium-field" for="plan-new-debt-monthly"><span>Mensualité</span><input class="budget-input" id="plan-new-debt-monthly" type="text" placeholder="0 €"></label>
           <button class="btn btn-gold" id="plan-debt-create" type="button">Créer</button>
         </div>
       </section>

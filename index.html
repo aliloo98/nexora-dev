@@ -417,14 +417,18 @@ body.auth-locked > #nexora-status-bar {
         </div>
 
         <div id="goals-list" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px"></div>
-        <div style="margin-top:16px;padding:12px;background:rgba(255,255,255,0.02);border-radius:12px;border:1px dashed rgba(229,192,96,0.2);">
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <input type="text" id="goal-new-name" class="budget-input" placeholder="Nom (ex: Voyage de noces)" style="flex:2;min-width:180px" aria-label="Nom de l'objectif">
-            <input type="text" id="goal-new-target" class="budget-input" placeholder="Montant cible (€)" style="width:160px" aria-label="Montant cible de l'objectif">
-            <input type="text" id="goal-new-current" class="budget-input" placeholder="Montant déjà épargné (€)" value="0" style="width:140px" aria-label="Montant déjà épargné de l'objectif">
-            <input type="date" id="goal-new-date" class="budget-input" style="width:160px" aria-label="Date d'échéance de l'objectif">
-            <input type="color" id="goal-new-color" value="#e5c060" title="Couleur" style="width:48px;height:40px;border:none;padding:0" aria-label="Couleur de l'objectif">
-            <input type="text" id="goal-new-icon" class="budget-input" placeholder="Emoji" style="width:80px" aria-label="Emoji de l'objectif">
+        <div class="premium-form-shell">
+          <div class="premium-form-heading">
+            <h3>Nouvel objectif</h3>
+            <p>Définis une cible claire pour suivre sa progression dans le temps.</p>
+          </div>
+          <div class="premium-form-grid premium-form-grid--goal">
+            <label class="premium-field premium-field--wide" for="goal-new-name"><span>Nom</span><input type="text" id="goal-new-name" class="budget-input" placeholder="Ex. Voyage de noces" aria-label="Nom de l'objectif"></label>
+            <label class="premium-field" for="goal-new-target"><span>Montant cible</span><input type="text" id="goal-new-target" class="budget-input" placeholder="0 €" aria-label="Montant cible de l'objectif"></label>
+            <label class="premium-field" for="goal-new-current"><span>Déjà épargné</span><input type="text" id="goal-new-current" class="budget-input" placeholder="0 €" value="0" aria-label="Montant déjà épargné de l'objectif"></label>
+            <label class="premium-field" for="goal-new-date"><span>Échéance</span><input type="date" id="goal-new-date" class="budget-input" aria-label="Date d'échéance de l'objectif"></label>
+            <label class="premium-field premium-field--color" for="goal-new-color"><span>Couleur</span><input type="color" id="goal-new-color" value="#e5c060" title="Couleur" aria-label="Couleur de l'objectif"></label>
+            <label class="premium-field" for="goal-new-icon"><span>Icône</span><input type="text" id="goal-new-icon" class="budget-input" placeholder="Ex. ✈️" aria-label="Emoji de l'objectif"></label>
             <button type="button" id="goal-create-btn" class="btn btn-gold">Créer</button>
           </div>
         </div>
@@ -458,19 +462,30 @@ body.auth-locked > #nexora-status-bar {
         <div><span>Taux d'endettement</span><strong id="debt-summary-rate">0%</strong></div>
       </div>
       <div id="debts-list" class="debts-list"></div>
-      <div class="debt-form">
-        <input type="text" id="debt-new-name" class="budget-input" placeholder="Nom (ex: Crédit voiture)" aria-label="Nom de la dette">
-        <input type="text" id="debt-new-initial" class="budget-input" placeholder="Montant initial" aria-label="Montant initial">
-        <input type="text" id="debt-new-remaining" class="budget-input" placeholder="Restant" aria-label="Montant restant">
-        <input type="text" id="debt-new-monthly" class="budget-input" placeholder="Mensualité" aria-label="Mensualité">
-        <input type="text" id="debt-new-rate" class="budget-input" placeholder="Taux %" aria-label="Taux optionnel">
-        <button type="button" class="btn btn-gold" onclick="addDebt()">Ajouter</button>
+      <div class="debt-form premium-form-shell">
+        <div class="premium-form-heading">
+          <h3>Nouvelle dette</h3>
+          <p>Renseigne les montants utiles pour suivre le remboursement.</p>
+        </div>
+        <div class="premium-form-grid premium-form-grid--debt">
+          <label class="premium-field premium-field--wide" for="debt-new-name"><span>Nom</span><input type="text" id="debt-new-name" class="budget-input" placeholder="Ex. Crédit voiture" aria-label="Nom de la dette"></label>
+          <label class="premium-field" for="debt-new-initial"><span>Montant initial</span><input type="text" id="debt-new-initial" class="budget-input" placeholder="0 €" aria-label="Montant initial"></label>
+          <label class="premium-field" for="debt-new-remaining"><span>Capital restant</span><input type="text" id="debt-new-remaining" class="budget-input" placeholder="0 €" aria-label="Montant restant"></label>
+          <label class="premium-field" for="debt-new-monthly"><span>Mensualité</span><input type="text" id="debt-new-monthly" class="budget-input" placeholder="0 €" aria-label="Mensualité"></label>
+          <label class="premium-field" for="debt-new-rate"><span>Taux</span><input type="text" id="debt-new-rate" class="budget-input" placeholder="0 %" aria-label="Taux optionnel"></label>
+          <button type="button" class="btn btn-gold" onclick="addDebt()">Ajouter</button>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- SAISIE -->
   <div id="section-saisie" class="section">
+    <div class="premium-page-header">
+      <span>Budget mensuel</span>
+      <h2>Budget</h2>
+      <p>Structure tes revenus et tes dépenses pour garder une vision claire du mois.</p>
+    </div>
     <div id="budget-entry-guide-root" class="budget-entry-guide-root"></div>
 
     <!-- REVENUS -->
@@ -735,7 +750,11 @@ body.auth-locked > #nexora-status-bar {
 
   <!-- HISTORIQUE -->
   <div id="section-historique" class="section">
-    <h2 style="margin-bottom:24px;font-size:22px;font-weight:700">Historique</h2>
+    <div class="premium-page-header">
+      <span>Suivi mensuel</span>
+      <h2>Historique</h2>
+      <p>Retrouve les mois sauvegardés et compare leur évolution.</p>
+    </div>
 
     <!-- SVG HISTORICAL CHART -->
     <div class="budget-block" id="history-chart-block" style="margin-bottom:32px;display:none;">
