@@ -5061,19 +5061,43 @@ function updateDonutChart(fix, vari, soldeVal, rev) {
 }
 
 function showSection(id){
-    const targetSection = document.getElementById('section-' + id);
+    try {
+    if (window.__navDebug) console.log(`[NAV-DBG] showSection ENTRY id:${id} readyState:${document.readyState} window.showSectionPresent:${typeof window.showSection === 'function'}`)
+  } catch (e) {}
+
+  const targetSection = document.getElementById('section-' + id);
   if (!targetSection) {
+    if (window.__navDebug) console.log(`[NAV-DBG] showSection -> target section not found for id:${id}, falling back to dashboard`)
     id = 'dashboard';
-    if (!document.getElementById('section-dashboard')) return;
+    if (!document.getElementById('section-dashboard')) {
+      if (window.__navDebug) console.log('[NAV-DBG] showSection -> dashboard missing, aborting')
+      return;
+    }
   }
 
-  document.querySelectorAll('.section').forEach((s) => {
-    s.classList.remove('active');
-    s.hidden = true;
-  });
-  const nextSection = document.getElementById('section-' + id);
-  nextSection.hidden = false;
-  nextSection.classList.add('active');
+  try {
+    if (window.__navDebug) {
+      const beforeStates = Array.from(document.querySelectorAll('.section')).map(s => ({ id: s.id, classes: s.className, hidden: s.hidden }))
+      console.log('[NAV-DBG] showSection -> before mutation', JSON.stringify(beforeStates))
+    }
+
+    document.querySelectorAll('.section').forEach((s) => {
+      s.classList.remove('active');
+      s.hidden = true;
+    });
+    let nextSection = document.getElementById('section-' + id);
+    if (!nextSection) nextSection = document.getElementById('section-dashboard');
+    nextSection.hidden = false;
+    nextSection.classList.add('active');
+
+    if (window.__navDebug) {
+      const afterStates = Array.from(document.querySelectorAll('.section')).map(s => ({ id: s.id, classes: s.className, hidden: s.hidden }))
+      console.log('[NAV-DBG] showSection -> after mutation', JSON.stringify(afterStates))
+    }
+  } catch (err) {
+    console.error('[NAV-DBG] showSection ERROR', err && err.stack ? err.stack : err)
+    throw err
+  }
 
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const activeButton = document.querySelector(`.sidebar .nav-btn[data-section="${id}"]`);

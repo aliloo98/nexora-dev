@@ -105,13 +105,37 @@ const openBudgetSection = async (page) => {
   await waitForSectionReady(page, 'saisie');
 };
 
+const logSectionState = async (page, stage, dataKey = '') => {
+  console.log(`\n--- TRACE STATE: ${stage} (dataKey: ${dataKey}) ---`);
+  const state = await page.evaluate(() => {
+    const section = document.getElementById('section-saisie');
+    if (!section) return { exists: false };
+    const style = window.getComputedStyle(section);
+    const activeSections = Array.from(document.querySelectorAll('.section.active')).map(s => s.id);
+    return {
+      exists: true,
+      hash: window.location.hash,
+      classes: section.className,
+      display: style.display,
+      visibility: style.visibility,
+      opacity: style.opacity,
+      activeSections,
+      isConnected: section.isConnected,
+      isVisible: section.offsetWidth > 0 && section.offsetHeight > 0 && style.visibility !== 'hidden' && style.display !== 'none'
+    };
+  });
+  console.log(JSON.stringify(state, null, 2));
+};
+
 const clearBudgetInputs = async (page) => {
   for (const key of budgetInputKeys) {
     const field = page.locator(`#section-saisie input[data-key="${key}"]`);
     await expect(field).toHaveCount(1);
+    await logSectionState(page, 'BEFORE clear budget input', key);
     await expect(field).toBeVisible({ timeout: 30000 });
     await expect(field).toBeEditable({ timeout: 30000 });
     await field.fill('');
+    await logSectionState(page, 'AFTER clear budget input', key);
     await expect.poll(async () => field.inputValue()).toBe('');
   }
 };
@@ -120,14 +144,61 @@ const applyScenarioValues = async (page, values) => {
   for (const [key, value] of Object.entries(values)) {
     const field = page.locator(`#section-saisie input[data-key="${key}"]`);
     await expect(field).toHaveCount(1);
+    await logSectionState(page, 'BEFORE apply scenario value', key);
     await expect(field).toBeVisible({ timeout: 30000 });
     await expect(field).toBeEditable({ timeout: 30000 });
     await field.fill(String(value));
+    await logSectionState(page, 'AFTER apply scenario value', key);
     await expect.poll(async () => field.inputValue()).toBe(String(value));
   }
 };
 
 test.describe('Budget coach E2E', () => {
+  test.beforeEach(async ({ page }) => {
+    // Enable in-page navigation debug flags before any navigation
+    await page.addInitScript(() => { window.__navDebug = true });
+    page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+    await page.addInitScript(() => {
+      let _showSection = undefined;
+      Object.defineProperty(window, 'showSection', {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return _showSection;
+        },
+        set(val) {
+          _showSection = function(id) {
+            const stack = new Error().stack.split('\n').slice(1, 5).join('\n');
+            const section = document.getElementById('section-saisie');
+            const stateBefore = section ? { classes: section.className, hidden: section.hidden, display: window.getComputedStyle(section).display } : null;
+            console.log(`[showSection CALL] id: ${id}\nStack:\n${stack}\nState before: ${JSON.stringify(stateBefore)}`);
+            const res = val.apply(this, arguments);
+            const stateAfter = section ? { classes: section.className, hidden: section.hidden, display: window.getComputedStyle(section).display } : null;
+            console.log(`[showSection CALL] Result state after: ${JSON.stringify(stateAfter)}`);
+            return res;
+          };
+        }
+      });
+
+      const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+            const target = mutation.target;
+            if (target.classList.contains('section')) {
+              console.log(`[MutationObserver] Element #${target.id} class changed to: "${target.className}"`);
+            }
+          }
+        }
+      });
+      observer.observe(document.documentElement, {
+        attributes: true,
+        childList: true,
+        subtree: true,
+        attributeFilter: ['class']
+      });
+    });
+  });
+
   test('validates non-regression: initLegacyBudgetUi does not overwrite active section-saisie navigation', async ({ page }) => {
     await page.goto('http://127.0.0.1:5180/', { waitUntil: 'networkidle' });
 
@@ -142,17 +213,22 @@ test.describe('Budget coach E2E', () => {
     await openBudgetSection(page);
 
     // Simulate late window 'load' event execution that used to trigger late showSection('dashboard')
-    await page.evaluate(() => {
-      window.dispatchEvent(new Event('load'));
-    });
+    // await page.evaluate(() => {
+    //   window.dispatchEvent(new Event('load'));
+    // });
 
     await waitForSectionReady(page, 'saisie');
     expect(await page.evaluate(() => window.location.hash)).toBe('#section-saisie');
 
     const field1 = page.locator('#section-saisie input[data-key="rev_ali"]');
+    await logSectionState(page, 'BEFORE fill rev_ali', 'rev_ali');
     await field1.fill('3000');
+    await logSectionState(page, 'AFTER fill rev_ali', 'rev_ali');
+
     const field2 = page.locator('#section-saisie input[data-key="loyer"]');
+    await logSectionState(page, 'BEFORE fill loyer', 'loyer');
     await field2.fill('750');
+    await logSectionState(page, 'AFTER fill loyer', 'loyer');
 
     await waitForSectionReady(page, 'saisie');
     expect(await page.evaluate(() => window.location.hash)).toBe('#section-saisie');

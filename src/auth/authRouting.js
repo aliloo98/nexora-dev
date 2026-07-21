@@ -108,14 +108,20 @@ export const NavigationMiddleware = {
     // Listen to hash changes
     window.addEventListener('hashchange', () => {
       const section = RouteGuard.getCurrentSection()
+      if (window.__navDebug) console.log(`[NAV-DBG] hashchange -> requested section: ${section}, readyState: ${document.readyState}, hashBefore: ${window.location.hash}`)
 
       if (!RouteGuard.navigateTo(section)) {
+        if (window.__navDebug) console.log(`[NAV-DBG] hashchange -> RouteGuard denied navigation to ${section}`)
         if (section === 'couple' && AuthContext.isAuthenticated() && window.__isCoupleTabVisible === false) {
+          if (window.__navDebug) console.log('[NAV-DBG] hashchange -> redirecting to #section-parametres (couple fallback)')
           window.location.hash = '#section-parametres'
           return
         }
         // Reset hash to dashboard if navigation failed
+        if (window.__navDebug) console.log('[NAV-DBG] hashchange -> resetting hash to #section-dashboard')
         window.location.hash = '#section-dashboard'
+      } else {
+        if (window.__navDebug) console.log(`[NAV-DBG] hashchange -> RouteGuard allowed navigation to ${section}, hashAfter: ${window.location.hash}`)
       }
     })
 
@@ -123,13 +129,20 @@ export const NavigationMiddleware = {
     if (window.showSection) {
       const originalShowSection = window.showSection
       window.showSection = function(sectionName) {
+        try {
+          if (window.__navDebug) console.log(`[NAV-DBG] wrapped.showSection ENTRY id:${sectionName} readyState:${document.readyState}`)
+          if (!RouteGuard.navigateTo(sectionName)) {
+            if (window.__navDebug) console.log(`[NAV-DBG] wrapped.showSection -> RouteGuard denied ${sectionName} before calling original`)
+            return false
+          }
 
-        if (!RouteGuard.navigateTo(sectionName)) {
-          return false
+          const res = originalShowSection.call(this, sectionName)
+          if (window.__navDebug) console.log(`[NAV-DBG] wrapped.showSection EXIT id:${sectionName} result:${!!res} hash:${window.location.hash}`)
+          return res
+        } catch (err) {
+          console.error('[NAV-DBG] wrapped.showSection ERROR', err && err.stack ? err.stack : err)
+          throw err
         }
-
-        // Call original showSection
-        return originalShowSection.call(this, sectionName)
       }
     }
 
@@ -139,10 +152,18 @@ export const NavigationMiddleware = {
       if (!navBtn) return
 
       const section = navBtn.dataset.section
-
-      if (!RouteGuard.navigateTo(section)) {
-        e.preventDefault()
-        return false
+      try {
+        if (window.__navDebug) console.log(`[NAV-DBG] nav.click -> target section: ${section}, readyState:${document.readyState}, currentHash:${window.location.hash}`)
+        const allowed = RouteGuard.navigateTo(section)
+        if (window.__navDebug) console.log(`[NAV-DBG] nav.click -> RouteGuard.navigateTo(${section}) returned ${allowed}`)
+        if (!allowed) {
+          if (window.__navDebug) console.log('[NAV-DBG] nav.click -> calling preventDefault()')
+          e.preventDefault()
+          return false
+        }
+      } catch (err) {
+        console.error('[NAV-DBG] nav.click ERROR', err && err.stack ? err.stack : err)
+        // Fall through: do not block native navigation if the guard itself throws
       }
     })
   },
