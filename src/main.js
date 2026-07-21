@@ -45,6 +45,7 @@ import CoupleOverlay from './couple/coupleOverlay.js'
 import { renderTreasuryPlanner } from './components/TreasuryPlannerUI.js'
 import { renderSettingsPanels, renderRecurringIncomeSettings, renderBillScheduleSettings } from './settings/SettingsUI.js'
 import { readAiSettings, updateAiSettings } from './advisor/proactiveCoachService.js'
+import { buildJudgmentEngine } from './assistant/judgmentEngine.js'
 import NexoraMotion from './ui/gsapMotion.js'
 import { parseFinancialExpression } from './finance/financialExpression.js'
 import { computeCycleBalances, computeCycleBalancesFromMetrics } from './finance/cycleBalance.js'
@@ -81,6 +82,7 @@ window.toggleAvailableMoneyOptions = toggleAvailableMoneyOptions
 window.NexoraDashboardGuidance = { buildDashboardGuidance }
 window.renderBudgetCoach = renderBudgetCoach
 window.buildBudgetCoachState = buildBudgetCoachState
+window.buildJudgmentEngine = buildJudgmentEngine
 window.NexoraBuild = { version: APP_VERSION, label: formatBuildLabel }
 window.getUserDisplayName = (user) => getUserDisplayName(user || AuthContext.getCurrentUser())
 window.NexoraSyncDiagnostics = SyncDiagnostics

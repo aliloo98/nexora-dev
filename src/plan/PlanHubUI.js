@@ -8,6 +8,7 @@ import { filterUserFacingRecords } from '../utils/userFacingFilter.js'
 import { STORAGE_KEYS } from '../constants/storageKeys.js'
 import { readSyncedArray, writeSyncedArray } from '../../js/syncedSettingAccess.js'
 import { escapeHtml } from '../utils/htmlEscape.js'
+import { buildJudgmentEngine } from '../assistant/judgmentEngine.js'
 
 const formatCurrency = (value) => {
   const amount = Number(value) || 0
@@ -32,9 +33,9 @@ const parseAmount = (value) => {
 
 const buildEmptyState = () => `
   <div class="empty-state plan-empty-state">
-    <p>Plan du mois en attente</p>
-    <p>Renseigne les revenus et les charges pour générer un plan de trésorerie clair.</p>
-    <button class="btn btn-gold" type="button" onclick="showSection('saisie')">Saisir le mois</button>
+    <p>Le plan du mois n’est pas encore construit</p>
+    <p>Ajoute les revenus et les charges pour obtenir un plan de trésorerie clair et prioritaire.</p>
+    <button class="btn btn-gold" type="button" onclick="showSection('saisie')">Démarrer le plan</button>
   </div>
 `
 
@@ -120,6 +121,18 @@ const buildPlanContent = (data) => {
   } = data
   const cycleBalanceDisplay = Number.isFinite(projectedEndOfCycle) ? projectedEndOfCycle : 0
   const currentBalanceDisplay = Number.isFinite(currentBalance) ? currentBalance : baseBalance
+  const judgment = buildJudgmentEngine({
+    income: Number(totalRevenue) || 0,
+    fixedExpenses: Math.max(0, Number(totalCharges) || 0),
+    variableExpenses: Math.max(0, Number(totalCharges) || 0),
+    expenses: Number(totalCharges) || 0,
+    projectedBalance: Number(cycleBalanceDisplay) || 0,
+    currentBalance: Number(currentBalanceDisplay) || 0,
+    debts,
+    goals,
+    primaryGoal: goals.find((goal) => goal?.isPrimary) || null,
+    settings: { thresholds: { chargesRate: 75, variableRate: 35, minBalance: 150 } }
+  })
 
   const minBalance = Math.max(-99999, timeline.reduce((min, item) => Math.min(min, Number(item.balance) || 0), baseBalance))
   const important = (item) => Math.abs(Number(item.amount) || 0) >= 20 || Number(item.amount) > 0 || ['critique', 'importante'].includes(String(item.priority || '').toLowerCase())
@@ -138,6 +151,11 @@ const buildPlanContent = (data) => {
           <h3>Solde du mois</h3>
           <span class="plan-status-pill ${getRiskClass(cycleBalanceDisplay)}">${getBalanceLabel(cycleBalanceDisplay)}</span>
         </div>
+        <div class="plan-metric-row" style="margin-top:10px;display:grid;gap:8px">
+          <div><span class="metric-label">Priorité</span><strong>${escapeHtml(judgment.diagnostic)}</strong></div>
+          <div><span class="metric-label">Décision</span><strong>${escapeHtml(judgment.action)}</strong></div>
+          <div><span class="metric-label">Pourquoi maintenant</span><strong>${escapeHtml(judgment.why)}</strong></div>
+        </div>
         <strong class="plan-balance-value ${getRiskClass(cycleBalanceDisplay)}">${formatCurrency(cycleBalanceDisplay)}</strong>
         <div class="plan-metric-row">
           <div><span class="metric-label">Solde actuel</span><strong>${formatCurrency(currentBalanceDisplay)}</strong></div>
@@ -149,29 +167,29 @@ const buildPlanContent = (data) => {
       </section>
 
       <section class="plan-card">
-        <div class="plan-card-header"><h3>À régler maintenant</h3></div>
+        <div class="plan-card-header"><h3>À traiter maintenant</h3></div>
         ${buildPlanRows(toPayNow, { emptyLabel: 'Aucune charge urgente détectée', limit: 3 })}
       </section>
 
       <section class="plan-card">
-        <div class="plan-card-header"><h3>Cette semaine</h3></div>
+        <div class="plan-card-header"><h3>À venir cette semaine</h3></div>
         ${buildPlanRows(upcomingCharges, { emptyLabel: 'Aucune charge cette semaine', limit: 4 })}
       </section>
 
       <section class="plan-card">
-        <div class="plan-card-header"><h3>Entrées à venir</h3></div>
+        <div class="plan-card-header"><h3>Entrées prévues</h3></div>
         ${buildPlanRows(upcomingRevenues, { emptyLabel: 'Aucun revenu prévu', positive: true, limit: 4 })}
       </section>
 
       <section class="plan-card plan-timeline-card">
-        <div class="plan-card-header"><h3>Ligne de temps</h3></div>
+        <div class="plan-card-header"><h3>Chronologie du mois</h3></div>
         <div id="plan-timeline-root" class="plan-timeline-root">
           ${timeline.length ? '' : '<div class="plan-empty-line">Aucun mouvement daté pour ce mois.</div>'}
         </div>
       </section>
 
       <section class="plan-card">
-        <div class="plan-card-header"><h3>Objectifs</h3></div>
+        <div class="plan-card-header"><h3>Priorités d’épargne</h3></div>
         <div class="plan-edit-list">
         ${goals.length ? goals.map((goal) => {
           const current = Number(goal.current) || 0
@@ -208,7 +226,7 @@ const buildPlanContent = (data) => {
       </section>
 
       <section class="plan-card">
-        <div class="plan-card-header"><h3>Dettes</h3></div>
+        <div class="plan-card-header"><h3>Dettes à suivre</h3></div>
         <div class="plan-edit-list">
         ${debts.length ? debts.map((debt, index) => `
           <div class="plan-edit-item" data-debt-index="${index}">

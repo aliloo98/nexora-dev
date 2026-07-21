@@ -5,6 +5,7 @@ import { STORAGE_KEYS } from '../constants/storageKeys.js'
 import { parseFinancialExpression } from '../finance/financialExpression.js'
 import { filterUserFacingRecords } from '../utils/userFacingFilter.js'
 import { escapeHtml } from '../utils/htmlEscape.js'
+import { buildJudgmentEngine } from '../assistant/judgmentEngine.js'
 
 const GOALS_STORAGE_KEY = STORAGE_KEYS.goals
 
@@ -200,6 +201,18 @@ const GoalsPage = {
       return
     }
     const goals = filterUserFacingRecords(await GoalsService.listGoals(), (goal) => goal?.name)
+    const judgment = buildJudgmentEngine({
+      income: 0,
+      fixedExpenses: 0,
+      variableExpenses: 0,
+      expenses: 0,
+      projectedBalance: 0,
+      currentBalance: 0,
+      debts: [],
+      goals,
+      primaryGoal: goals.find((goal) => goal?.isPrimary) || null,
+      settings: { thresholds: { chargesRate: 75, variableRate: 35, minBalance: 150 } }
+    })
     GoalsPage.listEl.innerHTML = ''
     const monthlyInput = document.getElementById('goal-monthly-contrib')
     const monthly = monthlyInput ? readGoalNumber(monthlyInput.value, 0) : 0
@@ -217,8 +230,9 @@ const GoalsPage = {
     })
     if (goals.length === 0) GoalsPage.listEl.innerHTML = `
       <div style="padding:20px;border-radius:16px;border:1px dashed rgba(229,192,96,0.3);background:rgba(255,255,255,0.03);color:var(--text2);text-align:center;">
-        <strong>Aucun objectif pour le moment</strong>
+        <strong>Aucun objectif n’est encore défini</strong>
         <div style="margin-top:8px;font-size:13px;">Ajoute un premier objectif pour donner une direction claire à votre épargne.</div>
+        <div style="margin-top:8px;font-size:12px;color:var(--text);">${escapeHtml(judgment.diagnostic)} ${escapeHtml(judgment.action)}</div>
       </div>`
   },
 
@@ -229,7 +243,7 @@ const GoalsPage = {
     if (goals.length === 0) {
       GoalsPage.analyticsTarget.innerHTML = `
         <div style="padding:16px;border-radius:16px;background:rgba(255,255,255,0.04);color:var(--text2);min-height:80px;display:flex;align-items:center;justify-content:center;">
-          Aucun objectif n’est encore défini pour guider votre épargne.
+          Aucun objectif n’est encore défini pour guider vos priorités d’épargne.
         </div>`
       return
     }

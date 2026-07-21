@@ -1,3 +1,5 @@
+import { buildJudgmentEngine } from '../assistant/judgmentEngine.js'
+
 export function buildBudgetCoachState(values = {}) {
     const parseAmount = (value) => {
     const amount = Number(value)
@@ -8,6 +10,18 @@ export function buildBudgetCoachState(values = {}) {
   const fixed = ['loyer', 'credit', 'assauto', 'gasoil', 'elec', 'eau', 'psy', 'diete', 'itou', 'sante', 'impots', 'box', 'tel_ali', 'tel_meg', 'stream', 'ps', 'cb', 'impfix'].reduce((sum, key) => sum + parseAmount(values[key]), 0)
   const variable = ['courses', 'tabac', 'sport', 'ongles', 'cadeaux', 'impvar'].reduce((sum, key) => sum + parseAmount(values[key]), 0)
   const balance = income - (fixed + variable)
+  const judgment = buildJudgmentEngine({
+    income,
+    fixedExpenses: fixed,
+    variableExpenses: variable,
+    expenses: fixed + variable,
+    projectedBalance: balance,
+    currentBalance: balance,
+    debts: [],
+    goals: [],
+    primaryGoal: null,
+    settings: { thresholds: { chargesRate: 75, variableRate: 35, minBalance: 150 } }
+  })
 
   if (income <= 0) {
     return {
@@ -64,7 +78,8 @@ export function buildBudgetCoachState(values = {}) {
     title: 'Le budget tient bien',
     reason: 'Le mois garde une marge pour les imprévus.',
     actionLabel: 'Voir la synthèse',
-    target: 'dashboard'
+    target: 'dashboard',
+    judgment
   }
 }
 

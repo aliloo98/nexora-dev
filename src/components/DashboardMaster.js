@@ -1,6 +1,7 @@
 import DashboardService from '../dashboard/dashboardService.js'
 import { getProactiveCoach } from '../advisor/proactiveCoachService.js'
 import TreasuryAdapter from '../treasury/treasuryAdapter.js'
+import { buildJudgmentEngine } from '../assistant/judgmentEngine.js'
 
 const escapeHtml = (value) => String(value ?? '')
   .replace(/&/g, '&amp;')
@@ -37,6 +38,18 @@ export async function renderDashboardMaster(rootId, TreasuryService) {
   const plan = DashboardService.get7DayPlan({ fromDate: new Date(), baseBalance, revenues, charges })
   const action = DashboardService.getActionOfDay(plan)
   const coach = await getProactiveCoach().catch(() => null)
+  const judgment = buildJudgmentEngine({
+    income: coach?.summary?.income ?? 0,
+    fixedExpenses: coach?.summary?.fixedExpenses ?? 0,
+    variableExpenses: coach?.summary?.variableExpenses ?? 0,
+    expenses: coach?.summary?.expenses ?? 0,
+    projectedBalance: coach?.summary?.projectedBalance ?? 0,
+    currentBalance: coach?.summary?.currentBalance ?? 0,
+    debts: [],
+    goals: [],
+    primaryGoal: null,
+    settings: coach?.settings
+  })
   const simpleMode = document.body?.classList?.contains('mode-simple')
   const showDetails = coach && !simpleMode
   const coachAdvice = coach?.dailyAdvice || 'Le diagnostic devient fiable dès que le budget du mois est renseigné.'
@@ -51,7 +64,10 @@ export async function renderDashboardMaster(rootId, TreasuryService) {
         <em style="font-size:12px;color:var(--text2)">${new Date().toLocaleDateString()}</em>
       </div>
       <div class="action-highlight dashboard-coach-highlight">
-          <div style="font-size:13px;color:var(--text);line-height:1.4">${escapeHtml(showDetails ? coachAdvice : `Action prioritaire : ${coachPriority}`)}</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.4"><strong>${escapeHtml(judgment.diagnostic)}</strong></div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">${escapeHtml(judgment.impact)}</div>
+          <div style="font-size:12px;color:var(--text);margin-top:4px">Action : ${escapeHtml(judgment.action)}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Pourquoi : ${escapeHtml(judgment.why)}</div>
           ${showDetails && coach.risks?.length ? `<div style="font-size:12px;color:var(--text2);margin-top:4px">Risque : ${escapeHtml(coach.risks[0])}</div>` : ''}
           ${showDetails && coach.opportunities?.length ? `<div style="font-size:12px;color:var(--text2);margin-top:4px">Opportunité : ${escapeHtml(coach.opportunities[0])}</div>` : ''}
           <button class="btn btn-outline" type="button" style="margin-top:8px" id="dashboard-coach-action">${escapeHtml(actionLabel)}</button>

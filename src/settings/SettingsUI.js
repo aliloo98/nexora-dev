@@ -36,9 +36,9 @@ export async function renderRecurringIncomeSettings() {
 
   root.innerHTML = `
     <div class="settings-panel">
-      ${list || '<div class="empty-state">Aucun revenu récurrent n’est encore défini.</div>'}
+      ${list || '<div class="empty-state">Aucun revenu récurrent n’est encore saisi.</div>'}
     </div>
-    <button class="btn btn-gold" type="button" id="add-recurring-income-btn">Ajouter un revenu</button>
+    <button class="btn btn-gold" type="button" id="add-recurring-income-btn">Ajouter un revenu récurrent</button>
   `
 
   root.querySelector('#add-recurring-income-btn')?.addEventListener('click', async () => {
@@ -156,13 +156,13 @@ export async function renderCoupleModeSettings() {
     <div class="settings-card couple-mode-card">
       <div class="couple-premium-empty">
         <strong>Mode couple</strong>
-        <p>Active un foyer local pour coordonner un budget à deux sans fusionner les données automatiquement.</p>
+        <p>Active un foyer local pour coordonner les priorités de budget à deux sans fusionner vos données automatiquement.</p>
       </div>
       <div class="couple-mode-actions">
         <input type="text" id="couple-household-name" class="budget-input" placeholder="Nom du foyer" aria-label="Nom du foyer" />
         <input type="email" id="couple-partner-email" class="budget-input" placeholder="Email du partenaire" aria-label="Email du partenaire" />
         <input type="text" id="couple-join-code" class="budget-input" placeholder="Code d’invitation reçu" aria-label="Code d’invitation reçu" />
-        <button class="btn btn-gold" type="button" id="create-couple-btn">Activer le mode couple</button>
+        <button class="btn btn-gold" type="button" id="create-couple-btn">Activer le foyer</button>
         <button class="btn btn-outline" type="button" id="join-household-btn">Rejoindre un foyer</button>
         <button class="btn btn-outline" type="button" disabled title="Aucun foyer actif">Quitter le foyer</button>
         <button class="btn btn-danger" type="button" disabled title="Aucun foyer actif">Dissoudre le foyer</button>
