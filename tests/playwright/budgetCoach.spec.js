@@ -77,16 +77,34 @@ const waitForCoachState = async (page, expectedTitle) => {
   }, expectedTitle, { timeout: 20000 });
 };
 
+const waitForSectionReady = async (page, sectionId) => {
+  const section = page.locator(`#section-${sectionId}`);
+  await page.waitForFunction((id) => {
+    const sectionNode = document.getElementById(`section-${id}`);
+    const hashMatches = window.location.hash === `#section-${id}`;
+    return Boolean(
+      sectionNode &&
+      !sectionNode.hidden &&
+      getComputedStyle(sectionNode).display !== 'none' &&
+      (sectionNode.classList.contains('active') || hashMatches)
+    );
+  }, sectionId, { timeout: 30000 });
+  await expect(section).toHaveClass(/active/);
+};
+
 const openBudgetSection = async (page) => {
   await page.locator('.sidebar .nav-btn[data-section="saisie"]').click();
-  await expect(page.locator('#section-saisie')).toBeVisible({ timeout: 20000 });
+  await waitForSectionReady(page, 'saisie');
 };
 
 const clearBudgetInputs = async (page) => {
   for (const key of budgetInputKeys) {
     const field = page.locator(`#section-saisie input[data-key="${key}"]`);
     await expect(field).toHaveCount(1);
+    await expect(field).toBeVisible({ timeout: 30000 });
+    await expect(field).toBeEditable({ timeout: 30000 });
     await field.fill('');
+    await expect.poll(async () => field.inputValue()).toBe('');
   }
 };
 
@@ -94,7 +112,10 @@ const applyScenarioValues = async (page, values) => {
   for (const [key, value] of Object.entries(values)) {
     const field = page.locator(`#section-saisie input[data-key="${key}"]`);
     await expect(field).toHaveCount(1);
+    await expect(field).toBeVisible({ timeout: 30000 });
+    await expect(field).toBeEditable({ timeout: 30000 });
     await field.fill(String(value));
+    await expect.poll(async () => field.inputValue()).toBe(String(value));
   }
 };
 
