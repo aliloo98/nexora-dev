@@ -5062,26 +5062,16 @@ function updateDonutChart(fix, vari, soldeVal, rev) {
 
 function showSection(id){
   let nextSection = null;
-  try {
-    if (window.__navDebug) console.log(`[NAV-DBG] showSection ENTRY id:${id} readyState:${document.readyState} window.showSectionPresent:${typeof window.showSection === 'function'}`)
-  } catch (e) {}
 
   const targetSection = document.getElementById('section-' + id);
   if (!targetSection) {
-    if (window.__navDebug) console.log(`[NAV-DBG] showSection -> target section not found for id:${id}, falling back to dashboard`)
     id = 'dashboard';
     if (!document.getElementById('section-dashboard')) {
-      if (window.__navDebug) console.log('[NAV-DBG] showSection -> dashboard missing, aborting')
       return;
     }
   }
 
   try {
-    if (window.__navDebug) {
-      const beforeStates = Array.from(document.querySelectorAll('.section')).map(s => ({ id: s.id, classes: s.className, hidden: s.hidden }))
-      console.log('[NAV-DBG] showSection -> before mutation', JSON.stringify(beforeStates))
-    }
-
     document.querySelectorAll('.section').forEach((s) => {
       s.classList.remove('active');
       s.hidden = true;
@@ -5090,13 +5080,7 @@ function showSection(id){
     if (!nextSection) nextSection = document.getElementById('section-dashboard');
     nextSection.hidden = false;
     nextSection.classList.add('active');
-
-    if (window.__navDebug) {
-      const afterStates = Array.from(document.querySelectorAll('.section')).map(s => ({ id: s.id, classes: s.className, hidden: s.hidden }))
-      console.log('[NAV-DBG] showSection -> after mutation', JSON.stringify(afterStates))
-    }
   } catch (err) {
-    console.error('[NAV-DBG] showSection ERROR', err && err.stack ? err.stack : err)
     throw err
   }
 
@@ -7363,16 +7347,8 @@ window.initLegacyBudgetUi = () => {
       const currentSection = window.location.hash.replace('#section-', '');
       const activeSectionEl = document.querySelector('.section.active');
       if (currentSection) {
-        if (window.__navDebug && currentSection === 'dashboard') {
-          try { console.log('[NAV-DBG] initLegacyBudgetUi -> about to showSection currentSection', currentSection, '
-'+new Error('initLegacyBudgetUi stack').stack, { perf: performance.now(), href: location.href, hash: location.hash, readyState: document.readyState }) } catch(e){}
-        }
         showSection(currentSection);
       } else if (!activeSectionEl) {
-        if (window.__navDebug) {
-          try { console.log('[NAV-DBG] initLegacyBudgetUi -> about to showSection dashboard', '
-'+new Error('initLegacyBudgetUi stack').stack, { perf: performance.now(), href: location.href, hash: location.hash, readyState: document.readyState }) } catch(e){}
-        }
         showSection('dashboard');
       }
     };
