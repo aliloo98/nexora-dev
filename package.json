@@ -16,7 +16,9 @@
     "test:db": "supabase test db --local",
     "test:js": "node ./scripts/run-js-tests.js",
     "test:assistant": "node ./src/utils/parseBudgetNumber-tests.js && node ./src/finance/financialExpression-tests.js && node ./src/finance/cycleBalance-tests.js && node ./src/advisor/scenario-display-tests.js && node ./src/assistant/run-tests.js && node ./src/couple/ui-tests.js && node ./src/treasury/treasury-tests.js && node ./src/debt/debt-tests.js && node ./src/advisor/advisor-tests.js && node ./src/auth/userDisplayName-tests.js && node ./src/settings/recurringIncome-sync-tests.js && node ./js/budgetCategoriesService-tests.js && node ./js/transactionsService-tests.js",
-    "test:e2e": "npx playwright test tests/playwright --config=./playwright.config.js"
+    "test:e2e": "npx playwright test tests/playwright --config=./playwright.config.js",
+    "architecture:baseline": "node ./scripts/architecture-baseline.mjs",
+    "architecture:check": "node ./scripts/check-architecture-baseline.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",

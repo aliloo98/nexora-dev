@@ -502,18 +502,18 @@ body.auth-locked > #nexora-status-bar {
       <div class="budget-category-divider">Revenus principaux</div>
       <div class="budget-row">
         <div class="budget-row-label">Revenu principal — Utilisateur</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="rev_ali" oninput="if (validateRevenueInput(this)) updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="rev_ali" oninput="if (validateRevenueInput(this)) triggerBudgetLineSync()">
         <div></div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Revenu principal — Mon foyer</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="rev_megane" oninput="if (validateRevenueInput(this)) updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="rev_megane" oninput="if (validateRevenueInput(this)) triggerBudgetLineSync()">
         <div></div>
       </div>
       <div class="budget-category-divider">Revenus exceptionnels</div>
       <div class="budget-row">
         <div class="budget-row-label">Entrée d'argent exceptionnelle</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="rev_excep" oninput="if (validateRevenueInput(this)) updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="rev_excep" oninput="if (validateRevenueInput(this)) triggerBudgetLineSync()">
         <div></div>
       </div>
       <div id="custom-income-rows"></div>
@@ -550,135 +550,135 @@ body.auth-locked > #nexora-status-bar {
       <div class="budget-category-divider">Logement</div>
       <div class="budget-row">
         <div class="budget-row-label">Loyer</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="loyer" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="loyer" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="loyer_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="loyer_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-category-divider">Crédits & dettes</div>
       <div class="budget-row">
         <div class="budget-row-label">Crédit de surendettement</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="credit" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="credit" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="credit_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="credit_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-category-divider">Transport</div>
       <div class="budget-row">
         <div class="budget-row-label">Assurance voiture</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="assauto" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="assauto" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="assauto_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="assauto_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Carburant / Gasoil</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="gasoil" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="gasoil" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="gasoil_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="gasoil_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-category-divider">Énergie & services</div>
       <div class="budget-row">
         <div class="budget-row-label">Électricité</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="elec" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="elec" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="elec_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="elec_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Eau</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="eau" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="eau" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="eau_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="eau_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-category-divider">Santé</div>
       <div class="budget-row">
         <div class="budget-row-label">Psy</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="psy" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="psy" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="psy_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="psy_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Diététicienne</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="diete" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="diete" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="diete_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="diete_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Médicaments pour Itou</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="itou" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="itou" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="itou_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="itou_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Frais de santé divers</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="sante" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="sante" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="sante_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="sante_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-category-divider">Fiscalité</div>
       <div class="budget-row">
         <div class="budget-row-label">Impôts</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="impots" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="impots" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="impots_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="impots_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-category-divider">Télécoms & abonnements</div>
       <div class="budget-row">
         <div class="budget-row-label">Box internet</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="box" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="box" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="box_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="box_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Téléphone — Utilisateur</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="tel_ali" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="tel_ali" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="tel_ali_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="tel_ali_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Téléphone — Mon foyer</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="tel_meg" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="tel_meg" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="tel_meg_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="tel_meg_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Streaming</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="stream" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="stream" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="stream_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="stream_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">PlayStation</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="ps" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="ps" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="ps_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="ps_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Carte bancaire</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="cb" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="cb" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="cb_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="cb_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-category-divider">Imprévus fixes</div>
       <div class="budget-row">
         <div class="budget-row-label">Imprévu fixe / Exceptionnel</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="impfix" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="impfix" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="impfix_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="impfix_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div id="custom-fixed-expense-rows"></div>
@@ -699,48 +699,48 @@ body.auth-locked > #nexora-status-bar {
       <div class="budget-category-divider">Alimentation</div>
       <div class="budget-row">
         <div class="budget-row-label">Courses</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="courses" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="courses" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="courses_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="courses_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-category-divider">Consommation personnelle</div>
       <div class="budget-row">
         <div class="budget-row-label">Tabac</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="tabac" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="tabac" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="tabac_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="tabac_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-category-divider">Bien-être & sport</div>
       <div class="budget-row">
         <div class="budget-row-label">Salle de sport</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="sport" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="sport" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="sport_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="sport_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-row">
         <div class="budget-row-label">Soins personnels</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="ongles" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="ongles" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="ongles_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="ongles_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-category-divider">Vie sociale</div>
       <div class="budget-row">
         <div class="budget-row-label">Cadeaux</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="cadeaux" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="cadeaux" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="cadeaux_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="cadeaux_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div class="budget-category-divider">Imprévus variables</div>
       <div class="budget-row">
         <div class="budget-row-label">Imprévu variable / Exceptionnel</div>
-        <input class="budget-input" type="text" placeholder="Montant" data-key="impvar" oninput="updateAll()">
+        <input class="budget-input" type="text" placeholder="Montant" data-key="impvar" oninput="triggerBudgetLineSync()">
         <div class="checkbox-container">
-          <input type="checkbox" class="payee-checkbox" data-key="impvar_paye" onchange="updateRowPayedStyle(this); updateAll()">
+          <input type="checkbox" class="payee-checkbox" data-key="impvar_paye" onchange="updateRowPayedStyle(this); triggerBudgetLineSync()">
         </div>
       </div>
       <div id="custom-variable-expense-rows"></div>
@@ -1878,7 +1878,7 @@ function convertCheckboxesToPaidInputs() {
         container.style.justifyContent = 'flex-end';
 
         container.innerHTML = `
-          <input class="budget-input paid-input" type="text" value="0" placeholder="0" data-key="${key}" oninput="updateAll()" style="flex: 1; min-width: 0;">
+          <input class="budget-input paid-input" type="text" value="0" placeholder="0" data-key="${key}" oninput="triggerBudgetLineSync()" style="flex: 1; min-width: 0;">
           <button type="button" class="quick-pay-btn" id="btn-quick-${baseKey}" onclick="toggleQuickPay('${baseKey}')" title="Tout payer / Réinitialiser">
             <span class="quick-pay-inner">✓</span>
           </button>
@@ -1912,7 +1912,7 @@ function toggleQuickPay(k) {
   } else {
     paidInput.value = 0;
   }
-  updateAll();
+  triggerBudgetLineSync();
 }
 
 function updateRowVisuals(k) {
@@ -2028,6 +2028,18 @@ let __updateAllTimeout = null;
 let __lastUpdateAllTime = 0;  // Track last updateAll() execution time
 const __updateAllMinInterval = 100;  // Minimum ms between updateAll() calls
 const __debounceDuration = 300;  // Increased from 80ms to 300ms
+let __skipBudgetLineSubRenders = false;
+
+function triggerBudgetLineSync() {
+  __skipBudgetLineSubRenders = true;
+  try {
+    if (typeof updateAll === 'function') {
+      updateAll();
+    }
+  } finally {
+    __skipBudgetLineSubRenders = false;
+  }
+}
 
 function __debouncedUpdateAll() {
   clearTimeout(__updateAllTimeout);
@@ -2935,14 +2947,21 @@ function updatePremiumAnalytics() {
   const previousMonth = monthShift(currentMonth, -1);
   const previous = getMonthMetrics(previousMonth);
   const score = getFinancialScore(current);
-  const months = Array.from({ length: analyticsPeriod }, (_, index) => {
+  const months = [];
+
+  for (let index = 0; index < analyticsPeriod; index += 1) {
     const month = monthShift(currentMonth, index - analyticsPeriod + 1);
-    return getMonthMetrics(month, { fromDom: month === currentMonth });
-  });
+    months.push(month === currentMonth ? current : getMonthMetrics(month, { fromDom: month === currentMonth }));
+  }
 
   const scoreEl = document.getElementById('analytics-score');
   const scoreLabel = document.getElementById('analytics-score-label');
   const scoreRing = document.getElementById('analytics-score-ring');
+  const healthIncomeEl = document.getElementById('analytics-health-income');
+  const healthExpensesEl = document.getElementById('analytics-health-expenses');
+  const healthSavingsEl = document.getElementById('analytics-health-savings');
+  const healthRateEl = document.getElementById('analytics-health-rate');
+
   if (scoreEl) scoreEl.textContent = score.score;
   if (scoreLabel) {
     scoreLabel.textContent = score.label;
@@ -2951,18 +2970,14 @@ function updatePremiumAnalytics() {
   if (scoreRing) {
     scoreRing.style.strokeDashoffset = String(314 - (314 * score.score / 100));
   }
+  if (healthIncomeEl) healthIncomeEl.textContent = fmt(current.income);
+  if (healthExpensesEl) healthExpensesEl.textContent = fmt(current.expenses);
+  if (healthSavingsEl) healthSavingsEl.textContent = fmt(current.savings);
+  if (healthRateEl) healthRateEl.textContent = `${current.savingsRate}%`;
 
-  const setText = (id, value) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
-  };
-  setText('analytics-health-income', fmt(current.income));
-  setText('analytics-health-expenses', fmt(current.expenses));
-  setText('analytics-health-savings', fmt(current.savings));
-  setText('analytics-health-rate', `${current.savingsRate}%`);
-
+  const expenseBreakdown = getExpenseBreakdown();
   renderAnalyticsTrend(months);
-  renderExpenseDonut(getExpenseBreakdown());
+  renderExpenseDonut(expenseBreakdown);
   renderTopExpenses();
   renderComparisons(current, previous);
   renderFinancialHistoryInsights(months.map(item => ({
@@ -3542,7 +3557,7 @@ function createCustomBudgetRow(category) {
   input.dataset.key = category.id;
   input.oninput = () => {
     if (!validateRevenueInput(input)) return;
-    updateAll();
+    triggerBudgetLineSync();
   };
 
   row.appendChild(label);
@@ -3563,7 +3578,7 @@ function createCustomBudgetRow(category) {
   checkbox.dataset.key = category.id + '_paye';
   checkbox.onchange = () => {
     updateRowPayedStyle(checkbox);
-    updateAll();
+    triggerBudgetLineSync();
   };
 
   checkboxContainer.appendChild(checkbox);
@@ -3699,7 +3714,7 @@ async function addCustomBudgetLine(type) {
     await window.BudgetCategoriesService.createBudgetCategory({ name: cleanName, type });
     await renderCustomBudgetRows();
     await refreshCategoryLabels();
-    updateAll();
+    triggerBudgetLineSync();
   } catch (err) {
     console.warn('[Phase3D] Ajout de ligne impossible', err);
   }
@@ -3721,7 +3736,7 @@ async function hideCustomBudgetLine(categoryId, categoryName, isSystemCategory =
     await window.BudgetCategoriesService.disableBudgetCategory(categoryId);
     await renderCustomBudgetRows();
     await refreshCategoryLabels();
-    updateAll();
+    triggerBudgetLineSync();
   } catch (err) {
     console.warn('[Phase3E] Masquage de ligne impossible', err);
   }
@@ -3760,7 +3775,7 @@ async function restoreCustomBudgetLine(categoryId) {
     // After restoring the DOM rows, reload month data to repopulate any values
     // that belonged to previously hidden custom rows (ensures amounts are restored)
     try { loadMonth(); } catch (e) { console.warn('loadMonth after restore failed', e); }
-    updateAll();
+    triggerBudgetLineSync();
   } catch (err) {
     console.warn('[Phase4D] Restauration de ligne impossible', err);
   }
@@ -3792,7 +3807,7 @@ async function deleteCustomBudgetLine(categoryId, categoryName) {
     await renderCustomBudgetRows();
     await refreshCategoryLabels();
     try { await loadMonth(); } catch (e) { console.warn('loadMonth after delete failed', e); }
-    updateAll();
+    triggerBudgetLineSync();
   } catch (err) {
     console.warn('[Phase4E] Suppression de ligne impossible', err);
   }
@@ -3884,27 +3899,87 @@ function validateRevenueInput(element) {
 
 function updateAll(){
     const resolvedBudget = getResolvedBudgetSnapshot();
-  const readResolved = (key) => Object.prototype.hasOwnProperty.call(resolvedBudget, key) ? parseBudgetNumber(resolvedBudget[key]) : getVal(key);
-  const revReel = getBudgetKeysByType('income').reduce((total, key) => total + readResolved(key), 0);
+  const inputCache = new Map();
+  const valueCache = new Map();
+  const parseCache = new Map();
+  const idCache = new Map();
+  const selectorCache = new Map();
+  const keysCache = new Map();
 
-  const fixKeys = getBudgetKeysByType('fixed_expense');
+  const getInputElement = (key) => {
+    if (inputCache.has(key)) return inputCache.get(key);
+    const el = document.querySelector(`[data-key="${key}"]`);
+    inputCache.set(key, el);
+    return el;
+  };
+
+  const getIdElement = (id) => {
+    if (idCache.has(id)) return idCache.get(id);
+    const el = document.getElementById(id);
+    idCache.set(id, el);
+    return el;
+  };
+
+  const getSelectorElement = (selector) => {
+    if (selectorCache.has(selector)) return selectorCache.get(selector);
+    const el = document.querySelector(selector);
+    selectorCache.set(selector, el);
+    return el;
+  };
+
+  const getBudgetKeysByTypeCached = (type) => {
+    if (keysCache.has(type)) return keysCache.get(type);
+    const keys = getBudgetKeysByType(type);
+    keysCache.set(type, keys);
+    return keys;
+  };
+
+  const parseBudgetNumberCached = (value) => {
+    const key = String(value || '');
+    if (parseCache.has(key)) return parseCache.get(key);
+    const parsed = parseBudgetNumber(value);
+    parseCache.set(key, parsed);
+    return parsed;
+  };
+
+  const getValCached = (key) => {
+    if (valueCache.has(key)) return valueCache.get(key);
+    const el = getInputElement(key);
+    const parsed = el ? parseBudgetNumberCached(el.value) : 0;
+    valueCache.set(key, parsed);
+    return parsed;
+  };
+
+  const readResolved = (key) => Object.prototype.hasOwnProperty.call(resolvedBudget, key)
+    ? parseBudgetNumberCached(resolvedBudget[key])
+    : getValCached(key);
+
+  const setDashboardGuidanceTextCached = (id, value) => {
+    const el = getIdElement(id);
+    if (el) el.textContent = value;
+  };
+
+  const incomeKeys = getBudgetKeysByTypeCached('income');
+  const revReel = incomeKeys.reduce((total, key) => total + readResolved(key), 0);
+
+  const fixKeys = getBudgetKeysByTypeCached('fixed_expense');
   let fixReel = 0;
   let fixPaye = 0;
   fixKeys.forEach(k => {
     const val = readResolved(k);
     fixReel += val;
-    const paidVal = getVal(k + '_paye');
+    const paidVal = getValCached(k + '_paye');
     fixPaye += paidVal;
     updateRowVisuals(k);
   });
 
-  const varKeys = getBudgetKeysByType('variable_expense');
+  const varKeys = getBudgetKeysByTypeCached('variable_expense');
   let varReel = 0;
   let varPaye = 0;
   varKeys.forEach(k => {
     const val = readResolved(k);
     varReel += val;
-    const paidVal = getVal(k + '_paye');
+    const paidVal = getValCached(k + '_paye');
     varPaye += paidVal;
     updateRowVisuals(k);
   });
@@ -3932,45 +4007,45 @@ function updateAll(){
   const tauxEp = revReel > 0 ? Math.round((solde / revReel) * 100) : 0;
   const tauxCh = revReel > 0 ? Math.round((totalDepReel / revReel) * 100) : 0;
 
-  setDashboardGuidanceText('simple-income', fmt(revReel));
-  setDashboardGuidanceText('simple-out', fmt(totalDepReel));
-  setDashboardGuidanceText('simple-left', fmt(solde));
+  setDashboardGuidanceTextCached('simple-income', fmt(revReel));
+  setDashboardGuidanceTextCached('simple-out', fmt(totalDepReel));
+  setDashboardGuidanceTextCached('simple-left', fmt(solde));
 
   // Saisie Page Header Totals
-  setDashboardGuidanceText('total-revenus', fmt(revReel));
-  setDashboardGuidanceText('total-fixes', fmt(fixReel));
-  setDashboardGuidanceText('total-variables', fmt(varReel));
+  setDashboardGuidanceTextCached('total-revenus', fmt(revReel));
+  setDashboardGuidanceTextCached('total-fixes', fmt(fixReel));
+  setDashboardGuidanceTextCached('total-variables', fmt(varReel));
 
   if (typeof window.renderBudgetCoach === 'function') {
-    const coachRoot = document.getElementById('budget-entry-guide-root');
-        const coachMarkup = window.renderBudgetCoach(coachRoot, {
-      rev_ali: getVal('rev_ali'),
-      rev_megane: getVal('rev_megane'),
-      rev_excep: getVal('rev_excep'),
-      loyer: getVal('loyer'),
-      credit: getVal('credit'),
-      assauto: getVal('assauto'),
-      gasoil: getVal('gasoil'),
-      elec: getVal('elec'),
-      eau: getVal('eau'),
-      psy: getVal('psy'),
-      diete: getVal('diete'),
-      itou: getVal('itou'),
-      sante: getVal('sante'),
-      impots: getVal('impots'),
-      box: getVal('box'),
-      tel_ali: getVal('tel_ali'),
-      tel_meg: getVal('tel_meg'),
-      stream: getVal('stream'),
-      ps: getVal('ps'),
-      cb: getVal('cb'),
-      impfix: getVal('impfix'),
-      courses: getVal('courses'),
-      tabac: getVal('tabac'),
-      sport: getVal('sport'),
-      ongles: getVal('ongles'),
-      cadeaux: getVal('cadeaux'),
-      impvar: getVal('impvar')
+    const coachRoot = getIdElement('budget-entry-guide-root');
+    const coachMarkup = window.renderBudgetCoach(coachRoot, {
+      rev_ali: getValCached('rev_ali'),
+      rev_megane: getValCached('rev_megane'),
+      rev_excep: getValCached('rev_excep'),
+      loyer: getValCached('loyer'),
+      credit: getValCached('credit'),
+      assauto: getValCached('assauto'),
+      gasoil: getValCached('gasoil'),
+      elec: getValCached('elec'),
+      eau: getValCached('eau'),
+      psy: getValCached('psy'),
+      diete: getValCached('diete'),
+      itou: getValCached('itou'),
+      sante: getValCached('sante'),
+      impots: getValCached('impots'),
+      box: getValCached('box'),
+      tel_ali: getValCached('tel_ali'),
+      tel_meg: getValCached('tel_meg'),
+      stream: getValCached('stream'),
+      ps: getValCached('ps'),
+      cb: getValCached('cb'),
+      impfix: getValCached('impfix'),
+      courses: getValCached('courses'),
+      tabac: getValCached('tabac'),
+      sport: getValCached('sport'),
+      ongles: getValCached('ongles'),
+      cadeaux: getValCached('cadeaux'),
+      impvar: getValCached('impvar')
     });
     if (coachMarkup) {
       const actionBtn = coachRoot?.querySelector('.budget-coach-action');
@@ -3980,7 +4055,7 @@ function updateAll(){
           if (target === 'revenues') {
             showSection('saisie');
             setTimeout(() => {
-              const field = document.querySelector('#section-saisie input[data-key="rev_ali"]');
+              const field = getSelectorElement('#section-saisie input[data-key="rev_ali"]');
               field?.focus();
               field?.select?.();
             }, 120);
@@ -3989,7 +4064,7 @@ function updateAll(){
           if (target === 'fixed-expenses') {
             showSection('saisie');
             setTimeout(() => {
-              const field = document.querySelector('#section-saisie input[data-key="loyer"]');
+              const field = getSelectorElement('#section-saisie input[data-key="loyer"]');
               field?.focus();
               field?.select?.();
             }, 120);
@@ -3998,7 +4073,7 @@ function updateAll(){
           if (target === 'variable-expenses') {
             showSection('saisie');
             setTimeout(() => {
-              const field = document.querySelector('#section-saisie input[data-key="courses"]');
+              const field = getSelectorElement('#section-saisie input[data-key="courses"]');
               field?.focus();
               field?.select?.();
             }, 120);
@@ -4016,24 +4091,24 @@ function updateAll(){
   }
 
   // Dashboard Cards
-  setDashboardGuidanceText('kpi-revenus', fmt(revReel));
-  setDashboardGuidanceText('kpi-fixes', fmt(fixReel));
+  setDashboardGuidanceTextCached('kpi-revenus', fmt(revReel));
+  setDashboardGuidanceTextCached('kpi-fixes', fmt(fixReel));
 
   const fixesPct = revReel>0?Math.round(fixReel/revReel*100):0;
-  setDashboardGuidanceText('kpi-fixes-pct', revReel > 0 ? fixesPct+'% des revenus' : 'Ajoutez vos revenus pour commencer');
+  setDashboardGuidanceTextCached('kpi-fixes-pct', revReel > 0 ? fixesPct+'% des revenus' : 'Ajoutez vos revenus pour commencer');
 
-  const cardFixes = document.getElementById('card-fixes');
+  const cardFixes = getIdElement('card-fixes');
   if (cardFixes) {
     cardFixes.classList.remove('warning-status', 'danger-status');
     if (fixesPct > 60) cardFixes.classList.add('danger-status');
     else if (fixesPct > 50) cardFixes.classList.add('warning-status');
   }
 
-  setDashboardGuidanceText('kpi-variables', fmt(varReel));
+  setDashboardGuidanceTextCached('kpi-variables', fmt(varReel));
   const variablesPct = revReel>0?Math.round(varReel/revReel*100):0;
-  setDashboardGuidanceText('kpi-variables-pct', revReel > 0 ? variablesPct+'% des revenus' : 'Données insuffisantes');
+  setDashboardGuidanceTextCached('kpi-variables-pct', revReel > 0 ? variablesPct+'% des revenus' : 'Données insuffisantes');
 
-  const cardVars = document.getElementById('card-variables');
+  const cardVars = getIdElement('card-variables');
   if (cardVars) {
     cardVars.classList.remove('warning-status', 'danger-status');
     if (variablesPct > 40) cardVars.classList.add('danger-status');
@@ -4041,14 +4116,14 @@ function updateAll(){
   }
 
   // Solde actuel = revenus saisis moins dépenses déjà payées.
-  const soldeEl=document.getElementById('kpi-solde');
+  const soldeEl = getIdElement('kpi-solde');
   if (soldeEl) {
     soldeEl.textContent=fmt(soldeEstime);
     soldeEl.className='kpi-value '+(soldeEstime>0?'positive':soldeEstime<0?'negative':'');
   }
-  setDashboardGuidanceText('kpi-solde-status', soldeEstime>0?'Après paiements saisis':soldeEstime<0?'Solde actuel négatif':'Équilibré');
+  setDashboardGuidanceTextCached('kpi-solde-status', soldeEstime>0?'Après paiements saisis':soldeEstime<0?'Solde actuel négatif':'Équilibré');
 
-  const cardSolde = document.getElementById('card-solde');
+  const cardSolde = getIdElement('card-solde');
   if (cardSolde) {
     cardSolde.classList.remove('negative-solde');
     if (soldeEstime < 0) cardSolde.classList.add('negative-solde');
@@ -4056,29 +4131,29 @@ function updateAll(){
 
   // Payed Expenses KPI Card
   const depPayesPct = totalDepReel > 0 ? Math.round((totalDepPayee / totalDepReel) * 100) : 0;
-  const kpiDepPayes = document.getElementById('kpi-dep-payes');
+  const kpiDepPayes = getIdElement('kpi-dep-payes');
   if (kpiDepPayes) kpiDepPayes.textContent = fmt(totalDepPayee);
-  const kpiDepPayesSub = document.getElementById('kpi-dep-payes-sub');
+  const kpiDepPayesSub = getIdElement('kpi-dep-payes-sub');
   if (kpiDepPayesSub) kpiDepPayesSub.textContent = depPayesPct + '% payé';
-  const kpiDepPayesBar = document.getElementById('kpi-dep-payes-bar');
+  const kpiDepPayesBar = getIdElement('kpi-dep-payes-bar');
   if (kpiDepPayesBar) kpiDepPayesBar.style.width = Math.min(depPayesPct, 100) + '%';
 
   // Solde fin de cycle = revenus saisis moins toutes les dépenses prévues.
-  const kpiSoldeEst = document.getElementById('kpi-solde-est-kpi');
+  const kpiSoldeEst = getIdElement('kpi-solde-est-kpi');
   if (kpiSoldeEst) {
     kpiSoldeEst.textContent = fmt(solde);
     kpiSoldeEst.className = 'kpi-value ' + (solde > 0 ? 'positive' : solde < 0 ? 'negative' : '');
   }
 
   // Savings Goal calculations
-  const targetEp = getVal('target_epargne') || 500;
+  const targetEp = getValCached('target_epargne') || 500;
   const pctObjectif = targetEp > 0 ? Math.round((solde / targetEp) * 100) : 0;
 
-  const epEl=document.getElementById('kpi-epargne');
+  const epEl = getIdElement('kpi-epargne');
   if (epEl) epEl.textContent = revReel > 0 ? tauxEp+'%' : '—';
 
-  const cardEpargne = document.getElementById('card-epargne');
-  const celebrateStar = document.getElementById('epargne-celebrate-star');
+  const cardEpargne = getIdElement('card-epargne');
+  const celebrateStar = getIdElement('epargne-celebrate-star');
   if (cardEpargne) {
     cardEpargne.classList.remove('success-status', 'warning-status', 'danger-status');
     if (revReel <= 0) {
@@ -4098,7 +4173,7 @@ function updateAll(){
       if (celebrateStar) celebrateStar.style.display = 'none';
     }
   }
-  setDashboardGuidanceText('kpi-epargne-sub', revReel > 0
+  setDashboardGuidanceTextCached('kpi-epargne-sub', revReel > 0
     ? `Objectif : ${fmt(targetEp)} — ${pctObjectif}% atteint`
     : 'Budget à compléter');
   updateCircularGauge(revReel > 0 ? pctObjectif : 0);
@@ -4111,12 +4186,12 @@ function updateAll(){
   window.lastSavingsGoalPct = pctObjectif;
 
   // Taux de charges card
-  const tauxEl=document.getElementById('kpi-taux');
+  const tauxEl = getIdElement('kpi-taux');
   if (tauxEl) tauxEl.textContent = revReel > 0 ? tauxCh+'%' : '—';
-  const tauxSub = document.querySelector('#card-taux .kpi-sub');
+  const tauxSub = getSelectorElement('#card-taux .kpi-sub');
   if (tauxSub) tauxSub.textContent = revReel > 0 ? 'Fixes + variables' : 'Données insuffisantes';
 
-  const cardTaux = document.getElementById('card-taux');
+  const cardTaux = getIdElement('card-taux');
   if (cardTaux) {
     cardTaux.classList.remove('success-status', 'warning-status', 'danger-status');
     if (revReel <= 0) {
@@ -4134,44 +4209,44 @@ function updateAll(){
   }
 
   // KPI Progress Bars
-  const fixesBar = document.getElementById('kpi-fixes-bar');
+  const fixesBar = getIdElement('kpi-fixes-bar');
   if (fixesBar) fixesBar.style.width = Math.min(fixesPct, 100) + '%';
 
-  const varsBar = document.getElementById('kpi-variables-bar');
+  const varsBar = getIdElement('kpi-variables-bar');
   if (varsBar) varsBar.style.width = Math.min(variablesPct, 100) + '%';
 
-  const epBar = document.getElementById('kpi-epargne-bar');
+  const epBar = getIdElement('kpi-epargne-bar');
   if (epBar) {
     epBar.style.width = revReel > 0 ? Math.max(0, Math.min(pctObjectif, 100)) + '%' : '0%';
     epBar.style.backgroundColor = pctObjectif >= 100 ? 'var(--green)' : pctObjectif >= 50 ? 'var(--orange)' : 'var(--red)';
   }
 
-  const tauxBar = document.getElementById('kpi-taux-bar');
+  const tauxBar = getIdElement('kpi-taux-bar');
   if (tauxBar) {
     tauxBar.style.width = revReel > 0 ? Math.min(tauxCh, 100) + '%' : '0%';
     tauxBar.style.backgroundColor = tauxCh <= 70 ? 'var(--green)' : tauxCh <= 85 ? 'var(--orange)' : 'var(--red)';
   }
 
   // Dashboard Table Summary
-  setDashboardGuidanceText('dash-rev', fmt(revReel));
-  setDashboardGuidanceText('dash-dep', fmt(totalDepReel));
+  setDashboardGuidanceTextCached('dash-rev', fmt(revReel));
+  setDashboardGuidanceTextCached('dash-dep', fmt(totalDepReel));
 
-  const dPayees = document.getElementById('dash-dep-payees');
+  const dPayees = getIdElement('dash-dep-payees');
   if (dPayees) dPayees.textContent = fmt(totalDepPayee);
 
-  const dRestantes = document.getElementById('dash-dep-restantes');
+  const dRestantes = getIdElement('dash-dep-restantes');
   if (dRestantes) dRestantes.textContent = fmt(totalDepRestant);
 
-  const dSoldeEst = document.getElementById('dash-solde-est');
+  const dSoldeEst = getIdElement('dash-solde-est');
   if (dSoldeEst) dSoldeEst.textContent = fmt(solde);
 
-  const s2=document.getElementById('dash-solde2');
+  const s2 = getIdElement('dash-solde2');
   if (s2) {
     s2.textContent=fmt(soldeEstime);
     s2.style.color=soldeEstime>=0?'var(--green)':'var(--red)';
   }
 
-  setDashboardGuidanceText('dash-mois', getBudgetCycleRange(getMonth()).fullLabel);
+  setDashboardGuidanceTextCached('dash-mois', getBudgetCycleRange(getMonth()).fullLabel);
 
   updateDashboardGuidance({
     revReel,
@@ -4235,10 +4310,10 @@ function updateAll(){
     tauxCh,
     variablesPct
   });
-  if (typeof updateDashboardPrimaryGoal === 'function') {
+  if (typeof updateDashboardPrimaryGoal === 'function' && !__skipBudgetLineSubRenders) {
     updateDashboardPrimaryGoal().catch(err => console.warn('[Goals] dashboard primary goal update failed', err));
   }
-  if (window.NotificationsService?.evaluateBusinessNotifications) {
+  if (window.NotificationsService?.evaluateBusinessNotifications && !__skipBudgetLineSubRenders) {
     window.NotificationsService.evaluateBusinessNotifications({
       monthKey: getMonth(),
       cycleLabel: getBudgetCycleRange(getMonth()).fullLabel,
@@ -4261,23 +4336,23 @@ function updateAll(){
   const pctWants = revReel > 0 ? Math.round(varReel / revReel * 100) : 0;
   const pctSavings = revReel > 0 ? Math.round(Math.max(0, solde) / revReel * 100) : 0;
 
-  setDashboardGuidanceText('rule-needs-actual', pctNeeds + '%');
-  setDashboardGuidanceText('rule-wants-actual', pctWants + '%');
-  setDashboardGuidanceText('rule-savings-actual', pctSavings + '%');
+  setDashboardGuidanceTextCached('rule-needs-actual', pctNeeds + '%');
+  setDashboardGuidanceTextCached('rule-wants-actual', pctWants + '%');
+  setDashboardGuidanceTextCached('rule-savings-actual', pctSavings + '%');
 
-  const ruleNeedsBar = document.getElementById('rule-needs-bar');
+  const ruleNeedsBar = getIdElement('rule-needs-bar');
   if (ruleNeedsBar) {
     ruleNeedsBar.style.width = Math.min(pctNeeds, 100) + '%';
     ruleNeedsBar.style.backgroundColor = pctNeeds <= 50 ? 'var(--green)' : pctNeeds <= 60 ? 'var(--orange)' : 'var(--red)';
   }
 
-  const ruleWantsBar = document.getElementById('rule-wants-bar');
+  const ruleWantsBar = getIdElement('rule-wants-bar');
   if (ruleWantsBar) {
     ruleWantsBar.style.width = Math.min(pctWants, 100) + '%';
     ruleWantsBar.style.backgroundColor = pctWants <= 30 ? 'var(--green)' : pctWants <= 40 ? 'var(--orange)' : 'var(--red)';
   }
 
-  const ruleSavingsBar = document.getElementById('rule-savings-bar');
+  const ruleSavingsBar = getIdElement('rule-savings-bar');
   if (ruleSavingsBar) {
     ruleSavingsBar.style.width = Math.min(pctSavings, 100) + '%';
     ruleSavingsBar.style.backgroundColor = pctSavings >= 20 ? 'var(--green)' : pctSavings >= 10 ? 'var(--orange)' : 'var(--red)';
@@ -4312,8 +4387,8 @@ function updateAll(){
     }
   }
 
-  const recBox = document.getElementById('rule-recommendation-box');
-  const recTextEl = document.getElementById('rule-recommendation-text');
+  const recBox = getIdElement('rule-recommendation-box');
+  const recTextEl = getIdElement('rule-recommendation-text');
   if (recTextEl && recBox) {
     recTextEl.textContent = recText;
     if (revReel === 0) {
@@ -4331,19 +4406,19 @@ function updateAll(){
     }
   }
 
-  if (typeof updatePremiumAnalytics === 'function') updatePremiumAnalytics();
-  if (typeof renderCoupleInsights === 'function') renderCoupleInsights();
-  if (typeof renderDebts === 'function') renderDebts();
-  if (typeof renderCagnottes === 'function') renderCagnottes();
-  if (typeof updateTrendIndicators === 'function') updateTrendIndicators();
+  if (!__skipBudgetLineSubRenders && typeof updatePremiumAnalytics === 'function') updatePremiumAnalytics();
+  if (!__skipBudgetLineSubRenders && typeof renderCoupleInsights === 'function') renderCoupleInsights();
+  if (!__skipBudgetLineSubRenders && typeof renderDebts === 'function') renderDebts();
+  if (!__skipBudgetLineSubRenders && typeof renderCagnottes === 'function') renderCagnottes();
+  if (!__skipBudgetLineSubRenders && typeof updateTrendIndicators === 'function') updateTrendIndicators();
   if (window.NexoraMotion) {
-    window.NexoraMotion.animateKpiNumbers?.(document.getElementById('section-dashboard'));
-    window.NexoraMotion.animateModeSwitch?.(document.querySelector('.dashboard-clean-grid'));
+    window.NexoraMotion.animateKpiNumbers?.(getIdElement('section-dashboard'));
+    window.NexoraMotion.animateModeSwitch?.(getSelectorElement('.dashboard-clean-grid'));
   }
   // Refresh Assistant Nexora card (debounced, non-blocking)
-  if (typeof scheduleAssistantRefresh === 'function') {
+  if (!__skipBudgetLineSubRenders && typeof scheduleAssistantRefresh === 'function') {
     try { scheduleAssistantRefresh(); } catch (err) { console.warn('[Assistant] schedule failed', err) }
-  } else if (typeof renderAssistantCard === 'function') {
+  } else if (!__skipBudgetLineSubRenders && typeof renderAssistantCard === 'function') {
     // fallback
     try { renderAssistantCard().catch(err => console.warn('[Assistant] refresh failed', err)); } catch (err) { console.warn('[Assistant] refresh failed', err) }
   }
