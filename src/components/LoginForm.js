@@ -166,12 +166,16 @@ export const attachLoginFormListeners = () => {
       // Success - navigate to dashboard
       window.showToast('✅ Connecté avec succès!')
 
-      // Simulate page transition
+      // Simulate page transition: defer navigation but avoid stomping a
+      // user-initiated navigation that happened in the meantime.
+      const _expectedHash = window.location.hash
       setTimeout(() => {
-        if (window.__navDebug) { try { console.log('[NAV-DBG] LoginForm -> about to set dashboard hash and call showSection', { perf: performance.now(), href: location.href, hash: location.hash, readyState: document.readyState }, new Error('login dashboard stack').stack); const before = Array.from(document.querySelectorAll('.section.active')).map(s=>s.id); console.log('[NAV-DBG] LoginForm activeSections BEFORE', JSON.stringify(before)); } catch(e){console.warn('[NAV-DBG] LoginForm log failed', e) } }
+        const currentHash = window.location.hash
+        const userAlreadyNavigated = currentHash && currentHash !== _expectedHash && currentHash !== '#section-dashboard'
+        if (userAlreadyNavigated) return
+
         window.location.hash = '#section-dashboard'
-        window.showSection('dashboard')
-        if (window.__navDebug) { try { const after = Array.from(document.querySelectorAll('.section.active')).map(s=>s.id); console.log('[NAV-DBG] LoginForm activeSections AFTER', JSON.stringify(after)); } catch(e){} }
+        window.showSection?.('dashboard')
       }, 500)
     } catch (error) {
       console.error('Login exception:', error)
@@ -209,11 +213,14 @@ export const attachLoginFormListeners = () => {
       }
       window.showToast('✅ Mode test activé!')
 
+      const _expectedHashDemo = window.location.hash
       setTimeout(() => {
-        if (window.__navDebug) { try { console.log('[NAV-DBG] LoginForm -> about to set dashboard hash and call showSection', { perf: performance.now(), href: location.href, hash: location.hash, readyState: document.readyState }, new Error('login dashboard stack').stack); const before = Array.from(document.querySelectorAll('.section.active')).map(s=>s.id); console.log('[NAV-DBG] LoginForm activeSections BEFORE', JSON.stringify(before)); } catch(e){console.warn('[NAV-DBG] LoginForm log failed', e) } }
+        const currentHash = window.location.hash
+        const userAlreadyNavigated = currentHash && currentHash !== _expectedHashDemo && currentHash !== '#section-dashboard'
+        if (userAlreadyNavigated) return
+
         window.location.hash = '#section-dashboard'
-        window.showSection('dashboard')
-        if (window.__navDebug) { try { const after = Array.from(document.querySelectorAll('.section.active')).map(s=>s.id); console.log('[NAV-DBG] LoginForm activeSections AFTER', JSON.stringify(after)); } catch(e){} }
+        window.showSection?.('dashboard')
       }, 500)
     } catch (error) {
       console.error('Demo login error:', error)
