@@ -49,7 +49,6 @@ export const RouteGuard = {
     // Check if route exists
     const section = document.getElementById(`section-${sectionName}`)
     if (!section) {
-      if (window.__navDebug) try { console.log('[NAV-DBG] RouteGuard.navigateTo -> section not found:', sectionName, 'fallback:dashboard', new Error('navigateTo missing section').stack) } catch(e){}
       console.warn(`⚠️  Section not found: ${sectionName}`)
       return false
     }
@@ -109,141 +108,30 @@ export const NavigationMiddleware = {
     // Listen to hash changes
     window.addEventListener('hashchange', () => {
       const section = RouteGuard.getCurrentSection()
-      if (window.__navDebug) console.log(`[NAV-DBG] hashchange -> requested section: ${section}, readyState: ${document.readyState}, hashBefore: ${window.location.hash}`)
 
       if (!RouteGuard.navigateTo(section)) {
-        if (window.__navDebug) console.log(`[NAV-DBG] hashchange -> RouteGuard denied navigation to ${section}`)
         if (section === 'couple' && AuthContext.isAuthenticated() && window.__isCoupleTabVisible === false) {
-          if (window.__navDebug) console.log('[NAV-DBG] hashchange -> redirecting to #section-parametres (couple fallback)')
           window.location.hash = '#section-parametres'
           return
         }
         // Reset hash to dashboard if navigation failed
-        if (window.__navDebug) console.log('[NAV-DBG] hashchange -> resetting hash to #section-dashboard')
         window.location.hash = '#section-dashboard'
-      } else {
-        if (window.__navDebug) console.log(`[NAV-DBG] hashchange -> RouteGuard allowed navigation to ${section}, hashAfter: ${window.location.hash}`)
       }
     })
 
-    const wrapShowSection = (originalShowSection) => {
-      if (typeof originalShowSection !== 'function') return originalShowSection
-      if (originalShowSection.__nexoraWrappedShowSection) return originalShowSection
+    // Intercept existing showSection function
+    if (window.showSection) {
+      const originalShowSection = window.showSection
+      window.showSection = function(sectionName) {
 
-      const wrappedShowSection = function(sectionName) {
-        try {
-          if (window.__navDebug) console.log(`[NAV-DBG] wrapped.showSection ENTRY id:${sectionName} readyState:${document.readyState}`)
-
-          if (sectionName === 'dashboard' && window.__navDebug) {
-            try {
-              const before = Array.from(document.querySelectorAll('.section.active')).map(s => s.id)
-              console.log('[NAV-DBG] DASHBOARD ENTRY', {
-                stack: new Error('dashboard caller').stack,
-                perf: performance.now(),
-                hash: location.hash,
-                eventType: window.event?.type ?? null,
-                beforeActiveSections: before
-              })
-            } catch (e) { console.warn('[NAV-DBG] DASHBOARD log failed', e) }
-          }
-
-          if (!RouteGuard.navigateTo(sectionName)) {
-            if (window.__navDebug) console.log(`[NAV-DBG] wrapped.showSection -> RouteGuard denied ${sectionName} before calling original`)
-            return false
-          }
-
-          const res = originalShowSection.call(this, sectionName)
-
-          if (sectionName === 'dashboard' && window.__navDebug) {
-            try {
-              const after = Array.from(document.querySelectorAll('.section.active')).map(s => s.id)
-              console.log('[NAV-DBG] DASHBOARD EXIT', {
-                perf: performance.now(),
-                hash: location.hash,
-                eventType: window.event?.type ?? null,
-                afterActiveSections: after
-              })
-            } catch (e) { console.warn('[NAV-DBG] DASHBOARD after log failed', e) }
-          }
-
-          if (window.__navDebug) console.log(`[NAV-DBG] wrapped.showSection EXIT id:${sectionName} result:${!!res} hash:${window.location.hash}`)
-          return res
-        } catch (err) {
-          console.error('[NAV-DBG] wrapped.showSection ERROR', err && err.stack ? err.stack : err)
-          throw err
+        if (!RouteGuard.navigateTo(sectionName)) {
+          return false
         }
-      }
 
-      try {
-        Object.defineProperty(wrappedShowSection, '__nexoraWrappedShowSection', {
-          value: true,
-          enumerable: false,
-          configurable: false,
-          writable: false
-        })
-      } catch (ignore) {}
-
-      return wrappedShowSection
-    }
-
-    const patchShowSectionProperty = () => {
-      const descriptor = Object.getOwnPropertyDescriptor(window, 'showSection')
-      if (window.__navDebug) {
-        try {
-          console.log('[NAV-DBG] patchShowSectionProperty descriptor', JSON.stringify({
-            configurable: descriptor?.configurable,
-            enumerable: descriptor?.enumerable,
-            writable: descriptor?.writable,
-            hasGetter: !!descriptor?.get,
-            hasSetter: !!descriptor?.set,
-            currentType: typeof window.showSection
-          }))
-        } catch (ignore) {}
-      }
-
-      if (descriptor && descriptor.configurable === false) {
-        if (window.__navDebug) console.warn('[NAV-DBG] showSection property not configurable; skipping wrapper installation')
-        return
-      }
-
-      const wrapAssigned = (value) => {
-        return typeof value === 'function' ? wrapShowSection(value) : value
-      }
-
-      if (descriptor && (descriptor.get || descriptor.set)) {
-        const existingGetter = descriptor.get
-        const existingSetter = descriptor.set
-
-        Object.defineProperty(window, 'showSection', {
-          configurable: true,
-          enumerable: descriptor.enumerable !== false,
-          get() {
-            return existingGetter ? existingGetter.call(window) : undefined
-          },
-          set(value) {
-            const wrapped = wrapAssigned(value)
-            if (existingSetter) {
-              return existingSetter.call(window, wrapped)
-            }
-            if (descriptor.writable) {
-              Object.defineProperty(window, 'showSection', {
-                configurable: true,
-                enumerable: descriptor.enumerable !== false,
-                writable: true,
-                value: wrapped
-              })
-            }
-          }
-        })
-        return
-      }
-
-      if (typeof window.showSection === 'function') {
-        window.showSection = wrapShowSection(window.showSection)
+        // Call original showSection
+        return originalShowSection.call(this, sectionName)
       }
     }
-
-    patchShowSectionProperty()
 
     // Intercept nav buttons
     document.addEventListener('click', (e) => {
@@ -251,18 +139,10 @@ export const NavigationMiddleware = {
       if (!navBtn) return
 
       const section = navBtn.dataset.section
-      try {
-        if (window.__navDebug) console.log(`[NAV-DBG] nav.click -> target section: ${section}, readyState:${document.readyState}, currentHash:${window.location.hash}`)
-        const allowed = RouteGuard.navigateTo(section)
-        if (window.__navDebug) console.log(`[NAV-DBG] nav.click -> RouteGuard.navigateTo(${section}) returned ${allowed}`)
-        if (!allowed) {
-          if (window.__navDebug) console.log('[NAV-DBG] nav.click -> calling preventDefault()')
-          e.preventDefault()
-          return false
-        }
-      } catch (err) {
-        console.error('[NAV-DBG] nav.click ERROR', err && err.stack ? err.stack : err)
-        // Fall through: do not block native navigation if the guard itself throws
+
+      if (!RouteGuard.navigateTo(section)) {
+        e.preventDefault()
+        return false
       }
     })
   },
@@ -316,17 +196,7 @@ export const AuthStateSync = {
 
       // Show dashboard or requested section from hash
       const targetSection = window.location.hash.replace('#section-', '') || 'dashboard'
-      const currentShowSection = window.showSection
-      if (typeof currentShowSection !== 'function') {
-        console.warn('[NAV-DBG] AuthStateSync._onAuthStateChange showSection is not callable', typeof currentShowSection, currentShowSection)
-        try {
-          console.warn('[NAV-DBG] showSection descriptor', Object.getOwnPropertyDescriptor(window, 'showSection'))
-        } catch (e) {
-          console.warn('[NAV-DBG] showSection descriptor access failed', e)
-        }
-      } else {
-        currentShowSection.call(window, targetSection)
-      }
+      window.showSection(targetSection)
     } else {
       // User logged out or app initialized without user
 
