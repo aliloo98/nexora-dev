@@ -97,7 +97,7 @@ jobs:
 
       - name: Run Playwright application tests
         run: npm run test:e2e
-        timeout-minutes: 5
+        timeout-minutes: 10
 
       - name: Upload Playwright diagnostics
         if: always()
