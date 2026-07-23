@@ -5186,6 +5186,10 @@ function showSection(id){
     openPlan().catch(() => {});
   }
 
+  if (id === 'dashboard' && typeof window.refreshDashboardCoach === 'function') {
+    window.refreshDashboardCoach().catch(err => console.warn('[Dashboard coach] refresh failed', err));
+  }
+
   if (id === 'objectifs' && window.GoalsPage?.refreshFromCloud) {
     window.GoalsPage.refreshFromCloud().catch((err) => {
       console.warn('[GoalsPage] Cloud refresh failed', err);

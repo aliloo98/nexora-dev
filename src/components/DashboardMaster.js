@@ -52,10 +52,10 @@ export async function renderDashboardMaster(rootId, TreasuryService) {
   })
   const simpleMode = document.body?.classList?.contains('mode-simple')
   const showDetails = coach && !simpleMode
-  const coachAdvice = coach?.dailyAdvice || 'Le diagnostic devient fiable dès que le budget du mois est renseigné.'
-  const coachPriority = coach?.priority || 'Compléter le budget'
-  const actionLabel = coach?.actionLabel || 'Voir la priorité'
-  const actionTarget = coach?.actionTarget || 'saisie'
+  const hasBudgetData = revenues.length > 0 || charges.length > 0
+  const coachPriority = coach?.priority || (hasBudgetData ? 'Compléter le budget' : 'Commencer le budget')
+  const actionLabel = hasBudgetData ? (coach?.actionLabel || 'Voir la priorité') : 'Saisir le mois'
+  const actionTarget = hasBudgetData ? (coach?.actionTarget || 'saisie') : 'saisie'
 
   root.innerHTML = `
     <div class="dashboard-coach-content" style="display:flex;flex-direction:column;gap:8px">
@@ -70,9 +70,14 @@ export async function renderDashboardMaster(rootId, TreasuryService) {
           <div style="font-size:12px;color:var(--text2);margin-top:4px">Pourquoi : ${escapeHtml(judgment.why)}</div>
           ${showDetails && coach.risks?.length ? `<div style="font-size:12px;color:var(--text2);margin-top:4px">Risque : ${escapeHtml(coach.risks[0])}</div>` : ''}
           ${showDetails && coach.opportunities?.length ? `<div style="font-size:12px;color:var(--text2);margin-top:4px">Opportunité : ${escapeHtml(coach.opportunities[0])}</div>` : ''}
-          <button class="btn btn-outline" type="button" style="margin-top:8px" id="dashboard-coach-action">${escapeHtml(actionLabel)}</button>
+          ${hasBudgetData ? `<button class="btn btn-outline" type="button" style="margin-top:8px" id="dashboard-coach-action">${escapeHtml(actionLabel)}</button>` : ''}
       </div>
-      ${simpleMode ? '' : `<div class="action-highlight dashboard-master-plan">
+      ${!hasBudgetData ? `<div class="dashboard-empty-state" style="padding:18px;background:rgba(255,255,255,0.03);border-radius:18px;display:flex;flex-direction:column;gap:12px;margin-top:8px">
+        <strong style="font-size:15px">Commencez votre premier budget</strong>
+        <p style="margin:0;color:var(--text2);font-size:13px;line-height:1.5">Votre tableau de bord se construit à partir de votre premier revenu ou de votre première dépense. Saisissez votre budget du mois pour activer Nexora.</p>
+        <button class="btn btn-gold" type="button" id="dashboard-empty-action">Saisir le mois</button>
+      </div>` : ''}
+      ${hasBudgetData && !simpleMode ? `<div class="action-highlight dashboard-master-plan">
         <strong id="dm-action-title">${action.title}</strong>
         <div id="dm-action-detail" style="font-size:13px;color:var(--text2)">${action.detail}</div>
       </div>
@@ -81,11 +86,13 @@ export async function renderDashboardMaster(rootId, TreasuryService) {
         <ol id="dm-7day-list" style="padding-left:18px;margin:0">
           ${plan.slice(0,7).map(p => `<li style="margin-bottom:6px"><strong>${new Date(p.date).toLocaleDateString()}</strong> — Solde: ${formatCurrency(p.balance)}</li>`).join('')}
         </ol>
-      </div>`}
+      </div>` : ''}
     </div>
   `
 
   const coachAction = root.querySelector('#dashboard-coach-action')
   if (coachAction) coachAction.onclick = () => window.showSection?.(actionTarget)
+  const emptyAction = root.querySelector('#dashboard-empty-action')
+  if (emptyAction) emptyAction.onclick = () => window.showSection?.('saisie')
   window.NexoraMotion?.animateCards?.(root)
 }
