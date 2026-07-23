@@ -123,6 +123,84 @@ function countRegex(code, regex) {
   return (code.match(regex) || []).length
 }
 
+function stripCommentsPreserveStrings(code) {
+  let result = ''
+  let i = 0
+  let state = 'code'
+  let quote = null
+  let escape = false
+
+  while (i < code.length) {
+    const char = code[i]
+    const next = code[i + 1]
+
+    if (state === 'code') {
+      if (char === '/' && next === '/') {
+        result += '\n'
+        i += 2
+        while (i < code.length && code[i] !== '\n') {
+          i += 1
+        }
+        continue
+      }
+      if (char === '/' && next === '*') {
+        result += '\n'
+        i += 2
+        while (i < code.length && !(code[i] === '*' && code[i + 1] === '/')) {
+          if (code[i] === '\n') result += '\n'
+          i += 1
+        }
+        i += 2
+        continue
+      }
+      if (char === '"' || char === "'" || char === '`') {
+        state = 'string'
+        quote = char
+        result += char
+        i += 1
+        continue
+      }
+      result += char
+      i += 1
+      continue
+    }
+
+    if (state === 'string') {
+      if (escape) {
+        escape = false
+        result += char
+        i += 1
+        continue
+      }
+      if (char === '\\') {
+        escape = true
+        result += char
+        i += 1
+        continue
+      }
+      if (char === quote) {
+        state = 'code'
+        result += char
+        i += 1
+        continue
+      }
+      result += char
+      i += 1
+    }
+  }
+
+  return result
+}
+
+function countLogicalLines(raw) {
+  if (raw.length === 0) return 0
+  const lines = raw.split(/\r?\n/)
+  if (raw.endsWith('\n') || raw.endsWith('\r')) {
+    return Math.max(0, lines.length - 1)
+  }
+  return lines.length
+}
+
 function getMedian(values) {
   if (values.length === 0) return 0
   const sorted = [...values].sort((a, b) => a - b)
@@ -154,14 +232,14 @@ function collectProductionMetrics(rootDir, files) {
     const relPath = normalizeRel(file, rootDir)
     const raw = fs.readFileSync(file, 'utf8')
     const cleaned = stripCommentsAndStrings(raw)
-    const lines = raw.split(/\r?\n/).length
+    const lines = countLogicalLines(raw)
     lineCounts.push(lines)
     contents.push({ file: relPath, lines, raw, cleaned })
 
     staticImports += countRegex(cleaned, /\bimport\b/g)
     staticExports += countRegex(cleaned, /\bexport\b/g)
     windowRefs += countRegex(cleaned, /\bwindow\./g)
-    windowAssignments += countRegex(cleaned, /\bwindow\.[A-Za-z_$][\w$]*\s*(\+=|-=|\*=|/=|%=|&&=|\|\|=|\?=|=)/g)
+    windowAssignments += countRegex(cleaned, /\bwindow\.[A-Za-z_$][\w$]*\s*(\+=|-=|\*=|\/=|%=|&&=|\|\|=|\?=|=)/g)
     documentRefs += countRegex(cleaned, /\bdocument\./g)
     localStorageRefs += countRegex(cleaned, /\blocalStorage\./g)
     todoFixmeCount += countRegex(cleaned, /\b(TODO|FIXME)\b/g)
@@ -252,7 +330,7 @@ function collectDependencyMetrics(rootDir, productionFiles) {
 
   for (const [relPath, file] of fileMap.entries()) {
     const raw = fs.readFileSync(file, 'utf8')
-    const cleaned = stripCommentsAndStrings(raw)
+    const cleaned = stripCommentsPreserveStrings(raw)
     const regex = /(?:import|export)\s+(?:[^'";]*?\s+from\s+)?['"]([^'"]+)['"]/g
     const matches = [...cleaned.matchAll(regex)]
     const deps = []
@@ -261,6 +339,7 @@ function collectDependencyMetrics(rootDir, productionFiles) {
       if (!spec || !spec.startsWith('.')) continue
       const resolved = path.resolve(path.dirname(file), spec)
       const candidates = [
+        resolved,
         `${resolved}.js`,
         `${resolved}.ts`,
         `${resolved}.mjs`,

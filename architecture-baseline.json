@@ -1,0 +1,364 @@
+{
+  "dependencies": {
+    "cycles": [],
+    "internalDependencies": 155,
+    "modulesWithMostIncomingDependencies": [
+      {
+        "count": 13,
+        "name": "src/supabase.js"
+      },
+      {
+        "count": 11,
+        "name": "src/auth/authContext.js"
+      },
+      {
+        "count": 10,
+        "name": "src/constants/storageKeys.js"
+      },
+      {
+        "count": 7,
+        "name": "js/storage.js"
+      },
+      {
+        "count": 7,
+        "name": "src/utils/htmlEscape.js"
+      },
+      {
+        "count": 6,
+        "name": "js/userAppSettingsService.js"
+      },
+      {
+        "count": 6,
+        "name": "js/userStorage.js"
+      },
+      {
+        "count": 5,
+        "name": "src/assistant/judgmentEngine.js"
+      },
+      {
+        "count": 5,
+        "name": "src/utils/userFacingFilter.js"
+      },
+      {
+        "count": 4,
+        "name": "src/finance/financialExpression.js"
+      }
+    ],
+    "modulesWithMostOutgoingDependencies": [
+      {
+        "count": 46,
+        "name": "src/main.js"
+      },
+      {
+        "count": 11,
+        "name": "src/plan/PlanHubUI.js"
+      },
+      {
+        "count": 8,
+        "name": "src/pages/GoalsPage.js"
+      },
+      {
+        "count": 6,
+        "name": "js/userAppSettingsService.js"
+      },
+      {
+        "count": 5,
+        "name": "src/goals/goalsService.js"
+      },
+      {
+        "count": 5,
+        "name": "src/treasury/treasuryAdapter.js"
+      },
+      {
+        "count": 4,
+        "name": "js/transactionsService.js"
+      },
+      {
+        "count": 4,
+        "name": "src/advisor/proactiveCoachService.js"
+      },
+      {
+        "count": 4,
+        "name": "src/components/DashboardMaster.js"
+      },
+      {
+        "count": 4,
+        "name": "src/settings/settingsService.js"
+      }
+    ],
+    "modulesWithoutIncomingImports": [
+      "src/advisor/advisorService.js",
+      "src/advisor/AdvisorUI.js",
+      "src/app/productCopy.js",
+      "src/auth/useAuth.js",
+      "src/couple/coupleAssistantService.js",
+      "src/couple/coupleBudgetService.js",
+      "src/couple/coupleDebtService.js",
+      "src/couple/coupleGoalService.js",
+      "src/couple/coupleNotificationService.js",
+      "src/couple/coupleShareService.js",
+      "src/debt/debtPlanner.js",
+      "src/main.js",
+      "src/plan/PlanHubUI.js"
+    ],
+    "unresolvedImports": []
+  },
+  "playwright": {
+    "files": [
+      "tests/playwright/assistant.spec.js",
+      "tests/playwright/budgetCoach.spec.js"
+    ],
+    "playwrightCaseCount": 7
+  },
+  "production": {
+    "averageLinesPerFile": 224,
+    "consoleDebug": 0,
+    "consoleError": 73,
+    "consoleInfo": 11,
+    "consoleLog": 27,
+    "consoleWarn": 70,
+    "documentRefs": 186,
+    "files": [
+      "js/budgetCategoriesService.js",
+      "js/logo-manager.js",
+      "js/monthlyBudgetStateService.js",
+      "js/notificationsService.js",
+      "js/pdf-export.js",
+      "js/storage.js",
+      "js/syncedSettingAccess.js",
+      "js/theme-manager.js",
+      "js/transactionsService.js",
+      "js/userAppSettingsService.js",
+      "js/userStorage.js",
+      "js/utils.js",
+      "src/advisor/advisorService.js",
+      "src/advisor/AdvisorUI.js",
+      "src/advisor/proactiveCoachService.js",
+      "src/advisor/scenarioDisplay.js",
+      "src/advisor/scenarioService.js",
+      "src/app/buildInfo.js",
+      "src/app/metricsCache.js",
+      "src/app/productCopy.js",
+      "src/app/sectionLoader.js",
+      "src/app/syncStatus.js",
+      "src/assistant/assistantEngine.js",
+      "src/assistant/judgmentEngine.js",
+      "src/auth/authContext.js",
+      "src/auth/authRouting.js",
+      "src/auth/authService.js",
+      "src/auth/useAuth.js",
+      "src/auth/userDisplayName.js",
+      "src/components/AssistantCard.js",
+      "src/components/DashboardMaster.js",
+      "src/components/GoalCard.js",
+      "src/components/LoginForm.js",
+      "src/components/RegisterForm.js",
+      "src/components/TreasuryPlannerUI.js",
+      "src/components/TreasuryTimeline.js",
+      "src/components/UserProfile.js",
+      "src/constants/storageKeys.js",
+      "src/couple/coupleAssistantService.js",
+      "src/couple/coupleBudgetService.js",
+      "src/couple/coupleDebtService.js",
+      "src/couple/coupleGoalService.js",
+      "src/couple/coupleInvitationService.js",
+      "src/couple/coupleNotificationService.js",
+      "src/couple/coupleOverlay.js",
+      "src/couple/coupleService.js",
+      "src/couple/coupleShareService.js",
+      "src/couple/coupleUIComponent.js",
+      "src/dashboard/dashboardService.js",
+      "src/debt/debtPlanner.js",
+      "src/finance/cycleBalance.js",
+      "src/finance/financialExpression.js",
+      "src/finance/recurringResolution.js",
+      "src/goals/goalsService.js",
+      "src/main.js",
+      "src/pages/AuthPages.js",
+      "src/pages/GoalsPage.js",
+      "src/plan/PlanHubUI.js",
+      "src/settings/aboutPanel.js",
+      "src/settings/recurringIncomeSync.js",
+      "src/settings/settingsMarkup.js",
+      "src/settings/settingsService.js",
+      "src/settings/SettingsUI.js",
+      "src/styles/authStyles.js",
+      "src/supabase.js",
+      "src/sync/arrayTombstones.js",
+      "src/sync/syncDiagnostics.js",
+      "src/treasury/treasuryAdapter.js",
+      "src/treasury/treasuryService.js",
+      "src/ui/availableMoneyOptions.js",
+      "src/ui/budgetCoach.js",
+      "src/ui/dashboardGuidance.js",
+      "src/ui/gsapMotion.js",
+      "src/ui/nexoraCore.js",
+      "src/utils/htmlEscape.js",
+      "src/utils/userFacingFilter.js"
+    ],
+    "filesOver1000Lines": [],
+    "filesOver700Lines": [
+      "js/transactionsService.js",
+      "src/components/AssistantCard.js"
+    ],
+    "largestFiles": [
+      {
+        "file": "src/components/AssistantCard.js",
+        "lines": 929
+      },
+      {
+        "file": "js/transactionsService.js",
+        "lines": 801
+      },
+      {
+        "file": "src/assistant/assistantEngine.js",
+        "lines": 691
+      },
+      {
+        "file": "js/notificationsService.js",
+        "lines": 684
+      },
+      {
+        "file": "js/pdf-export.js",
+        "lines": 681
+      },
+      {
+        "file": "src/main.js",
+        "lines": 638
+      },
+      {
+        "file": "src/ui/nexoraCore.js",
+        "lines": 624
+      },
+      {
+        "file": "js/userAppSettingsService.js",
+        "lines": 587
+      },
+      {
+        "file": "js/monthlyBudgetStateService.js",
+        "lines": 557
+      },
+      {
+        "file": "src/plan/PlanHubUI.js",
+        "lines": 547
+      },
+      {
+        "file": "src/couple/coupleService.js",
+        "lines": 493
+      },
+      {
+        "file": "src/auth/authService.js",
+        "lines": 432
+      },
+      {
+        "file": "js/budgetCategoriesService.js",
+        "lines": 423
+      },
+      {
+        "file": "src/advisor/proactiveCoachService.js",
+        "lines": 371
+      },
+      {
+        "file": "src/couple/coupleInvitationService.js",
+        "lines": 359
+      },
+      {
+        "file": "src/styles/authStyles.js",
+        "lines": 351
+      },
+      {
+        "file": "src/ui/gsapMotion.js",
+        "lines": 350
+      },
+      {
+        "file": "src/advisor/AdvisorUI.js",
+        "lines": 349
+      },
+      {
+        "file": "src/auth/authContext.js",
+        "lines": 344
+      },
+      {
+        "file": "src/couple/coupleShareService.js",
+        "lines": 336
+      }
+    ],
+    "lineCount": 17024,
+    "localStorageRefs": 23,
+    "medianLinesPerFile": 135.5,
+    "staticExports": 198,
+    "staticImports": 180,
+    "todoFixmeCount": 0,
+    "windowAssignments": 105,
+    "windowRefs": 307
+  },
+  "tests": {
+    "describeCount": 0,
+    "files": [
+      "js/budgetCategoriesService-tests.js",
+      "js/monthlyBudgetStateReplay-tests.js",
+      "js/monthlyBudgetStateService-tests.js",
+      "js/syncedSettingAccess-tests.js",
+      "js/transactionsService-tests.js",
+      "js/userAppSettingsDeletionSync-tests.js",
+      "js/userAppSettingsQueue-tests.js",
+      "scripts/run-js-tests.js",
+      "src/advisor/advisor-tests.js",
+      "src/advisor/proactiveCoachStorage-tests.js",
+      "src/advisor/scenario-display-tests.js",
+      "src/assistant/judgmentEngine-tests.js",
+      "src/assistant/run-tests.js",
+      "src/auth/authMode-tests.js",
+      "src/auth/authSessionFallback-tests.js",
+      "src/auth/authStartupOrder-tests.js",
+      "src/auth/authStateListener-tests.js",
+      "src/auth/authStoragePolicy-tests.js",
+      "src/auth/authVisibility-tests.js",
+      "src/auth/userDisplayName-tests.js",
+      "src/couple/assistant-tests.js",
+      "src/couple/budget-tests.js",
+      "src/couple/couple-tests.js",
+      "src/couple/debt-tests.js",
+      "src/couple/goal-tests.js",
+      "src/couple/invitation-tests.js",
+      "src/couple/notification-tests.js",
+      "src/couple/share-tests.js",
+      "src/couple/ui-tests.js",
+      "src/dashboard/dashboard-tests.js",
+      "src/debt/debt-tests.js",
+      "src/finance/cycleBalance-tests.js",
+      "src/finance/financialExpression-tests.js",
+      "src/finance/monthlyHistoryStorage-tests.js",
+      "src/goals/cagnottesStorage-tests.js",
+      "src/settings/budgetCycleStorage-tests.js",
+      "src/settings/recurringIncome-sync-tests.js",
+      "src/settings/settingsStorage-tests.js",
+      "src/settings/settingsUiSecurity-tests.js",
+      "src/sync/arrayTombstones-tests.js",
+      "src/treasury/treasury-tests.js",
+      "src/ui/availableMoneyOptions-tests.js",
+      "src/ui/budgetCoach-tests.js",
+      "src/ui/dashboardGuidance-tests.js",
+      "src/utils/exportSecurity-tests.js",
+      "src/utils/financialMarkupSecurity-tests.js",
+      "src/utils/parseBudgetNumber-tests.js",
+      "tests/architecture-baseline.test.mjs"
+    ],
+    "itCaseCount": 0,
+    "playwrightFiles": [],
+    "testCaseCount": 31
+  },
+  "tooling": {
+    "files": [
+      "playwright.config.js",
+      "scripts/architecture-baseline.mjs",
+      "scripts/check-architecture-baseline.mjs",
+      "scripts/run-js-tests.js",
+      "scripts/save-screenshots-demo.js",
+      "scripts/save-screenshots-v3.js",
+      "scripts/save-screenshots.js",
+      "validate-couple-mode.js",
+      "vite.config.js"
+    ]
+  }
+}
