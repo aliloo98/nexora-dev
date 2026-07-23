@@ -305,6 +305,7 @@ export function initScrollReveal(container = document) {
   // Minimal fix: exclude elements from #section-parametres to avoid iOS ScrollTrigger invisibility bug
   const items = getCards(root).filter((item) => {
     if (item.closest('#section-parametres')) return false
+    if (item.closest('#assistant-card')) return false
     return !item.dataset.revealReady
   })
 

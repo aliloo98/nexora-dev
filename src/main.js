@@ -112,12 +112,19 @@ window.openTreasuryPlanner = async (opts = {}) => {
     await renderTreasuryPlanner('treasury-planner-root', opts)
   } catch (e) { console.warn('openTreasuryPlanner failed', e) }
 }
-window.refreshDashboardCoach = async () => {
-  if (typeof renderDashboardMaster === 'function' && document.getElementById('dashboard-master-root')) {
+let dashboardCoachRefreshPromise = null
+window.refreshDashboardCoach = () => {
+  if (dashboardCoachRefreshPromise) return dashboardCoachRefreshPromise
+
+  dashboardCoachRefreshPromise = (async () => {
+    if (typeof renderDashboardMaster !== 'function' || !document.getElementById('dashboard-master-root')) return
     const TreasuryService = (await import('./treasury/treasuryService.js')).default
     await renderDashboardMaster('dashboard-master-root', TreasuryService)
-    window.NexoraMotion?.animateCards?.(document.getElementById('section-dashboard'))
-  }
+  })().finally(() => {
+    dashboardCoachRefreshPromise = null
+  })
+
+  return dashboardCoachRefreshPromise
 }
 
 // Expose helper functions globally (for HTML onclick handlers)
@@ -576,11 +583,12 @@ const initApp = async () => {
         window.NexoraMotion?.animateTimeline?.(document.getElementById('treasury-timeline-root'))
       }
       // Render Dashboard Master component if present
-      if (typeof renderDashboardMaster === 'function' && document.getElementById('dashboard-master-root')) {
-        const TreasuryService = (await import('./treasury/treasuryService.js')).default
-        await renderDashboardMaster('dashboard-master-root', TreasuryService)
-        window.NexoraMotion?.animatePageEnter?.(document.getElementById('section-dashboard'))
-        window.NexoraMotion?.animateCards?.(document.getElementById('section-dashboard'))
+      if (
+        typeof renderDashboardMaster === 'function'
+        && document.getElementById('dashboard-master-root')
+        && !document.querySelector('#dashboard-master-root .dashboard-coach-content')
+      ) {
+        await window.refreshDashboardCoach()
       }
       if (document.getElementById('advisor-root')) {
         const { renderAdvisorUI } = await import('./advisor/AdvisorUI.js')

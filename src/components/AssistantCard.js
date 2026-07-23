@@ -547,14 +547,69 @@ function createAssistantCard() {
 }
 
 async function renderAssistantCard() {
-  const grid = document.querySelector('.analytics-grid') || document.querySelector('.kpi-grid')
+  const quickCoreHost = document.querySelector('#dashboard-quick-core-host')
+  const corePanel = document.getElementById('nexora-core-panel')
+  if (quickCoreHost && corePanel && corePanel.parentElement !== quickCoreHost) {
+    quickCoreHost.appendChild(corePanel)
+    corePanel.classList.add('dashboard-core-embedded')
+    corePanel.setAttribute('aria-hidden', 'false')
+  }
+
+  const preferredContainers = [
+    '#dashboard-quick-view .dashboard-assistant-host',
+    '.analytics-grid',
+    '.kpi-grid',
+    '#section-dashboard .dashboard-grid__main',
+    '#section-dashboard .dashboard-grid__side',
+    '#section-dashboard'
+  ]
+
+  let grid = preferredContainers
+    .map((selector) => document.querySelector(selector))
+    .find(Boolean)
+
   if (!grid) return
+
+  if (grid.id === 'section-dashboard' && !grid.querySelector('.dashboard-assistant-host')) {
+    const host = document.createElement('div')
+    host.className = 'dashboard-assistant-host'
+    host.style.marginTop = '18px'
+    grid.appendChild(host)
+    grid = host
+  } else if (!grid.classList?.contains('dashboard-assistant-host') && !grid.querySelector?.('#assistant-card')) {
+    const sectionDashboard = document.getElementById('section-dashboard')
+    if (sectionDashboard && !sectionDashboard.querySelector('.dashboard-assistant-host')) {
+      const host = document.createElement('div')
+      host.className = 'dashboard-assistant-host'
+      host.style.marginTop = '18px'
+      sectionDashboard.appendChild(host)
+      grid = host
+    }
+  }
 
   let existing = document.getElementById('assistant-card')
   if (!existing) {
     const el = createAssistantCard()
     grid.appendChild(el)
     existing = document.getElementById('assistant-card')
+  }
+
+  if (existing && grid.classList?.contains('dashboard-assistant-host') && existing.parentElement !== grid) {
+    const previousHost = existing.closest('.dashboard-assistant-host')
+    grid.appendChild(existing)
+    if (previousHost && previousHost !== grid && !previousHost.children.length) previousHost.remove()
+  }
+
+  const toggleDetailsBtn = existing.querySelector('#assistant-toggle-details')
+  const detailsEl = existing.querySelector('#assistant-details')
+  if (toggleDetailsBtn && detailsEl && !toggleDetailsBtn.dataset.bound) {
+    toggleDetailsBtn.dataset.bound = 'true'
+    toggleDetailsBtn.onclick = () => {
+      const shouldOpen = detailsEl.hasAttribute('hidden')
+      if (shouldOpen) detailsEl.removeAttribute('hidden')
+      else detailsEl.setAttribute('hidden', '')
+      toggleDetailsBtn.textContent = shouldOpen ? 'Masquer l’analyse' : 'Voir l’analyse'
+    }
   }
 
   // show lightweight skeleton while computing
@@ -569,19 +624,7 @@ async function renderAssistantCard() {
   const trajectoryEl = existing.querySelector('#assistant-trajectory')
   const vigilanceList = existing.querySelector('#assistant-vigilance-list')
   const actionList = existing.querySelector('#assistant-action-list')
-  const toggleDetailsBtn = existing.querySelector('#assistant-toggle-details')
-  const detailsEl = existing.querySelector('#assistant-details')
   const isSimpleMode = document.body?.classList?.contains('mode-simple')
-
-  if (toggleDetailsBtn && detailsEl && !toggleDetailsBtn.dataset.bound) {
-    toggleDetailsBtn.dataset.bound = 'true'
-    toggleDetailsBtn.onclick = () => {
-      const shouldOpen = detailsEl.hasAttribute('hidden')
-      if (shouldOpen) detailsEl.removeAttribute('hidden')
-      else detailsEl.setAttribute('hidden', '')
-      toggleDetailsBtn.textContent = shouldOpen ? 'Masquer l’analyse' : 'Voir l’analyse'
-    }
-  }
 
   if (trajectoryEl) {
     trajectoryEl.textContent = result.trajectoryLabel || 'Analyse en cours'

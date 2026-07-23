@@ -123,65 +123,65 @@ body.auth-locked > #nexora-status-bar {
 
   <!-- DASHBOARD -->
   <div id="section-dashboard" class="section active">
-    <div class="dashboard-clean-header">
-      <span>Diagnostic</span>
-      <h2>Tableau de bord</h2>
-      <div class="home-mode-switch" aria-label="Mode d’affichage">
-        <span>Mode</span>
-        <div class="mode-toggle compact">
-          <button type="button" id="home-mode-complete-btn" class="mode-toggle-btn" onclick="setNexoraUxMode('complete')">Complet</button>
-          <button type="button" id="home-mode-simple-btn" class="mode-toggle-btn" onclick="setNexoraUxMode('simple')">Simplifié</button>
+    <div class="dashboard-shell">
+      <header class="dashboard-clean-header dashboard-topbar">
+        <div class="dashboard-topbar__copy">
+          <span class="dashboard-eyebrow">Diagnostic</span>
+          <h2>Tableau de bord</h2>
         </div>
-      </div>
-    </div>
-    <section class="dashboard-synthesis-hero dashboard-synthesis-hero--merged wow-card" id="dashboard-synthesis-hero" data-state="neutral" aria-label="Synthèse du mois">
-      <div class="dashboard-synthesis-main">
-        <span class="dashboard-synthesis-status" id="dashboard-synthesis-status">Diagnostic en cours</span>
-        <h2 id="dashboard-synthesis-title">Voici où le mois en est</h2>
-        <p id="dashboard-synthesis-meta">Saisis les revenus et les dépenses pour obtenir une lecture fiable du mois.</p>
-      </div>
-      <div class="dashboard-synthesis-action">
-        <span>Priorité</span>
-        <strong id="dashboard-synthesis-action-title">Compléter le budget</strong>
-        <p id="dashboard-synthesis-action-detail">Le diagnostic devient utile dès que les montants du mois sont saisis.</p>
-        <div class="dashboard-synthesis-actions">
-          <button type="button" class="btn btn-gold dashboard-synthesis-cta dashboard-synthesis-cta--primary" id="dashboard-synthesis-primary">Voir la priorité</button>
-          <button type="button" class="btn btn-outline dashboard-synthesis-cta dashboard-synthesis-cta--secondary" onclick="showSection('saisie')">Saisir le mois</button>
+        <div class="home-mode-switch" aria-label="Mode d’affichage">
+          <span>Mode</span>
+          <div class="mode-toggle compact">
+            <button type="button" id="home-mode-complete-btn" class="mode-toggle-btn" onclick="setNexoraUxMode('complete')">Complet</button>
+            <button type="button" id="home-mode-simple-btn" class="mode-toggle-btn" onclick="setNexoraUxMode('simple')">Simplifié</button>
+          </div>
         </div>
-      </div>
-    </section>
-    <section class="nexora-core-panel nexora-core-panel--signature nexora-core-panel--masterpiece nexora-core--v8 wow-card" id="nexora-core-panel" aria-label="Nexora Core — centre de contrôle financier">
-      <div class="nexora-core-layout nexora-core-layout--signature">
-        <header class="nexora-core-hero">
+      </header>
+
+      <section class="dashboard-hero dashboard-panel" id="dashboard-synthesis-hero" data-state="neutral" aria-label="Synthèse du mois">
+        <div class="dashboard-hero__icon" aria-hidden="true">
+          <span></span>
+        </div>
+        <div class="dashboard-hero__copy">
+          <span class="dashboard-pill" id="dashboard-synthesis-status">Synthèse à compléter</span>
+          <h3 id="dashboard-synthesis-action-title">Compléter le budget</h3>
+          <p id="dashboard-synthesis-action-detail">Le diagnostic devient utile dès que les montants du mois sont saisis.</p>
+          <small id="dashboard-synthesis-meta">Ajoutez vos revenus et charges pour calculer la situation du mois.</small>
+          <div class="dashboard-hero__actions">
+            <button type="button" class="btn btn-gold" id="dashboard-synthesis-primary">Voir la priorité <span aria-hidden="true">→</span></button>
+            <button type="button" class="btn btn-outline" onclick="showSection('saisie')">Saisir le mois</button>
+          </div>
+        </div>
+        <div class="dashboard-hero__impact">
+          <span>Impact sur votre solde</span>
+          <strong id="dashboard-synthesis-impact">—</strong>
+          <small id="dashboard-synthesis-title">Budget à compléter</small>
+        </div>
+      </section>
+
+      <section class="dashboard-panel dashboard-core-panel dashboard-core-logic-host nexora-core-panel nexora-core-panel--signature nexora-core-panel--masterpiece nexora-core--v8" id="nexora-core-panel" aria-label="Nexora Core — centre de contrôle financier" aria-hidden="true">
+        <div class="nexora-core-layout nexora-core-layout--signature">
           <div class="nexora-core-stage" id="nexora-core-stage">
             <div class="nexora-core-globe-wrap">
               <div class="nexora-core-globe" id="nexora-core-globe" role="img" aria-label="Galaxie financière Nexora">
-                
-                <!-- Central Typography Display -->
                 <div class="nexora-core-center-data" id="nexora-core-center-data" style="cursor: pointer;" title="Cliquer pour basculer la donnée">
                   <div class="nexora-core-center-value" id="nexora-core-center-value">—</div>
                   <div class="nexora-core-center-label" id="nexora-core-center-label">Solde fin de cycle</div>
                 </div>
-
-                <!-- Apple Fitness style Ring -->
                 <svg class="nexora-core-ring" viewBox="0 0 100 100" aria-hidden="true">
                   <defs>
-                    <!-- Gradient radiant (vert/or lumineux) -->
                     <linearGradient id="nexora-ring-grad-radiant" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stop-color="#10b981" />
                       <stop offset="100%" stop-color="#e5c060" />
                     </linearGradient>
-                    <!-- Gradient solid (vert doux) -->
                     <linearGradient id="nexora-ring-grad-solid" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stop-color="#34d399" />
                       <stop offset="100%" stop-color="#059669" />
                     </linearGradient>
-                    <!-- Gradient watch (orange) -->
                     <linearGradient id="nexora-ring-grad-watch" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stop-color="#fb923c" />
                       <stop offset="100%" stop-color="#ea580c" />
                     </linearGradient>
-                    <!-- Gradient fragile (rouge) -->
                     <linearGradient id="nexora-ring-grad-fragile" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stop-color="#f87171" />
                       <stop offset="100%" stop-color="#dc2626" />
@@ -193,179 +193,234 @@ body.auth-locked > #nexora-status-bar {
                 <div class="nexora-core-graph" id="nexora-core-graph" aria-hidden="true"></div>
               </div>
             </div>
-            <!-- Tooltip relocated inside the relative stage for precise positioning -->
             <div class="nexora-core-tooltip" id="nexora-core-tooltip" role="tooltip" hidden></div>
           </div>
+
           <div class="nexora-core-hero-copy">
-            <span id="nexora-core-status-badge" class="nexora-core-status-badge">Diagnostic en cours</span>
+            <span id="nexora-core-status-badge" class="dashboard-pill dashboard-pill--soft">Diagnostic en cours</span>
             <h3 id="dashboard-greeting-title" class="nexora-core-title">Nexora lit votre mois</h3>
-            <p id="dashboard-greeting-subtitle" class="nexora-core-subtitle">Un seul jugement, une seule priorité</p>
-          </div>
-        </header>
-        <div class="nexora-core-copy">
-          <!-- V8 JARVIS: Mission + CTA as primary decision block -->
-          <div class="nexora-core-decision-block">
-            <div class="nexora-core-mission" aria-label="Mission du jour">
-              <span>Priorité</span>
-              <strong id="nexora-core-mission-title">Compléter le budget</strong>
-              <p id="nexora-core-mission-detail">Le jugement devient précis dès que les montants du mois sont renseignés.</p>
-            </div>
-            <div class="nexora-core-actions">
-              <button type="button" id="nexora-core-primary-cta" class="btn btn-gold nexora-core-cta nexora-core-cta--primary" onclick="window.NexoraCore?.openNexoraCoreAction?.()">Voir la priorité</button>
-              <button type="button" class="btn btn-outline nexora-core-cta nexora-core-cta--secondary" onclick="showSection('saisie')">Saisir le mois</button>
-            </div>
+            <p id="dashboard-greeting-subtitle" class="nexora-core-subtitle">Un seul jugement, une seule priorité.</p>
           </div>
 
-          <!-- V8 JARVIS: Secondary details section -->
-          <div class="nexora-core-details-section">
-          <section class="wow-card priority-action-card nexora-core-inline-card" id="priority-action-card" style="display:none;" aria-hidden="true">
-            <span>Action recommandée</span>
-            <strong id="priority-action-title">Aucun risque détecté</strong>
-            <p id="priority-action-detail">Le budget ne demande pas d’action urgente.</p>
-          </section>
-          <!-- Fin fusion priority-action-card -->
-          <!-- Début fusion : available-money-card (déplacé dans Nexora Core) -->
-          <section class="wow-card available-money-card nexora-core-inline-card" id="available-money-card">
-            <div class="available-money-head">
-              <span>Argent disponible</span>
-              <strong id="available-money-value">0 €</strong>
-              <p id="available-money-detail">Aucun montant disponible non affecté.</p>
+          <div class="nexora-core-copy">
+            <div class="dashboard-core-stack">
+              <div class="dashboard-brief-card" aria-label="Mission du jour">
+                <span>Priorité</span>
+                <strong id="nexora-core-mission-title">Compléter le budget</strong>
+                <p id="nexora-core-mission-detail">Le jugement devient précis dès que les montants du mois sont renseignés.</p>
+              </div>
+              <div class="dashboard-brief-card dashboard-brief-card--muted">
+                <span>Argent disponible</span>
+                <strong id="available-money-value">0 €</strong>
+                <p id="available-money-detail">Aucun montant disponible non affecté.</p>
+                <button type="button" class="btn btn-gold available-money-options-toggle" id="available-money-options-toggle" aria-expanded="false" aria-controls="available-money-actions" onclick="toggleAvailableMoneyOptions(document.getElementById('available-money-options-toggle'), document.getElementById('available-money-actions'))">Voir les options</button>
+                <div class="wow-actions available-money-actions" id="available-money-actions" hidden>
+                  <button type="button" class="btn btn-gold available-money-cta available-money-cta--primary" onclick="showSection('objectifs')">Alimenter l’objectif</button>
+                  <button type="button" class="btn btn-outline available-money-cta" onclick="showSection('dettes')">Réduire une dette</button>
+                  <button type="button" class="btn btn-outline available-money-cta" onclick="showSection('plan')">Garder disponible</button>
+                </div>
+              </div>
             </div>
-            <div class="available-money-decision">
-            <button type="button" class="btn btn-gold available-money-options-toggle" id="available-money-options-toggle" aria-expanded="false" aria-controls="available-money-actions" onclick="toggleAvailableMoneyOptions(document.getElementById('available-money-options-toggle'), document.getElementById('available-money-actions'))">Voir les options</button>
-            <div class="wow-actions available-money-actions" id="available-money-actions" hidden>
-              <button type="button" class="btn btn-gold available-money-cta available-money-cta--primary" onclick="showSection('objectifs')">Alimenter l’objectif</button>
-              <button type="button" class="btn btn-outline available-money-cta" onclick="showSection('dettes')">Réduire une dette</button>
-              <button type="button" class="btn btn-outline available-money-cta" onclick="showSection('plan')">Garder disponible</button>
+
+            <div class="dashboard-insight-grid">
+              <div class="dashboard-kpi-tile">
+                <span>Score Nexora</span>
+                <strong id="nexora-core-health">—</strong>
+              </div>
+              <div class="dashboard-kpi-tile">
+                <span>Risque</span>
+                <strong id="nexora-core-risk">—</strong>
+              </div>
+              <div class="dashboard-kpi-tile">
+                <span>Solde fin de cycle</span>
+                <strong id="nexora-core-balance">—</strong>
+              </div>
+              <div class="dashboard-kpi-tile">
+                <span>Objectif principal</span>
+                <strong id="nexora-core-goal">—</strong>
+              </div>
             </div>
-          </div>
-          <p class="available-money-suggestion" id="available-money-suggestion">Le prochain bon choix dépend du budget saisi.</p>
-          </section>
-          <!-- Fin fusion available-money-card -->
-          <p id="nexora-core-detail" class="nexora-core-detail">Le diagnostic devient utile quand le mois est renseigné.</p>
-          <div class="nexora-core-legend">
-            <span class="nexora-core-legend--goal"><i></i> Objectifs</span>
-            <span class="nexora-core-legend--debt"><i></i> Dettes</span>
-          </div>
-          <dl class="nexora-core-metrics">
-            <div class="nexora-core-metric nexora-core-metric--health"><dt>Score Nexora</dt><dd id="nexora-core-health">—</dd></div>
-            <div class="nexora-core-metric nexora-core-metric--risk"><dt>Risque</dt><dd id="nexora-core-risk">—</dd></div>
-            <div class="nexora-core-metric nexora-core-metric--balance"><dt>Solde fin de cycle</dt><dd id="nexora-core-balance">—</dd></div>
-            <div class="nexora-core-metric nexora-core-metric--goal"><dt>Objectif principal</dt><dd id="nexora-core-goal">—</dd></div>
-          </dl>
+
+            <div class="dashboard-action-row">
+              <button type="button" id="nexora-core-primary-cta" class="btn btn-gold" onclick="window.NexoraCore?.openNexoraCoreAction?.()">Voir la priorité</button>
+              <button type="button" class="btn btn-outline" onclick="showSection('saisie')">Saisir le mois</button>
+            </div>
+
+            <p id="nexora-core-detail" class="dashboard-footnote">Le diagnostic devient utile quand le mois est renseigné.</p>
           </div>
         </div>
-      </div>
-    </section>
-    <div class="kpi-grid dashboard-complete-kpis dashboard-secondary-kpis" aria-label="Indicateurs du mode complet">
-      <div class="kpi-card" id="card-revenus">
-        <div class="kpi-label">Revenus</div>
-        <div class="kpi-value positive" id="kpi-revenus">0 €</div>
-        <div class="kpi-sub">Mois en cours</div>
-        <div class="kpi-icon">💰</div>
-      </div>
-      <div class="kpi-card" id="card-fixes">
-        <div class="kpi-label">Charges fixes</div>
-        <div class="kpi-value" id="kpi-fixes">0 €</div>
-        <div class="kpi-sub" id="kpi-fixes-pct">0% des revenus</div>
-        <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-fixes-bar"></div></div>
-        <div class="kpi-icon">🏠</div>
-      </div>
-      <div class="kpi-card" id="card-variables">
-        <div class="kpi-label">Dépenses variables</div>
-        <div class="kpi-value" id="kpi-variables">0 €</div>
-        <div class="kpi-sub" id="kpi-variables-pct">0% des revenus</div>
-        <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-variables-bar"></div></div>
-        <div class="kpi-icon">🛒</div>
-      </div>
-      <div class="kpi-card" id="card-solde">
-        <div class="kpi-label">Solde actuel</div>
-        <div class="kpi-value" id="kpi-solde">0 €</div>
-        <div class="kpi-sub" id="kpi-solde-status">Équilibré</div>
-        <div class="kpi-icon">✨</div>
-      </div>
-      <div class="kpi-card" id="card-epargne">
-        <div class="kpi-label">Épargne prévue</div>
-        <div class="kpi-value" id="kpi-epargne">—</div>
-        <div class="kpi-sub" id="kpi-epargne-sub">Budget à compléter</div>
-        <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-epargne-bar"></div></div>
-        <div class="kpi-icon">🎯</div>
-      </div>
-      <div class="kpi-card" id="card-taux">
-        <div class="kpi-label">Taux de charges</div>
-        <div class="kpi-value" id="kpi-taux">—</div>
-        <div class="kpi-sub">Données insuffisantes</div>
-        <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-taux-bar"></div></div>
-        <div class="kpi-icon">📊</div>
-      </div>
-      <div class="kpi-card" id="card-dettes">
-        <div class="kpi-label">Dettes</div>
-        <div class="kpi-value" id="kpi-dettes">0 €</div>
-        <div class="kpi-sub" id="kpi-dettes-sub">Aucune dette active</div>
-        <div class="kpi-icon">💳</div>
-      </div>
-    </div>
-    <div class="dashboard-clean-grid dashboard-essentials-grid">
-      <section class="wow-card dashboard-coach-card" id="dashboard-coach-card">
-        <div id="dashboard-master-root"></div>
       </section>
-      <!-- priority-action-card et available-money-card fusionnés dans Nexora Core (déplacés) -->
-      <section class="wow-card month-forecast-card" id="month-forecast-card">
-        <span>Contexte</span>
+
+      <div class="dashboard-kpi-strip dashboard-primary-kpis" aria-label="Indicateurs principaux">
+        <div class="kpi-card" id="card-solde">
+          <div class="dashboard-kpi-card__head">
+            <div class="kpi-label">Solde actuel</div>
+            <span class="dashboard-kpi-badge" id="kpi-solde-badge">Stable</span>
+          </div>
+          <div class="kpi-value" id="kpi-solde">0 €</div>
+          <div class="kpi-sub" id="kpi-solde-status">Équilibré</div>
+          <span class="dashboard-kpi-trend dashboard-kpi-trend--green" aria-hidden="true"></span>
+        </div>
+        <div class="kpi-card" id="card-epargne">
+          <div class="dashboard-kpi-card__head">
+            <div class="kpi-label">Épargne prévue</div>
+            <span class="dashboard-kpi-badge" id="kpi-epargne-badge">À compléter</span>
+          </div>
+          <div class="kpi-value" id="kpi-epargne">—</div>
+          <div class="kpi-sub" id="kpi-epargne-sub">Budget à compléter</div>
+          <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-epargne-bar"></div></div>
+          <span class="dashboard-kpi-trend dashboard-kpi-trend--red" aria-hidden="true"></span>
+        </div>
+        <div class="kpi-card" id="card-taux">
+          <div class="dashboard-kpi-card__head">
+            <div class="kpi-label">Taux de charges</div>
+            <span class="dashboard-kpi-badge" id="kpi-taux-badge">Analyse</span>
+          </div>
+          <div class="kpi-value" id="kpi-taux">—</div>
+          <div class="kpi-sub">Données insuffisantes</div>
+          <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-taux-bar"></div></div>
+          <span class="dashboard-kpi-trend dashboard-kpi-trend--cyan" aria-hidden="true"></span>
+        </div>
+      </div>
+
+      <section class="dashboard-lower-grid">
+        <section class="dashboard-panel dashboard-card dashboard-card--coach" id="dashboard-coach-card">
+          <div id="dashboard-master-root"></div>
+        </section>
+        <section class="dashboard-panel dashboard-card dashboard-card--plan" id="week-plan-card">
+          <div class="dashboard-card__head">
+            <div>
+              <span class="dashboard-card__eyebrow">Votre plan des 7 prochains jours</span>
+              <strong id="week-plan-title">Ce qui compte à court terme</strong>
+            </div>
+            <button type="button" class="btn btn-gold" onclick="showSection('plan')">Ouvrir le plan</button>
+          </div>
+          <div class="dashboard-timeline" aria-label="Échéances du mois">
+            <div class="dashboard-timeline__item is-current">
+              <div class="dashboard-timeline__date">
+                <strong>Aujourd’hui</strong>
+                <span id="week-plan-today-date">—</span>
+              </div>
+              <i aria-hidden="true"></i>
+              <div class="dashboard-timeline__event">
+                <strong>Solde du mois</strong>
+                <span id="week-plan-balance">0 €</span>
+                <em>En cours</em>
+              </div>
+            </div>
+            <div class="dashboard-timeline__item">
+              <div class="dashboard-timeline__date">
+                <strong>Prochaine entrée</strong>
+                <span id="week-plan-income-date">—</span>
+              </div>
+              <i aria-hidden="true"></i>
+              <div class="dashboard-timeline__event">
+                <strong id="week-plan-next-income">À définir</strong>
+                <button type="button" class="inline-cta" id="week-plan-income-cta" onclick="showSection('parametres')" style="display:none">Définir un revenu</button>
+                <em>Prévu</em>
+              </div>
+            </div>
+            <div class="dashboard-timeline__item">
+              <div class="dashboard-timeline__date">
+                <strong>Cette semaine</strong>
+                <span id="week-plan-due-date">7 jours</span>
+              </div>
+              <i aria-hidden="true"></i>
+              <div class="dashboard-timeline__event">
+                <strong id="week-plan-to-pay">0 charge</strong>
+                <span id="week-plan-description">Aucune charge urgente à prévoir.</span>
+                <em>À surveiller</em>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="dashboard-final-grid">
+        <section class="dashboard-panel dashboard-card dashboard-card--goal" id="dashboard-primary-goal">
+          <div class="dashboard-card__head">
+            <div>
+              <span class="dashboard-card__eyebrow">Objectif principal</span>
+              <strong id="dashboard-primary-goal-name">Aucun objectif</strong>
+            </div>
+            <em id="dashboard-primary-goal-pct">0%</em>
+          </div>
+          <div class="dashboard-goal-track">
+            <i id="dashboard-primary-goal-bar"></i>
+          </div>
+          <div class="dashboard-goal-focus">
+            <div>
+              <span>Reste à financer</span>
+              <strong id="dashboard-primary-goal-remaining">0 €</strong>
+            </div>
+            <div>
+              <span>Rythme conseillé</span>
+              <strong id="dashboard-primary-goal-estimate">Non défini</strong>
+            </div>
+          </div>
+          <div class="dashboard-goal-meta">
+            <div><span>Actuel</span><strong id="dashboard-primary-goal-current">0 €</strong></div>
+            <div><span>Cible</span><strong id="dashboard-primary-goal-target">0 €</strong></div>
+            <div><span>Échéance</span><strong id="dashboard-primary-goal-date">Non définie</strong></div>
+          </div>
+        </section>
+
+        <section class="dashboard-panel dashboard-card dashboard-card--alerts" id="dashboard-alerts-card" aria-label="Alertes">
+          <div class="dashboard-card__head">
+            <div>
+              <span class="dashboard-card__eyebrow">Alertes</span>
+              <strong>Points à surveiller</strong>
+            </div>
+            <span class="dashboard-alerts-count" id="dashboard-alerts-count">0</span>
+          </div>
+          <div class="dashboard-alerts-list" id="dashboard-alerts-list" role="list" aria-label="Alertes du mois">
+            <div class="dashboard-alert-item is-neutral" role="listitem">
+              <i aria-hidden="true"></i>
+              <div><strong>Analyse en cours</strong><span>Les points sensibles du mois apparaîtront ici.</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="dashboard-panel dashboard-secondary-kpis" id="dashboard-quick-view" aria-label="Aperçu rapide">
+          <div class="dashboard-card__head">
+            <div>
+              <span class="dashboard-card__eyebrow">Aperçu rapide</span>
+              <strong>Indicateurs secondaires</strong>
+            </div>
+          </div>
+          <div class="dashboard-quick-core-host" id="dashboard-quick-core-host"></div>
+          <div class="dashboard-quick-metrics">
+            <div class="kpi-card" id="card-revenus">
+              <div class="kpi-label">Revenus</div>
+              <div class="kpi-value positive" id="kpi-revenus">0 €</div>
+              <div class="kpi-sub">Mois en cours</div>
+            </div>
+            <div class="kpi-card" id="card-fixes">
+              <div class="kpi-label">Charges fixes</div>
+              <div class="kpi-value" id="kpi-fixes">0 €</div>
+              <div class="kpi-sub" id="kpi-fixes-pct">0% des revenus</div>
+              <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-fixes-bar"></div></div>
+            </div>
+            <div class="kpi-card" id="card-variables">
+              <div class="kpi-label">Dépenses variables</div>
+              <div class="kpi-value" id="kpi-variables">0 €</div>
+              <div class="kpi-sub" id="kpi-variables-pct">0% des revenus</div>
+              <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-variables-bar"></div></div>
+            </div>
+            <div class="kpi-card" id="card-dettes">
+              <div class="kpi-label">Dettes</div>
+              <div class="kpi-value" id="kpi-dettes">0 €</div>
+              <div class="kpi-sub" id="kpi-dettes-sub">Aucune dette active</div>
+            </div>
+          </div>
+          <div class="dashboard-assistant-host dashboard-assistant-host--compact"></div>
+        </section>
+      </section>
+
+      <section class="dashboard-card dashboard-forecast-logic-host" id="month-forecast-card" hidden aria-hidden="true">
+        <span class="dashboard-card__eyebrow">Prévision & calendrier</span>
         <strong id="month-forecast-title">Projection en attente</strong>
         <p id="month-forecast-detail">Le mois doit être saisi pour obtenir une projection fiable.</p>
-      </section>
-      <section class="wow-card week-plan-card" id="week-plan-card">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-          <div>
-            <span>📈 Plan du mois</span>
-            <strong id="week-plan-title" style="display:block;margin-top:8px;font-size:16px;">Ce qui compte à court terme</strong>
-          </div>
-          <button type="button" class="btn btn-gold" onclick="showSection('plan')">Ouvrir le plan</button>
-        </div>
-        <div class="week-plan-summary" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px;">
-          <div style="padding:14px;background:rgba(255,255,255,0.03);border-radius:12px;">
-            <span>Solde du mois</span>
-            <strong id="week-plan-balance">0 €</strong>
-          </div>
-          <div style="padding:14px;background:rgba(255,255,255,0.03);border-radius:12px;">
-            <span>Prochaine entrée</span>
-            <strong id="week-plan-next-income">--/--</strong>
-            <button type="button" class="inline-cta" id="week-plan-income-cta" onclick="showSection('parametres')" style="display:none">Définir un revenu</button>
-          </div>
-          <div style="padding:14px;background:rgba(255,255,255,0.03);border-radius:12px;">
-            <span>À régler cette semaine</span>
-            <strong id="week-plan-to-pay">0</strong>
-          </div>
-        </div>
-        <p id="week-plan-description" style="margin-top:14px;color:var(--text2);">Ce bloc rappelle la priorité du moment : le solde, les entrées à venir et les paiements urgents.</p>
-      </section>
-      <section class="dashboard-primary-goal wow-card" id="dashboard-primary-goal">
-      <div class="dashboard-primary-goal-head">
-        <div>
-          <span>Objectif courant</span>
-          <strong id="dashboard-primary-goal-name">Aucun objectif</strong>
-        </div>
-        <em id="dashboard-primary-goal-pct">0%</em>
-      </div>
-      <div class="dashboard-primary-goal-track">
-        <i id="dashboard-primary-goal-bar"></i>
-      </div>
-      <div class="dashboard-primary-goal-focus">
-        <div>
-          <span>Reste à financer</span>
-          <strong id="dashboard-primary-goal-remaining">0 €</strong>
-        </div>
-        <div>
-          <span>Rythme conseillé</span>
-          <strong id="dashboard-primary-goal-estimate">Non défini</strong>
-        </div>
-      </div>
-      <div class="dashboard-primary-goal-meta">
-        <div><span>Actuel</span><strong id="dashboard-primary-goal-current">0 €</strong></div>
-        <div><span>Cible</span><strong id="dashboard-primary-goal-target">0 €</strong></div>
-        <div><span>Échéance</span><strong id="dashboard-primary-goal-date">Non définie</strong></div>
-      </div>
       </section>
     </div>
   </div>
@@ -4122,6 +4177,7 @@ function updateAll(){
     soldeEl.className='kpi-value '+(soldeEstime>0?'positive':soldeEstime<0?'negative':'');
   }
   setDashboardGuidanceTextCached('kpi-solde-status', soldeEstime>0?'Après paiements saisis':soldeEstime<0?'Solde actuel négatif':'Équilibré');
+  setDashboardGuidanceTextCached('kpi-solde-badge', soldeEstime > 0 ? 'Stable' : soldeEstime < 0 ? 'À risque' : 'Équilibré');
 
   const cardSolde = getIdElement('card-solde');
   if (cardSolde) {
@@ -4176,6 +4232,13 @@ function updateAll(){
   setDashboardGuidanceTextCached('kpi-epargne-sub', revReel > 0
     ? `Objectif : ${fmt(targetEp)} — ${pctObjectif}% atteint`
     : 'Budget à compléter');
+  setDashboardGuidanceTextCached('kpi-epargne-badge', revReel <= 0
+    ? 'À compléter'
+    : pctObjectif >= 100
+      ? 'Atteint'
+      : pctObjectif >= 50
+        ? 'En progrès'
+        : 'À risque');
   updateCircularGauge(revReel > 0 ? pctObjectif : 0);
   if (typeof updateSimulation === 'function') updateSimulation();
 
@@ -4190,6 +4253,13 @@ function updateAll(){
   if (tauxEl) tauxEl.textContent = revReel > 0 ? tauxCh+'%' : '—';
   const tauxSub = getSelectorElement('#card-taux .kpi-sub');
   if (tauxSub) tauxSub.textContent = revReel > 0 ? 'Fixes + variables' : 'Données insuffisantes';
+  setDashboardGuidanceTextCached('kpi-taux-badge', revReel <= 0
+    ? 'Analyse'
+    : tauxCh <= 70
+      ? 'Maîtrisé'
+      : tauxCh <= 85
+        ? 'À surveiller'
+        : 'Élevé');
 
   const cardTaux = getIdElement('card-taux');
   if (cardTaux) {
@@ -4290,6 +4360,13 @@ function updateAll(){
     variablesPct,
     totalDepRestant,
     revReel
+  });
+  updateDashboardAlerts({
+    revReel,
+    solde,
+    tauxCh,
+    variablesPct,
+    totalDepRestant
   });
   window.NexoraMetricsCache?.invalidateMetricsCache?.();
   refreshNexoraCore({
@@ -4499,6 +4576,7 @@ function updateDashboardSynthesisHero(metrics = {}) {
   const metaEl = document.getElementById('dashboard-synthesis-meta');
   const actionTitleEl = document.getElementById('dashboard-synthesis-action-title');
   const actionDetailEl = document.getElementById('dashboard-synthesis-action-detail');
+  const impactEl = document.getElementById('dashboard-synthesis-impact');
   const primaryBtn = document.getElementById('dashboard-synthesis-primary');
   const coreStatusEl = document.getElementById('nexora-core-status-badge');
   const coreMissionTitleEl = document.getElementById('nexora-core-mission-title');
@@ -4515,8 +4593,8 @@ function updateDashboardSynthesisHero(metrics = {}) {
   let status = 'Synthèse à compléter';
   let title = 'Complète ton budget pour obtenir ta synthèse';
   let meta = 'Ajoute tes revenus et charges pour calculer la situation du mois.';
-  let actionTitle = 'Voir le plan';
-  let actionDetail = 'Nexora préparera une action dès que le budget sera complet.';
+  let actionTitle = 'Compléter le budget';
+  let actionDetail = 'Ajoutez vos revenus et dépenses pour activer le diagnostic Nexora.';
 
   if (revReel > 0) {
     const situation = getNexoraOfficialSituation({ revReel, solde, tauxCh, variablesPct });
@@ -4533,6 +4611,11 @@ function updateDashboardSynthesisHero(metrics = {}) {
   statusEl.textContent = status;
   titleEl.textContent = title;
   metaEl.textContent = meta;
+  if (impactEl) {
+    impactEl.textContent = revReel > 0 ? fmt(solde) : '—';
+    impactEl.classList.toggle('is-positive', revReel > 0 && solde >= 0);
+    impactEl.classList.toggle('is-negative', revReel > 0 && solde < 0);
+  }
   actionTitleEl.textContent = actionTitle || 'Voir le plan';
   actionDetailEl.textContent = actionDetail || 'Ouvre le plan pour voir les prochaines étapes.';
   if (coreStatusEl) coreStatusEl.textContent = status;
@@ -4647,6 +4730,9 @@ function updateWeekPlan(metrics = {}) {
   const incomeCtaEl = document.getElementById('week-plan-income-cta');
   const toPayEl = document.getElementById('week-plan-to-pay');
   const descEl = document.getElementById('week-plan-description');
+  const todayDateEl = document.getElementById('week-plan-today-date');
+  const incomeDateEl = document.getElementById('week-plan-income-date');
+  const dueDateEl = document.getElementById('week-plan-due-date');
   const hasProgrammedIncome = (() => {
     try {
       const storageKey = syncedSettingStorageKey('nexora_recurring_incomes');
@@ -4663,18 +4749,83 @@ function updateWeekPlan(metrics = {}) {
   })();
   const range = getBudgetCycleRange(getMonth());
   const dueCount = getPendingFixedExpenseRows().length;
+  const today = new Date();
+  const weekEnd = new Date(today);
+  weekEnd.setDate(today.getDate() + 7);
   if (titleEl) titleEl.textContent = metrics.revReel > 0 ? 'Aperçu essentiel' : 'Plan financier';
   if (balanceEl) balanceEl.textContent = fmt(metrics.solde || 0);
   if (nextIncomeEl) nextIncomeEl.textContent = hasProgrammedIncome && range.start ? formatShortDate(range.start) : 'Définir un revenu';
   if (incomeCtaEl) incomeCtaEl.style.display = hasProgrammedIncome ? 'none' : 'inline-flex';
   if (toPayEl) toPayEl.textContent = `${dueCount} charge${dueCount !== 1 ? 's' : ''}`;
+  if (todayDateEl) todayDateEl.textContent = today.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  if (incomeDateEl) incomeDateEl.textContent = hasProgrammedIncome && range.start ? formatShortDate(range.start) : 'Non planifiée';
+  if (dueDateEl) dueDateEl.textContent = weekEnd.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
   if (descEl) {
     descEl.textContent = metrics.revReel > 0
       ? dueCount > 0
-        ? `Il y a ${dueCount} charge${dueCount !== 1 ? 's' : ''} à surveiller avant le prochain revenu.`
-        : 'Aucune charge urgente à prévoir pour le moment.'
-      : 'Commence par saisir tes revenus pour lancer l’analyse.';
+        ? `${dueCount} paiement${dueCount !== 1 ? 's' : ''} à surveiller`
+        : 'Aucune charge urgente'
+      : 'Budget à compléter';
   }
+}
+
+function updateDashboardAlerts(metrics = {}) {
+  const listEl = document.getElementById('dashboard-alerts-list');
+  const countEl = document.getElementById('dashboard-alerts-count');
+  if (!listEl) return;
+
+  const alerts = [];
+  const dueRows = getPendingFixedExpenseRows();
+
+  if (Number(metrics.revReel || 0) <= 0) {
+    alerts.push({
+      level: 'neutral',
+      title: 'Budget à compléter',
+      detail: 'Ajoutez vos revenus pour activer les alertes.'
+    });
+  } else {
+    if (Number(metrics.solde || 0) < 0) {
+      alerts.push({
+        level: 'danger',
+        title: 'Solde projeté négatif',
+        detail: `${fmt(Math.abs(Number(metrics.solde || 0)))} à couvrir`
+      });
+    }
+    if (dueRows.length > 0) {
+      const dueAmount = dueRows.reduce((sum, row) => sum + Number(row.remaining || 0), 0);
+      alerts.push({
+        level: 'warning',
+        title: `${dueRows.length} paiement${dueRows.length > 1 ? 's' : ''} à venir`,
+        detail: `${fmt(dueAmount)} restant à régler`
+      });
+    }
+    if (Number(metrics.variablesPct || 0) > 40) {
+      alerts.push({
+        level: 'warning',
+        title: 'Dépenses variables élevées',
+        detail: `${Math.round(Number(metrics.variablesPct || 0))}% des revenus`
+      });
+    }
+    if (alerts.length === 0) {
+      alerts.push({
+        level: 'positive',
+        title: 'Aucune alerte critique',
+        detail: 'Le mois reste sous contrôle.'
+      });
+    }
+  }
+
+  const visibleAlerts = alerts.slice(0, 2);
+  listEl.innerHTML = visibleAlerts.map((alert) => `
+    <div class="dashboard-alert-item is-${alert.level}" role="listitem">
+      <i aria-hidden="true"></i>
+      <div>
+        <strong>${escapeHtml(alert.title)}</strong>
+        <span>${escapeHtml(alert.detail)}</span>
+      </div>
+    </div>
+  `).join('');
+  if (countEl) countEl.textContent = String(alerts[0]?.level === 'positive' ? 0 : alerts.length);
 }
 
 function formatShortDate(date) {
