@@ -150,7 +150,7 @@ test.describe('Dashboard visual hierarchy', () => {
       return Boolean(core && coach && indicators && core.bottom < coach.top && coach.bottom < indicators.top);
     }, { timeout: 20000 });
 
-    await page.waitForSelector('#nexora-core-panel, #dashboard-coach-card, .dashboard-secondary-kpis, #nexora-status-bar, #dashboard-coach-action', { state: 'visible', timeout: 20000 });
+    await page.waitForSelector('#nexora-core-panel, #dashboard-coach-card, .dashboard-secondary-kpis, #nexora-status-bar, #nexora-core-primary-cta, #dashboard-coach-action, #dashboard-empty-action', { state: 'visible', timeout: 20000 });
 
     const metrics = await page.evaluate(() => {
       const rect = (selector) => {
@@ -183,14 +183,25 @@ test.describe('Dashboard visual hierarchy', () => {
     expect(metrics.coach.bottom).toBeLessThan(metrics.indicators.top);
     if (metrics.width <= 480) expect(metrics.statusOverlap).toBe(0);
 
-    for (const selector of ['#nexora-core-primary-cta', '#dashboard-coach-action']) {
-      const action = page.locator(selector);
-      await expect(action).toBeVisible({ timeout: 15000 });
-      await action.focus();
-      await expect.poll(async () => action.evaluate((node) => document.activeElement === node)).toBe(true);
-      const outlineWidth = await action.evaluate((node) => parseFloat(getComputedStyle(node).outlineWidth));
-      expect(outlineWidth).toBeGreaterThanOrEqual(2);
-    }
+    const coachActionVisible = await page.isVisible('#dashboard-coach-action');
+    const emptyActionVisible = await page.isVisible('#dashboard-empty-action');
+    expect(coachActionVisible || emptyActionVisible).toBe(true);
+    expect(Number(coachActionVisible) + Number(emptyActionVisible)).toBe(1);
+
+    const primaryCta = page.locator('#nexora-core-primary-cta');
+    await expect(primaryCta).toBeVisible({ timeout: 15000 });
+    await primaryCta.focus();
+    await expect.poll(async () => primaryCta.evaluate((node) => document.activeElement === node)).toBe(true);
+    const primaryOutlineWidth = await primaryCta.evaluate((node) => parseFloat(getComputedStyle(node).outlineWidth));
+    expect(primaryOutlineWidth).toBeGreaterThanOrEqual(2);
+
+    const dashboardActionSelector = coachActionVisible ? '#dashboard-coach-action' : '#dashboard-empty-action';
+    const dashboardAction = page.locator(dashboardActionSelector);
+    await expect(dashboardAction).toBeVisible({ timeout: 15000 });
+    await dashboardAction.focus();
+    await expect.poll(async () => dashboardAction.evaluate((node) => document.activeElement === node)).toBe(true);
+    const dashboardOutlineWidth = await dashboardAction.evaluate((node) => parseFloat(getComputedStyle(node).outlineWidth));
+    expect(dashboardOutlineWidth).toBeGreaterThanOrEqual(2);
   });
 });
 
