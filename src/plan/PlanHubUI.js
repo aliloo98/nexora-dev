@@ -106,6 +106,30 @@ const buildPlanRows = (items, options = {}) => {
   }).join('')
 }
 
+const buildTodayActionCard = (judgment) => {
+  const action = String(judgment?.action || '').trim()
+  const why = String(judgment?.why || '').trim()
+
+  if (!action) {
+    return `
+      <section class="plan-card">
+        <div class="plan-card-header"><h3>Ce qu’il faut faire aujourd’hui</h3></div>
+        <div class="plan-empty-line">Aucune action prioritaire disponible pour le moment.</div>
+      </section>
+    `
+  }
+
+  return `
+    <section class="plan-card">
+      <div class="plan-card-header"><h3>Ce qu’il faut faire aujourd’hui</h3></div>
+      <div class="plan-card-body">
+        <strong>${escapeHtml(action)}</strong>
+        ${why ? `<p>${escapeHtml(why)}</p>` : ''}
+      </div>
+    </section>
+  `
+}
+
 const buildPlanContent = (data) => {
   const {
     timeline = [],
@@ -153,8 +177,6 @@ const buildPlanContent = (data) => {
         </div>
         <div class="plan-metric-row" style="margin-top:10px;display:grid;gap:8px">
           <div><span class="metric-label">Priorité</span><strong>${escapeHtml(judgment.diagnostic)}</strong></div>
-          <div><span class="metric-label">Décision</span><strong>${escapeHtml(judgment.action)}</strong></div>
-          <div><span class="metric-label">Pourquoi maintenant</span><strong>${escapeHtml(judgment.why)}</strong></div>
         </div>
         <strong class="plan-balance-value ${getRiskClass(cycleBalanceDisplay)}">${formatCurrency(cycleBalanceDisplay)}</strong>
         <div class="plan-metric-row">
@@ -165,6 +187,8 @@ const buildPlanContent = (data) => {
         </div>
         ${hasEstimatedDates ? '<p class="plan-estimate-note">Estimation basée sur vos échéances actuelles.</p>' : ''}
       </section>
+
+      ${buildTodayActionCard(judgment)}
 
       <section class="plan-card">
         <div class="plan-card-header"><h3>À traiter maintenant</h3></div>
