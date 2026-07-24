@@ -547,12 +547,10 @@ function createAssistantCard() {
 }
 
 async function renderAssistantCard() {
-  const quickCoreHost = document.querySelector('#dashboard-quick-core-host')
   const corePanel = document.getElementById('nexora-core-panel')
-  if (quickCoreHost && corePanel && corePanel.parentElement !== quickCoreHost) {
-    quickCoreHost.appendChild(corePanel)
-    corePanel.classList.add('dashboard-core-embedded')
-    corePanel.setAttribute('aria-hidden', 'false')
+  if (corePanel) {
+    corePanel.classList.remove('dashboard-core-embedded')
+    corePanel.setAttribute('aria-hidden', 'true')
   }
 
   const preferredContainers = [

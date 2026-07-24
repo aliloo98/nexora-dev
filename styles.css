@@ -11056,6 +11056,161 @@ body .btn {
   border-radius: 10px;
 }
 
+.plan-decision-card {
+  grid-column: 1 / -1;
+}
+
+.plan-decision-body {
+  align-items: stretch;
+  display: grid;
+  gap: var(--nx-space-4, 16px);
+  grid-template-columns: minmax(0, 1.45fr) minmax(180px, 0.55fr);
+}
+
+.plan-decision-body > div:first-child {
+  display: grid;
+  gap: 8px;
+}
+
+.plan-decision-body strong {
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.plan-decision-body p {
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.plan-decision-metric {
+  align-content: center;
+  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid var(--nx-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--nx-radius-md, 14px);
+  display: grid;
+  gap: 6px;
+  padding: var(--nx-space-4, 16px);
+}
+
+.plan-decision-metric span,
+.plan-decision-metric em {
+  color: var(--text2);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.plan-decision-metric strong {
+  font-size: 28px;
+}
+
+.plan-step-list,
+.plan-task-list,
+.plan-advice-list {
+  display: grid;
+  gap: 10px;
+}
+
+.plan-step {
+  align-items: start;
+  border-bottom: 1px solid var(--nx-border, rgba(255, 255, 255, 0.08));
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 82px 24px minmax(0, 1fr);
+  padding: 0 0 10px;
+}
+
+.plan-step:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.plan-step > span {
+  color: var(--text2);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.plan-step > i {
+  align-items: center;
+  border: 1px solid var(--nx-border, rgba(255, 255, 255, 0.08));
+  border-radius: 999px;
+  color: var(--text2);
+  display: flex;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+  height: 22px;
+  justify-content: center;
+  width: 22px;
+}
+
+.plan-step.is-complete > i {
+  border-color: rgba(46, 204, 113, 0.36);
+  color: var(--green);
+}
+
+.plan-step strong,
+.plan-task strong,
+.plan-advice strong {
+  color: var(--text);
+  display: block;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.plan-step p,
+.plan-task span,
+.plan-advice span {
+  color: var(--text2);
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 4px 0 0;
+}
+
+.plan-task,
+.plan-advice {
+  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid var(--nx-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--nx-radius-sm, 10px);
+  padding: 10px 12px;
+}
+
+#section-dashboard #dashboard-quick-core-host {
+  display: none !important;
+  min-height: 0 !important;
+}
+
+#section-dashboard .dashboard-quick-metrics {
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+#section-dashboard .dashboard-quick-metrics .kpi-card,
+#section-dashboard .dashboard-quick-metrics .kpi-card:first-child {
+  background: rgba(255, 255, 255, 0.028);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 10px;
+  min-height: 62px;
+  padding: 8px 10px;
+}
+
+#section-dashboard .dashboard-quick-metrics .kpi-card:first-child {
+  padding-left: 10px;
+}
+
+#section-dashboard .dashboard-quick-metrics .kpi-sub {
+  display: block;
+}
+
+#section-dashboard .dashboard-quick-metrics .kpi-progress {
+  display: block;
+}
+
 @media(max-width: 640px) {
   #section-plan > .budget-block > .param-row {
     align-items: stretch !important;
@@ -11081,6 +11236,19 @@ body .btn {
   .plan-create-form {
     gap: 10px;
     padding: 14px;
+  }
+
+  .plan-decision-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .plan-step {
+    grid-template-columns: 72px 22px minmax(0, 1fr);
+  }
+
+  #section-dashboard .dashboard-quick-metrics .kpi-sub,
+  #section-dashboard .dashboard-quick-metrics .kpi-progress {
+    display: none;
   }
 }
 

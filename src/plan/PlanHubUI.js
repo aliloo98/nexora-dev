@@ -68,9 +68,14 @@ const demoPlanData = () => {
   return {
     timeline,
     endingBalance,
+    projectedEndOfCycle: endingBalance,
+    currentBalance: 940,
     baseBalance: 940,
     totalRevenue: 3000,
     totalCharges: 1165,
+    totalFixedCharges: 745,
+    totalVariableCharges: 420,
+    targetSavings: 300,
     toPayNow: [],
     goals: [{ id: 'demo_goal', name: 'Coussin de sécurité', target: 1500, current: 450, targetDate: '2026-09-30' }],
     debts: [{ id: 'demo_debt', name: 'Crédit voiture', initial: 2400, remaining: 1800, monthly: 180 }]
@@ -130,6 +135,215 @@ const buildTodayActionCard = (judgment) => {
   `
 }
 
+const buildPlanSteps = ({
+  totalRevenue = 0,
+  totalCharges = 0,
+  totalVariableCharges = 0,
+  cycleBalanceDisplay = 0,
+  targetSavings = 0,
+  toPayNow = []
+} = {}) => {
+  const savingsTarget = Math.max(0, Number(targetSavings) || 0)
+  const hasIncome = Number(totalRevenue) > 0
+  const hasCharges = Number(totalCharges) > 0
+  const hasVariables = Number(totalVariableCharges) > 0
+  const savingsReached = hasIncome && savingsTarget > 0 && Number(cycleBalanceDisplay) >= savingsTarget
+
+  return [
+    {
+      phase: 'Aujourd’hui',
+      title: 'Saisir le salaire',
+      detail: hasIncome
+        ? `${formatCurrency(totalRevenue)} de revenus pris en compte.`
+        : 'Ajoutez au moins un revenu fiable pour activer le jugement.',
+      complete: hasIncome
+    },
+    {
+      phase: 'Ensuite',
+      title: 'Vérifier les charges',
+      detail: hasCharges
+        ? `${formatCurrency(totalCharges)} de charges prévues${toPayNow.length ? `, ${toPayNow.length} à traiter maintenant` : ''}.`
+        : 'Ajoutez les charges fixes et les échéances du mois.',
+      complete: hasCharges
+    },
+    {
+      phase: 'Puis',
+      title: 'Prévoir les dépenses variables',
+      detail: hasVariables
+        ? `${formatCurrency(totalVariableCharges)} de dépenses variables suivies.`
+        : 'Renseignez les dépenses flexibles pour fiabiliser la projection.',
+      complete: hasVariables
+    },
+    {
+      phase: 'Enfin',
+      title: `Épargner ${formatCurrency(savingsTarget)}`,
+      detail: savingsReached
+        ? 'L’objectif d’épargne du mois est couvert par la projection.'
+        : hasIncome
+          ? `${formatCurrency(Math.max(0, savingsTarget - Number(cycleBalanceDisplay || 0)))} manquent pour couvrir l’objectif.`
+          : 'L’objectif sera calculé dès que les revenus seront saisis.',
+      complete: savingsReached
+    }
+  ]
+}
+
+const buildRecommendedTasks = ({ steps = [], toPayNow = [], judgment, goals = [], debts = [], targetSavings = 0, cycleBalanceDisplay = 0 } = {}) => {
+  const tasks = []
+  const nextStep = steps.find((step) => !step.complete)
+
+  if (nextStep) {
+    tasks.push({
+      title: nextStep.title,
+      detail: nextStep.detail
+    })
+  }
+
+  if (toPayNow.length) {
+    const amount = toPayNow.reduce((sum, item) => sum + Math.abs(Number(item.amount) || 0), 0)
+    tasks.push({
+      title: 'Traiter les paiements proches',
+      detail: `${toPayNow.length} paiement${toPayNow.length > 1 ? 's' : ''} à vérifier, pour ${formatCurrency(amount)}.`
+    })
+  }
+
+  if (judgment?.primaryProblem?.kind === 'variables') {
+    tasks.push({
+      title: 'Limiter les variables',
+      detail: 'Réduisez les dépenses flexibles avant de financer une nouvelle priorité.'
+    })
+  }
+
+  const primaryGoal = goals.find((goal) => goal?.isPrimary) || goals[0]
+  if (primaryGoal && Number(primaryGoal.target) > Number(primaryGoal.current)) {
+    tasks.push({
+      title: 'Faire avancer l’objectif principal',
+      detail: `${primaryGoal.name || 'Objectif'} : ${formatCurrency(Math.max(0, Number(primaryGoal.target) - Number(primaryGoal.current)))} restants.`
+    })
+  }
+
+  if (debts.some((debt) => Number(debt.remaining) > 0)) {
+    tasks.push({
+      title: 'Surveiller les dettes actives',
+      detail: 'Gardez la mensualité prévue avant toute allocation supplémentaire.'
+    })
+  }
+
+  if (Number(targetSavings) > 0 && Number(cycleBalanceDisplay) < Number(targetSavings)) {
+    tasks.push({
+      title: 'Protéger l’épargne du mois',
+      detail: `Objectif mensuel : ${formatCurrency(targetSavings)}.`
+    })
+  }
+
+  const seen = new Set()
+  return tasks.filter((task) => {
+    const key = task.title.toLowerCase()
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  }).slice(0, 4)
+}
+
+const buildNexoraAdvice = ({ judgment, timeline = [], cycleBalanceDisplay = 0, targetSavings = 0 } = {}) => {
+  const advice = [
+    {
+      title: 'Pourquoi maintenant',
+      detail: judgment?.why || 'Le plan se met à jour avec les données du mois.'
+    },
+    {
+      title: 'Impact attendu',
+      detail: judgment?.impact || 'La projection deviendra plus fiable avec les revenus et charges.'
+    }
+  ]
+
+  if (timeline.length) {
+    advice.push({
+      title: 'Lecture du mois',
+      detail: `${timeline.length} mouvement${timeline.length > 1 ? 's' : ''} alimentent la timeline de décision.`
+    })
+  } else {
+    advice.push({
+      title: 'Timeline',
+      detail: 'Ajoutez des échéances pour transformer le plan en calendrier d’action.'
+    })
+  }
+
+  if (Number(targetSavings) > 0) {
+    advice.push({
+      title: 'Épargne',
+      detail: Number(cycleBalanceDisplay) >= Number(targetSavings)
+        ? 'L’objectif mensuel est couvert : gardez la trajectoire.'
+        : 'Priorisez la marge avant d’augmenter les allocations.'
+    })
+  }
+
+  return advice.slice(0, 4)
+}
+
+const buildPlanDecisionHub = ({ judgment, steps, tasks, advice, cycleBalanceDisplay, targetSavings }) => {
+  const riskClass = cycleBalanceDisplay < 0 ? 'danger' : cycleBalanceDisplay < targetSavings ? 'warning' : 'success'
+
+  return `
+    <section class="plan-card plan-decision-card">
+      <div class="plan-card-header">
+        <h3>Priorité actuelle</h3>
+        <span class="plan-status-pill ${riskClass}">${riskClass === 'success' ? 'Sous contrôle' : riskClass === 'warning' ? 'À surveiller' : 'Risque'}</span>
+      </div>
+      <div class="plan-decision-body">
+        <div>
+          <strong>${escapeHtml(judgment?.action || 'Construire le plan du mois.')}</strong>
+          <p>${escapeHtml(judgment?.diagnostic || 'Le plan devient dynamique dès que les données du mois sont disponibles.')}</p>
+        </div>
+        <div class="plan-decision-metric">
+          <span>Solde projeté</span>
+          <strong class="${riskClass === 'danger' ? 'negative' : 'positive'}">${formatCurrency(cycleBalanceDisplay)}</strong>
+          <em>Objectif d’épargne : ${formatCurrency(targetSavings)}</em>
+        </div>
+      </div>
+    </section>
+
+    <section class="plan-card plan-steps-card">
+      <div class="plan-card-header"><h3>Prochaines étapes</h3></div>
+      <div class="plan-step-list" role="list">
+        ${steps.map((step) => `
+          <div class="plan-step ${step.complete ? 'is-complete' : 'is-pending'}" role="listitem">
+            <span>${escapeHtml(step.phase)}</span>
+            <i aria-hidden="true">${step.complete ? '✓' : '•'}</i>
+            <div>
+              <strong>${escapeHtml(step.title)}</strong>
+              <p>${escapeHtml(step.detail)}</p>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </section>
+
+    <section class="plan-card plan-tasks-card">
+      <div class="plan-card-header"><h3>Tâches recommandées</h3></div>
+      <div class="plan-task-list">
+        ${tasks.length ? tasks.map((task) => `
+          <div class="plan-task">
+            <strong>${escapeHtml(task.title)}</strong>
+            <span>${escapeHtml(task.detail)}</span>
+          </div>
+        `).join('') : '<div class="plan-empty-line">Aucune tâche prioritaire supplémentaire.</div>'}
+      </div>
+    </section>
+
+    <section class="plan-card plan-advice-card">
+      <div class="plan-card-header"><h3>Conseils Nexora</h3></div>
+      <div class="plan-advice-list">
+        ${advice.map((item) => `
+          <div class="plan-advice">
+            <strong>${escapeHtml(item.title)}</strong>
+            <span>${escapeHtml(item.detail)}</span>
+          </div>
+        `).join('')}
+      </div>
+    </section>
+  `
+}
+
 const buildPlanContent = (data) => {
   const {
     timeline = [],
@@ -139,6 +353,9 @@ const buildPlanContent = (data) => {
     baseBalance,
     totalRevenue,
     totalCharges,
+    totalFixedCharges = 0,
+    totalVariableCharges = 0,
+    targetSavings = 0,
     toPayNow,
     goals = [],
     debts = []
@@ -147,8 +364,8 @@ const buildPlanContent = (data) => {
   const currentBalanceDisplay = Number.isFinite(currentBalance) ? currentBalance : baseBalance
   const judgment = buildJudgmentEngine({
     income: Number(totalRevenue) || 0,
-    fixedExpenses: Math.max(0, Number(totalCharges) || 0),
-    variableExpenses: Math.max(0, Number(totalCharges) || 0),
+    fixedExpenses: Math.max(0, Number(totalFixedCharges) || Math.max(0, Number(totalCharges || 0) - Number(totalVariableCharges || 0))),
+    variableExpenses: Math.max(0, Number(totalVariableCharges) || 0),
     expenses: Number(totalCharges) || 0,
     projectedBalance: Number(cycleBalanceDisplay) || 0,
     currentBalance: Number(currentBalanceDisplay) || 0,
@@ -164,12 +381,32 @@ const buildPlanContent = (data) => {
   const upcomingRevenues = timeline.filter((item) => item.amount > 0 && important(item))
   const netFlow = totalRevenue - totalCharges
   const hasEstimatedDates = timeline.some((item) => item.dateEstimated)
+  const steps = buildPlanSteps({
+    totalRevenue,
+    totalCharges,
+    totalVariableCharges,
+    cycleBalanceDisplay,
+    targetSavings,
+    toPayNow
+  })
+  const tasks = buildRecommendedTasks({
+    steps,
+    toPayNow,
+    judgment,
+    goals,
+    debts,
+    targetSavings,
+    cycleBalanceDisplay
+  })
+  const advice = buildNexoraAdvice({ judgment, timeline, cycleBalanceDisplay, targetSavings })
 
   const getRiskClass = (bal) => bal < 0 ? 'danger' : bal === 0 ? 'warning' : 'success'
   const getBalanceLabel = (bal) => bal > 0 ? 'Positif' : bal === 0 ? 'Neutre' : 'Négatif'
 
   return `
     <div class="plan-hub-grid">
+      ${buildPlanDecisionHub({ judgment, steps, tasks, advice, cycleBalanceDisplay, targetSavings })}
+
       <section class="plan-card plan-balance-card">
         <div class="plan-card-header">
           <h3>Solde du mois</h3>
@@ -528,7 +765,20 @@ const buildPlanData = async () => {
       : window.getMonthMetrics(monthKey, { fromDom: true }))
     : { income: Math.max(scheduledRevenue, budgetRevenue), expenses: totalCharges, paidExpenses: 0 }
   const totalRevenue = Number(monthMetrics?.income) || 0
+  const totalFixedCharges = Number(monthMetrics?.fixed) || Math.max(0, totalCharges - (Number(monthMetrics?.variable) || 0))
+  const totalVariableCharges = Number(monthMetrics?.variable) || 0
   const cycleBalances = computeCycleBalancesFromMetrics(monthMetrics)
+  const targetFromBudget = typeof window.getVal === 'function'
+    ? Number(window.getVal('target_epargne') || 0)
+    : Number(parseAmount(document.querySelector('[data-key="target_epargne"]')?.value || 0) || 0)
+  const monthlyGoalContribution = Number(parseAmount(document.getElementById('goal-monthly-contrib')?.value || 0) || 0)
+  const targetSavings = targetFromBudget > 0
+    ? targetFromBudget
+    : monthlyGoalContribution > 0
+      ? monthlyGoalContribution
+      : totalRevenue > 0
+        ? Math.round(totalRevenue * 0.1)
+        : 0
 
   return {
     timeline,
@@ -538,6 +788,10 @@ const buildPlanData = async () => {
     baseBalance: cycleBalances.currentBalance,
     totalRevenue,
     totalCharges,
+    totalFixedCharges,
+    totalVariableCharges,
+    paidExpenses: Number(monthMetrics?.paidExpenses) || 0,
+    targetSavings,
     toPayNow,
     goals,
     debts: await readDebts()

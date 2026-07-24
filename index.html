@@ -388,7 +388,6 @@ body.auth-locked > #nexora-status-bar {
               <strong>Indicateurs secondaires</strong>
             </div>
           </div>
-          <div class="dashboard-quick-core-host" id="dashboard-quick-core-host"></div>
           <div class="dashboard-quick-metrics">
             <div class="kpi-card" id="card-revenus">
               <div class="kpi-label">Revenus</div>
@@ -4623,11 +4622,7 @@ function updateDashboardSynthesisHero(metrics = {}) {
   if (coreMissionDetailEl) coreMissionDetailEl.textContent = actionDetail || 'Ouvre le plan pour voir les prochaines étapes.';
   if (corePrimaryCta) corePrimaryCta.textContent = actionTitle || 'Voir le plan d’action';
   if (corePanel) corePanel.dataset.state = state;
-  primaryBtn.onclick = () => {
-    const coachAction = document.getElementById('dashboard-coach-action');
-    if (coachAction) coachAction.click();
-    else showSection('plan');
-  };
+  primaryBtn.onclick = () => showSection('plan');
 }
 
 function updateMonthForecast(metrics = {}) {

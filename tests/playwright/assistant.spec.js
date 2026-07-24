@@ -41,15 +41,16 @@ test.describe('Dashboard visual hierarchy', () => {
     });
   });
 
-  test('keeps Nexora Core compact inside Quick View', async ({ page }) => {
-    const assertCoreIsSecondary = async (width) => {
+  test('keeps Quick View focused on secondary indicators', async ({ page }) => {
+    const assertQuickViewIsIndicatorsOnly = async (width) => {
       await page.setViewportSize({ width, height: 844 });
       await page.goto('http://127.0.0.1:5180/#section-dashboard');
-      await page.waitForSelector('#dashboard-quick-core-host #nexora-core-panel', {
+      await page.waitForSelector('.dashboard-primary-kpis', { state: 'visible', timeout: 20000 });
+      await page.locator('#dashboard-quick-view').scrollIntoViewIfNeeded();
+      await page.waitForSelector('#dashboard-quick-view .dashboard-quick-metrics .kpi-card', {
         state: 'visible',
         timeout: 20000
       });
-      await page.waitForSelector('.dashboard-primary-kpis', { state: 'visible', timeout: 20000 });
 
       const layout = await page.evaluate(() => {
         const rect = (selector) => {
@@ -63,21 +64,25 @@ test.describe('Dashboard visual hierarchy', () => {
           core: rect('#nexora-core-panel'),
           coreDisplay: core ? getComputedStyle(core).display : null,
           coreInsideQuickView: Boolean(core && quickView?.contains(core)),
+          coreHostExists: Boolean(document.querySelector('#dashboard-quick-core-host')),
+          quickMetricCount: document.querySelectorAll('#dashboard-quick-view .dashboard-quick-metrics .kpi-card').length,
+          quickMetrics: rect('#dashboard-quick-view .dashboard-quick-metrics'),
           hero: rect('#dashboard-synthesis-hero'),
           primaryKpis: rect('.dashboard-primary-kpis')
         };
       });
 
-      expect(layout.coreDisplay).toBe('block');
-      expect(layout.coreInsideQuickView).toBe(true);
-      expect(layout.core.width).toBeGreaterThan(0);
-      expect(layout.core.height).toBeGreaterThan(0);
-      expect(layout.core.height).toBeLessThanOrEqual(70);
+      expect(layout.coreDisplay).toBe('none');
+      expect(layout.coreInsideQuickView).toBe(false);
+      expect(layout.coreHostExists).toBe(false);
+      expect(layout.quickMetricCount).toBe(4);
+      expect(layout.quickMetrics.width).toBeGreaterThan(0);
+      expect(layout.quickMetrics.height).toBeGreaterThan(0);
       expect(layout.hero.bottom).toBeLessThan(layout.primaryKpis.top);
     };
 
-    await assertCoreIsSecondary(375);
-    await assertCoreIsSecondary(390);
+    await assertQuickViewIsIndicatorsOnly(375);
+    await assertQuickViewIsIndicatorsOnly(390);
   });
 
   test('keeps judgment, action and indicators compact and ordered', async ({ page }) => {
@@ -105,10 +110,6 @@ test.describe('Dashboard visual hierarchy', () => {
       );
     }, { timeout: 20000 });
 
-    await page.waitForSelector('#dashboard-quick-core-host #nexora-core-panel', {
-      state: 'visible',
-      timeout: 20000
-    });
     await page.waitForSelector('#dashboard-coach-card', { state: 'visible', timeout: 20000 });
     await page.waitForSelector('#dashboard-alerts-card', { state: 'visible', timeout: 20000 });
     await page.waitForSelector('.dashboard-secondary-kpis', { state: 'visible', timeout: 20000 });
@@ -133,9 +134,11 @@ test.describe('Dashboard visual hierarchy', () => {
         hero: rect('#dashboard-synthesis-hero'),
         primaryKpis: rect('.dashboard-primary-kpis'),
         core: rect('#nexora-core-panel'),
-        coreDisplay: getComputedStyle(core).display,
+        coreDisplay: core ? getComputedStyle(core).display : null,
         coreInsideIndicators: Boolean(core && indicators?.contains(core)),
+        coreHostExists: Boolean(document.querySelector('#dashboard-quick-core-host')),
         assistantInsideIndicators: Boolean(assistant && indicators?.contains(assistant)),
+        quickMetricCount: document.querySelectorAll('#dashboard-quick-view .dashboard-quick-metrics .kpi-card').length,
         coach: rect('#dashboard-coach-card'),
         alerts: rect('#dashboard-alerts-card'),
         indicators: rect('.dashboard-secondary-kpis'),
@@ -148,11 +151,11 @@ test.describe('Dashboard visual hierarchy', () => {
 
     expect(metrics.overflowX).toBeFalsy();
     expect(metrics.header.height).toBeLessThanOrEqual(70);
-    expect(metrics.coreDisplay).toBe('block');
-    expect(metrics.coreInsideIndicators).toBe(true);
+    expect(metrics.coreDisplay).toBe('none');
+    expect(metrics.coreInsideIndicators).toBe(false);
+    expect(metrics.coreHostExists).toBe(false);
     expect(metrics.assistantInsideIndicators).toBe(true);
-    expect(metrics.core.height).toBeGreaterThan(0);
-    expect(metrics.core.height).toBeLessThanOrEqual(70);
+    expect(metrics.quickMetricCount).toBe(4);
     expect(metrics.hero.bottom).toBeLessThan(metrics.primaryKpis.top);
     expect(metrics.primaryKpis.bottom).toBeLessThan(metrics.coach.top);
     expect(metrics.coach.bottom).toBeLessThan(metrics.indicators.top);
@@ -165,10 +168,6 @@ test.describe('Dashboard visual hierarchy', () => {
     expect(coachActionVisible || emptyActionVisible).toBe(true);
     expect(Number(coachActionVisible) + Number(emptyActionVisible)).toBe(1);
 
-    const coreAction = page.locator('#dashboard-quick-core-host #nexora-core-primary-cta');
-    await expect(coreAction).toHaveCount(1);
-    await expect(coreAction).toBeVisible();
-
     const dashboardActionSelector = coachActionVisible ? '#dashboard-coach-action' : '#dashboard-empty-action';
     const dashboardAction = page.locator(dashboardActionSelector);
     await expect(dashboardAction).toBeVisible({ timeout: 15000 });
@@ -176,6 +175,13 @@ test.describe('Dashboard visual hierarchy', () => {
     await expect.poll(async () => dashboardAction.evaluate((node) => document.activeElement === node)).toBe(true);
     const dashboardOutlineWidth = await dashboardAction.evaluate((node) => parseFloat(getComputedStyle(node).outlineWidth));
     expect(dashboardOutlineWidth).toBeGreaterThanOrEqual(2);
+
+    const heroAction = page.locator('#dashboard-synthesis-primary');
+    await expect(heroAction).toBeVisible();
+    await heroAction.click();
+    await expect(page.locator('#section-plan')).toHaveClass(/active/);
+    await expect(page.locator('#plan-root .plan-decision-card')).toBeVisible({ timeout: 20000 });
+    await expect(page.locator('#plan-root .plan-step')).toHaveCount(4);
   });
 });
 

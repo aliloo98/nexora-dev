@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "cycles": [],
-    "internalDependencies": 155,
+    "internalDependencies": 154,
     "modulesWithMostIncomingDependencies": [
       {
         "count": 13,
@@ -79,11 +79,11 @@
       },
       {
         "count": 4,
-        "name": "src/components/DashboardMaster.js"
+        "name": "src/settings/settingsService.js"
       },
       {
         "count": 4,
-        "name": "src/settings/settingsService.js"
+        "name": "src/settings/SettingsUI.js"
       }
     ],
     "modulesWithoutIncomingImports": [
@@ -97,6 +97,7 @@
       "src/couple/coupleGoalService.js",
       "src/couple/coupleNotificationService.js",
       "src/couple/coupleShareService.js",
+      "src/dashboard/dashboardService.js",
       "src/debt/debtPlanner.js",
       "src/main.js",
       "src/plan/PlanHubUI.js"
@@ -111,13 +112,13 @@
     "playwrightCaseCount": 7
   },
   "production": {
-    "averageLinesPerFile": 224,
+    "averageLinesPerFile": 228.49,
     "consoleDebug": 0,
     "consoleError": 73,
     "consoleInfo": 11,
     "consoleLog": 27,
     "consoleWarn": 70,
-    "documentRefs": 186,
+    "documentRefs": 189,
     "files": [
       "js/budgetCategoriesService.js",
       "js/logo-manager.js",
@@ -199,12 +200,17 @@
     "filesOver1000Lines": [],
     "filesOver700Lines": [
       "js/transactionsService.js",
-      "src/components/AssistantCard.js"
+      "src/components/AssistantCard.js",
+      "src/plan/PlanHubUI.js"
     ],
     "largestFiles": [
       {
         "file": "src/components/AssistantCard.js",
-        "lines": 929
+        "lines": 970
+      },
+      {
+        "file": "src/plan/PlanHubUI.js",
+        "lines": 825
       },
       {
         "file": "js/transactionsService.js",
@@ -224,7 +230,7 @@
       },
       {
         "file": "src/main.js",
-        "lines": 638
+        "lines": 646
       },
       {
         "file": "src/ui/nexoraCore.js",
@@ -237,10 +243,6 @@
       {
         "file": "js/monthlyBudgetStateService.js",
         "lines": 557
-      },
-      {
-        "file": "src/plan/PlanHubUI.js",
-        "lines": 547
       },
       {
         "file": "src/couple/coupleService.js",
@@ -268,7 +270,7 @@
       },
       {
         "file": "src/ui/gsapMotion.js",
-        "lines": 350
+        "lines": 351
       },
       {
         "file": "src/advisor/AdvisorUI.js",
@@ -283,13 +285,13 @@
         "lines": 336
       }
     ],
-    "lineCount": 17024,
+    "lineCount": 17365,
     "localStorageRefs": 23,
     "medianLinesPerFile": 135.5,
     "staticExports": 198,
-    "staticImports": 180,
+    "staticImports": 178,
     "todoFixmeCount": 0,
-    "windowAssignments": 105,
+    "windowAssignments": 106,
     "windowRefs": 307
   },
   "tests": {
