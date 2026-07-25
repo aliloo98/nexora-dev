@@ -67,6 +67,10 @@ import { escapeHtml } from './utils/htmlEscape.js'
 import { installLegacyBridge } from './legacy/legacyBridge.js'
 import { createCoupleController } from './couple/coupleController.js'
 
+// Import bootstrap modules
+import { bootstrapApplication } from './bootstrap/appBootstrap.js'
+import { createAmountInputHandlers } from './ui/amountInputHandlers.js'
+
 // Expose core modules globally for HTML event handlers and old code
 // These are simple module exposures that can be safely moved to the bridge
 installLegacyBridge({
@@ -212,6 +216,21 @@ const injectAuthStyles = () => {
   document.head.appendChild(styleElement)
 }
 
+/**
+ * Inject Couple UI Styles
+ * Called during app initialization
+ */
+const injectCoupleStyles = () => {
+  try {
+    const styleElement = document.createElement('style')
+    styleElement.id = 'nexora-couple-styles'
+    styleElement.textContent = CoupleUIComponent.getCoupleCSS()
+    document.head.appendChild(styleElement)
+  } catch (err) {
+    console.warn('⚠️ Couple UI styles injection failed', err)
+  }
+}
+
 const initializeLegacyUiForAuthState = async (state = AuthContext.getState()) => {
   if (!state?.isAuthenticated || !state?.user) return null
   if (typeof window.initLegacyBudgetUi !== 'function') return null
@@ -236,222 +255,69 @@ const waitForAuthenticatedState = () => {
  */
 const initApp = async () => {
   try {
-    // Initialize storage
-    await StorageManager.initIndexedDB()
-
-    // Initialize theme
-    await ThemeManager.init()
-
-    // Initialize logo
-    await LogoManager.init()
-
-    // Inject auth styles
-    injectAuthStyles()
-
-    // Inject couple UI styles so partner page is styled when activated
-    try {
-      const styleElement = document.createElement('style')
-      styleElement.id = 'nexora-couple-styles'
-      styleElement.textContent = CoupleUIComponent.getCoupleCSS()
-      document.head.appendChild(styleElement)
-    } catch (err) {
-      console.warn('⚠️ Couple UI styles injection failed', err)
-    }
-
-    // Initialize authentication routing (handles login/register/dashboard)
-    await initAuthRouting()
-    const authenticatedState = await waitForAuthenticatedState()
-
-    // User-scoped services must never hydrate before the owner is known.
-    await NotificationsService.init()
-    await MonthlyBudgetStateService.init()
-
-    // Keep the connection check for early failure visibility without blocking offline usage.
-    if (navigator.onLine !== false) {
-      await testSupabaseConnection()
-    } else {
-      console.info('📴 Supabase connection check skipped while offline')
-    }
-
-    await initializeLegacyUiForAuthState(authenticatedState)
-    await window.updateCoupleNavigation()
-    AuthContext.subscribe(() => {
-      if (typeof window.updateCoupleNavigation === 'function') {
-        window.updateCoupleNavigation().catch((err) => {
-          console.warn('[Couple] update navigation failed', err)
-        })
-      }
+    // Create amount input handlers factory
+    const attachAmountInputHandlers = createAmountInputHandlers({
+      documentRef: document,
+      parseFinancialExpression,
+      formatCurrency: (v) => Utils.formatCurrency(v),
+      showToast: (msg) => Utils.showToast(msg),
+      clipboardDataRef: window.clipboardData
     })
 
-    // Hydrate goals before the first render so cloud-only goals appear on a fresh device.
-    if (typeof UserAppSettingsService !== 'undefined' && UserAppSettingsService?.syncCloudSettingToLocal) {
-      try {
-        await UserAppSettingsService.syncCloudSettingToLocal(STORAGE_KEYS.goals)
-      } catch (e) {
-        console.warn('⚠️ Goals cloud hydration failed', e)
-      }
-    }
+    // Expose for manual re-attachment
+    window.attachAmountInputHandlers = attachAmountInputHandlers
 
-    // Initialize Goals premium section (separate layer)
-    if (typeof GoalsPage !== 'undefined' && GoalsPage && typeof GoalsPage.init === 'function') {
-      await GoalsPage.init()
-    }
+    // Run bootstrap with all dependencies
+    await bootstrapApplication({
+      // Pre-auth dependencies
+      StorageManager,
+      ThemeManager,
+      LogoManager,
+      injectAuthStyles,
+      injectCoupleStyles,
+      documentRef: document,
+      initAuthRouting,
+      waitForAuthenticatedState,
 
-    if (typeof renderSettingsPanels === 'function') {
-      await renderSettingsPanels()
-    }
-    renderAboutPanel('nexora-about-panel')
-    injectNexoraStatusBar()
+      // Authenticated services dependencies
+      NotificationsService,
+      MonthlyBudgetStateService,
+      testSupabaseConnection,
+      initializeLegacyUiForAuthState,
+      updateCoupleNavigation: window.updateCoupleNavigation,
+      AuthContext,
+      navigatorRef: navigator,
 
-    window.NexoraMotion?.bindButtonFeedback?.(document)
-    window.NexoraMotion?.animateNavigation?.(document.querySelector('.sidebar .nav-btn.active'))
-    const runScrollReveal = () => window.NexoraMotion?.initScrollReveal?.(document)
-    if (typeof requestIdleCallback === 'function') requestIdleCallback(runScrollReveal, { timeout: 2400 })
-    else setTimeout(runScrollReveal, 400)
+      // User data dependencies
+      UserAppSettingsService,
+      STORAGE_KEYS,
+      recordLastSync,
+      SyncDiagnostics,
+      refreshAboutPanel,
+      refreshNexoraStatusBar,
 
-    if (typeof window.updateCoupleNavigation === 'function') {
-      await window.updateCoupleNavigation()
-    }
+      // UI dependencies
+      GoalsPage,
+      renderSettingsPanels,
+      renderAboutPanel,
+      injectNexoraStatusBar,
+      NexoraMotion,
+      renderCoupleSection: window.renderCoupleSection,
+      renderAssistantCard,
+      renderTreasuryTimeline,
+      renderDashboardMaster,
+      refreshDashboardCoach: window.refreshDashboardCoach,
 
-    if (typeof window.renderCoupleSection === 'function') {
-      await window.renderCoupleSection()
-    }
+      // Event handlers dependencies
+      parseFinancialExpression,
+      formatCurrency: (v) => Utils.formatCurrency(v),
+      showToast: (msg) => Utils.showToast(msg),
+      clipboardDataRef: window.clipboardData
+    })
 
-    // Sync user app settings from cloud/local where applicable
-    if (typeof UserAppSettingsService !== 'undefined' && UserAppSettingsService && typeof UserAppSettingsService.syncAllAppSettings === 'function') {
-      try {
-        const syncResults = await UserAppSettingsService.syncAllAppSettings()
-        recordLastSync({ action: 'bootstrap', keys: Object.keys(syncResults || {}) })
-        SyncDiagnostics.logSyncEvent('bootstrap', 'syncAllAppSettings', { ok: true, keys: Object.keys(syncResults || {}) })
-        refreshAboutPanel()
-        refreshNexoraStatusBar()
-      } catch (e) {
-        console.warn('⚠️ User app settings sync failed', e)
-        SyncDiagnostics.logSyncEvent('bootstrap', 'syncAllAppSettings', { ok: false, error: e?.message })
-      }
-    }
-
-    // Attach amount input handlers to sanitize user input (prevent letters, support French formats)
-    const attachAmountInputHandlers = () => {
-        const sanitize = (v) => String(v ?? '')
-          .replace(/\u202F/g, ' ')
-          .replace(/\u00A0/g, ' ')
-          .replace(/\,+/g, ',')
-          .trim()
-
-        const isAmountInput = (input) => {
-          if (!input || input.classList.contains('note-input')) return false
-          if (input.type === 'date' || input.type === 'color') return false
-          if (input.dataset?.key) return true
-          if (input.type === 'number') return true
-          if (input.classList.contains('plan-goal-input')) return true
-          if (input.classList.contains('plan-debt-input')) return true
-          if (input.classList.contains('plan-debt-payment')) return true
-          if (input.classList.contains('recurring-income-input') && input.dataset?.key === 'amount') return true
-          if (input.classList.contains('bill-schedule-input') && input.dataset?.key === 'amount') return true
-          return [
-            'goal-monthly-contrib',
-            'goal-new-target',
-            'goal-new-current',
-            'notification-expense-threshold',
-            'budget-cycle-start-day',
-            'budget-cycle-end-day'
-          ].includes(input.id)
-        }
-
-        const inputs = document.querySelectorAll('.budget-input')
-        inputs.forEach(input => {
-          if (!isAmountInput(input)) return
-          if (input.__amountHandlerAttached) return
-          input.__amountHandlerAttached = true
-
-          input.addEventListener('focus', () => {
-            const raw = sanitize(input.value)
-            if (raw && parseFinancialExpression(raw, { fallback: null }) !== null) {
-              input.dataset.lastValidValue = input.value
-            }
-          })
-
-          input.addEventListener('input', () => {
-            const raw = sanitize(input.value)
-            const parsed = parseFinancialExpression(raw, { fallback: null })
-            if (raw && parsed === null) {
-              input.classList.add('input-error')
-            } else {
-              input.classList.remove('input-error')
-            }
-          })
-
-          input.addEventListener('paste', (e) => {
-            e.preventDefault()
-            const text = (e.clipboardData || window.clipboardData).getData('text') || ''
-            const cleaned = sanitize(text)
-            document.execCommand('insertText', false, cleaned)
-          })
-
-          input.addEventListener('blur', () => {
-            const raw = sanitize(input.value)
-            if (!raw) {
-              input.classList.remove('input-error')
-              return
-            }
-            const numeric = parseFinancialExpression(raw, { fallback: null })
-            if (numeric === null) {
-              input.classList.add('input-error')
-              window.showToast?.('Expression financière invalide : rien n’a été enregistré')
-              if (Object.prototype.hasOwnProperty.call(input.dataset, 'lastValidValue')) {
-                input.value = input.dataset.lastValidValue
-              }
-              return
-            }
-            input.classList.remove('input-error')
-            const formatted = typeof window.Utils?.formatCurrency === 'function'
-              ? window.Utils.formatCurrency(numeric)
-              : String(numeric)
-            input.value = formatted
-            input.dataset.lastValidValue = formatted
-          })
-        })
-      }
-
-      // Run once after init and also expose for manual re-attachment
-      if (typeof document !== 'undefined') {
-        attachAmountInputHandlers()
-        window.attachAmountInputHandlers = attachAmountInputHandlers
-      }
-    // Render Assistant Nexora card (rules-based, local-only)
-    try {
-      if (typeof renderAssistantCard === 'function') await renderAssistantCard()
-    } catch (e) {
-      console.warn('[Assistant] render failed', e)
-    }
-
-    // Render treasury timeline if container exists (lightweight)
-    try {
-      if (typeof renderTreasuryTimeline === 'function' && document.getElementById('treasury-timeline-root')) {
-        // Minimal example: build a 14-day timeline from sample data (real app will pass real data)
-        const sampleRevenues = [{ amount: 1700, frequency: 'monthly', day: 5 }]
-        const sampleCharges = [{ amount: 65, date: '2026-05-29', title: 'Internet', priority: 'importante' }, { amount: 850, date: 2, title: 'Loyer', priority: 'critique' }]
-        const TreasuryService = (await import('./treasury/treasuryService.js')).default
-        const { timeline } = TreasuryService.buildTimeline({ baseBalance: 2085, revenues: sampleRevenues, charges: sampleCharges, fromDate: new Date('2026-05-28'), days: 14 })
-        renderTreasuryTimeline('treasury-timeline-root', timeline)
-        window.NexoraMotion?.animateTimeline?.(document.getElementById('treasury-timeline-root'))
-      }
-      // Render Dashboard Master component if present
-      if (
-        typeof renderDashboardMaster === 'function'
-        && document.getElementById('dashboard-master-root')
-        && !document.querySelector('#dashboard-master-root .dashboard-coach-content')
-      ) {
-        await window.refreshDashboardCoach()
-      }
-      if (document.getElementById('advisor-root')) {
-        const { renderAdvisorUI } = await import('./advisor/AdvisorUI.js')
-        const AdvisorService = (await import('./advisor/advisorService.js')).default
-        renderAdvisorUI('advisor-root', AdvisorService)
-      }
-    } catch (err) {
-      console.warn('[Treasury] render failed', err)
+    // Attach handlers after bootstrap
+    if (typeof document !== 'undefined') {
+      attachAmountInputHandlers()
     }
   } catch (err) {
     console.error('❌ App initialization error:', err)
