@@ -10,7 +10,7 @@
 
 import AuthContext from '../auth/authContext.js'
 import AuthPages from '../pages/AuthPages.js'
-import { showToast } from '../../js/utils.js'
+import { showToast, customConfirm } from '../../js/utils.js'
 
 let hasDocumentClickListener = false
 
@@ -128,7 +128,7 @@ export const attachUserMenuListeners = () => {
       e.preventDefault()
 
       // Show confirmation
-      window.customConfirm(
+      customConfirm(
         'Déconnexion',
         'Êtes-vous sûr de vouloir vous déconnecter?',
         async () => {
