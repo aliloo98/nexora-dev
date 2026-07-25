@@ -2,6 +2,7 @@ import { SettingsService } from './settingsService.js'
 import { CoupleService } from '../couple/coupleService.js'
 import AuthContext from '../auth/authContext.js'
 import { createActiveCoupleModeCard, createBillScheduleCard, createRecurringIncomeCard } from './settingsMarkup.js'
+import { showToast } from '../../js/utils.js'
 
 const formatCurrency = (value) => {
   const amount = Number(value) || 0
@@ -14,7 +15,7 @@ const readInputValue = (event) => {
   const amount = SettingsService.parseAmountStrict(event.target.value)
   if (amount === null) {
     event.target.classList.add('input-error')
-    window.showToast?.('Expression financière invalide : rien n’a été enregistré')
+    showToast('Expression financière invalide : rien n’a été enregistré')
     return null
   }
   event.target.classList.remove('input-error')
@@ -124,7 +125,7 @@ export async function renderCoupleModeSettings() {
 
     root.querySelector('#copy-invite-code-btn')?.addEventListener('click', async () => {
       await navigator.clipboard?.writeText?.(invitationCode).catch(() => {})
-      window.showToast('Code d’invitation copié')
+      showToast('Code d’invitation copié')
     })
     root.querySelector('#open-couple-page-btn')?.addEventListener('click', () => {
       window.showSection?.('couple')
@@ -137,7 +138,7 @@ export async function renderCoupleModeSettings() {
       if (typeof window.updateCoupleNavigation === 'function') {
         await window.updateCoupleNavigation()
       }
-      window.showToast('Mode couple désactivé')
+      showToast('Mode couple désactivé')
     })
     root.querySelector('#dissolve-couple-btn')?.addEventListener('click', async () => {
       const ok = window.confirm('Dissoudre le foyer ? Les données privées resteront intactes.')
@@ -147,7 +148,7 @@ export async function renderCoupleModeSettings() {
       if (typeof window.updateCoupleNavigation === 'function') {
         await window.updateCoupleNavigation()
       }
-      window.showToast('Foyer dissous localement')
+      showToast('Foyer dissous localement')
     })
     return
   }
@@ -178,13 +179,13 @@ export async function renderCoupleModeSettings() {
     if (typeof window.updateCoupleNavigation === 'function') {
       await window.updateCoupleNavigation()
     }
-    window.showToast('Mode couple activé')
+    showToast('Mode couple activé')
   })
 
   root.querySelector('#join-household-btn')?.addEventListener('click', async () => {
     const code = document.getElementById('couple-join-code')?.value?.trim()
     if (!code) {
-      window.showToast('Entre un code d’invitation')
+      showToast('Entre un code d’invitation')
       return
     }
     CoupleService.joinLocalHousehold(code)
@@ -192,6 +193,6 @@ export async function renderCoupleModeSettings() {
     if (typeof window.updateCoupleNavigation === 'function') {
       await window.updateCoupleNavigation()
     }
-    window.showToast('Foyer rejoint localement')
+    showToast('Foyer rejoint localement')
   })
 }

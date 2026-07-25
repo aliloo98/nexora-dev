@@ -10,6 +10,7 @@
 
 import AuthContext from '../auth/authContext.js'
 import AuthPages from '../pages/AuthPages.js'
+import { showToast } from '../../js/utils.js'
 
 let hasDocumentClickListener = false
 
@@ -136,11 +137,11 @@ export const attachUserMenuListeners = () => {
             const { error } = await AuthContext.signOut()
 
             if (error) {
-              window.showToast('❌ Erreur de déconnexion')
+              showToast('❌ Erreur de déconnexion')
               return
             }
 
-            window.showToast('✅ Vous avez été déconnecté')
+            showToast('✅ Vous avez été déconnecté')
 
             // Redirect to login
             setTimeout(() => {
@@ -149,7 +150,7 @@ export const attachUserMenuListeners = () => {
             }, 800)
           } catch (error) {
             console.error('Logout error:', error)
-            window.showToast('❌ Erreur')
+            showToast('❌ Erreur')
           }
         }
       )

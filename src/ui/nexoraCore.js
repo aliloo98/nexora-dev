@@ -3,6 +3,7 @@
  */
 
 import { gsap } from 'gsap'
+import { showToast } from '../../js/utils.js'
 
 const prefersReducedMotion = () => {
   if (typeof window === 'undefined' || !window.matchMedia) return true
@@ -604,7 +605,7 @@ export function openNexoraCoreAction() {
     window.showSection(target)
     return
   }
-  window.showToast?.('Ouvre le plan financier pour la prochaine action.')
+  showToast('Ouvre le plan financier pour la prochaine action.')
 }
 
 export function teardownNexoraCoreMotion() {

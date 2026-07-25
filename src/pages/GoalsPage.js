@@ -6,6 +6,7 @@ import { parseFinancialExpression } from '../finance/financialExpression.js'
 import { filterUserFacingRecords } from '../utils/userFacingFilter.js'
 import { escapeHtml } from '../utils/htmlEscape.js'
 import { buildJudgmentEngine } from '../assistant/judgmentEngine.js'
+import { showToast } from '../../js/utils.js'
 
 const GOALS_STORAGE_KEY = STORAGE_KEYS.goals
 
@@ -62,14 +63,14 @@ const GoalsPage = {
     const target = readGoalNumber(GoalsPage.form.target.value, null)
     const current = readGoalNumber(GoalsPage.form.current.value, null)
     if (target === null || current === null) {
-      window.showToast('Expression financière invalide')
+      showToast('Expression financière invalide')
       return
     }
     const date = GoalsPage.form.date.value || null
     const color = GoalsPage.form.color.value || '#e5c060'
     const icon = GoalsPage.form.icon.value || '🎯'
     if (!name || target <= 0) {
-      window.showToast('Nom et montant cible obligatoires')
+      showToast('Nom et montant cible obligatoires')
       return
     }
     await GoalsService.createGoal({ name, target, current, targetDate: date, color, icon })
@@ -135,7 +136,7 @@ const GoalsPage = {
     const newTarget = readGoalNumber(targetValue, null)
     const newCurrent = readGoalNumber(currentValue, null)
     if (newTarget === null || newCurrent === null) {
-      window.showToast('Expression financière invalide')
+      showToast('Expression financière invalide')
       return
     }
     await GoalsService.updateGoal(goal.id, { name: newName, target: newTarget, current: newCurrent, targetDate: normalizeGoalDate(targetDateValue) })
@@ -169,7 +170,7 @@ const GoalsPage = {
       if (!ok) return
     }
     await GoalsService.setPrimaryGoal(goal.id)
-    window.showToast?.('🎯 Objectif principal mis à jour')
+    showToast('🎯 Objectif principal mis à jour')
     await GoalsPage.render()
     await GoalsPage.renderAnalytics()
     if (typeof window.updateDashboardPrimaryGoal === 'function') {
