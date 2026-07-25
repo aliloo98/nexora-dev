@@ -129,4 +129,4 @@ const closeModal = () => Utils.closeModal();
 const customConfirm = (title, message, onConfirm) => Utils.customConfirm(title, message, onConfirm);
 const triggerConfetti = () => ConfettiEngine.trigger();
 
-export { Utils, ConfettiEngine };
+export { Utils, ConfettiEngine, showToast, closeModal, customConfirm, triggerConfetti };
