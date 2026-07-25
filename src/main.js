@@ -64,54 +64,65 @@ import SyncDiagnostics from './sync/syncDiagnostics.js'
 import { readSyncedArray } from '../js/syncedSettingAccess.js'
 import { filterUserFacingRecords } from './utils/userFacingFilter.js'
 import { escapeHtml } from './utils/htmlEscape.js'
+import { installLegacyBridge } from './legacy/legacyBridge.js'
 
-// Expose modules globally for HTML event handlers and old code
-window.StorageManager = StorageManager
-window.Utils = Utils
-window.ConfettiEngine = ConfettiEngine
-window.ThemeManager = ThemeManager
-window.LogoManager = LogoManager
-window.NexoraPdfExport = NexoraPdfExport
-window.NotificationsService = NotificationsService
-window.NexoraAiSettingsService = { readAiSettings, updateAiSettings }
-window.NexoraMotion = NexoraMotion
-window.NexoraRecurringResolver = NexoraRecurringResolver
-window.NexoraCore = NexoraCore
-window.NexoraSections = NexoraSections
-window.toggleAvailableMoneyOptions = toggleAvailableMoneyOptions
-window.NexoraDashboardGuidance = { buildDashboardGuidance }
-window.renderBudgetCoach = renderBudgetCoach
-window.buildBudgetCoachState = buildBudgetCoachState
-window.buildJudgmentEngine = buildJudgmentEngine
-window.NexoraBuild = { version: APP_VERSION, label: formatBuildLabel }
-window.getUserDisplayName = (user) => getUserDisplayName(user || AuthContext.getCurrentUser())
-window.NexoraSyncDiagnostics = SyncDiagnostics
-window.readSyncedArray = readSyncedArray
-window.parseFinancialExpression = parseFinancialExpression
-window.NexoraCycleBalance = { computeCycleBalances, computeCycleBalancesFromMetrics }
-window.renderRecurringIncomeSettings = renderRecurringIncomeSettings
-window.renderBillScheduleSettings = renderBillScheduleSettings
+// Expose core modules globally for HTML event handlers and old code
+// These are simple module exposures that can be safely moved to the bridge
+installLegacyBridge({
+  // Core utilities
+  StorageManager,
+  Utils,
+  ConfettiEngine,
+  ThemeManager,
+  LogoManager,
+  NexoraPdfExport,
+  NotificationsService,
 
-// Expose Supabase globally for future modules
-window.supabase = supabase
+  // AI and analytics
+  NexoraAiSettingsService: { readAiSettings, updateAiSettings },
+  NexoraMotion,
+  NexoraRecurringResolver,
+  NexoraCore,
+  NexoraSections,
+  toggleAvailableMoneyOptions,
+  NexoraDashboardGuidance: { buildDashboardGuidance },
+  renderBudgetCoach,
+  buildBudgetCoachState,
+  buildJudgmentEngine,
+  NexoraBuild: { version: APP_VERSION, label: formatBuildLabel },
+  getUserDisplayName: (user) => getUserDisplayName(user || AuthContext.getCurrentUser()),
+  NexoraSyncDiagnostics: SyncDiagnostics,
+  readSyncedArray,
+  parseFinancialExpression,
+  NexoraCycleBalance: { computeCycleBalances, computeCycleBalancesFromMetrics },
+  renderRecurringIncomeSettings,
+  renderBillScheduleSettings,
 
-// Expose Auth context globally
-window.AuthContext = AuthContext
-window.TransactionsService = TransactionsService
-window.BudgetCategoriesService = BudgetCategoriesService
-window.MonthlyBudgetStateService = MonthlyBudgetStateService
-window.GoalsService = GoalsService
-window.GoalsPage = GoalsPage
-window.UserAppSettingsService = UserAppSettingsService
-window.NexoraStorageKeys = STORAGE_KEYS
-window.CoupleUIComponent = CoupleUIComponent
-window.CoupleOverlay = CoupleOverlay
-window.CoupleService = CoupleService
+  // Supabase
+  supabase,
+
+  // Authentication and services
+  AuthContext,
+  TransactionsService,
+  BudgetCategoriesService,
+  MonthlyBudgetStateService,
+  GoalsService,
+  GoalsPage,
+  UserAppSettingsService,
+  NexoraStorageKeys: STORAGE_KEYS,
+  CoupleUIComponent,
+  CoupleOverlay,
+  CoupleService
+})
+
+// Expose business functions that cannot be moved to the bridge
+// due to complex closures and dynamic imports
 window.openTreasuryPlanner = async (opts = {}) => {
   try {
     await renderTreasuryPlanner('treasury-planner-root', opts)
   } catch (e) { console.warn('openTreasuryPlanner failed', e) }
 }
+
 let dashboardCoachRefreshPromise = null
 window.refreshDashboardCoach = () => {
   if (dashboardCoachRefreshPromise) return dashboardCoachRefreshPromise
@@ -126,12 +137,6 @@ window.refreshDashboardCoach = () => {
 
   return dashboardCoachRefreshPromise
 }
-
-// Expose helper functions globally (for HTML onclick handlers)
-window.showToast = (msg) => Utils.showToast(msg)
-window.closeModal = () => Utils.closeModal()
-window.customConfirm = (title, message, onConfirm) => Utils.customConfirm(title, message, onConfirm)
-window.triggerConfetti = () => ConfettiEngine.trigger()
 
 window.setCoupleFallbackMessage = (message) => {
   const banner = document.getElementById('couple-fallback-message')
