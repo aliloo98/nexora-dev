@@ -11,6 +11,7 @@
 import AuthContext from '../auth/authContext.js'
 import AuthPages from '../pages/AuthPages.js'
 import { renderUserMenu, updateUserHeader } from '../components/UserProfile.js'
+import { showToast } from '../../js/utils.js'
 
 /**
  * Route Protection System
@@ -56,7 +57,7 @@ export const RouteGuard = {
     // Check authentication
     if (this.requiresAuth(sectionName) && !AuthContext.isAuthenticated()) {
       console.warn(`🔒 Access denied to ${sectionName} - user not authenticated`)
-      window.showToast('❌ Connectez-vous pour accéder à cette page')
+      showToast('❌ Connectez-vous pour accéder à cette page')
       AuthPages.showAuthPages()
       AuthPages.showLoginPage()
       return false

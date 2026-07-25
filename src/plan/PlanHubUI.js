@@ -2,6 +2,7 @@ import { renderTreasuryTimeline } from '../components/TreasuryTimeline.js'
 import { buildEmptyState, parseAmount } from './planFormatters.js'
 import { buildPlanContent } from './planMarkupBuilder.js'
 import { buildPlanData, readDebts, saveDebts, makeDebtId } from './planDataBuilder.js'
+import { showToast } from '../../js/utils.js'
 
 const attachPlanEditors = (root, planData) => {
   root.querySelectorAll('.plan-edit-item[data-goal-id]').forEach((item) => {
@@ -25,27 +26,27 @@ const attachPlanEditors = (root, planData) => {
       try {
         await window.GoalsService?.updateGoal?.(goalId, readPatch())
       } catch {
-        window.showToast?.('Expression financière invalide')
+        showToast('Expression financière invalide')
         return
       }
-      window.showToast?.('Objectif mis à jour')
+      showToast('Objectif mis à jour')
       await renderPlanHub(root.id)
     })
     item.querySelector('.plan-goal-primary')?.addEventListener('click', async () => {
       await window.GoalsService?.setPrimaryGoal?.(goalId)
-      window.showToast?.('Objectif principal mis à jour')
+      showToast('Objectif principal mis à jour')
       if (typeof window.updateDashboardPrimaryGoal === 'function') await window.updateDashboardPrimaryGoal()
       await renderPlanHub(root.id)
     })
     item.querySelector('.plan-goal-complete')?.addEventListener('click', async () => {
       const goal = (planData.goals || []).find((entry) => String(entry.id) === String(goalId))
       await window.GoalsService?.updateGoal?.(goalId, { current: Number(goal?.target) || 0 })
-      window.showToast?.('Objectif marqué comme atteint')
+      showToast('Objectif marqué comme atteint')
       await renderPlanHub(root.id)
     })
     item.querySelector('.plan-goal-delete')?.addEventListener('click', async () => {
       await window.GoalsService?.deleteGoal?.(goalId)
-      window.showToast?.('Objectif supprimé')
+      showToast('Objectif supprimé')
       await renderPlanHub(root.id)
     })
   })
@@ -54,21 +55,21 @@ const attachPlanEditors = (root, planData) => {
     const name = root.querySelector('#plan-new-goal-name')?.value?.trim()
     const target = parseAmount(root.querySelector('#plan-new-goal-target')?.value)
     if (target === null) {
-      window.showToast?.('Expression financière invalide')
+      showToast('Expression financière invalide')
       return
     }
     if (!name || target <= 0) {
-      window.showToast?.('Nom et cible requis')
+      showToast('Nom et cible requis')
       return
     }
     await window.GoalsService?.createGoal?.({ name, target, current: 0 })
-    window.showToast?.('Objectif créé')
+    showToast('Objectif créé')
     await renderPlanHub(root.id)
   })
 
   const saveDebtList = async (debts) => {
     await saveDebts(debts)
-    window.showToast?.('Dette mise à jour')
+    showToast('Dette mise à jour')
     if (typeof window.updateAll === 'function') window.updateAll()
     await renderPlanHub(root.id)
   }
@@ -92,11 +93,11 @@ const attachPlanEditors = (root, planData) => {
     item.querySelector('.plan-debt-pay')?.addEventListener('click', async () => {
       const payment = parseAmount(item.querySelector('.plan-debt-payment')?.value)
       if (payment === null) {
-        window.showToast?.('Expression financière invalide')
+        showToast('Expression financière invalide')
         return
       }
       if (payment <= 0) {
-        window.showToast?.('Montant de paiement requis')
+        showToast('Montant de paiement requis')
         return
       }
       const debts = await readDebts()
@@ -113,7 +114,7 @@ const attachPlanEditors = (root, planData) => {
       const debts = await readDebts()
       debts.splice(index, 1)
       await saveDebts(debts)
-      window.showToast?.('Dette supprimée')
+      showToast('Dette supprimée')
       if (typeof window.updateAll === 'function') window.updateAll()
       await renderPlanHub(root.id)
     })
@@ -124,11 +125,11 @@ const attachPlanEditors = (root, planData) => {
     const remaining = parseAmount(root.querySelector('#plan-new-debt-remaining')?.value)
     const monthly = parseAmount(root.querySelector('#plan-new-debt-monthly')?.value)
     if (remaining === null || monthly === null) {
-      window.showToast?.('Expression financière invalide')
+      showToast('Expression financière invalide')
       return
     }
     if (!name || remaining <= 0) {
-      window.showToast?.('Nom et montant restant requis')
+      showToast('Nom et montant restant requis')
       return
     }
     const debts = await readDebts()

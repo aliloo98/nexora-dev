@@ -8,6 +8,7 @@
  */
 
 import AuthContext from '../auth/authContext.js'
+import { showToast } from '../../js/utils.js'
 
 /**
  * Create Register Form HTML
@@ -212,7 +213,7 @@ export const attachRegisterFormListeners = () => {
       }
 
       // Success
-      window.showToast('✅ Inscription réussie! Bienvenue ' + username + '!')
+      showToast('✅ Inscription réussie! Bienvenue ' + username + '!')
 
       // Simulate page transition to dashboard, but only if the user didn't
       // navigate elsewhere in the meantime.

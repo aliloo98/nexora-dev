@@ -9,6 +9,7 @@
 
 import AuthContext from '../auth/authContext.js'
 import { shouldUsePlaceholderAuth } from '../auth/authService.js'
+import { showToast } from '../../js/utils.js'
 
 /**
  * Create Login Form HTML
@@ -164,7 +165,7 @@ export const attachLoginFormListeners = () => {
       }
 
       // Success - navigate to dashboard
-      window.showToast('✅ Connecté avec succès!')
+      showToast('✅ Connecté avec succès!')
 
       // Simulate page transition: defer navigation but avoid stomping a
       // user-initiated navigation that happened in the meantime.
@@ -211,7 +212,7 @@ export const attachLoginFormListeners = () => {
         errorBox.style.display = 'flex'
         return
       }
-      window.showToast('✅ Mode test activé!')
+      showToast('✅ Mode test activé!')
 
       const _expectedHashDemo = window.location.hash
       setTimeout(() => {
