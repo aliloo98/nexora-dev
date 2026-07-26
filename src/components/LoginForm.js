@@ -70,6 +70,9 @@ export const createLoginForm = ({ demoModeEnabled = shouldUsePlaceholderAuth() }
               autocomplete="current-password"
             />
             <span class="form-error" id="loginPasswordError"></span>
+            <div style="text-align: right; margin-top: 0.5rem;">
+              <a href="#" onclick="switchToForgotPassword(event); return false;" class="auth-link" style="font-size: 14px;">Mot de passe oublié ?</a>
+            </div>
           </div>
 
           <!-- Error Message -->

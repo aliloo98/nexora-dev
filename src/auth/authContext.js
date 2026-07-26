@@ -28,7 +28,8 @@ export const AuthContext = {
     session: null,
     isLoading: false,
     isAuthenticated: false,
-    error: null
+    error: null,
+    isPasswordRecovery: false
   },
 
   // Array of listeners to notify on state changes
@@ -160,7 +161,19 @@ export const AuthContext = {
         this._state.session = null
         this._state.isAuthenticated = false
         this._state.error = null
+        this._state.isPasswordRecovery = false
         AuthService.clearSessionPlaceholder()
+        this._notifyListeners()
+        return
+      }
+
+      // PASSWORD_RECOVERY - session de récupération validée par le SDK
+      // C'est le SEUL signal fiable d'une récupération de mot de passe valide
+      if (event === 'PASSWORD_RECOVERY') {
+        this._state.isPasswordRecovery = true
+        this._state.user = user
+        this._state.session = session
+        this._state.isAuthenticated = true
         this._notifyListeners()
         return
       }
@@ -174,6 +187,12 @@ export const AuthContext = {
       this._state.error = null
       this._notifyListeners()
 
+      // BLOQUAGE: Si mode récupération activé, ne jamais synchroniser ni naviguer
+      if (this._state.isPasswordRecovery) {
+        return
+      }
+
+      // Comportement normal SIGNED_IN hors récupération
       if (event === 'SIGNED_IN' && previousUserId !== user.id && !this._state.isLoading) {
         this._syncSupabaseToLocalAfterLogin()
       }
@@ -331,6 +350,58 @@ export const AuthContext = {
    */
   isAuthenticated() {
     return this._state.isAuthenticated
+  },
+
+  /**
+   * Set password recovery mode
+   * @param {boolean} enabled - Whether to enable password recovery mode
+   */
+  setPasswordRecoveryMode(enabled) {
+    this._state.isPasswordRecovery = enabled
+    this._notifyListeners()
+  },
+
+  /**
+   * Exit password recovery mode
+   */
+  exitPasswordRecoveryMode() {
+    this._state.isPasswordRecovery = false
+    this._notifyListeners()
+  },
+
+  /**
+   * Check if in password recovery mode
+   */
+  isPasswordRecoveryMode() {
+    return this._state.isPasswordRecovery
+  },
+
+  /**
+   * Update user password
+   * @param {string} newPassword - New password
+   * @returns {Promise<{error}>}
+   */
+  async updatePassword(newPassword) {
+    this._setLoading(true)
+    this._setError(null)
+
+    try {
+      const { error } = await AuthService.updatePassword(newPassword)
+
+      if (error) {
+        this._setError(error)
+        console.error('❌ UpdatePassword failed:', error)
+        return { error }
+      }
+
+      return { error: null }
+    } catch (error) {
+      console.error('❌ UpdatePassword exception:', error)
+      this._setError(error)
+      return { error }
+    } finally {
+      this._setLoading(false)
+    }
   },
 
   /**

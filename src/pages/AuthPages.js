@@ -9,6 +9,8 @@
 
 import { createLoginForm, attachLoginFormListeners } from '../components/LoginForm.js'
 import { createRegisterForm, attachRegisterFormListeners } from '../components/RegisterForm.js'
+import { createForgotPasswordForm, attachForgotPasswordFormListeners } from '../components/ForgotPasswordForm.js'
+import { createResetPasswordForm, attachResetPasswordFormListeners } from '../components/ResetPasswordForm.js'
 import AuthContext from '../auth/authContext.js'
 
 /**
@@ -25,9 +27,18 @@ export const AuthPages = {
    * Called when app starts
    */
   init() {
+    // Detect reset-password route
+    const isResetPasswordRoute = window.location.pathname === '/reset-password'
 
     // Create auth container if not exists
     this._ensureAuthContainer()
+
+    if (isResetPasswordRoute) {
+      // Show loading state for reset password
+      this.showAuthPages()
+      this.showResetPasswordPage({ loading: true })
+      return
+    }
 
     // Check if user is already logged in
     const { user } = AuthContext.getState()
@@ -106,6 +117,30 @@ export const AuthPages = {
   },
 
   /**
+   * Show forgot password page
+   */
+  showForgotPasswordPage() {
+    const authContainer = document.getElementById('auth-container')
+    if (!authContainer) return
+
+    authContainer.innerHTML = createForgotPasswordForm()
+    attachForgotPasswordFormListeners()
+    currentAuthPage = 'forgot-password'
+  },
+
+  /**
+   * Show reset password page
+   */
+  showResetPasswordPage({ loading = false } = {}) {
+    const authContainer = document.getElementById('auth-container')
+    if (!authContainer) return
+
+    authContainer.innerHTML = createResetPasswordForm({ loading })
+    attachResetPasswordFormListeners()
+    currentAuthPage = 'reset-password'
+  },
+
+  /**
    * Check if user is authenticated
    * Used to protect routes
    */
@@ -129,6 +164,13 @@ window.switchToRegister = (event) => {
     event.preventDefault()
   }
   AuthPages.showRegisterPage()
+}
+
+window.switchToForgotPassword = (event) => {
+  if (event) {
+    event.preventDefault()
+  }
+  AuthPages.showForgotPasswordPage()
 }
 
 export default AuthPages

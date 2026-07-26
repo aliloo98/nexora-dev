@@ -1,27 +1,31 @@
 {
   "dependencies": {
     "cycles": [],
-    "internalDependencies": 154,
+    "internalDependencies": 186,
     "modulesWithMostIncomingDependencies": [
       {
         "count": 13,
         "name": "src/supabase.js"
       },
       {
-        "count": 11,
+        "count": 12,
         "name": "src/auth/authContext.js"
+      },
+      {
+        "count": 11,
+        "name": "js/utils.js"
       },
       {
         "count": 10,
         "name": "src/constants/storageKeys.js"
       },
       {
-        "count": 7,
-        "name": "js/storage.js"
+        "count": 9,
+        "name": "src/utils/htmlEscape.js"
       },
       {
         "count": 7,
-        "name": "src/utils/htmlEscape.js"
+        "name": "js/storage.js"
       },
       {
         "count": 6,
@@ -38,24 +42,20 @@
       {
         "count": 5,
         "name": "src/utils/userFacingFilter.js"
-      },
-      {
-        "count": 4,
-        "name": "src/finance/financialExpression.js"
       }
     ],
     "modulesWithMostOutgoingDependencies": [
       {
-        "count": 46,
+        "count": 50,
         "name": "src/main.js"
       },
       {
-        "count": 11,
-        "name": "src/plan/PlanHubUI.js"
+        "count": 9,
+        "name": "src/pages/GoalsPage.js"
       },
       {
         "count": 8,
-        "name": "src/pages/GoalsPage.js"
+        "name": "src/plan/planDataBuilder.js"
       },
       {
         "count": 6,
@@ -67,23 +67,23 @@
       },
       {
         "count": 5,
+        "name": "src/pages/AuthPages.js"
+      },
+      {
+        "count": 5,
+        "name": "src/plan/PlanHubUI.js"
+      },
+      {
+        "count": 5,
+        "name": "src/settings/SettingsUI.js"
+      },
+      {
+        "count": 5,
         "name": "src/treasury/treasuryAdapter.js"
       },
       {
         "count": 4,
         "name": "js/transactionsService.js"
-      },
-      {
-        "count": 4,
-        "name": "src/advisor/proactiveCoachService.js"
-      },
-      {
-        "count": 4,
-        "name": "src/settings/settingsService.js"
-      },
-      {
-        "count": 4,
-        "name": "src/settings/SettingsUI.js"
       }
     ],
     "modulesWithoutIncomingImports": [
@@ -91,6 +91,10 @@
       "src/advisor/AdvisorUI.js",
       "src/app/productCopy.js",
       "src/auth/useAuth.js",
+      "src/bootstrap/applicationUiBootstrap.js",
+      "src/bootstrap/authenticatedBootstrap.js",
+      "src/bootstrap/preAuthBootstrap.js",
+      "src/bootstrap/userDataBootstrap.js",
       "src/couple/coupleAssistantService.js",
       "src/couple/coupleBudgetService.js",
       "src/couple/coupleDebtService.js",
@@ -112,13 +116,13 @@
     "playwrightCaseCount": 7
   },
   "production": {
-    "averageLinesPerFile": 228.49,
+    "averageLinesPerFile": 201,
     "consoleDebug": 0,
-    "consoleError": 73,
+    "consoleError": 82,
     "consoleInfo": 11,
     "consoleLog": 27,
     "consoleWarn": 70,
-    "documentRefs": 189,
+    "documentRefs": 205,
     "files": [
       "js/budgetCategoriesService.js",
       "js/logo-manager.js",
@@ -149,24 +153,36 @@
       "src/auth/authService.js",
       "src/auth/useAuth.js",
       "src/auth/userDisplayName.js",
+      "src/bootstrap/appBootstrap.js",
+      "src/bootstrap/applicationUiBootstrap.js",
+      "src/bootstrap/authenticatedBootstrap.js",
+      "src/bootstrap/preAuthBootstrap.js",
+      "src/bootstrap/userDataBootstrap.js",
+      "src/components/assistant/assistantSparklineRenderer.js",
       "src/components/AssistantCard.js",
       "src/components/DashboardMaster.js",
+      "src/components/ForgotPasswordForm.js",
       "src/components/GoalCard.js",
       "src/components/LoginForm.js",
       "src/components/RegisterForm.js",
+      "src/components/ResetPasswordForm.js",
       "src/components/TreasuryPlannerUI.js",
       "src/components/TreasuryTimeline.js",
       "src/components/UserProfile.js",
       "src/constants/storageKeys.js",
       "src/couple/coupleAssistantService.js",
       "src/couple/coupleBudgetService.js",
+      "src/couple/coupleController.js",
       "src/couple/coupleDebtService.js",
       "src/couple/coupleGoalService.js",
       "src/couple/coupleInvitationService.js",
+      "src/couple/coupleNavigation.js",
       "src/couple/coupleNotificationService.js",
       "src/couple/coupleOverlay.js",
+      "src/couple/coupleSectionRenderer.js",
       "src/couple/coupleService.js",
       "src/couple/coupleShareService.js",
+      "src/couple/coupleState.js",
       "src/couple/coupleUIComponent.js",
       "src/dashboard/dashboardService.js",
       "src/debt/debtPlanner.js",
@@ -174,10 +190,15 @@
       "src/finance/financialExpression.js",
       "src/finance/recurringResolution.js",
       "src/goals/goalsService.js",
+      "src/legacy/legacyBridge.js",
       "src/main.js",
       "src/pages/AuthPages.js",
       "src/pages/GoalsPage.js",
+      "src/plan/planDataBuilder.js",
+      "src/plan/planDecisionBuilder.js",
+      "src/plan/planFormatters.js",
       "src/plan/PlanHubUI.js",
+      "src/plan/planMarkupBuilder.js",
       "src/settings/aboutPanel.js",
       "src/settings/recurringIncomeSync.js",
       "src/settings/settingsMarkup.js",
@@ -189,6 +210,7 @@
       "src/sync/syncDiagnostics.js",
       "src/treasury/treasuryAdapter.js",
       "src/treasury/treasuryService.js",
+      "src/ui/amountInputHandlers.js",
       "src/ui/availableMoneyOptions.js",
       "src/ui/budgetCoach.js",
       "src/ui/dashboardGuidance.js",
@@ -200,17 +222,12 @@
     "filesOver1000Lines": [],
     "filesOver700Lines": [
       "js/transactionsService.js",
-      "src/components/AssistantCard.js",
-      "src/plan/PlanHubUI.js"
+      "src/components/AssistantCard.js"
     ],
     "largestFiles": [
       {
         "file": "src/components/AssistantCard.js",
-        "lines": 970
-      },
-      {
-        "file": "src/plan/PlanHubUI.js",
-        "lines": 825
+        "lines": 958
       },
       {
         "file": "js/transactionsService.js",
@@ -229,12 +246,8 @@
         "lines": 681
       },
       {
-        "file": "src/main.js",
-        "lines": 646
-      },
-      {
         "file": "src/ui/nexoraCore.js",
-        "lines": 624
+        "lines": 625
       },
       {
         "file": "js/userAppSettingsService.js",
@@ -250,15 +263,23 @@
       },
       {
         "file": "src/auth/authService.js",
-        "lines": 432
+        "lines": 487
       },
       {
         "file": "js/budgetCategoriesService.js",
         "lines": 423
       },
       {
+        "file": "src/auth/authContext.js",
+        "lines": 423
+      },
+      {
         "file": "src/advisor/proactiveCoachService.js",
         "lines": 371
+      },
+      {
+        "file": "src/main.js",
+        "lines": 367
       },
       {
         "file": "src/couple/coupleInvitationService.js",
@@ -277,22 +298,22 @@
         "lines": 349
       },
       {
-        "file": "src/auth/authContext.js",
-        "lines": 344
-      },
-      {
         "file": "src/couple/coupleShareService.js",
         "lines": 336
+      },
+      {
+        "file": "src/components/ResetPasswordForm.js",
+        "lines": 302
       }
     ],
-    "lineCount": 17365,
+    "lineCount": 18894,
     "localStorageRefs": 23,
-    "medianLinesPerFile": 135.5,
-    "staticExports": 198,
-    "staticImports": 178,
+    "medianLinesPerFile": 134.5,
+    "staticExports": 240,
+    "staticImports": 216,
     "todoFixmeCount": 0,
-    "windowAssignments": 106,
-    "windowRefs": 307
+    "windowAssignments": 107,
+    "windowRefs": 273
   },
   "tests": {
     "describeCount": 0,
@@ -311,6 +332,7 @@
       "src/assistant/judgmentEngine-tests.js",
       "src/assistant/run-tests.js",
       "src/auth/authMode-tests.js",
+      "src/auth/authService-password-tests.js",
       "src/auth/authSessionFallback-tests.js",
       "src/auth/authStartupOrder-tests.js",
       "src/auth/authStateListener-tests.js",
@@ -320,6 +342,7 @@
       "src/couple/assistant-tests.js",
       "src/couple/budget-tests.js",
       "src/couple/couple-tests.js",
+      "src/couple/coupleState-tests.js",
       "src/couple/debt-tests.js",
       "src/couple/goal-tests.js",
       "src/couple/invitation-tests.js",
@@ -348,7 +371,7 @@
     ],
     "itCaseCount": 0,
     "playwrightFiles": [],
-    "testCaseCount": 31
+    "testCaseCount": 37
   },
   "tooling": {
     "files": [
