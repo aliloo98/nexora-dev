@@ -283,6 +283,62 @@ body.auth-locked > #nexora-status-bar {
         </div>
       </div>
 
+      <!-- Simple Dashboard Grid (Mode Simplifié) -->
+      <div class="simple-dashboard-grid">
+        <!-- Carte 1: Argent Restant -->
+        <div class="simple-card simple-card--primary" id="simple-card-restant">
+          <div class="simple-card__head">
+            <span class="simple-card__title">💵 Argent restant</span>
+          </div>
+          <div class="simple-card__body">
+            <div class="simple-card__value" id="simple-restant-value">0 €</div>
+            <div class="simple-card__sub" id="simple-restant-sub">Disponible ce mois</div>
+          </div>
+        </div>
+
+        <!-- Carte 2: Argent Entrant -->
+        <div class="simple-card simple-card--secondary" id="simple-card-entrant">
+          <div class="simple-card__head">
+            <span class="simple-card__title">💰 Argent entrant</span>
+          </div>
+          <div class="simple-card__body">
+            <div class="simple-card__value" id="simple-entrant-value">0 €</div>
+            <div class="simple-card__sub">Ce mois</div>
+          </div>
+        </div>
+
+        <!-- Carte 3: Argent Sortant -->
+        <div class="simple-card simple-card--secondary" id="simple-card-sortant">
+          <div class="simple-card__head">
+            <span class="simple-card__title">💸 Argent sortant</span>
+          </div>
+          <div class="simple-card__body">
+            <div class="simple-card__value" id="simple-sortant-value">0 €</div>
+            <div class="simple-card__sub">Ce mois</div>
+          </div>
+        </div>
+
+        <!-- Carte 4: Objectif Principal -->
+        <div class="simple-card simple-card--goal" id="simple-card-objectif">
+          <div class="simple-card__head">
+            <span class="simple-card__title">🎯 Objectif principal</span>
+          </div>
+          <div class="simple-card__body">
+            <div class="simple-card__goal-name" id="simple-goal-name">Aucun objectif</div>
+            <div class="simple-card__goal-progress">
+              <div class="simple-card__goal-amounts" id="simple-goal-amounts">—</div>
+              <div class="simple-card__progress-bar">
+                <div class="simple-card__progress-fill" id="simple-goal-progress-fill" style="width: 0%"></div>
+              </div>
+              <div class="simple-card__goal-pct" id="simple-goal-pct">—</div>
+            </div>
+          </div>
+          <div class="simple-card__footer">
+            <button type="button" class="btn btn-gold simple-card__cta" onclick="showSection('objectifs')">Alimenter</button>
+          </div>
+        </div>
+      </div>
+
       <section class="dashboard-lower-grid">
         <section class="dashboard-panel dashboard-card dashboard-card--coach" id="dashboard-coach-card">
           <div id="dashboard-master-root"></div>
@@ -1542,6 +1598,10 @@ function applyNexoraUxMode(mode = getNexoraUxMode()) {
   if (typeof window.refreshDashboardCoach === 'function') {
     window.refreshDashboardCoach().catch(err => console.warn('[Dashboard coach] refresh failed', err));
   }
+  // Refresh simple dashboard grid when switching modes
+  if (typeof updateAll === 'function') {
+    updateAll();
+  }
   window.NexoraMotion?.animateModeSwitch?.(document.getElementById('section-dashboard'));
 }
 
@@ -1549,7 +1609,7 @@ function setNexoraUxMode(mode) {
   const nextMode = mode === 'simple' ? 'simple' : 'complete';
   try { SafeStorage.setItem(UX_MODE_KEY, nextMode); } catch {}
   applyNexoraUxMode(nextMode);
-  if (typeof updateAll === 'function') updateAll();
+  // updateAll is already called in applyNexoraUxMode, no need to call again
 }
 
 function getDefaultNexoraAiSettings() {
@@ -4065,6 +4125,9 @@ function updateAll(){
   setDashboardGuidanceTextCached('simple-out', fmt(totalDepReel));
   setDashboardGuidanceTextCached('simple-left', fmt(solde));
 
+  // Update Simple Dashboard Grid (Mode Simplifié)
+  updateSimpleDashboardGrid(revReel, totalDepReel, solde);
+
   // Saisie Page Header Totals
   setDashboardGuidanceTextCached('total-revenus', fmt(revReel));
   setDashboardGuidanceTextCached('total-fixes', fmt(fixReel));
@@ -4943,6 +5006,90 @@ function refreshNexoraCore(metrics = {}) {
     _nexoraCoreRefreshPayload = null;
     refreshNexoraCoreNow(payload).catch((err) => console.warn('[NexoraCore] refresh failed', err));
   }, 140);
+}
+
+function updateSimpleDashboardGrid(revReel, totalDepReel, solde) {
+  // Update Argent Restant
+  const restantValueEl = document.getElementById('simple-restant-value');
+  const restantSubEl = document.getElementById('simple-restant-sub');
+  const restantCard = document.getElementById('simple-card-restant');
+
+  if (restantValueEl) restantValueEl.textContent = fmt(solde);
+  if (restantSubEl) {
+    restantSubEl.textContent = solde >= 0 ? 'Disponible ce mois' : 'Dépassement ce mois';
+  }
+
+  // Update visual state for Argent Restant
+  if (restantCard) {
+    restantCard.classList.remove('state-favorable', 'state-attention', 'state-critical');
+    if (solde > 0) {
+      restantCard.classList.add('state-favorable');
+    } else if (solde === 0) {
+      restantCard.classList.add('state-attention');
+    } else {
+      restantCard.classList.add('state-critical');
+    }
+  }
+
+  // Update Argent Entrant
+  const entrantValueEl = document.getElementById('simple-entrant-value');
+  if (entrantValueEl) entrantValueEl.textContent = fmt(revReel);
+
+  // Update Argent Sortant
+  const sortantValueEl = document.getElementById('simple-sortant-value');
+  if (sortantValueEl) sortantValueEl.textContent = fmt(totalDepReel);
+
+  // Update Objectif Principal
+  updateSimpleGoalCard();
+}
+
+async function updateSimpleGoalCard() {
+  const goalNameEl = document.getElementById('simple-goal-name');
+  const goalAmountsEl = document.getElementById('simple-goal-amounts');
+  const goalProgressFillEl = document.getElementById('simple-goal-progress-fill');
+  const goalPctEl = document.getElementById('simple-goal-pct');
+  const goalCard = document.getElementById('simple-card-objectif');
+
+  if (!goalNameEl || !goalAmountsEl || !goalProgressFillEl || !goalPctEl) return;
+
+  try {
+    // Get primary goal using GoalsService
+    const primaryGoal = window.GoalsService
+      ? await window.GoalsService.getPrimaryGoal()
+      : null;
+
+    if (!primaryGoal) {
+      goalNameEl.textContent = 'Aucun objectif';
+      goalAmountsEl.textContent = '—';
+      goalPctEl.textContent = '—';
+      goalProgressFillEl.style.width = '0%';
+      return;
+    }
+
+    const current = Number(primaryGoal.current) || 0;
+    const target = Number(primaryGoal.target) || 0;
+
+    if (target === 0) {
+      goalNameEl.textContent = primaryGoal.name || 'Objectif';
+      goalAmountsEl.textContent = `${fmt(current)} / Montant cible non défini`;
+      goalPctEl.textContent = '—';
+      goalProgressFillEl.style.width = '0%';
+      return;
+    }
+
+    const pct = Math.min(100, Math.round((current / target) * 100));
+
+    goalNameEl.textContent = primaryGoal.name || 'Objectif';
+    goalAmountsEl.textContent = `${fmt(current)} / ${fmt(target)}`;
+    goalPctEl.textContent = `${pct}%`;
+    goalProgressFillEl.style.width = `${pct}%`;
+  } catch (error) {
+    console.warn('[Simple Dashboard] Failed to load primary goal:', error);
+    goalNameEl.textContent = 'Aucun objectif';
+    goalAmountsEl.textContent = '—';
+    goalPctEl.textContent = '—';
+    goalProgressFillEl.style.width = '0%';
+  }
 }
 
 function updateDashboardGuidance(metrics) {

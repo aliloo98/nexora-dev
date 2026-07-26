@@ -1680,6 +1680,164 @@ body.mode-simple .goal-card-meta {
   display: block;
 }
 
+/* ========================================
+   SIMPLE DASHBOARD GRID - MODE SIMPLIFIÉ
+   ======================================== */
+
+.simple-dashboard-grid {
+  display: none;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+body.mode-simple .simple-dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+/* Desktop layout: argent restant full width, entrant/sortant side by side */
+@media (min-width: 640px) {
+  body.mode-simple .simple-dashboard-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  body.mode-simple .simple-card--primary {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Simple Card Base Styles */
+.simple-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.simple-card__head {
+  margin-bottom: 12px;
+}
+
+.simple-card__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.simple-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.simple-card__value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text1);
+  line-height: 1.2;
+}
+
+.simple-card__sub {
+  font-size: 13px;
+  color: var(--text2);
+}
+
+/* Primary Card (Argent Restant) - Visually more important */
+.simple-card--primary {
+  background: linear-gradient(135deg, rgba(229, 192, 96, 0.08), rgba(255, 255, 255, 0.02));
+  border-color: rgba(229, 192, 96, 0.25);
+  padding: 20px;
+}
+
+.simple-card--primary .simple-card__value {
+  font-size: 36px;
+  font-weight: 800;
+}
+
+.simple-card--primary .simple-card__sub {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Primary Card States */
+.simple-card--primary.state-favorable .simple-card__value {
+  color: var(--green);
+}
+
+.simple-card--primary.state-attention .simple-card__value {
+  color: var(--orange);
+}
+
+.simple-card--primary.state-critical .simple-card__value {
+  color: var(--red);
+}
+
+/* Secondary Cards (Argent Entrant/Sortant) */
+.simple-card--secondary {
+  background: var(--bg2);
+}
+
+.simple-card--secondary .simple-card__value {
+  font-size: 24px;
+}
+
+/* Goal Card */
+.simple-card--goal {
+  background: var(--bg2);
+}
+
+.simple-card__goal-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text1);
+  margin-bottom: 8px;
+}
+
+.simple-card__goal-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.simple-card__goal-amounts {
+  font-size: 14px;
+  color: var(--text2);
+}
+
+.simple-card__progress-bar {
+  height: 6px;
+  background: var(--bg3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.simple-card__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--green));
+  border-radius: 3px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.simple-card__goal-pct {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text1);
+}
+
+.simple-card__footer {
+  margin-top: 12px;
+}
+
+.simple-card__cta {
+  width: 100%;
+  font-size: 14px;
+  padding: 10px 16px;
+}
+
 .kpi-card:hover {
   transform: translateY(-4px);
   border-color: var(--border-hover);

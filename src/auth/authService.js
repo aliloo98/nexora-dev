@@ -410,6 +410,73 @@ export const AuthService = {
   clearSessionPlaceholder() {
     removeStoredValue(AUTH_USER_KEY)
     removeStoredValue(AUTH_SESSION_KEY)
+  },
+
+  /**
+   * Build redirect URL for password recovery
+   * @returns {string}
+   */
+  _buildPasswordResetRedirectUrl() {
+    return `${window.location.origin}/reset-password`
+  },
+
+  /**
+   * Send password reset email
+   *
+   * @param {string} email - User email
+   * @param {object} supabaseClient - Optional Supabase client for testing
+   * @param {boolean} bypassPlaceholderCheck - For testing only, bypass placeholder mode check
+   * @returns {Promise<{error}>}
+   */
+  async resetPassword(email, supabaseClient = supabase, bypassPlaceholderCheck = false) {
+    try {
+      if (!bypassPlaceholderCheck && shouldUsePlaceholderAuth()) {
+        // Mode placeholder: fonctionnalité indisponible
+        return {
+          error: new Error('La récupération de mot de passe est temporairement indisponible en mode développement')
+        }
+      }
+
+      const redirectTo = this._buildPasswordResetRedirectUrl()
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo
+      })
+
+      if (error) throw error
+      return { error: null }
+    } catch (error) {
+      console.error('❌ ResetPassword error:', error.message)
+      return { error }
+    }
+  },
+
+  /**
+   * Update user password
+   *
+   * @param {string} newPassword - New password
+   * @param {object} supabaseClient - Optional Supabase client for testing
+   * @param {boolean} bypassPlaceholderCheck - For testing only, bypass placeholder mode check
+   * @returns {Promise<{error}>}
+   */
+  async updatePassword(newPassword, supabaseClient = supabase, bypassPlaceholderCheck = false) {
+    try {
+      if (!bypassPlaceholderCheck && shouldUsePlaceholderAuth()) {
+        // Mode placeholder: fonctionnalité indisponible
+        return {
+          error: new Error('La récupération de mot de passe est temporairement indisponible en mode développement')
+        }
+      }
+
+      const { error } = await supabaseClient.auth.updateUser({
+        password: newPassword
+      })
+
+      if (error) throw error
+      return { error: null }
+    } catch (error) {
+      console.error('❌ UpdatePassword error:', error.message)
+      return { error }
+    }
   }
 }
 
