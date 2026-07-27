@@ -15,10 +15,13 @@
     "test:supabase:layout": "node ./supabase/validate-layout.js",
     "test:db": "supabase test db --local",
     "test:js": "node ./scripts/run-js-tests.js",
+    "test:ui": "node ./scripts/run-js-tests.js --root src/ui/tests",
     "test:assistant": "node ./src/utils/parseBudgetNumber-tests.js && node ./src/finance/financialExpression-tests.js && node ./src/finance/cycleBalance-tests.js && node ./src/advisor/scenario-display-tests.js && node ./src/assistant/run-tests.js && node ./src/couple/ui-tests.js && node ./src/treasury/treasury-tests.js && node ./src/debt/debt-tests.js && node ./src/advisor/advisor-tests.js && node ./src/auth/userDisplayName-tests.js && node ./src/settings/recurringIncome-sync-tests.js && node ./js/budgetCategoriesService-tests.js && node ./js/transactionsService-tests.js",
     "test:e2e": "npx playwright test tests/playwright --config=./playwright.config.js",
+    "test:e2e:ui": "npx playwright test tests/playwright/ui-v2.spec.js --config=./playwright.config.js",
     "architecture:baseline": "node ./scripts/architecture-baseline.mjs",
-    "architecture:check": "node ./scripts/check-architecture-baseline.mjs"
+    "architecture:ui": "node ./scripts/check-ui-v2.mjs",
+    "architecture:check": "node ./scripts/check-architecture-baseline.mjs && node ./scripts/check-ui-v2.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",

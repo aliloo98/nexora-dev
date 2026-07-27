@@ -1,0 +1,8 @@
+:root {
+  --nx-z-content: 0;
+  --nx-z-sticky: 20;
+  --nx-z-dropdown: 40;
+  --nx-z-backdrop: 100;
+  --nx-z-modal: 110;
+  --nx-z-toast: 120;
+}

@@ -1,5 +1,16 @@
 # Nexora Design System
 
+## Implémentation UI V2
+
+Les principes de ce dossier restent la référence produit. Leur implémentation
+technique, les tokens, les contrats de composants et la stratégie de migration
+progressive sont documentés dans :
+
+`docs/nexora-ui-v2-design-system.md`
+
+La bibliothèque correspondante vit sous `src/ui` et utilise exclusivement des
+classes préfixées `nx-*`.
+
 ## Vision
 
 Nexora n'est pas une application de budget.

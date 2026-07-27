@@ -1,0 +1,26 @@
+:root {
+  --nx-space-none: 0;
+  --nx-space-2xs: 4px;
+  --nx-space-xs: 8px;
+  --nx-space-sm: 12px;
+  --nx-space-md: 16px;
+  --nx-space-lg: 20px;
+  --nx-space-xl: 24px;
+  --nx-space-2xl: 32px;
+  --nx-space-3xl: 40px;
+  --nx-space-4xl: 48px;
+  --nx-space-5xl: 64px;
+  --nx-space-6xl: 80px;
+
+  --nx-gutter-mobile: var(--nx-space-md);
+  --nx-gutter-tablet: var(--nx-space-xl);
+  --nx-gutter-desktop: var(--nx-space-2xl);
+  --nx-card-padding-compact: var(--nx-space-md);
+  --nx-card-padding-default: var(--nx-space-lg);
+  --nx-card-padding-comfortable: var(--nx-space-xl);
+  --nx-control-min-size: 44px;
+  --nx-control-default-size: 48px;
+  --nx-modal-max-width: 560px;
+  --nx-modal-max-height: 720px;
+  --nx-toast-max-width: 420px;
+}
