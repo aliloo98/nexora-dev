@@ -1,0 +1,37 @@
+.nx-scope,
+.nx-scope *,
+.nx-scope *::before,
+.nx-scope *::after {
+  box-sizing: border-box;
+}
+
+.nx-scope :where(h1, h2, h3, h4, p, figure, blockquote, dl, dd) {
+  margin: 0;
+}
+
+.nx-scope :where(ul, ol) {
+  margin: 0;
+  padding: 0;
+}
+
+.nx-scope :where(img, picture, video, canvas, svg) {
+  display: block;
+  max-inline-size: 100%;
+}
+
+.nx-scope :where(button, input, textarea, select) {
+  color: inherit;
+  font: inherit;
+}
+
+.nx-scope :where(button) {
+  cursor: pointer;
+}
+
+.nx-scope :where(button, input, textarea, select):disabled {
+  cursor: not-allowed;
+}
+
+.nx-scope [hidden] {
+  display: none !important;
+}

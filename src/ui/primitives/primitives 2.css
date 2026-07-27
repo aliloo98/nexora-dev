@@ -1,0 +1,344 @@
+.nx-button {
+  align-items: center;
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: var(--nx-radius-control);
+  display: inline-flex;
+  font-family: var(--nx-font-family-ui);
+  font-size: var(--nx-font-size-body);
+  font-weight: var(--nx-font-weight-semibold);
+  gap: var(--nx-space-xs);
+  justify-content: center;
+  line-height: var(--nx-line-height-body);
+  min-block-size: var(--nx-control-default-size);
+  padding: var(--nx-space-sm) var(--nx-space-lg);
+  text-decoration: none;
+  transition:
+    background-color var(--nx-motion-standard) var(--nx-easing-standard),
+    border-color var(--nx-motion-standard) var(--nx-easing-standard),
+    box-shadow var(--nx-motion-standard) var(--nx-easing-standard),
+    color var(--nx-motion-standard) var(--nx-easing-standard),
+    transform var(--nx-motion-fast) var(--nx-easing-standard);
+}
+
+.nx-button--primary {
+  background: var(--nx-color-gold);
+  color: var(--nx-color-text-inverse);
+}
+
+.nx-button--primary:hover:not(:disabled) {
+  background: var(--nx-color-gold-hover);
+}
+
+.nx-button--secondary {
+  background: var(--nx-color-surface-interactive);
+  border-color: var(--nx-color-border-strong);
+  color: var(--nx-color-text-primary);
+}
+
+.nx-button--secondary:hover:not(:disabled),
+.nx-button--ghost:hover:not(:disabled) {
+  background: var(--nx-color-hover);
+  border-color: var(--nx-color-border-interactive);
+}
+
+.nx-button--ghost {
+  background: transparent;
+  color: var(--nx-color-text-secondary);
+}
+
+.nx-button--danger {
+  background: var(--nx-color-surface-critical);
+  border-color: var(--nx-color-border-danger);
+  color: var(--nx-color-danger);
+}
+
+.nx-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.nx-button:disabled {
+  background: var(--nx-color-disabled);
+  border-color: var(--nx-color-border-subtle);
+  color: var(--nx-color-text-disabled);
+  opacity: 1;
+}
+
+.nx-button--compact {
+  font-size: var(--nx-font-size-label);
+  min-block-size: var(--nx-control-min-size);
+  padding: var(--nx-space-xs) var(--nx-space-sm);
+}
+
+.nx-button--icon-only {
+  block-size: var(--nx-control-min-size);
+  inline-size: var(--nx-control-min-size);
+  padding: var(--nx-space-sm);
+}
+
+.nx-button--loading {
+  pointer-events: none;
+}
+
+.nx-card {
+  background: var(--nx-color-surface-1);
+  border: 1px solid var(--nx-color-border-subtle);
+  border-radius: var(--nx-radius-card);
+  color: var(--nx-color-text-primary);
+}
+
+.nx-card--padding-compact {
+  padding: var(--nx-card-padding-compact);
+}
+
+.nx-card--padding-default {
+  padding: var(--nx-card-padding-default);
+}
+
+.nx-card--padding-comfortable {
+  padding: var(--nx-card-padding-comfortable);
+}
+
+.nx-card--elevated {
+  background: var(--nx-color-surface-2);
+  box-shadow: var(--nx-shadow-elevated);
+}
+
+.nx-card--interactive {
+  cursor: pointer;
+  transition:
+    background-color var(--nx-motion-standard) var(--nx-easing-standard),
+    border-color var(--nx-motion-standard) var(--nx-easing-standard),
+    transform var(--nx-motion-fast) var(--nx-easing-standard);
+}
+
+.nx-card--interactive:hover {
+  background: var(--nx-color-surface-2);
+  border-color: var(--nx-color-border-interactive);
+}
+
+.nx-card--interactive:active {
+  transform: translateY(1px);
+}
+
+.nx-card--critical {
+  background: var(--nx-color-surface-critical);
+  border-color: var(--nx-color-border-danger);
+}
+
+.nx-field {
+  display: grid;
+  gap: var(--nx-space-xs);
+}
+
+.nx-field__label {
+  color: var(--nx-color-text-secondary);
+  font-size: var(--nx-font-size-label);
+  font-weight: var(--nx-font-weight-semibold);
+  line-height: var(--nx-line-height-label);
+}
+
+.nx-field__required,
+.nx-field__error {
+  color: var(--nx-color-danger);
+}
+
+.nx-field__control {
+  align-items: center;
+  background: var(--nx-color-background-subtle);
+  border: 1px solid var(--nx-color-border-strong);
+  border-radius: var(--nx-radius-control);
+  display: flex;
+  min-block-size: var(--nx-control-default-size);
+  transition:
+    background-color var(--nx-motion-standard) var(--nx-easing-standard),
+    border-color var(--nx-motion-standard) var(--nx-easing-standard),
+    box-shadow var(--nx-motion-standard) var(--nx-easing-standard);
+}
+
+.nx-field__control:focus-within {
+  border-color: var(--nx-color-focus);
+  box-shadow: var(--nx-shadow-focus);
+}
+
+.nx-field--invalid .nx-field__control {
+  border-color: var(--nx-color-danger);
+}
+
+.nx-field--disabled .nx-field__control {
+  background: var(--nx-color-disabled);
+  color: var(--nx-color-text-disabled);
+}
+
+.nx-input {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--nx-color-text-primary);
+  flex: 1 1 auto;
+  inline-size: 100%;
+  min-inline-size: 0;
+  outline: 0;
+  padding: var(--nx-space-sm);
+}
+
+.nx-input::placeholder {
+  color: var(--nx-color-text-tertiary);
+}
+
+.nx-input:focus-visible {
+  outline: 0;
+}
+
+.nx-field__affix {
+  color: var(--nx-color-text-secondary);
+  flex: 0 0 auto;
+  font-size: var(--nx-font-size-label);
+  font-weight: var(--nx-font-weight-semibold);
+}
+
+.nx-field__affix--prefix {
+  padding-inline-start: var(--nx-space-sm);
+}
+
+.nx-field__affix--suffix {
+  padding-inline-end: var(--nx-space-sm);
+}
+
+.nx-field__helper,
+.nx-field__error {
+  font-size: var(--nx-font-size-caption);
+  line-height: var(--nx-line-height-caption);
+}
+
+.nx-field__helper {
+  color: var(--nx-color-text-tertiary);
+}
+
+.nx-badge {
+  align-items: center;
+  background: var(--nx-color-surface-3);
+  border: 1px solid var(--nx-color-border-subtle);
+  border-radius: var(--nx-radius-pill);
+  color: var(--nx-color-text-secondary);
+  display: inline-flex;
+  font-size: var(--nx-font-size-caption);
+  font-weight: var(--nx-font-weight-semibold);
+  line-height: var(--nx-line-height-caption);
+  min-block-size: 28px;
+  padding: var(--nx-space-2xs) var(--nx-space-xs);
+}
+
+.nx-badge--opportunity {
+  color: var(--nx-color-gold-hover);
+}
+
+.nx-badge--stable {
+  color: var(--nx-color-stable);
+}
+
+.nx-badge--success {
+  color: var(--nx-color-success);
+}
+
+.nx-badge--warning {
+  color: var(--nx-color-warning);
+}
+
+.nx-badge--danger {
+  color: var(--nx-color-danger);
+}
+
+.nx-badge--info {
+  color: var(--nx-color-info);
+}
+
+.nx-chip {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--nx-color-border-strong);
+  border-radius: var(--nx-radius-pill);
+  color: var(--nx-color-text-secondary);
+  display: inline-flex;
+  font-size: var(--nx-font-size-label);
+  font-weight: var(--nx-font-weight-semibold);
+  justify-content: center;
+  min-block-size: var(--nx-control-min-size);
+  padding: var(--nx-space-xs) var(--nx-space-md);
+  transition:
+    background-color var(--nx-motion-standard) var(--nx-easing-standard),
+    border-color var(--nx-motion-standard) var(--nx-easing-standard),
+    color var(--nx-motion-standard) var(--nx-easing-standard);
+}
+
+.nx-chip:hover:not(:disabled) {
+  background: var(--nx-color-hover);
+}
+
+.nx-chip--selected {
+  background: var(--nx-color-surface-3);
+  border-color: var(--nx-color-border-interactive);
+  color: var(--nx-color-gold-hover);
+}
+
+.nx-chip:disabled {
+  background: var(--nx-color-disabled);
+  color: var(--nx-color-text-disabled);
+}
+
+.nx-progress {
+  display: grid;
+  gap: var(--nx-space-xs);
+}
+
+.nx-progress__header {
+  align-items: center;
+  display: flex;
+  font-size: var(--nx-font-size-label);
+  justify-content: space-between;
+  line-height: var(--nx-line-height-label);
+}
+
+.nx-progress__label {
+  color: var(--nx-color-text-secondary);
+}
+
+.nx-progress__value {
+  color: var(--nx-color-text-primary);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--nx-font-weight-semibold);
+}
+
+.nx-progress__control {
+  appearance: none;
+  background: var(--nx-color-surface-3);
+  border: 0;
+  border-radius: var(--nx-radius-pill);
+  display: block;
+  inline-size: 100%;
+  overflow: hidden;
+}
+
+.nx-progress__control--4 {
+  block-size: 4px;
+}
+
+.nx-progress__control--8 {
+  block-size: 8px;
+}
+
+.nx-progress__control::-webkit-progress-bar {
+  background: var(--nx-color-surface-3);
+}
+
+.nx-progress__control::-webkit-progress-value {
+  background: var(--nx-color-gold);
+  border-radius: var(--nx-radius-pill);
+  transition: inline-size var(--nx-motion-emphasized) var(--nx-easing-standard);
+}
+
+.nx-progress__control::-moz-progress-bar {
+  background: var(--nx-color-gold);
+  border-radius: var(--nx-radius-pill);
+  transition: inline-size var(--nx-motion-emphasized) var(--nx-easing-standard);
+}

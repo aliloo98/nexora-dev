@@ -35,17 +35,21 @@ test.describe('Dashboard visual hierarchy', () => {
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 });
     await page.click('#loginDemoBtn');
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 });
-    await page.waitForSelector('#dashboard-coach-card .dashboard-coach-content', {
+    await page.waitForSelector('#dashboard-master-root [data-recommendation-source]', {
       state: 'visible',
       timeout: 30000
     });
   });
 
-  test('keeps Quick View focused on secondary indicators', async ({ page }) => {
-    const assertQuickViewIsIndicatorsOnly = async (width) => {
+  test('keeps the V2 story ordered before legacy details', async ({ page }) => {
+    const assertDashboardStory = async (width) => {
       await page.setViewportSize({ width, height: 844 });
       await page.goto('http://127.0.0.1:5180/#section-dashboard');
-      await page.waitForSelector('.dashboard-primary-kpis', { state: 'visible', timeout: 20000 });
+      await page.waitForSelector('#dashboard-v2-shell', { state: 'visible', timeout: 20000 });
+      await page.waitForSelector('#dashboard-master-root [data-recommendation-source]', {
+        state: 'visible',
+        timeout: 30000
+      });
       await page.locator('#dashboard-quick-view').scrollIntoViewIfNeeded();
       await page.waitForSelector('#dashboard-quick-view .dashboard-quick-metrics .kpi-card', {
         state: 'visible',
@@ -58,34 +62,45 @@ test.describe('Dashboard visual hierarchy', () => {
           const box = node?.getBoundingClientRect();
           return box ? { top: box.top, bottom: box.bottom, width: box.width, height: box.height } : null;
         };
-        const core = document.querySelector('#nexora-core-panel');
-        const quickView = document.querySelector('#dashboard-quick-view');
+        const regions = Array.from(document.querySelectorAll(
+          '#dashboard-v2-shell [data-dashboard-region]'
+        )).map((node) => node.getAttribute('data-dashboard-region'));
         return {
-          core: rect('#nexora-core-panel'),
-          coreDisplay: core ? getComputedStyle(core).display : null,
-          coreInsideQuickView: Boolean(core && quickView?.contains(core)),
-          coreHostExists: Boolean(document.querySelector('#dashboard-quick-core-host')),
+          regions,
+          v2MetricCount: document.querySelectorAll('#dashboard-v2-shell .nx-metric-card').length,
           quickMetricCount: document.querySelectorAll('#dashboard-quick-view .dashboard-quick-metrics .kpi-card').length,
-          quickMetrics: rect('#dashboard-quick-view .dashboard-quick-metrics'),
-          hero: rect('#dashboard-synthesis-hero'),
-          primaryKpis: rect('.dashboard-primary-kpis')
+          hero: rect('[data-dashboard-region="remaining"]'),
+          coach: rect('[data-dashboard-region="coach"]'),
+          metrics: rect('[data-dashboard-region="metrics"]'),
+          goal: rect('[data-dashboard-region="goal"]'),
+          secondary: rect('[data-dashboard-region="secondary-actions"]'),
+          legacyPlan: rect('#week-plan-card'),
+          overflowX: document.documentElement.scrollWidth > window.innerWidth
         };
       });
 
-      expect(layout.coreDisplay).toBe('none');
-      expect(layout.coreInsideQuickView).toBe(false);
-      expect(layout.coreHostExists).toBe(false);
+      expect(layout.regions).toEqual([
+        'remaining',
+        'coach',
+        'metrics',
+        'goal',
+        'secondary-actions'
+      ]);
+      expect(layout.v2MetricCount).toBe(2);
       expect(layout.quickMetricCount).toBe(4);
-      expect(layout.quickMetrics.width).toBeGreaterThan(0);
-      expect(layout.quickMetrics.height).toBeGreaterThan(0);
-      expect(layout.hero.bottom).toBeLessThan(layout.primaryKpis.top);
+      expect(layout.overflowX).toBeFalsy();
+      expect(layout.hero.bottom).toBeLessThan(layout.coach.top);
+      expect(layout.coach.bottom).toBeLessThan(layout.metrics.top);
+      expect(layout.metrics.bottom).toBeLessThan(layout.goal.top);
+      expect(layout.goal.bottom).toBeLessThan(layout.secondary.top);
+      expect(layout.secondary.bottom).toBeLessThan(layout.legacyPlan.top);
     };
 
-    await assertQuickViewIsIndicatorsOnly(375);
-    await assertQuickViewIsIndicatorsOnly(390);
+    await assertDashboardStory(375);
+    await assertDashboardStory(390);
   });
 
-  test('keeps judgment, action and indicators compact and ordered', async ({ page }) => {
+  test('uses V2 components with accessible actions and no horizontal overflow', async ({ page }) => {
     await page.waitForFunction(() => {
       const rect = (selector) => {
         const node = document.querySelector(selector);
@@ -94,23 +109,26 @@ test.describe('Dashboard visual hierarchy', () => {
         return { top: box.top, bottom: box.bottom, height: box.height };
       };
 
-      const hero = rect('#dashboard-synthesis-hero');
-      const primaryKpis = rect('.dashboard-primary-kpis');
-      const coach = rect('#dashboard-coach-card');
-      const indicators = rect('.dashboard-secondary-kpis');
+      const hero = rect('[data-dashboard-region="remaining"]');
+      const coach = rect('[data-dashboard-region="coach"]');
+      const metrics = rect('[data-dashboard-region="metrics"]');
+      const goal = rect('[data-dashboard-region="goal"]');
+      const secondary = rect('[data-dashboard-region="secondary-actions"]');
 
       return Boolean(
         hero
-        && primaryKpis
         && coach
-        && indicators
-        && hero.bottom < primaryKpis.top
-        && primaryKpis.bottom < coach.top
-        && coach.bottom < indicators.top
+        && metrics
+        && goal
+        && secondary
+        && hero.bottom < coach.top
+        && coach.bottom < metrics.top
+        && metrics.bottom < goal.top
+        && goal.bottom < secondary.top
       );
     }, { timeout: 20000 });
 
-    await page.waitForSelector('#dashboard-coach-card', { state: 'visible', timeout: 20000 });
+    await page.waitForSelector('#dashboard-v2-shell', { state: 'visible', timeout: 20000 });
     await page.waitForSelector('#dashboard-alerts-card', { state: 'visible', timeout: 20000 });
     await page.waitForSelector('.dashboard-secondary-kpis', { state: 'visible', timeout: 20000 });
 
@@ -123,25 +141,24 @@ test.describe('Dashboard visual hierarchy', () => {
       };
       const status = rect('#nexora-status-bar');
       const priorityAction = rect('#dashboard-coach-action');
-      const core = document.querySelector('#nexora-core-panel');
       const indicators = document.querySelector('.dashboard-secondary-kpis');
       const assistant = document.querySelector('#assistant-card');
+      const v2Root = document.querySelector('#dashboard-v2-shell');
 
       return {
         width: window.innerWidth,
         overflowX: document.documentElement.scrollWidth > window.innerWidth,
-        header: rect('.dashboard-clean-header'),
-        hero: rect('#dashboard-synthesis-hero'),
-        primaryKpis: rect('.dashboard-primary-kpis'),
-        core: rect('#nexora-core-panel'),
-        coreDisplay: core ? getComputedStyle(core).display : null,
-        coreInsideIndicators: Boolean(core && indicators?.contains(core)),
-        coreHostExists: Boolean(document.querySelector('#dashboard-quick-core-host')),
+        header: rect('.nx-page-header'),
+        hero: rect('[data-dashboard-region="remaining"]'),
+        coach: rect('[data-dashboard-region="coach"]'),
+        metrics: rect('[data-dashboard-region="metrics"]'),
+        goal: rect('[data-dashboard-region="goal"]'),
+        secondary: rect('[data-dashboard-region="secondary-actions"]'),
+        legacyClassCount: v2Root?.querySelectorAll(
+          '.btn, .kpi-card, .dashboard-panel, .simple-card'
+        ).length,
         assistantInsideIndicators: Boolean(assistant && indicators?.contains(assistant)),
         quickMetricCount: document.querySelectorAll('#dashboard-quick-view .dashboard-quick-metrics .kpi-card').length,
-        coach: rect('#dashboard-coach-card'),
-        alerts: rect('#dashboard-alerts-card'),
-        indicators: rect('.dashboard-secondary-kpis'),
         statusOverlap: status && priorityAction ? Math.max(
           0,
           Math.min(status.bottom, priorityAction.bottom) - Math.max(status.top, priorityAction.top)
@@ -150,17 +167,14 @@ test.describe('Dashboard visual hierarchy', () => {
     });
 
     expect(metrics.overflowX).toBeFalsy();
-    expect(metrics.header.height).toBeLessThanOrEqual(70);
-    expect(metrics.coreDisplay).toBe('none');
-    expect(metrics.coreInsideIndicators).toBe(false);
-    expect(metrics.coreHostExists).toBe(false);
+    expect(metrics.header.height).toBeLessThanOrEqual(140);
+    expect(metrics.legacyClassCount).toBe(0);
     expect(metrics.assistantInsideIndicators).toBe(true);
     expect(metrics.quickMetricCount).toBe(4);
-    expect(metrics.hero.bottom).toBeLessThan(metrics.primaryKpis.top);
-    expect(metrics.primaryKpis.bottom).toBeLessThan(metrics.coach.top);
-    expect(metrics.coach.bottom).toBeLessThan(metrics.indicators.top);
-    if (metrics.width > 980) expect(metrics.alerts.top).toBe(metrics.indicators.top);
-    else expect(metrics.alerts.bottom).toBeLessThan(metrics.indicators.top);
+    expect(metrics.hero.bottom).toBeLessThan(metrics.coach.top);
+    expect(metrics.coach.bottom).toBeLessThan(metrics.metrics.top);
+    expect(metrics.metrics.bottom).toBeLessThan(metrics.goal.top);
+    expect(metrics.goal.bottom).toBeLessThan(metrics.secondary.top);
     if (metrics.width <= 480) expect(metrics.statusOverlap).toBe(0);
 
     const coachActionVisible = await page.isVisible('#dashboard-coach-action');

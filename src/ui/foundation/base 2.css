@@ -1,0 +1,35 @@
+.nx-scope {
+  background: var(--nx-color-canvas);
+  color-scheme: dark;
+  color: var(--nx-color-text-primary);
+  font-family: var(--nx-font-family-ui);
+  font-size: var(--nx-font-size-body);
+  line-height: var(--nx-line-height-body);
+  text-rendering: optimizeLegibility;
+}
+
+.nx-scope :where(h1, h2, h3, h4) {
+  color: var(--nx-color-text-primary);
+  font-weight: var(--nx-font-weight-bold);
+  text-wrap: balance;
+}
+
+.nx-scope :where(p) {
+  color: var(--nx-color-text-secondary);
+  text-wrap: pretty;
+}
+
+.nx-scope :where(a) {
+  color: var(--nx-color-gold-hover);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.nx-scope ::selection {
+  background: var(--nx-color-gold);
+  color: var(--nx-color-text-inverse);
+}
+
+.nx-scope .nx-numeric {
+  font-variant-numeric: tabular-nums;
+}
