@@ -42,7 +42,6 @@ import { renderTreasuryTimeline } from './components/TreasuryTimeline.js'
 import './styles/design-system.css'
 import './ui/index.css'
 import { renderDashboardMaster } from './components/DashboardMaster.js'
-import { renderDashboardV2 } from './ui/dashboard/DashboardV2.js'
 import CoupleOverlay from './couple/coupleOverlay.js'
 import { renderTreasuryPlanner } from './components/TreasuryPlannerUI.js'
 import { renderSettingsPanels, renderRecurringIncomeSettings, renderBillScheduleSettings } from './settings/SettingsUI.js'
@@ -55,6 +54,7 @@ import NexoraRecurringResolver from './finance/recurringResolution.js'
 import NexoraCore from './ui/nexoraCore.js'
 import { toggleAvailableMoneyOptions } from './ui/availableMoneyOptions.js'
 import { buildDashboardGuidance } from './ui/dashboardGuidance.js'
+import { renderDashboardHero } from './ui/dashboard/renderDashboardHero.js'
 import { renderBudgetCoach, buildBudgetCoachState } from './ui/budgetCoach.js'
 import NexoraSections from './app/sectionLoader.js'
 import { getSyncStatusSnapshot, recordLastSync } from './app/syncStatus.js'
@@ -93,6 +93,7 @@ installLegacyBridge({
   NexoraSections,
   toggleAvailableMoneyOptions,
   NexoraDashboardGuidance: { buildDashboardGuidance },
+  renderDashboardHero, // TODO: Remove when Dashboard V2 migration is complete
   renderBudgetCoach,
   buildBudgetCoachState,
   buildJudgmentEngine,
@@ -325,11 +326,6 @@ const initApp = async () => {
     console.error('❌ App initialization error:', err)
   }
 }
-
-renderDashboardV2('dashboard-v2-root', {
-  onNavigate: (section) => window.showSection?.(section),
-  onModeChange: (mode) => window.setNexoraUxMode?.(mode)
-})
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {

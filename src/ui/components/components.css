@@ -295,6 +295,81 @@
   color: var(--nx-color-stable);
 }
 
+.nx-hero-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-lg);
+  min-width: 0;
+}
+
+#dashboard-hero-root {
+  max-width: 100%;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.nx-hero-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-md);
+  min-width: 0;
+}
+
+.nx-hero-card__header {
+  display: grid;
+  gap: var(--nx-space-sm);
+  min-width: 0;
+}
+
+.nx-hero-card__context {
+  justify-self: start;
+}
+
+.nx-hero-card__label {
+  color: var(--nx-color-text-secondary);
+  font-size: var(--nx-font-size-label);
+  line-height: var(--nx-line-height-label);
+}
+
+.nx-hero-card__amount {
+  color: var(--nx-color-text-primary);
+  font-size: clamp(20px, var(--nx-font-size-amount-mobile), 36px);
+  line-height: var(--nx-line-height-amount-mobile);
+  font-weight: var(--nx-font-weight-bold);
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.nx-hero-card--positive .nx-hero-card__amount {
+  color: var(--nx-color-stable);
+}
+
+.nx-hero-card--warning .nx-hero-card__amount {
+  color: var(--nx-color-warning);
+}
+
+.nx-hero-card--danger .nx-hero-card__amount {
+  color: var(--nx-color-danger);
+}
+
+.nx-hero-card__trend {
+  color: var(--nx-color-text-tertiary);
+  font-size: var(--nx-font-size-caption);
+  line-height: var(--nx-line-height-caption);
+}
+
+.nx-hero-card__action {
+  justify-self: start;
+}
+
+@media (min-width: 768px) {
+  .nx-hero-card__amount {
+    font-size: var(--nx-font-size-amount-desktop);
+    line-height: var(--nx-line-height-amount-desktop);
+  }
+}
+
 .nx-modal-open {
   overflow: hidden;
 }

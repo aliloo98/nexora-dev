@@ -1,6 +1,12 @@
 import { buildJudgmentEngine } from '../assistant/judgmentEngine.js'
 import { CoachService } from '../coach/services/coachService.js'
-import { createDashboardCoachCard } from '../ui/dashboard/DashboardV2.js'
+
+const escapeHtml = (value) => String(value ?? '')
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#039;')
 
 const localMonthKey = (date) => {
   const value = date instanceof Date ? date : new Date(date)
@@ -166,18 +172,65 @@ export async function renderDashboardMaster(rootId, TreasuryService, options = {
     }
   }
 
+  const reasons = [
+    {
+      tone: 'danger',
+      icon: '!',
+      title: 'Situation actuelle',
+      detail: decision.situation
+    },
+    {
+      tone: 'warning',
+      icon: '↗',
+      title: 'Impact financier',
+      detail: decision.impact
+    },
+    {
+      tone: 'positive',
+      icon: '✓',
+      title: 'Action recommandée',
+      detail: decision.action
+    }
+  ]
   const showRecommendationAction = decision.source === 'coach' || decision.hasBudgetData
-  const actionId = showRecommendationAction ? 'dashboard-coach-action' : 'dashboard-empty-action'
-  const actionLabel = showRecommendationAction
-    ? decision.actionLabel
-    : 'Comprendre mes recommandations'
-  const actionTarget = showRecommendationAction ? decision.actionTarget : 'saisie'
-  const card = createDashboardCoachCard(decision, {
-    actionLabel,
-    onAction: () => windowRef.showSection?.(actionTarget)
-  }, documentRef)
-  const action = card.querySelector('button')
-  if (action) action.id = actionId
-  root.replaceChildren(card)
+
+  const markup = `
+    <div class="dashboard-coach-content" data-recommendation-source="${decision.source}">
+      <div class="dashboard-coach-heading">
+        <div>
+          <span>Pourquoi c’est ma priorité ?</span>
+          <strong>${escapeHtml(decision.title)}</strong>
+        </div>
+        <em>${asOf.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</em>
+      </div>
+      <div class="dashboard-reasons" role="list">
+        ${reasons.map((reason) => `
+          <div class="dashboard-reason dashboard-reason--${reason.tone}" role="listitem">
+            <i aria-hidden="true">${reason.icon}</i>
+            <div>
+              <strong>${escapeHtml(reason.title)}</strong>
+              <p>${escapeHtml(reason.detail)}</p>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="dashboard-coach-footer">
+        <span>${escapeHtml(decision.footer)}</span>
+        ${showRecommendationAction
+          ? `<button class="btn btn-outline" type="button" id="dashboard-coach-action">${escapeHtml(decision.actionLabel)} <span aria-hidden="true">→</span></button>`
+          : `<button class="btn btn-outline" type="button" id="dashboard-empty-action">Comprendre mes recommandations <span aria-hidden="true">→</span></button>`}
+      </div>
+    </div>
+  `
+
+  if (root.__dashboardCoachMarkup !== markup || !root.querySelector('.dashboard-coach-content')) {
+    root.innerHTML = markup
+    root.__dashboardCoachMarkup = markup
+  }
+
+  const coachAction = root.querySelector('#dashboard-coach-action')
+  if (coachAction) coachAction.onclick = () => windowRef.showSection?.(decision.actionTarget)
+  const emptyAction = root.querySelector('#dashboard-empty-action')
+  if (emptyAction) emptyAction.onclick = () => windowRef.showSection?.('saisie')
   windowRef.NexoraMotion?.animateCards?.(root)
 }

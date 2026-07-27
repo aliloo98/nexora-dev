@@ -14,7 +14,6 @@ const v2Directories = new Set([
   'layout',
   'primitives',
   'components',
-  'dashboard',
   'icons',
   'internal',
   'catalog',

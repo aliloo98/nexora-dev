@@ -217,6 +217,11 @@ export const attachLoginFormListeners = () => {
       }
       showToast('✅ Mode test activé!')
 
+      // Activate demo mode to populate dashboard with demo data
+      if (typeof window.setNexoraDemoMode === 'function') {
+        await window.setNexoraDemoMode(true)
+      }
+
       const _expectedHashDemo = window.location.hash
       setTimeout(() => {
         const currentHash = window.location.hash

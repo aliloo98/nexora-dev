@@ -4,6 +4,7 @@ import {
   createCoachCard,
   createEmptyState,
   createGoalCard,
+  createHeroCard,
   createLoadingState,
   createMetricCard,
   createSectionHeader,
@@ -84,5 +85,101 @@ assert.ok(shell.classList.contains('nx-scope'))
 const pageHeader = createPageHeader({ title: 'Budget', headingLevel: 1 }, documentRef)
 assert.equal(pageHeader.querySelector('h1').textContent, 'Budget')
 assert.equal(createDivider({ decorative: true }, documentRef).getAttribute('role'), 'presentation')
+
+// HeroCard tests
+const heroNeutral = createHeroCard({
+  amount: '1 250 €',
+  label: 'Argent restant ce mois-ci',
+  tone: 'neutral'
+}, documentRef)
+assert.ok(heroNeutral.classList.contains('nx-hero-card'))
+assert.ok(heroNeutral.classList.contains('nx-hero-card--neutral'))
+assert.match(heroNeutral.textContent, /1 250 €/)
+assert.match(heroNeutral.textContent, /Argent restant ce mois-ci/)
+assert.equal(heroNeutral.querySelector('.nx-hero-card__amount').textContent, '1 250 €')
+assert.equal(heroNeutral.querySelector('.nx-hero-card__label').textContent, 'Argent restant ce mois-ci')
+
+const heroPositive = createHeroCard({
+  amount: '850 €',
+  label: 'Argent restant ce mois-ci',
+  context: 'Situation stable',
+  tone: 'positive',
+  trend: 'Charges 65% · Variables 20%'
+}, documentRef)
+assert.ok(heroPositive.classList.contains('nx-hero-card--positive'))
+assert.match(heroPositive.textContent, /Situation stable/)
+assert.match(heroPositive.textContent, /Charges 65% · Variables 20%/)
+assert.equal(heroPositive.querySelectorAll('.nx-hero-card__trend').length, 1)
+
+const heroWarning = createHeroCard({
+  amount: '85 €',
+  label: 'Argent restant ce mois-ci',
+  context: 'Marge faible',
+  tone: 'warning'
+}, documentRef)
+assert.ok(heroWarning.classList.contains('nx-hero-card--warning'))
+assert.match(heroWarning.textContent, /Marge faible/)
+
+const heroDanger = createHeroCard({
+  amount: '-150 €',
+  label: 'Argent restant ce mois-ci',
+  context: 'Déficit prévu',
+  tone: 'danger'
+}, documentRef)
+assert.ok(heroDanger.classList.contains('nx-hero-card--danger'))
+assert.match(heroDanger.textContent, /Déficit prévu/)
+
+const heroWithoutContext = createHeroCard({
+  amount: '500 €',
+  label: 'Argent restant ce mois-ci',
+  tone: 'neutral'
+}, documentRef)
+assert.equal(heroWithoutContext.querySelectorAll('.nx-hero-card__context').length, 0)
+
+const heroWithoutTrend = createHeroCard({
+  amount: '500 €',
+  label: 'Argent restant ce mois-ci',
+  tone: 'neutral'
+}, documentRef)
+assert.equal(heroWithoutTrend.querySelectorAll('.nx-hero-card__trend').length, 0)
+
+let heroActionCalls = 0
+const heroWithAction = createHeroCard({
+  amount: '1 000 €',
+  label: 'Argent restant ce mois-ci',
+  tone: 'positive',
+  actionLabel: 'Voir le plan',
+  onAction: () => { heroActionCalls += 1 }
+}, documentRef)
+assert.equal(heroWithAction.querySelectorAll('button').length, 1)
+heroWithAction.querySelector('button').click()
+assert.equal(heroActionCalls, 1)
+
+const heroWithoutAction = createHeroCard({
+  amount: '500 €',
+  label: 'Argent restant ce mois-ci',
+  tone: 'neutral'
+}, documentRef)
+assert.equal(heroWithoutAction.querySelectorAll('button').length, 0)
+
+// Test HTML escaping
+const heroWithHtml = createHeroCard({
+  amount: '500 €',
+  label: '<script>alert("xss")</script>',
+  tone: 'neutral'
+}, documentRef)
+assert.equal(heroWithHtml.querySelector('script'), null)
+assert.match(heroWithHtml.querySelector('.nx-hero-card__label').textContent, /<script>/)
+
+// Test accessibility
+const heroAccessible = createHeroCard({
+  amount: '1 000 €',
+  label: 'Argent restant ce mois-ci',
+  tone: 'neutral',
+  ariaLabel: 'Solde du mois'
+}, documentRef)
+assert.equal(heroAccessible.getAttribute('aria-label'), 'Solde du mois')
+assert.equal(heroAccessible.tagName, 'SECTION')
+assert.ok(heroAccessible.classList.contains('nx-card'))
 
 console.info('Nexora UI composed component tests: OK')

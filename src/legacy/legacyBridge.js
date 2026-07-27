@@ -40,6 +40,7 @@ export function installLegacyBridge(dependencies) {
     NexoraSections,
     toggleAvailableMoneyOptions,
     NexoraDashboardGuidance,
+    renderDashboardHero,
     renderBudgetCoach,
     buildBudgetCoachState,
     buildJudgmentEngine,
@@ -86,6 +87,7 @@ export function installLegacyBridge(dependencies) {
   window.NexoraSections = NexoraSections
   window.toggleAvailableMoneyOptions = toggleAvailableMoneyOptions
   window.NexoraDashboardGuidance = NexoraDashboardGuidance
+  window.renderDashboardHero = renderDashboardHero
   window.renderBudgetCoach = renderBudgetCoach
   window.buildBudgetCoachState = buildBudgetCoachState
   window.buildJudgmentEngine = buildJudgmentEngine

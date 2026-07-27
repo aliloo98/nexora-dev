@@ -1,6 +1,0 @@
-:root {
-  --nx-shadow-none: none;
-  --nx-shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.18);
-  --nx-shadow-modal: 0 18px 48px rgba(0, 0, 0, 0.28);
-  --nx-shadow-focus: 0 0 0 2px var(--nx-color-canvas), 0 0 0 4px var(--nx-color-focus);
-}

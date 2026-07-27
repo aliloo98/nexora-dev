@@ -1,6 +1,7 @@
 export { createMetricCard } from './MetricCard.js'
 export { createCoachCard } from './CoachCard.js'
 export { createGoalCard } from './GoalCard.js'
+export { createHeroCard } from './HeroCard.js'
 export { createModal } from './Modal.js'
 export { createToastRegion } from './Toast.js'
 export { createSkeleton } from './Skeleton.js'

@@ -127,7 +127,7 @@ export async function renderAdvancedApplicationUi({
     if (
       typeof renderDashboardMaster === 'function'
       && documentRef.getElementById('dashboard-master-root')
-      && !documentRef.querySelector('#dashboard-master-root [data-recommendation-source]')
+      && !documentRef.querySelector('#dashboard-master-root .dashboard-coach-content')
     ) {
       await refreshDashboardCoach()
     }
