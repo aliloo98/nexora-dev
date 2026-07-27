@@ -1,5 +1,26 @@
 import { buildJudgmentEngine } from '../assistant/judgmentEngine.js'
 import { CoachService } from '../coach/services/coachService.js'
+import { createCoachCard } from '../ui/components/CoachCard.js'
+
+export const normalizePriorityLevel = (priority) => {
+  if (priority === null || priority === undefined) return 'neutral'
+
+  const normalized = String(priority).trim().toLowerCase()
+
+  if (normalized === '0' || normalized === 'critical' || normalized === 'high' || normalized === 'critique' || normalized === 'importante') {
+    return 'critical'
+  }
+
+  if (normalized === '1' || normalized === 'medium') {
+    return 'vigilance'
+  }
+
+  if (normalized === '2' || normalized === 'low') {
+    return 'opportunity'
+  }
+
+  return 'neutral'
+}
 
 const escapeHtml = (value) => String(value ?? '')
   .replace(/&/g, '&amp;')
@@ -172,65 +193,29 @@ export async function renderDashboardMaster(rootId, TreasuryService, options = {
     }
   }
 
-  const reasons = [
-    {
-      tone: 'danger',
-      icon: '!',
-      title: 'Situation actuelle',
-      detail: decision.situation
-    },
-    {
-      tone: 'warning',
-      icon: '↗',
-      title: 'Impact financier',
-      detail: decision.impact
-    },
-    {
-      tone: 'positive',
-      icon: '✓',
-      title: 'Action recommandée',
-      detail: decision.action
-    }
-  ]
   const showRecommendationAction = decision.source === 'coach' || decision.hasBudgetData
 
-  const markup = `
-    <div class="dashboard-coach-content" data-recommendation-source="${decision.source}">
-      <div class="dashboard-coach-heading">
-        <div>
-          <span>Pourquoi c’est ma priorité ?</span>
-          <strong>${escapeHtml(decision.title)}</strong>
-        </div>
-        <em>${asOf.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</em>
-      </div>
-      <div class="dashboard-reasons" role="list">
-        ${reasons.map((reason) => `
-          <div class="dashboard-reason dashboard-reason--${reason.tone}" role="listitem">
-            <i aria-hidden="true">${reason.icon}</i>
-            <div>
-              <strong>${escapeHtml(reason.title)}</strong>
-              <p>${escapeHtml(reason.detail)}</p>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-      <div class="dashboard-coach-footer">
-        <span>${escapeHtml(decision.footer)}</span>
-        ${showRecommendationAction
-          ? `<button class="btn btn-outline" type="button" id="dashboard-coach-action">${escapeHtml(decision.actionLabel)} <span aria-hidden="true">→</span></button>`
-          : `<button class="btn btn-outline" type="button" id="dashboard-empty-action">Comprendre mes recommandations <span aria-hidden="true">→</span></button>`}
-      </div>
-    </div>
-  `
+  const level = decision.source === 'coach'
+    ? normalizePriorityLevel(decision.analysis?.primary?.priority)
+    : 'neutral'
 
-  if (root.__dashboardCoachMarkup !== markup || !root.querySelector('.dashboard-coach-content')) {
-    root.innerHTML = markup
-    root.__dashboardCoachMarkup = markup
+  const coachCard = createCoachCard({
+    level,
+    eyebrow: 'Coach Nexora',
+    title: decision.title,
+    description: decision.situation,
+    context: decision.footer,
+    actionLabel: showRecommendationAction ? decision.actionLabel : 'Comprendre mes recommandations',
+    onAction: () => windowRef.showSection?.(showRecommendationAction ? decision.actionTarget : 'saisie')
+  }, documentRef)
+
+  const currentMarkup = root.innerHTML
+  const newMarkup = coachCard.outerHTML
+
+  if (currentMarkup !== newMarkup || !root.querySelector('.nx-coach-card')) {
+    root.innerHTML = ''
+    root.appendChild(coachCard)
   }
 
-  const coachAction = root.querySelector('#dashboard-coach-action')
-  if (coachAction) coachAction.onclick = () => windowRef.showSection?.(decision.actionTarget)
-  const emptyAction = root.querySelector('#dashboard-empty-action')
-  if (emptyAction) emptyAction.onclick = () => windowRef.showSection?.('saisie')
   windowRef.NexoraMotion?.animateCards?.(root)
 }

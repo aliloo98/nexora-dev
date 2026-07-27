@@ -59,6 +59,13 @@ export function createCoachCard(options = {}, documentRef) {
     card.appendChild(description)
   }
 
+  if (options.context) {
+    const context = document.createElement('small')
+    context.className = 'nx-coach-card__context'
+    setText(context, options.context)
+    card.appendChild(context)
+  }
+
   if (options.loading) {
     const loading = document.createElement('div')
     loading.className = 'nx-coach-card__loading'

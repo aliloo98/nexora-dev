@@ -35,7 +35,7 @@ test.describe('Dashboard visual hierarchy', () => {
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 });
     await page.click('#loginDemoBtn');
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 });
-    await page.waitForSelector('#dashboard-coach-card .dashboard-coach-content', {
+    await page.waitForSelector('#dashboard-coach-card .nx-coach-card', {
       state: 'visible',
       timeout: 30000
     });

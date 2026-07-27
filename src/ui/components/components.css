@@ -88,6 +88,12 @@
   max-inline-size: 64ch;
 }
 
+.nx-coach-card__context {
+  color: var(--nx-color-text-tertiary);
+  font-size: var(--nx-font-size-caption);
+  line-height: var(--nx-line-height-caption);
+}
+
 .nx-coach-card__action {
   justify-self: start;
 }

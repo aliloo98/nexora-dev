@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict'
-import { resolveDashboardRecommendation } from './DashboardMaster.js'
+import { resolveDashboardRecommendation, normalizePriorityLevel } from './DashboardMaster.js'
 import { presentRecommendation } from '../coach/presenters/recommendationPresenter.js'
 import { createRecommendation } from '../coach/models/recommendation.js'
 import { createCoachFixture } from '../coach/tests/coachFixtures.js'
@@ -65,5 +65,27 @@ assert.equal(fallback.decision.source, 'legacy')
 assert.equal(fallback.decision.title, 'Ancienne priorité')
 assert.match(fallback.coachError.message, /unavailable/)
 assert.equal(legacyCalls, 1)
+
+// Test normalizePriorityLevel
+assert.equal(normalizePriorityLevel(0), 'critical', 'numeric 0 should be critical')
+assert.equal(normalizePriorityLevel(1), 'vigilance', 'numeric 1 should be vigilance')
+assert.equal(normalizePriorityLevel(2), 'opportunity', 'numeric 2 should be opportunity')
+assert.equal(normalizePriorityLevel('0'), 'critical', 'string "0" should be critical')
+assert.equal(normalizePriorityLevel('1'), 'vigilance', 'string "1" should be vigilance')
+assert.equal(normalizePriorityLevel('2'), 'opportunity', 'string "2" should be opportunity')
+assert.equal(normalizePriorityLevel('critical'), 'critical', 'critical should be critical')
+assert.equal(normalizePriorityLevel('CRITICAL'), 'critical', 'CRITICAL should be critical (case insensitive)')
+assert.equal(normalizePriorityLevel('  critical  '), 'critical', '  critical  should be critical (whitespace tolerant)')
+assert.equal(normalizePriorityLevel('critique'), 'critical', 'critique should be critical')
+assert.equal(normalizePriorityLevel('high'), 'critical', 'high should be critical')
+assert.equal(normalizePriorityLevel('importante'), 'critical', 'importante should be critical')
+assert.equal(normalizePriorityLevel('medium'), 'vigilance', 'medium should be vigilance')
+assert.equal(normalizePriorityLevel('low'), 'opportunity', 'low should be opportunity')
+assert.equal(normalizePriorityLevel('informational'), 'neutral', 'informational should be neutral')
+assert.equal(normalizePriorityLevel('standard'), 'neutral', 'standard should be neutral')
+assert.equal(normalizePriorityLevel('unknown'), 'neutral', 'unknown should be neutral')
+assert.equal(normalizePriorityLevel(null), 'neutral', 'null should be neutral')
+assert.equal(normalizePriorityLevel(undefined), 'neutral', 'undefined should be neutral')
+assert.equal(normalizePriorityLevel(999), 'neutral', 'unknown numeric should be neutral')
 
 console.log('DashboardMaster-tests: OK')
