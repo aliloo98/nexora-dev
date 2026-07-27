@@ -34,7 +34,7 @@ const getNexoraOfficialSituation = ({ revReel, solde, tauxCh, variablesPct }) =>
  */
 export function renderDashboardHero(rootId, metrics = {}, options = {}) {
   const documentRef = options.documentRef || document
-  const windowRef = options.windowRef || window
+  const windowRef = options.windowRef || (typeof window !== 'undefined' ? window : undefined)
   const root = documentRef.getElementById(rootId)
   if (!root) return
 
