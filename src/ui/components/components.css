@@ -296,18 +296,29 @@
 }
 
 .nx-hero-card {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: var(--nx-space-lg);
+  min-width: 0;
+}
+
+#dashboard-hero-root {
+  max-width: 100%;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .nx-hero-card__content {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: var(--nx-space-md);
+  min-width: 0;
 }
 
 .nx-hero-card__header {
   display: grid;
   gap: var(--nx-space-sm);
+  min-width: 0;
 }
 
 .nx-hero-card__context {
@@ -322,9 +333,12 @@
 
 .nx-hero-card__amount {
   color: var(--nx-color-text-primary);
-  font-size: var(--nx-font-size-amount-mobile);
+  font-size: clamp(20px, var(--nx-font-size-amount-mobile), 36px);
   line-height: var(--nx-line-height-amount-mobile);
   font-weight: var(--nx-font-weight-bold);
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 .nx-hero-card--positive .nx-hero-card__amount {
