@@ -1,6 +1,5 @@
-import { getProactiveCoach } from '../advisor/proactiveCoachService.js'
-import TreasuryAdapter from '../treasury/treasuryAdapter.js'
 import { buildJudgmentEngine } from '../assistant/judgmentEngine.js'
+import { CoachService } from '../coach/services/coachService.js'
 
 const escapeHtml = (value) => String(value ?? '')
   .replace(/&/g, '&amp;')
@@ -9,12 +8,38 @@ const escapeHtml = (value) => String(value ?? '')
   .replace(/"/g, '&quot;')
   .replace(/'/g, '&#039;')
 
-export async function renderDashboardMaster(rootId, TreasuryService) {
-  const root = document.getElementById(rootId)
-  if (!root) return
-  root.classList.add('dashboard-coach-root', 'fade-in')
-  // gather minimal inputs from global services if available
-  const monthKey = typeof window.getMonth === 'function' ? window.getMonth() : new Date().toISOString().slice(0, 7)
+const localMonthKey = (date) => {
+  const value = date instanceof Date ? date : new Date(date)
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}`
+}
+
+const getCoachEvidence = (presentation) => {
+  const evidence = Array.isArray(presentation?.formattedEvidence)
+    ? presentation.formattedEvidence
+    : []
+  if (evidence.length === 0) return 'Cette recommandation est basée sur la situation financière du mois.'
+  return evidence.map(item => `${item.label} : ${item.value}`).join(' · ')
+}
+
+const buildCoachDashboardDecision = (analysis) => ({
+  source: 'coach',
+  title: analysis.presentation.title,
+  situation: analysis.presentation.message,
+  impact: getCoachEvidence(analysis.presentation),
+  action: analysis.presentation.actionLabel,
+  actionLabel: analysis.presentation.actionLabel,
+  actionTarget: analysis.primary.action?.target || 'saisie',
+  footer: getCoachEvidence(analysis.presentation),
+  hasBudgetData: analysis.context.dataQuality.completeness > 0,
+  analysis
+})
+
+const buildLegacyDashboardDecision = async ({ monthKey }) => {
+  const [{ getProactiveCoach }, { default: TreasuryAdapter }] = await Promise.all([
+    import('../advisor/proactiveCoachService.js'),
+    import('../treasury/treasuryAdapter.js')
+  ])
+
   let revenues = []
   let charges = []
   try {
@@ -24,6 +49,7 @@ export async function renderDashboardMaster(rootId, TreasuryService) {
   } catch (error) {
     console.warn('[DashboardMaster] treasury flows unavailable, using empty fallback', error)
   }
+
   const coach = await getProactiveCoach().catch(() => null)
   const judgment = buildJudgmentEngine({
     income: coach?.summary?.income ?? 0,
@@ -38,38 +64,144 @@ export async function renderDashboardMaster(rootId, TreasuryService) {
     settings: coach?.settings
   })
   const hasBudgetData = revenues.length > 0 || charges.length > 0
-  const coachPriority = coach?.priority || (hasBudgetData ? 'Compléter le budget' : 'Commencer le budget')
-  const actionLabel = hasBudgetData ? (coach?.actionLabel || 'Voir la priorité') : 'Saisir le mois'
-  const actionTarget = hasBudgetData ? (coach?.actionTarget || 'saisie') : 'saisie'
+
+  return {
+    source: 'legacy',
+    title: coach?.priority || (hasBudgetData ? 'Compléter le budget' : 'Commencer le budget'),
+    situation: judgment.diagnostic,
+    impact: judgment.impact,
+    action: judgment.action,
+    actionLabel: hasBudgetData ? (coach?.actionLabel || 'Voir la priorité') : 'Comprendre mes recommandations',
+    actionTarget: hasBudgetData ? (coach?.actionTarget || 'saisie') : 'saisie',
+    footer: judgment.why,
+    hasBudgetData,
+    legacy: { coach, judgment }
+  }
+}
+
+export async function resolveDashboardRecommendation({
+  coachService = CoachService,
+  monthKey,
+  asOf,
+  legacyFactory = buildLegacyDashboardDecision
+} = {}) {
+  try {
+    const analysis = await coachService.analyze({ monthKey, asOf })
+    if (!analysis?.primary || !analysis?.presentation) {
+      throw new Error('Coach returned no primary recommendation')
+    }
+    return {
+      decision: buildCoachDashboardDecision(analysis),
+      coachError: null
+    }
+  } catch (coachError) {
+    return {
+      decision: await legacyFactory({ monthKey, asOf }),
+      coachError
+    }
+  }
+}
+
+const buildLegacyDebugComparison = (context) => {
+  const fixedExpenses = context.categories
+    .filter(category => category.type === 'fixed_expense')
+    .reduce((sum, category) => sum + (Number(category.amount) || 0), 0)
+  const variableExpenses = context.categories
+    .filter(category => category.type === 'variable_expense')
+    .reduce((sum, category) => sum + (Number(category.amount) || 0), 0)
+  const primaryGoal = context.goals.find(goal => goal?.isPrimary === true) || context.goals[0] || null
+
+  return buildJudgmentEngine({
+    income: context.monthly.income,
+    fixedExpenses,
+    variableExpenses,
+    expenses: context.monthly.plannedExpenses,
+    projectedBalance: context.monthly.projectedBalance,
+    currentBalance: context.monthly.currentBalance,
+    debts: [],
+    goals: context.goals,
+    primaryGoal
+  })
+}
+
+const logDevelopmentComparison = (decision, logger) => {
+  if (decision.source !== 'coach' || !decision.analysis?.context) return
+  const legacy = buildLegacyDebugComparison(decision.analysis.context)
+  logger('[Nexora Coach comparison]', {
+    coach: {
+      ruleId: decision.analysis.primary.ruleId,
+      priority: decision.analysis.primary.priority,
+      recommendationScore: decision.analysis.primary.recommendationScore,
+      title: decision.title
+    },
+    legacy: {
+      kind: legacy.primaryProblem.kind,
+      priority: legacy.primaryProblem.priority,
+      title: legacy.primaryProblem.label
+    }
+  })
+}
+
+export async function renderDashboardMaster(rootId, TreasuryService, options = {}) {
+  const documentRef = options.documentRef || document
+  const windowRef = options.windowRef || window
+  const root = documentRef.getElementById(rootId)
+  if (!root) return
+  root.classList.add('dashboard-coach-root', 'fade-in')
+
+  const asOf = options.asOf instanceof Date ? options.asOf : new Date(options.asOf || Date.now())
+  const monthKey = options.monthKey
+    || (typeof windowRef.getMonth === 'function' ? windowRef.getMonth() : localMonthKey(asOf))
+  const { decision, coachError } = await resolveDashboardRecommendation({
+    coachService: options.coachService || CoachService,
+    monthKey,
+    asOf,
+    legacyFactory: options.legacyFactory || ((params) => buildLegacyDashboardDecision({
+      ...params,
+      TreasuryService
+    }))
+  })
+
+  if (coachError) {
+    console.warn('[DashboardMaster] Nexora Coach unavailable, using legacy fallback', coachError)
+  } else {
+    const debugEnabled = options.debug === true
+      || (options.debug !== false && Boolean(import.meta.env?.DEV))
+    if (debugEnabled) {
+      logDevelopmentComparison(decision, options.debugLogger || console.debug)
+    }
+  }
+
   const reasons = [
     {
       tone: 'danger',
       icon: '!',
       title: 'Situation actuelle',
-      detail: judgment.diagnostic
+      detail: decision.situation
     },
     {
       tone: 'warning',
       icon: '↗',
       title: 'Impact financier',
-      detail: judgment.impact
+      detail: decision.impact
     },
     {
       tone: 'positive',
       icon: '✓',
       title: 'Action recommandée',
-      detail: judgment.action
+      detail: decision.action
     }
   ]
+  const showRecommendationAction = decision.source === 'coach' || decision.hasBudgetData
 
   const markup = `
-    <div class="dashboard-coach-content">
+    <div class="dashboard-coach-content" data-recommendation-source="${decision.source}">
       <div class="dashboard-coach-heading">
         <div>
           <span>Pourquoi c’est ma priorité ?</span>
-          <strong>${escapeHtml(coachPriority)}</strong>
+          <strong>${escapeHtml(decision.title)}</strong>
         </div>
-        <em>${new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</em>
+        <em>${asOf.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</em>
       </div>
       <div class="dashboard-reasons" role="list">
         ${reasons.map((reason) => `
@@ -83,9 +215,9 @@ export async function renderDashboardMaster(rootId, TreasuryService) {
         `).join('')}
       </div>
       <div class="dashboard-coach-footer">
-        <span>${escapeHtml(judgment.why)}</span>
-        ${hasBudgetData
-          ? `<button class="btn btn-outline" type="button" id="dashboard-coach-action">${escapeHtml(actionLabel)} <span aria-hidden="true">→</span></button>`
+        <span>${escapeHtml(decision.footer)}</span>
+        ${showRecommendationAction
+          ? `<button class="btn btn-outline" type="button" id="dashboard-coach-action">${escapeHtml(decision.actionLabel)} <span aria-hidden="true">→</span></button>`
           : `<button class="btn btn-outline" type="button" id="dashboard-empty-action">Comprendre mes recommandations <span aria-hidden="true">→</span></button>`}
       </div>
     </div>
@@ -97,8 +229,8 @@ export async function renderDashboardMaster(rootId, TreasuryService) {
   }
 
   const coachAction = root.querySelector('#dashboard-coach-action')
-  if (coachAction) coachAction.onclick = () => window.showSection?.(actionTarget)
+  if (coachAction) coachAction.onclick = () => windowRef.showSection?.(decision.actionTarget)
   const emptyAction = root.querySelector('#dashboard-empty-action')
-  if (emptyAction) emptyAction.onclick = () => window.showSection?.('saisie')
-  window.NexoraMotion?.animateCards?.(root)
+  if (emptyAction) emptyAction.onclick = () => windowRef.showSection?.('saisie')
+  windowRef.NexoraMotion?.animateCards?.(root)
 }
