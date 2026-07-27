@@ -1,0 +1,30 @@
+:root {
+  --nx-font-family-ui: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --nx-font-weight-regular: 400;
+  --nx-font-weight-medium: 500;
+  --nx-font-weight-semibold: 600;
+  --nx-font-weight-bold: 700;
+
+  --nx-font-size-caption: 12px;
+  --nx-line-height-caption: 16px;
+  --nx-font-size-label: 13px;
+  --nx-line-height-label: 18px;
+  --nx-font-size-body: 15px;
+  --nx-line-height-body: 22px;
+  --nx-font-size-section-mobile: 18px;
+  --nx-line-height-section-mobile: 24px;
+  --nx-font-size-section-desktop: 20px;
+  --nx-line-height-section-desktop: 26px;
+  --nx-font-size-metric: 28px;
+  --nx-line-height-metric: 34px;
+  --nx-font-size-page-mobile: 24px;
+  --nx-line-height-page-mobile: 30px;
+  --nx-font-size-page-desktop: 32px;
+  --nx-line-height-page-desktop: 38px;
+  --nx-font-size-amount-mobile: 36px;
+  --nx-line-height-amount-mobile: 40px;
+  --nx-font-size-amount-desktop: 48px;
+  --nx-line-height-amount-desktop: 52px;
+
+  --nx-letter-spacing-eyebrow: 0.06em;
+}

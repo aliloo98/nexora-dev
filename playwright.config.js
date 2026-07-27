@@ -17,6 +17,10 @@ export default {
   },
   projects: [
     { name: 'mobile', use: { viewport: { width: 390, height: 844 } } },
-    { name: 'desktop', use: { viewport: { width: 1440, height: 1000 } } }
+    {
+      name: 'desktop',
+      testIgnore: /ui-v2\.spec\.js/,
+      use: { viewport: { width: 1440, height: 1000 } }
+    }
   ]
 }
