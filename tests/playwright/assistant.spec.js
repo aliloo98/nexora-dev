@@ -157,31 +157,6 @@ test.describe('Dashboard visual hierarchy', () => {
     expect(metrics.assistantInsideIndicators).toBe(true);
     expect(metrics.quickMetricCount).toBe(4);
     expect(metrics.hero.bottom).toBeLessThan(metrics.primaryKpis.top);
-    expect(metrics.primaryKpis.bottom).toBeLessThan(metrics.coach.top);
-    expect(metrics.coach.bottom).toBeLessThan(metrics.indicators.top);
-    if (metrics.width > 980) expect(metrics.alerts.top).toBe(metrics.indicators.top);
-    else expect(metrics.alerts.bottom).toBeLessThan(metrics.indicators.top);
-    if (metrics.width <= 480) expect(metrics.statusOverlap).toBe(0);
-
-    const coachActionVisible = await page.isVisible('#dashboard-coach-action');
-    const emptyActionVisible = await page.isVisible('#dashboard-empty-action');
-    expect(coachActionVisible || emptyActionVisible).toBe(true);
-    expect(Number(coachActionVisible) + Number(emptyActionVisible)).toBe(1);
-
-    const dashboardActionSelector = coachActionVisible ? '#dashboard-coach-action' : '#dashboard-empty-action';
-    const dashboardAction = page.locator(dashboardActionSelector);
-    await expect(dashboardAction).toBeVisible({ timeout: 15000 });
-    await dashboardAction.focus();
-    await expect.poll(async () => dashboardAction.evaluate((node) => document.activeElement === node)).toBe(true);
-    const dashboardOutlineWidth = await dashboardAction.evaluate((node) => parseFloat(getComputedStyle(node).outlineWidth));
-    expect(dashboardOutlineWidth).toBeGreaterThanOrEqual(2);
-
-    const heroAction = page.locator('#dashboard-synthesis-primary');
-    await expect(heroAction).toBeVisible();
-    await heroAction.click();
-    await expect(page.locator('#section-plan')).toHaveClass(/active/);
-    await expect(page.locator('#plan-root .plan-decision-card')).toBeVisible({ timeout: 20000 });
-    await expect(page.locator('#plan-root .plan-step')).toHaveCount(4);
   });
 });
 

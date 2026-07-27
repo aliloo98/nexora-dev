@@ -139,24 +139,7 @@ body.auth-locked > #nexora-status-bar {
       </header>
 
       <section class="dashboard-hero dashboard-panel" id="dashboard-synthesis-hero" data-state="neutral" aria-label="Synthèse du mois">
-        <div class="dashboard-hero__icon" aria-hidden="true">
-          <span></span>
-        </div>
-        <div class="dashboard-hero__copy">
-          <span class="dashboard-pill" id="dashboard-synthesis-status">Synthèse à compléter</span>
-          <h3 id="dashboard-synthesis-action-title">Compléter le budget</h3>
-          <p id="dashboard-synthesis-action-detail">Le diagnostic devient utile dès que les montants du mois sont saisis.</p>
-          <small id="dashboard-synthesis-meta">Ajoutez vos revenus et charges pour calculer la situation du mois.</small>
-          <div class="dashboard-hero__actions">
-            <button type="button" class="btn btn-gold" id="dashboard-synthesis-primary">Voir la priorité <span aria-hidden="true">→</span></button>
-            <button type="button" class="btn btn-outline" onclick="showSection('saisie')">Saisir le mois</button>
-          </div>
-        </div>
-        <div class="dashboard-hero__impact">
-          <span>Impact sur votre solde</span>
-          <strong id="dashboard-synthesis-impact">—</strong>
-          <small id="dashboard-synthesis-title">Budget à compléter</small>
-        </div>
+        <div id="dashboard-hero-root"></div>
       </section>
 
       <section class="dashboard-panel dashboard-core-panel dashboard-core-logic-host nexora-core-panel nexora-core-panel--signature nexora-core-panel--masterpiece nexora-core--v8" id="nexora-core-panel" aria-label="Nexora Core — centre de contrôle financier" aria-hidden="true">
@@ -4633,19 +4616,13 @@ function updatePriorityAction(metrics = {}) {
 
 function updateDashboardSynthesisHero(metrics = {}) {
   const hero = document.getElementById('dashboard-synthesis-hero');
-  const statusEl = document.getElementById('dashboard-synthesis-status');
-  const titleEl = document.getElementById('dashboard-synthesis-title');
-  const metaEl = document.getElementById('dashboard-synthesis-meta');
-  const actionTitleEl = document.getElementById('dashboard-synthesis-action-title');
-  const actionDetailEl = document.getElementById('dashboard-synthesis-action-detail');
-  const impactEl = document.getElementById('dashboard-synthesis-impact');
-  const primaryBtn = document.getElementById('dashboard-synthesis-primary');
+  const heroRoot = document.getElementById('dashboard-hero-root');
   const coreStatusEl = document.getElementById('nexora-core-status-badge');
   const coreMissionTitleEl = document.getElementById('nexora-core-mission-title');
   const coreMissionDetailEl = document.getElementById('nexora-core-mission-detail');
   const corePrimaryCta = document.getElementById('nexora-core-primary-cta');
   const corePanel = document.getElementById('nexora-core-panel');
-  if (!hero || !statusEl || !titleEl || !metaEl || !actionTitleEl || !actionDetailEl || !primaryBtn) return;
+  if (!hero || !heroRoot) return;
 
   const revReel = Number(metrics.revReel || 0);
   const solde = Number(metrics.solde || 0);
@@ -4653,8 +4630,6 @@ function updateDashboardSynthesisHero(metrics = {}) {
   const variablesPct = Number(metrics.variablesPct || 0);
   let state = 'neutral';
   let status = 'Synthèse à compléter';
-  let title = 'Complète ton budget pour obtenir ta synthèse';
-  let meta = 'Ajoute tes revenus et charges pour calculer la situation du mois.';
   let actionTitle = 'Compléter le budget';
   let actionDetail = 'Ajoutez vos revenus et dépenses pour activer le diagnostic Nexora.';
 
@@ -4663,29 +4638,29 @@ function updateDashboardSynthesisHero(metrics = {}) {
     window.__nexoraDashboardSituation = situation;
     state = situation.state;
     status = situation.label;
-    title = `Il te restera ${fmt(solde)} en fin de cycle`;
-    meta = `Charges ${tauxCh}% · Variables ${variablesPct}% · Risque ${situation.riskLabel}`;
     actionTitle = document.getElementById('priority-action-title')?.textContent?.trim() || 'Voir le plan';
     actionDetail = document.getElementById('priority-action-detail')?.textContent?.trim() || 'Ouvre le plan pour voir les prochaines étapes.';
   }
 
   hero.dataset.state = state;
-  statusEl.textContent = status;
-  titleEl.textContent = title;
-  metaEl.textContent = meta;
-  if (impactEl) {
-    impactEl.textContent = revReel > 0 ? fmt(solde) : '—';
-    impactEl.classList.toggle('is-positive', revReel > 0 && solde >= 0);
-    impactEl.classList.toggle('is-negative', revReel > 0 && solde < 0);
+
+  // Use V2 HeroCard component
+  if (typeof window.renderDashboardHero === 'function') {
+    window.renderDashboardHero('dashboard-hero-root', metrics, {
+      documentRef: document,
+      windowRef: window,
+      onAction: (section) => {
+        if (typeof showSection === 'function') showSection(section);
+      }
+    });
   }
-  actionTitleEl.textContent = actionTitle || 'Voir le plan';
-  actionDetailEl.textContent = actionDetail || 'Ouvre le plan pour voir les prochaines étapes.';
+
+  // Update core panel elements if they exist
   if (coreStatusEl) coreStatusEl.textContent = status;
   if (coreMissionTitleEl) coreMissionTitleEl.textContent = actionTitle || 'Voir le plan';
   if (coreMissionDetailEl) coreMissionDetailEl.textContent = actionDetail || 'Ouvre le plan pour voir les prochaines étapes.';
   if (corePrimaryCta) corePrimaryCta.textContent = actionTitle || 'Voir le plan d’action';
   if (corePanel) corePanel.dataset.state = state;
-  primaryBtn.onclick = () => showSection('plan');
 }
 
 function updateMonthForecast(metrics = {}) {

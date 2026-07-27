@@ -54,6 +54,7 @@ import NexoraRecurringResolver from './finance/recurringResolution.js'
 import NexoraCore from './ui/nexoraCore.js'
 import { toggleAvailableMoneyOptions } from './ui/availableMoneyOptions.js'
 import { buildDashboardGuidance } from './ui/dashboardGuidance.js'
+import { renderDashboardHero } from './ui/dashboard/renderDashboardHero.js'
 import { renderBudgetCoach, buildBudgetCoachState } from './ui/budgetCoach.js'
 import NexoraSections from './app/sectionLoader.js'
 import { getSyncStatusSnapshot, recordLastSync } from './app/syncStatus.js'
@@ -92,6 +93,7 @@ installLegacyBridge({
   NexoraSections,
   toggleAvailableMoneyOptions,
   NexoraDashboardGuidance: { buildDashboardGuidance },
+  renderDashboardHero, // TODO: Remove when Dashboard V2 migration is complete
   renderBudgetCoach,
   buildBudgetCoachState,
   buildJudgmentEngine,
