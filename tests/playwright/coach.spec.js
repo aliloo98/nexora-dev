@@ -6,14 +6,14 @@ test.describe('Nexora Coach Dashboard pilot', () => {
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 })
     await page.click('#loginDemoBtn')
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 })
-    await page.waitForSelector('#dashboard-master-root .dashboard-coach-content', {
+    await page.waitForSelector('#dashboard-master-root [data-recommendation-source]', {
       state: 'visible',
       timeout: 30000
     })
   })
 
   test('uses one Coach recommendation in complete and simplified modes', async ({ page }) => {
-    const coachCard = page.locator('#dashboard-master-root .dashboard-coach-content')
+    const coachCard = page.locator('#dashboard-master-root [data-recommendation-source]')
 
     await expect(coachCard).toHaveAttribute('data-recommendation-source', 'coach')
     await expect(page.locator('#dashboard-master-root #dashboard-coach-action')).toHaveCount(1)

@@ -42,6 +42,7 @@ import { renderTreasuryTimeline } from './components/TreasuryTimeline.js'
 import './styles/design-system.css'
 import './ui/index.css'
 import { renderDashboardMaster } from './components/DashboardMaster.js'
+import { renderDashboardV2 } from './ui/dashboard/DashboardV2.js'
 import CoupleOverlay from './couple/coupleOverlay.js'
 import { renderTreasuryPlanner } from './components/TreasuryPlannerUI.js'
 import { renderSettingsPanels, renderRecurringIncomeSettings, renderBillScheduleSettings } from './settings/SettingsUI.js'
@@ -324,6 +325,11 @@ const initApp = async () => {
     console.error('❌ App initialization error:', err)
   }
 }
+
+renderDashboardV2('dashboard-v2-root', {
+  onNavigate: (section) => window.showSection?.(section),
+  onModeChange: (mode) => window.setNexoraUxMode?.(mode)
+})
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
