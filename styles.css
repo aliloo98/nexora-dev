@@ -9088,32 +9088,35 @@ body.mode-simple .home-goal-summary {
 #section-dashboard .dashboard-card__metrics span,
 #section-dashboard .dashboard-goal-focus span,
 #section-dashboard .dashboard-goal-meta span {
-  color: var(--text2);
+  color: var(--nx-color-text-tertiary);
   display: block;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-size: var(--nx-font-size-caption);
+  font-weight: var(--nx-font-weight-semibold);
+  letter-spacing: var(--nx-letter-spacing-eyebrow);
   text-transform: uppercase;
+  line-height: var(--nx-line-height-caption);
 }
 
 #section-dashboard .dashboard-card__metrics strong,
 #section-dashboard .dashboard-goal-focus strong,
 #section-dashboard .dashboard-goal-meta strong {
-  color: var(--text);
+  color: var(--nx-color-text-primary);
   display: block;
-  font-size: 16px;
-  margin-top: 6px;
+  font-size: var(--nx-font-size-label);
+  font-weight: var(--nx-font-weight-semibold);
+  margin-top: 4px;
+  line-height: var(--nx-line-height-label);
 }
 
 #section-dashboard .dashboard-goal-track {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 999px;
+  background: var(--nx-color-surface-3);
+  border-radius: var(--nx-radius-pill);
   height: 8px;
   overflow: hidden;
 }
 
 #section-dashboard .dashboard-goal-track i {
-  background: linear-gradient(90deg, var(--gold), var(--gold2));
+  background: linear-gradient(90deg, var(--nx-color-gold), var(--nx-color-gold-hover));
   display: block;
   height: 100%;
   width: 0%;
@@ -9122,12 +9125,18 @@ body.mode-simple .home-goal-summary {
 #section-dashboard .dashboard-goal-focus,
 #section-dashboard .dashboard-goal-meta {
   display: grid;
-  gap: 10px;
+  gap: var(--nx-space-sm);
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 #section-dashboard .dashboard-goal-meta {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+#section-dashboard .dashboard-goal-focus strong,
+#section-dashboard .dashboard-goal-meta strong {
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 #section-dashboard .dashboard-footnote {
@@ -10590,10 +10599,10 @@ body .btn {
 }
 
 #section-dashboard #dashboard-primary-goal .dashboard-card__head > em {
-  color: var(--dashboard-gold);
-  font-size: 14px;
+  color: var(--nx-color-gold);
+  font-size: var(--nx-font-size-label);
   font-style: normal;
-  font-weight: 800;
+  font-weight: var(--nx-font-weight-bold);
 }
 
 #section-dashboard .dashboard-goal-track {
@@ -10602,18 +10611,18 @@ body .btn {
 
 #section-dashboard .dashboard-goal-focus,
 #section-dashboard .dashboard-goal-meta {
-  gap: 8px;
+  gap: var(--nx-space-xs);
 }
 
 #section-dashboard .dashboard-goal-focus strong,
 #section-dashboard .dashboard-goal-meta strong {
-  font-size: 12px;
+  font-size: var(--nx-font-size-caption);
   margin-top: 3px;
 }
 
 #section-dashboard .dashboard-goal-focus span,
 #section-dashboard .dashboard-goal-meta span {
-  font-size: 8px;
+  font-size: 10px;
 }
 
 #section-dashboard .dashboard-goal-create-btn {
@@ -11918,12 +11927,11 @@ body {
 }
 
 #section-dashboard .dashboard-goal-track {
-  background: rgba(130, 151, 178, 0.12);
+  background: var(--nx-color-surface-3);
 }
 
 #section-dashboard .dashboard-goal-track i {
-  background: linear-gradient(90deg, var(--nx-polish-green), #49d7a2);
-  box-shadow: 0 0 14px rgba(53, 213, 138, 0.18);
+  background: linear-gradient(90deg, var(--nx-color-gold), var(--nx-color-gold-hover));
 }
 
 #section-dashboard .dashboard-alert-item,
