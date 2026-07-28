@@ -11220,6 +11220,10 @@ body .btn {
   }
 }
 
+#section-dashboard #dashboard-hero-root {
+  grid-column: 1 / -1;
+}
+
 #section-plan > .budget-block > .param-row {
   background: rgba(255, 255, 255, 0.018);
   border-bottom: 1px solid var(--nx-border, rgba(255, 255, 255, 0.08));
