@@ -69,13 +69,53 @@
 }
 
 .nx-coach-card__eyebrow,
-.nx-goal-card__eyebrow {
+.nx-goal-card__eyebrow,
+.nx-alerts-card__eyebrow {
   color: var(--nx-color-text-secondary);
   font-size: var(--nx-font-size-caption);
   font-weight: var(--nx-font-weight-semibold);
   letter-spacing: var(--nx-letter-spacing-eyebrow);
   line-height: var(--nx-line-height-caption);
   text-transform: uppercase;
+}
+
+.nx-alerts-card__header {
+  align-items: center;
+  display: flex;
+  gap: var(--nx-space-sm);
+  justify-content: space-between;
+}
+
+.nx-alerts-card__header > div {
+  display: grid;
+  gap: var(--nx-space-2xs);
+}
+
+.nx-alerts-card__list {
+  display: grid;
+  gap: var(--nx-space-sm);
+}
+
+.nx-alerts-card__item {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--nx-space-sm);
+}
+
+.nx-alerts-card__item > div {
+  display: grid;
+  gap: var(--nx-space-2xs);
+}
+
+.nx-alerts-card__item strong {
+  font-size: var(--nx-font-size-body);
+  font-weight: var(--nx-font-weight-semibold);
+}
+
+.nx-alerts-card__item span {
+  color: var(--nx-color-text-secondary);
+  font-size: var(--nx-font-size-caption);
+  line-height: var(--nx-line-height-caption);
 }
 
 .nx-coach-card__title {
