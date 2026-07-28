@@ -9059,6 +9059,10 @@ body.mode-simple .home-goal-summary {
   min-height: 180px;
 }
 
+#section-dashboard #dashboard-coach-card:has(#dashboard-master-root:empty) {
+  display: none;
+}
+
 #section-dashboard .dashboard-card strong {
   color: var(--text);
   font-size: 18px;
