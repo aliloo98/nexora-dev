@@ -235,35 +235,9 @@ body.auth-locked > #nexora-status-bar {
       </section>
 
       <div class="dashboard-kpi-strip dashboard-primary-kpis" aria-label="Indicateurs principaux">
-        <div class="kpi-card" id="card-solde">
-          <div class="dashboard-kpi-card__head">
-            <div class="kpi-label">Solde actuel</div>
-            <span class="dashboard-kpi-badge" id="kpi-solde-badge">Stable</span>
-          </div>
-          <div class="kpi-value" id="kpi-solde">0 €</div>
-          <div class="kpi-sub" id="kpi-solde-status">Équilibré</div>
-          <span class="dashboard-kpi-trend dashboard-kpi-trend--green" aria-hidden="true"></span>
-        </div>
-        <div class="kpi-card" id="card-epargne">
-          <div class="dashboard-kpi-card__head">
-            <div class="kpi-label">Épargne prévue</div>
-            <span class="dashboard-kpi-badge" id="kpi-epargne-badge">À compléter</span>
-          </div>
-          <div class="kpi-value" id="kpi-epargne">—</div>
-          <div class="kpi-sub" id="kpi-epargne-sub">Budget à compléter</div>
-          <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-epargne-bar"></div></div>
-          <span class="dashboard-kpi-trend dashboard-kpi-trend--red" aria-hidden="true"></span>
-        </div>
-        <div class="kpi-card" id="card-taux">
-          <div class="dashboard-kpi-card__head">
-            <div class="kpi-label">Taux de charges</div>
-            <span class="dashboard-kpi-badge" id="kpi-taux-badge">Analyse</span>
-          </div>
-          <div class="kpi-value" id="kpi-taux">—</div>
-          <div class="kpi-sub">Données insuffisantes</div>
-          <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-taux-bar"></div></div>
-          <span class="dashboard-kpi-trend dashboard-kpi-trend--cyan" aria-hidden="true"></span>
-        </div>
+        <div class="kpi-card" id="card-solde"></div>
+        <div class="kpi-card" id="card-epargne"></div>
+        <div class="kpi-card" id="card-taux"></div>
       </div>
 
       <!-- Simple Dashboard Grid (Mode Simplifié) -->
@@ -376,49 +350,9 @@ body.auth-locked > #nexora-status-bar {
       </section>
 
       <section class="dashboard-final-grid">
-        <section class="dashboard-panel dashboard-card dashboard-card--goal" id="dashboard-primary-goal">
-          <div class="dashboard-card__head">
-            <div>
-              <span class="dashboard-card__eyebrow">Objectif principal</span>
-              <strong id="dashboard-primary-goal-name">Aucun objectif</strong>
-            </div>
-            <em id="dashboard-primary-goal-pct">0%</em>
-          </div>
-          <div class="dashboard-goal-track">
-            <i id="dashboard-primary-goal-bar"></i>
-          </div>
-          <div class="dashboard-goal-focus">
-            <div>
-              <span>Reste à financer</span>
-              <strong id="dashboard-primary-goal-remaining">0 €</strong>
-            </div>
-            <div>
-              <span>Rythme conseillé</span>
-              <strong id="dashboard-primary-goal-estimate">Non défini</strong>
-            </div>
-          </div>
-          <div class="dashboard-goal-meta">
-            <div><span>Actuel</span><strong id="dashboard-primary-goal-current">0 €</strong></div>
-            <div><span>Cible</span><strong id="dashboard-primary-goal-target">0 €</strong></div>
-            <div><span>Échéance</span><strong id="dashboard-primary-goal-date">Non définie</strong></div>
-          </div>
-        </section>
+        <section class="dashboard-panel dashboard-card dashboard-card--goal" id="dashboard-primary-goal"></section>
 
-        <section class="dashboard-panel dashboard-card dashboard-card--alerts" id="dashboard-alerts-card" aria-label="Alertes">
-          <div class="dashboard-card__head">
-            <div>
-              <span class="dashboard-card__eyebrow">Alertes</span>
-              <strong>Points à surveiller</strong>
-            </div>
-            <span class="dashboard-alerts-count" id="dashboard-alerts-count">0</span>
-          </div>
-          <div class="dashboard-alerts-list" id="dashboard-alerts-list" role="list" aria-label="Alertes du mois">
-            <div class="dashboard-alert-item is-neutral" role="listitem">
-              <i aria-hidden="true"></i>
-              <div><strong>Analyse en cours</strong><span>Les points sensibles du mois apparaîtront ici.</span></div>
-            </div>
-          </div>
-        </section>
+        <section class="dashboard-panel dashboard-card dashboard-card--alerts" id="dashboard-alerts-card" aria-label="Alertes"></section>
 
         <section class="dashboard-panel dashboard-secondary-kpis" id="dashboard-quick-view" aria-label="Aperçu rapide">
           <div class="dashboard-card__head">
@@ -428,28 +362,10 @@ body.auth-locked > #nexora-status-bar {
             </div>
           </div>
           <div class="dashboard-quick-metrics">
-            <div class="kpi-card" id="card-revenus">
-              <div class="kpi-label">Revenus</div>
-              <div class="kpi-value positive" id="kpi-revenus">0 €</div>
-              <div class="kpi-sub">Mois en cours</div>
-            </div>
-            <div class="kpi-card" id="card-fixes">
-              <div class="kpi-label">Charges fixes</div>
-              <div class="kpi-value" id="kpi-fixes">0 €</div>
-              <div class="kpi-sub" id="kpi-fixes-pct">0% des revenus</div>
-              <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-fixes-bar"></div></div>
-            </div>
-            <div class="kpi-card" id="card-variables">
-              <div class="kpi-label">Dépenses variables</div>
-              <div class="kpi-value" id="kpi-variables">0 €</div>
-              <div class="kpi-sub" id="kpi-variables-pct">0% des revenus</div>
-              <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-variables-bar"></div></div>
-            </div>
-            <div class="kpi-card" id="card-dettes">
-              <div class="kpi-label">Dettes</div>
-              <div class="kpi-value" id="kpi-dettes">0 €</div>
-              <div class="kpi-sub" id="kpi-dettes-sub">Aucune dette active</div>
-            </div>
+            <div class="kpi-card" id="card-revenus"></div>
+            <div class="kpi-card" id="card-fixes"></div>
+            <div class="kpi-card" id="card-variables"></div>
+            <div class="kpi-card" id="card-dettes"></div>
           </div>
           <div class="dashboard-assistant-host dashboard-assistant-host--compact"></div>
         </section>
@@ -4194,6 +4110,27 @@ function updateAll(){
   setDashboardGuidanceTextCached('kpi-revenus', fmt(revReel));
   setDashboardGuidanceTextCached('kpi-fixes', fmt(fixReel));
 
+  // Use V2 KPI Strip renderer if available
+  if (typeof window.renderDashboardKpiStrip === 'function') {
+    window.renderDashboardKpiStrip({
+      revReel,
+      solde,
+      soldeEstime,
+      tauxCh,
+      tauxEp
+    }, { windowRef: window });
+  }
+
+  // Use V2 Quick View renderer if available
+  if (typeof window.renderDashboardQuickView === 'function') {
+    window.renderDashboardQuickView({
+      revReel,
+      fixReel,
+      varReel,
+      debtSummary: getDebtSummary()
+    }, { windowRef: window });
+  }
+
   const fixesPct = revReel>0?Math.round(fixReel/revReel*100):0;
   setDashboardGuidanceTextCached('kpi-fixes-pct', revReel > 0 ? fixesPct+'% des revenus' : 'Ajoutez vos revenus pour commencer');
 
@@ -4571,7 +4508,7 @@ function getPendingFixedExpenseRows() {
     .filter(item => item.amount > 0 && item.remaining > 0);
 }
 
-function updatePriorityAction(metrics = {}) {
+async function updatePriorityAction(metrics = {}) {
   const card = document.getElementById('priority-action-card');
   const titleEl = document.getElementById('priority-action-title');
   const detailEl = document.getElementById('priority-action-detail');
@@ -4579,8 +4516,12 @@ function updatePriorityAction(metrics = {}) {
 
   const debts = getDebtSummary();
   const urgentBill = getPendingFixedExpenseRows().sort((a, b) => b.remaining - a.remaining)[0];
-  const goalName = document.getElementById('dashboard-primary-goal-name')?.textContent?.replace(/^🎯\s*/, '').trim() || 'objectif';
-  const goalPct = parseBudgetNumber(document.getElementById('dashboard-primary-goal-pct')?.textContent || 0);
+  // Get goal data from service instead of DOM
+  const goal = window.GoalsService ? await window.GoalsService.getPrimaryGoal() : null;
+  const goalName = goal?.name?.replace(/^🎯\s*/, '').trim() || 'objectif';
+  const current = Number(goal?.current || 0);
+  const target = Number(goal?.target || 0);
+  const goalPct = target > 0 ? Math.min(100, Math.max(0, Math.round(current / target * 100))) : 0;
 
   let state = 'neutral';
   let title = 'Aucun risque détecté';
@@ -4689,7 +4630,7 @@ function updateMonthForecast(metrics = {}) {
     : 'Ajoutez vos revenus et dépenses pour calculer la projection.';
 }
 
-function updateAvailableMoney(metrics = {}) {
+async function updateAvailableMoney(metrics = {}) {
   const card = document.getElementById('available-money-card');
   const valueEl = document.getElementById('available-money-value');
   const detailEl = document.getElementById('available-money-detail');
@@ -4699,7 +4640,9 @@ function updateAvailableMoney(metrics = {}) {
   const debtMonthly = getDebtSummary().monthly;
   const goalMonthly = parseBudgetNumber(document.getElementById('goal-monthly-contrib')?.value || 0);
   const available = Math.max(0, Number(metrics.solde || 0) - debtMonthly - goalMonthly);
-  const rawGoalName = document.getElementById('dashboard-primary-goal-name')?.textContent?.replace(/^🎯\s*/, '').trim();
+  // Get goal name from service instead of DOM
+  const goal = window.GoalsService ? await window.GoalsService.getPrimaryGoal() : null;
+  const rawGoalName = goal?.name?.replace(/^🎯\s*/, '').trim() || '';
   const goalName = rawGoalName && !/^aucun objectif/i.test(rawGoalName) ? rawGoalName : 'ton objectif principal';
   const suggestionAmount = Math.min(150, available);
   valueEl.textContent = fmt(available);
@@ -4731,7 +4674,7 @@ function toggleAvailableMoneyOptions() {
   }
 }
 
-function updateWinsCard(metrics = {}) {
+async function updateWinsCard(metrics = {}) {
   const listEl = document.getElementById('wins-list');
   if (!listEl) return;
   const wins = [];
@@ -4742,7 +4685,9 @@ function updateWinsCard(metrics = {}) {
   const settledCount = Math.max(0, totalFixedRows - paidFixedCount);
   if (settledCount > 0) wins.push(`${settledCount} charge${settledCount > 1 ? 's' : ''} réglée${settledCount > 1 ? 's' : ''}`);
   if (readDebts().some(debt => Number(debt.initial || 0) > Number(debt.remaining || 0))) wins.push('Dette réduite');
-  const goalCurrent = parseBudgetNumber(document.getElementById('dashboard-primary-goal-current')?.textContent || 0);
+  // Get goal current amount from service instead of DOM
+  const goal = window.GoalsService ? await window.GoalsService.getPrimaryGoal() : null;
+  const goalCurrent = Number(goal?.current || 0);
   if (goalCurrent > 0) wins.push('Objectif alimenté');
 
   const visibleWins = wins.slice(0, 3);
@@ -4803,6 +4748,16 @@ function updateWeekPlan(metrics = {}) {
 }
 
 function updateDashboardAlerts(metrics = {}) {
+  // Use V2 renderer if available
+  if (typeof window.renderDashboardAlerts === 'function') {
+    window.renderDashboardAlerts(metrics, {
+      windowRef: window,
+      getPendingFixedExpenseRows
+    });
+    return;
+  }
+
+  // Legacy fallback
   const listEl = document.getElementById('dashboard-alerts-list');
   const countEl = document.getElementById('dashboard-alerts-count');
   if (!listEl) return;
@@ -5286,71 +5241,38 @@ async function updateDashboardPrimaryGoal() {
   const goal = isNexoraDemoMode()
     ? { name: 'Coussin de sécurité', icon: '🎯', current: 450, target: 1500, targetDate: '2026-09-30' }
     : await window.GoalsService.getPrimaryGoal();
-  const panel = document.getElementById('dashboard-primary-goal');
-  if (!panel) return;
 
+  const monthlyInput = document.getElementById('goal-monthly-contrib');
+  const monthly = monthlyInput ? parseBudgetNumber(monthlyInput.value) : 0;
+  const estimatedMonths = window.GoalsService?.estimateMonthsToTarget?.(goal, monthly);
+  const forecast = window.GoalsService?.getGoalForecast?.(goal, monthly);
+
+  // Use V2 renderer if available
+  if (typeof window.renderDashboardGoalCard === 'function') {
+    window.renderDashboardGoalCard('dashboard-primary-goal', goal, {
+      monthly,
+      estimatedMonths,
+      forecast,
+      windowRef: window
+    });
+  }
+
+  // Keep legacy guidance updates for other parts of the app
   if (!goal) {
-    panel.classList.add('is-empty');
-    setDashboardGuidanceText('dashboard-primary-goal-name', 'Aucun objectif configuré');
-    setDashboardGuidanceText('dashboard-primary-goal-pct', '—');
-    setDashboardGuidanceText('dashboard-primary-goal-current', '—');
-    setDashboardGuidanceText('dashboard-primary-goal-target', '—');
-    setDashboardGuidanceText('dashboard-primary-goal-remaining', '—');
-    setDashboardGuidanceText('dashboard-primary-goal-date', '—');
-    setDashboardGuidanceText('dashboard-primary-goal-estimate', '—');
-    const bar = document.getElementById('dashboard-primary-goal-bar');
-    if (bar) bar.style.width = '0%';
-    if (!document.getElementById('dashboard-goal-create-btn')) {
-      const createBtn = document.createElement('button');
-      createBtn.type = 'button';
-      createBtn.id = 'dashboard-goal-create-btn';
-      createBtn.className = 'btn btn-gold dashboard-goal-create-btn';
-      createBtn.textContent = 'Créer un objectif';
-      createBtn.onclick = () => showSection('objectifs');
-      panel.appendChild(createBtn);
-    }
     setDashboardGuidanceText('simple-goal', 'Aucun objectif');
     setDashboardGuidanceText('simple-goal-detail', 'Aucun objectif configuré');
     setDashboardGuidanceText('home-goal-summary-text', 'Aucun objectif configuré');
     return;
   }
 
-  panel.classList.remove('is-empty');
-  document.getElementById('dashboard-goal-create-btn')?.remove();
   const current = Number(goal.current) || 0;
   const target = Number(goal.target) || 0;
   const pct = target > 0 ? Math.min(100, Math.max(0, Math.round(current / target * 100))) : 0;
   const remaining = Math.max(0, target - current);
-  const dateLabel = goal.targetDate
-    ? new Date(goal.targetDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
-    : 'Non définie';
-  const monthlyInput = document.getElementById('goal-monthly-contrib');
-  const monthly = monthlyInput ? parseBudgetNumber(monthlyInput.value) : 0;
-  const estimatedMonths = window.GoalsService?.estimateMonthsToTarget?.(goal, monthly);
-  const forecast = window.GoalsService?.getGoalForecast?.(goal, monthly);
-  const estimateLabel = forecast?.status === 'reached'
-    ? 'Objectif atteint'
-    : estimatedMonths
-      ? `${estimatedMonths} mois · ${forecast?.monthlyEffort ? Math.round(forecast.monthlyEffort).toLocaleString('fr-FR') + ' €/mois conseillé' : 'rythme actuel'}`
-      : 'Non défini';
-  const bar = document.getElementById('dashboard-primary-goal-bar');
 
-  setDashboardGuidanceText('dashboard-primary-goal-name', `${goal.icon || '🎯'} ${goal.name || 'Objectif'}`);
-  setDashboardGuidanceText('dashboard-primary-goal-pct', `${pct}%`);
-  setDashboardGuidanceText('dashboard-primary-goal-current', fmt(current));
-  setDashboardGuidanceText('dashboard-primary-goal-target', fmt(target));
-  setDashboardGuidanceText('dashboard-primary-goal-remaining', fmt(remaining));
-  setDashboardGuidanceText('dashboard-primary-goal-date', dateLabel);
-  setDashboardGuidanceText('dashboard-primary-goal-estimate', estimateLabel);
   setDashboardGuidanceText('simple-goal', goal.name || 'Objectif');
   setDashboardGuidanceText('simple-goal-detail', `${fmt(current)} mis · ${fmt(remaining)} restants`);
   setDashboardGuidanceText('home-goal-summary-text', `${goal.name || 'Objectif'} — ${pct}%`);
-  if (bar) {
-    const barWidth = `${pct}%`;
-    bar.style.width = barWidth;
-    bar.style.background = goal.color || 'var(--gold)';
-    window.NexoraMotion?.animateProgressBar?.(bar, barWidth);
-  }
 
   if (pct === 0) {
     setDashboardGuidanceText('dashboard-action-text', 'Objectif créé, aucune contribution enregistrée. Commencez par ajouter un montant.');

@@ -1,5 +1,6 @@
 import { createBadge } from '../primitives/Badge.js'
 import { createCard } from '../primitives/Card.js'
+import { createProgress } from '../primitives/Progress.js'
 import { getDocument, normalizeChoice, setText } from '../internal/dom.js'
 
 const TONES = ['neutral', 'positive', 'warning', 'critical', 'stable']
@@ -46,6 +47,20 @@ export function createMetricCard(options = {}, documentRef) {
     trend.classList.add('nx-metric-card__trend')
     card.appendChild(trend)
   }
+
+  // Optional progress bar
+  if (options.progress !== undefined && options.progress !== null) {
+    const progress = createProgress({
+      value: options.progress,
+      min: 0,
+      max: 100,
+      thickness: 4,
+      ariaLabel: options.progressLabel || 'Progression'
+    }, document)
+    progress.classList.add('nx-metric-card__progress')
+    card.appendChild(progress)
+  }
+
   return card
 }
 

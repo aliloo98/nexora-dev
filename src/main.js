@@ -55,6 +55,10 @@ import NexoraCore from './ui/nexoraCore.js'
 import { toggleAvailableMoneyOptions } from './ui/availableMoneyOptions.js'
 import { buildDashboardGuidance } from './ui/dashboardGuidance.js'
 import { renderDashboardHero } from './ui/dashboard/renderDashboardHero.js'
+import { renderDashboardGoalCard } from './ui/dashboard/renderDashboardGoalCard.js'
+import { renderDashboardKpiStrip } from './ui/dashboard/renderDashboardKpiStrip.js'
+import { renderDashboardQuickView } from './ui/dashboard/renderDashboardQuickView.js'
+import { renderDashboardAlerts } from './ui/dashboard/renderDashboardAlerts.js'
 import { renderBudgetCoach, buildBudgetCoachState } from './ui/budgetCoach.js'
 import NexoraSections from './app/sectionLoader.js'
 import { getSyncStatusSnapshot, recordLastSync } from './app/syncStatus.js'
@@ -94,6 +98,10 @@ installLegacyBridge({
   toggleAvailableMoneyOptions,
   NexoraDashboardGuidance: { buildDashboardGuidance },
   renderDashboardHero, // TODO: Remove when Dashboard V2 migration is complete
+  renderDashboardGoalCard, // TODO: Remove when Dashboard V2 migration is complete
+  renderDashboardKpiStrip, // TODO: Remove when Dashboard V2 migration is complete
+  renderDashboardQuickView, // TODO: Remove when Dashboard V2 migration is complete
+  renderDashboardAlerts, // TODO: Remove when Dashboard V2 migration is complete
   renderBudgetCoach,
   buildBudgetCoachState,
   buildJudgmentEngine,
