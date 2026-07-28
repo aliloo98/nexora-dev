@@ -11045,9 +11045,13 @@ body .btn {
     margin-top: 7px;
   }
 
+  #section-dashboard .dashboard-hero__copy {
+    grid-column: 1 / -1;
+  }
+
   #section-dashboard .dashboard-hero__copy p,
   #section-dashboard .dashboard-hero__copy > small {
-    grid-column: 1 / -1;
+    grid-column: auto;
   }
 
   #section-dashboard .dashboard-hero__actions {
