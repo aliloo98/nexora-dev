@@ -26,5 +26,10 @@ export {
 
 export { buildJudgmentEngine } from './judgmentEngine.js'
 
+export { 
+  getRealAssistantService, 
+  areRealServicesAvailable 
+} from './assistantFactory.js'
+
 // Default export is the service getter
 export { default } from './AssistantService.js'

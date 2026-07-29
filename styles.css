@@ -11,6 +11,154 @@
   gap: 20px;
 }
 
+/* Assistant Nexora Card Styles */
+.dashboard-card--assistant {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  min-height: 120px;
+}
+
+.nx-assistant-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.nx-assistant-card__eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.6);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.nx-assistant-card__header strong {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.nx-assistant-card__score {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.nx-assistant-card__judgment {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.nx-assistant-card__judgment-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.nx-assistant-card__judgment-icon--excellent::before {
+  content: '✓';
+  color: #10b981;
+}
+
+.nx-assistant-card__judgment-icon--healthy::before {
+  content: '✓';
+  color: #10b981;
+}
+
+.nx-assistant-card__judgment-icon--attention::before {
+  content: '⚠';
+  color: #f59e0b;
+}
+
+.nx-assistant-card__judgment-icon--critical::before {
+  content: '✕';
+  color: #ef4444;
+}
+
+.nx-assistant-card__judgment-icon--no_data::before {
+  content: '○';
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.nx-assistant-card__judgment strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.nx-assistant-card__judgment span {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.nx-assistant-card__recommendation {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 8px;
+}
+
+.nx-assistant-card__recommendation i::before {
+  content: '💡';
+}
+
+.nx-assistant-card__rec-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #10b981;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.nx-assistant-card__recommendation span:last-child {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.4;
+}
+
+.nx-assistant-card__placeholder,
+.nx-assistant-card__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+}
+
+.nx-assistant-card__icon {
+  font-size: 24px;
+}
+
+.nx-assistant-card__placeholder strong,
+.nx-assistant-card__error strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+}
+
+.nx-assistant-card__placeholder span,
+.nx-assistant-card__error span {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
 /* V5.3 daily-use polish: keep secondary row actions quiet until needed. */
 .budget-row .note-toggle-btn:not(.has-note),
 .budget-row .rename-category-btn {

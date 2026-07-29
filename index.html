@@ -354,6 +354,8 @@ body.auth-locked > #nexora-status-bar {
 
         <section class="dashboard-panel dashboard-card dashboard-card--alerts" id="dashboard-alerts-card" aria-label="Alertes"></section>
 
+        <section class="dashboard-panel dashboard-card dashboard-card--assistant" id="assistant-insights-card" aria-label="Assistant Nexora"></section>
+
         <section class="dashboard-panel dashboard-secondary-kpis" id="dashboard-quick-view" aria-label="Aperçu rapide">
           <div class="dashboard-card__head">
             <div>
@@ -4345,6 +4347,7 @@ function updateAll(){
     variablesPct,
     totalDepRestant
   });
+  updateAssistantInsights();
   window.NexoraMetricsCache?.invalidateMetricsCache?.();
   refreshNexoraCore({
     revReel,
@@ -4755,56 +4758,15 @@ function updateDashboardAlerts(metrics = {}) {
 
   const alerts = [];
   const dueRows = getPendingFixedExpenseRows();
+}
 
-  if (Number(metrics.revReel || 0) <= 0) {
-    alerts.push({
-      level: 'neutral',
-      title: 'Budget à compléter',
-      detail: 'Ajoutez vos revenus pour activer les alertes.'
+function updateAssistantInsights() {
+  // Use Assistant Nexora V1 if available
+  if (typeof window.renderAssistantInsights === 'function') {
+    window.renderAssistantInsights({
+      windowRef: window
     });
-  } else {
-    if (Number(metrics.solde || 0) < 0) {
-      alerts.push({
-        level: 'danger',
-        title: 'Solde projeté négatif',
-        detail: `${fmt(Math.abs(Number(metrics.solde || 0)))} à couvrir`
-      });
-    }
-    if (dueRows.length > 0) {
-      const dueAmount = dueRows.reduce((sum, row) => sum + Number(row.remaining || 0), 0);
-      alerts.push({
-        level: 'warning',
-        title: `${dueRows.length} paiement${dueRows.length > 1 ? 's' : ''} à venir`,
-        detail: `${fmt(dueAmount)} restant à régler`
-      });
-    }
-    if (Number(metrics.variablesPct || 0) > 40) {
-      alerts.push({
-        level: 'warning',
-        title: 'Dépenses variables élevées',
-        detail: `${Math.round(Number(metrics.variablesPct || 0))}% des revenus`
-      });
-    }
-    if (alerts.length === 0) {
-      alerts.push({
-        level: 'positive',
-        title: 'Aucune alerte critique',
-        detail: 'Le mois reste sous contrôle.'
-      });
-    }
   }
-
-  const visibleAlerts = alerts.slice(0, 2);
-  listEl.innerHTML = visibleAlerts.map((alert) => `
-    <div class="dashboard-alert-item is-${alert.level}" role="listitem">
-      <i aria-hidden="true"></i>
-      <div>
-        <strong>${escapeHtml(alert.title)}</strong>
-        <span>${escapeHtml(alert.detail)}</span>
-      </div>
-    </div>
-  `).join('');
-  if (countEl) countEl.textContent = String(alerts[0]?.level === 'positive' ? 0 : alerts.length);
 }
 
 function formatShortDate(date) {
