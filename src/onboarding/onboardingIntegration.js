@@ -9,12 +9,15 @@ let hasBudget = false
 let hasRevenue = false
 let hasExpense = false
 let hasViewedDashboard = false
+let onboardingRendered = false
+let renderOnboardingFn = null
 
 export const OnboardingIntegration = {
   /**
    * Initialize integration listeners
    */
-  init() {
+  init(renderOnboarding = null) {
+    renderOnboardingFn = renderOnboarding
     this.attachBudgetListeners()
     this.attachNavigationListeners()
   },
@@ -90,6 +93,12 @@ export const OnboardingIntegration = {
         
         if (sectionId === 'dashboard' && !hasViewedDashboard) {
           hasViewedDashboard = true
+          
+          // Render onboarding on first dashboard navigation if not already rendered
+          if (!onboardingRendered && renderOnboardingFn) {
+            OnboardingIntegration.renderOnboardingIfNeeded()
+          }
+          
           // Delay slightly to ensure dashboard is loaded
           setTimeout(async () => {
             await OnboardingService.completeStep('view_dashboard')
@@ -107,6 +116,36 @@ export const OnboardingIntegration = {
       }
     }
   },
+  
+  /**
+   * Render onboarding if conditions are met
+   */
+  async renderOnboardingIfNeeded() {
+    if (onboardingRendered || !renderOnboardingFn) return
+    
+    try {
+      // Check if demo mode is active (don't show onboarding in demo mode)
+      const isDemoMode = typeof window !== 'undefined' && 
+        typeof window.isNexoraDemoMode === 'function' && 
+        window.isNexoraDemoMode()
+      
+      if (isDemoMode) {
+        
+        return
+      }
+      
+      const shouldShow = await OnboardingService.shouldShowOnboarding()
+      if (shouldShow) {
+        const container = await renderOnboardingFn()
+        if (container) {
+          document.body.appendChild(container)
+          onboardingRendered = true
+        }
+      }
+    } catch (error) {
+      console.warn('[OnboardingIntegration] Failed to render onboarding:', error)
+    }
+  },
 
   /**
    * Reset integration state (for testing)
@@ -116,6 +155,8 @@ export const OnboardingIntegration = {
     hasRevenue = false
     hasExpense = false
     hasViewedDashboard = false
+    onboardingRendered = false
+    renderOnboardingFn = null
   }
 }
 

@@ -170,15 +170,11 @@ export async function bootstrapApplication(dependencies) {
   // PHASE 11: ONBOARDING (Step 28)
   // ========================================
   if (OnboardingIntegration) {
-    OnboardingIntegration.init()
+    OnboardingIntegration.init(renderOnboarding)
   }
   
-  if (renderOnboarding) {
-    const onboardingContainer = await renderOnboarding()
-    if (onboardingContainer) {
-      documentRef.body.appendChild(onboardingContainer)
-    }
-  }
+  // Onboarding rendering is now managed by OnboardingIntegration
+  // It will render when user navigates to dashboard, after context is established
 
   return {
     unsubscribeAuth

@@ -217,8 +217,8 @@ test.describe('Onboarding V1', () => {
   })
 
   test('resets onboarding from localStorage', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5180')
-    await page.waitForLoadState('networkidle')
+    await page.goto('http://127.0.0.1:5180', { timeout: 30000 })
+    await page.waitForLoadState('networkidle', { timeout: 30000 })
 
     // Manually set completed state in localStorage
     await page.evaluate(() => {
