@@ -1,5 +1,11 @@
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import {
+  animateDashboardEnter,
+  animateDashboardModeSwitch,
+  getDashboardMotionDiagnostics,
+  transitionDashboardProgress
+} from './dashboard/dashboardMotion.js'
 
 const reducedMotionQuery = '(prefers-reduced-motion: reduce)'
 const hoverBound = new WeakSet()
@@ -91,19 +97,6 @@ const setSectionVisible = (root) => {
   gsap.set(root, { opacity: 1, visibility: 'visible', y: 0, scale: 1, filter: 'blur(0px)' })
 }
 
-const ensureNavPill = (button) => {
-  const sidebar = button?.closest?.('.sidebar')
-  if (!sidebar) return null
-  let pill = sidebar.querySelector('.nav-active-pill')
-  if (!pill) {
-    pill = document.createElement('span')
-    pill.className = 'nav-active-pill'
-    pill.setAttribute('aria-hidden', 'true')
-    sidebar.appendChild(pill)
-  }
-  return pill
-}
-
 export function animatePageEnter(container) {
   const root = resolveRoot(container)
   if (!root) return
@@ -159,7 +152,12 @@ export function animateKpiNumbers(container) {
 
 export function animateModeSwitch(container) {
   const root = resolveRoot(container)
-  if (!root || !canMotion()) return
+  if (!root) return
+  if (root.id === 'section-dashboard' || root.closest?.('#section-dashboard')) {
+    animateDashboardModeSwitch(root)
+    return
+  }
+  if (!canMotion()) return
   gsap.fromTo(
     root,
     { autoAlpha: 0.82, y: 8, scale: 0.995 },
@@ -190,6 +188,10 @@ export function animateAdvisorResponse(container) {
 export function animateSectionTransition(container) {
   const root = resolveRoot(container)
   if (!root) return
+  if (root.id === 'section-dashboard') {
+    animateDashboardEnter(root)
+    return
+  }
   gsap.killTweensOf(root)
   setSectionVisible(root)
   if (!canMotion()) return
@@ -211,22 +213,19 @@ export function animateSectionTransition(container) {
 
 export function animateNavigation(button) {
   if (!button || !canMotion()) return
-  const pill = ensureNavPill(button)
-  if (pill) {
-    const sidebarBox = button.closest('.sidebar').getBoundingClientRect()
-    const buttonBox = button.getBoundingClientRect()
-    gsap.to(pill, {
-      autoAlpha: 1,
-      x: buttonBox.left - sidebarBox.left,
-      y: buttonBox.top - sidebarBox.top,
-      width: buttonBox.width,
-      height: buttonBox.height,
-      duration: 0.44,
-      ease: 'expo.out',
-      overwrite: 'auto'
-    })
-  }
-  gsap.fromTo(button, { scale: 0.96 }, { scale: 1, duration: 0.34, ease: 'back.out(2.4)', overwrite: 'auto' })
+  gsap.killTweensOf(button)
+  gsap.fromTo(
+    button,
+    { scale: 0.985 },
+    {
+      scale: 1,
+      duration: 0.16,
+      ease: 'power2.out',
+      overwrite: 'auto',
+      onComplete: () => gsap.set(button, { clearProps: 'transform' }),
+      onInterrupt: () => gsap.set(button, { clearProps: 'transform' })
+    }
+  )
 }
 
 export function animateButtonPress(button) {
@@ -286,14 +285,17 @@ export function bindButtonFeedback(container = document) {
   hoverBound.add(container)
   container.addEventListener('pointerdown', (event) => {
     const button = event.target?.closest?.('button, .btn, .nav-btn, .mode-toggle-btn, .inline-cta')
+    if (button?.closest?.('#section-dashboard, .sidebar') || button?.matches?.('.month-nav-btn')) return
     if (button) animateButtonPress(button)
   }, { passive: true })
   container.addEventListener('pointerenter', (event) => {
     const target = event.target?.closest?.(interactiveSelector)
+    if (target?.closest?.('#section-dashboard, .sidebar') || target?.matches?.('.month-nav-btn')) return
     if (target) animateHoverIn(target)
   }, { passive: true, capture: true })
   container.addEventListener('pointerleave', (event) => {
     const target = event.target?.closest?.(interactiveSelector)
+    if (target?.closest?.('#section-dashboard, .sidebar') || target?.matches?.('.month-nav-btn')) return
     if (target) animateHoverOut(target)
   }, { passive: true, capture: true })
 }
@@ -304,6 +306,7 @@ export function initScrollReveal(container = document) {
 
   // Minimal fix: exclude elements from #section-parametres to avoid iOS ScrollTrigger invisibility bug
   const items = getCards(root).filter((item) => {
+    if (item.closest('#section-dashboard')) return false
     if (item.closest('#section-parametres')) return false
     if (item.closest('#assistant-card')) return false
     return !item.dataset.revealReady
@@ -347,5 +350,9 @@ export default {
   animateButtonPress,
   animateProgressBar,
   bindButtonFeedback,
-  initScrollReveal
+  initScrollReveal,
+  animateDashboardEnter,
+  animateDashboardModeSwitch,
+  transitionDashboardProgress,
+  getDashboardMotionDiagnostics
 }

@@ -26,7 +26,6 @@ export function installLegacyBridge(dependencies) {
     // Core utilities
     StorageManager,
     Utils,
-    ConfettiEngine,
     ThemeManager,
     LogoManager,
     NexoraPdfExport,
@@ -77,7 +76,6 @@ export function installLegacyBridge(dependencies) {
   // Expose core utilities and UI modules
   window.StorageManager = StorageManager
   window.Utils = Utils
-  window.ConfettiEngine = ConfettiEngine
   window.ThemeManager = ThemeManager
   window.LogoManager = LogoManager
   window.NexoraPdfExport = NexoraPdfExport
@@ -128,5 +126,4 @@ export function installLegacyBridge(dependencies) {
   window.showToast = (msg) => Utils.showToast(msg)
   window.closeModal = () => Utils.closeModal()
   window.customConfirm = (title, message, onConfirm) => Utils.customConfirm(title, message, onConfirm)
-  window.triggerConfetti = () => ConfettiEngine.trigger()
 }

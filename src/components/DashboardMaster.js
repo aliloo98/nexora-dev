@@ -168,7 +168,7 @@ export async function renderDashboardMaster(rootId, TreasuryService, options = {
   const windowRef = options.windowRef || window
   const root = documentRef.getElementById(rootId)
   if (!root) return
-  root.classList.add('dashboard-coach-root', 'fade-in')
+  root.classList.add('dashboard-coach-root')
 
   const asOf = options.asOf instanceof Date ? options.asOf : new Date(options.asOf || Date.now())
   const monthKey = options.monthKey
@@ -217,5 +217,4 @@ export async function renderDashboardMaster(rootId, TreasuryService, options = {
     root.appendChild(coachCard)
   }
 
-  windowRef.NexoraMotion?.animateCards?.(root)
 }

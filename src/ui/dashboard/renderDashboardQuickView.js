@@ -1,5 +1,4 @@
 import { createMetricCard } from '../components/MetricCard.js'
-import { getDocument } from '../internal/dom.js'
 
 const fmt = (value) => {
   const amount = Number(value) || 0
@@ -100,8 +99,9 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
     dettesRoot.appendChild(dettesCard)
   }
 
-  // Trigger animation if available
-  windowRef?.NexoraMotion?.animateCards?.(documentRef.querySelector('.dashboard-quick-metrics'))
+  windowRef?.NexoraMotion?.transitionDashboardProgress?.(
+    documentRef.querySelector('.dashboard-quick-metrics')
+  )
 }
 
 export default renderDashboardQuickView

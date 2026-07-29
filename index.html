@@ -4191,24 +4191,19 @@ function updateAll(){
   if (epEl) epEl.textContent = revReel > 0 ? tauxEp+'%' : '—';
 
   const cardEpargne = getIdElement('card-epargne');
-  const celebrateStar = getIdElement('epargne-celebrate-star');
   if (cardEpargne) {
     cardEpargne.classList.remove('success-status', 'warning-status', 'danger-status');
     if (revReel <= 0) {
       if (epEl) epEl.className = 'kpi-value';
-      if (celebrateStar) celebrateStar.style.display = 'none';
     } else if (pctObjectif >= 100) {
       cardEpargne.classList.add('success-status');
       if (epEl) epEl.className = 'kpi-value positive';
-      if (celebrateStar) celebrateStar.style.display = 'inline-block';
     } else if (pctObjectif >= 50) {
       cardEpargne.classList.add('warning-status');
       if (epEl) epEl.className = 'kpi-value warning';
-      if (celebrateStar) celebrateStar.style.display = 'none';
     } else {
       cardEpargne.classList.add('danger-status');
       if (epEl) epEl.className = 'kpi-value negative';
-      if (celebrateStar) celebrateStar.style.display = 'none';
     }
   }
   setDashboardGuidanceTextCached('kpi-epargne-sub', revReel > 0
@@ -4223,12 +4218,6 @@ function updateAll(){
         : 'À risque');
   updateCircularGauge(revReel > 0 ? pctObjectif : 0);
   if (typeof updateSimulation === 'function') updateSimulation();
-
-  // Dynamic automatic confetti trigger
-  if (revReel > 0 && pctObjectif >= 100 && (!window.lastSavingsGoalPct || window.lastSavingsGoalPct < 100)) {
-    triggerConfetti();
-  }
-  window.lastSavingsGoalPct = pctObjectif;
 
   // Taux de charges card
   const tauxEl = getIdElement('kpi-taux');
@@ -4470,10 +4459,6 @@ function updateAll(){
   if (!__skipBudgetLineSubRenders && typeof renderDebts === 'function') renderDebts();
   if (!__skipBudgetLineSubRenders && typeof renderCagnottes === 'function') renderCagnottes();
   if (!__skipBudgetLineSubRenders && typeof updateTrendIndicators === 'function') updateTrendIndicators();
-  if (window.NexoraMotion) {
-    window.NexoraMotion.animateKpiNumbers?.(getIdElement('section-dashboard'));
-    window.NexoraMotion.animateModeSwitch?.(getSelectorElement('.dashboard-clean-grid'));
-  }
   // Refresh Assistant Nexora card (debounced, non-blocking)
   if (!__skipBudgetLineSubRenders && typeof scheduleAssistantRefresh === 'function') {
     try { scheduleAssistantRefresh(); } catch (err) { console.warn('[Assistant] schedule failed', err) }
@@ -7643,8 +7628,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-<canvas id="confetti-canvas"></canvas>
-
 <!-- Vite Module Entry Point -->
 <script type="module" src="/src/main.js"></script>
 </body>

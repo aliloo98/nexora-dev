@@ -1,0 +1,61 @@
+/*
+ * Dashboard Motion V1
+ * State transitions stay immediate; motion adds short feedback without
+ * changing layout or hiding usable content.
+ */
+
+#section-dashboard :where(.btn, .nx-button, .mode-toggle-btn, .inline-cta) {
+  transition:
+    background-color var(--nx-motion-standard) var(--nx-easing-standard),
+    border-color var(--nx-motion-standard) var(--nx-easing-standard),
+    box-shadow var(--nx-motion-standard) var(--nx-easing-standard),
+    color var(--nx-motion-standard) var(--nx-easing-standard),
+    transform var(--nx-motion-fast) var(--nx-easing-standard);
+}
+
+.sidebar .nav-btn,
+.month-nav-btn {
+  transition:
+    background-color var(--nx-motion-standard) var(--nx-easing-standard),
+    border-color var(--nx-motion-standard) var(--nx-easing-standard),
+    color var(--nx-motion-standard) var(--nx-easing-standard),
+    transform var(--nx-motion-fast) var(--nx-easing-standard);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  #section-dashboard :where(.btn, .nx-button, .mode-toggle-btn, .inline-cta):hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  .sidebar .nav-btn:hover,
+  .month-nav-btn:hover {
+    transform: translateY(-1px);
+  }
+}
+
+#section-dashboard :where(.btn, .nx-button, .mode-toggle-btn, .inline-cta):active:not(:disabled),
+.sidebar .nav-btn:active,
+.month-nav-btn:active {
+  transform: translateY(1px);
+  transition-duration: var(--nx-motion-fast);
+}
+
+#section-dashboard :where(button, a, [tabindex]):focus-visible,
+.sidebar .nav-btn:focus-visible,
+.month-nav-btn:focus-visible {
+  box-shadow: var(--nx-shadow-focus);
+  outline: 2px solid var(--nx-color-focus);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #section-dashboard *,
+  #section-dashboard *::before,
+  #section-dashboard *::after,
+  .sidebar .nav-btn,
+  .month-nav-btn {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
