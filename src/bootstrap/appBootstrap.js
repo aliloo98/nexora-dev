@@ -52,7 +52,11 @@ export async function bootstrapApplication(dependencies) {
     parseFinancialExpression,
     formatCurrency,
     showToast,
-    clipboardDataRef
+    clipboardDataRef,
+
+    // Onboarding dependencies
+    renderOnboarding,
+    OnboardingIntegration
   } = dependencies
 
   // Import bootstrap modules
@@ -161,6 +165,20 @@ export async function bootstrapApplication(dependencies) {
     refreshDashboardCoach,
     documentRef
   })
+
+  // ========================================
+  // PHASE 11: ONBOARDING (Step 28)
+  // ========================================
+  if (OnboardingIntegration) {
+    OnboardingIntegration.init()
+  }
+  
+  if (renderOnboarding) {
+    const onboardingContainer = await renderOnboarding()
+    if (onboardingContainer) {
+      documentRef.body.appendChild(onboardingContainer)
+    }
+  }
 
   return {
     unsubscribeAuth

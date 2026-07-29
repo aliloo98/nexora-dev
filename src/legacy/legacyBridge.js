@@ -70,7 +70,12 @@ export function installLegacyBridge(dependencies) {
     NexoraStorageKeys,
     CoupleUIComponent,
     CoupleOverlay,
-    CoupleService
+    CoupleService,
+
+    // Onboarding
+    NexoraOnboarding,
+    OnboardingIntegration,
+    OnboardingService
   } = dependencies
 
   // Expose core utilities and UI modules
@@ -121,6 +126,11 @@ export function installLegacyBridge(dependencies) {
   window.CoupleUIComponent = CoupleUIComponent
   window.CoupleOverlay = CoupleOverlay
   window.CoupleService = CoupleService
+
+  // Expose onboarding
+  window.NexoraOnboarding = NexoraOnboarding
+  window.OnboardingIntegration = OnboardingIntegration
+  window.OnboardingService = OnboardingService
 
   // Expose helper functions (for HTML onclick handlers)
   window.showToast = (msg) => Utils.showToast(msg)

@@ -1604,6 +1604,10 @@ body.mode-simple .simple-dashboard-grid {
   display: grid;
 }
 
+body.mode-complet .simple-dashboard-grid {
+  display: none;
+}
+
 body.mode-simple .kpi-grid,
 body.mode-simple .dash-row,
 body.mode-simple .dashboard-action-center,
@@ -1688,12 +1692,14 @@ body.mode-simple .simple-dashboard-grid {
 
 /* Desktop layout: argent restant full width, entrant/sortant side by side */
 @media (min-width: 640px) {
-  body.mode-simple .simple-dashboard-grid {
+  body.mode-simple .simple-dashboard-grid,
+  body.mode-complet .simple-dashboard-grid {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto auto;
   }
 
-  body.mode-simple .simple-card--primary {
+  body.mode-simple .simple-card--primary,
+  body.mode-complet .simple-card--primary {
     grid-column: 1 / -1;
   }
 }
