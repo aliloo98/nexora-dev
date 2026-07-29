@@ -52,7 +52,11 @@ export async function bootstrapApplication(dependencies) {
     parseFinancialExpression,
     formatCurrency,
     showToast,
-    clipboardDataRef
+    clipboardDataRef,
+
+    // Onboarding dependencies
+    renderOnboarding,
+    OnboardingIntegration
   } = dependencies
 
   // Import bootstrap modules
@@ -161,6 +165,16 @@ export async function bootstrapApplication(dependencies) {
     refreshDashboardCoach,
     documentRef
   })
+
+  // ========================================
+  // PHASE 11: ONBOARDING (Step 28)
+  // ========================================
+  if (OnboardingIntegration) {
+    OnboardingIntegration.init(renderOnboarding)
+  }
+  
+  // Onboarding rendering is now managed by OnboardingIntegration
+  // It will render when user navigates to dashboard, after context is established
 
   return {
     unsubscribeAuth

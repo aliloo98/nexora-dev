@@ -73,6 +73,12 @@ import { escapeHtml } from './utils/htmlEscape.js'
 import { installLegacyBridge } from './legacy/legacyBridge.js'
 import { createCoupleController } from './couple/coupleController.js'
 
+// Import onboarding module
+import { renderOnboarding, updateOnboardingStep, dismissOnboarding } from './onboarding/onboardingUI.js'
+import { OnboardingIntegration } from './onboarding/onboardingIntegration.js'
+import { OnboardingService } from './onboarding/onboardingService.js'
+import './onboarding/onboarding.css'
+
 // Import bootstrap modules
 import { bootstrapApplication } from './bootstrap/appBootstrap.js'
 import { createAmountInputHandlers } from './ui/amountInputHandlers.js'
@@ -127,7 +133,11 @@ installLegacyBridge({
   NexoraStorageKeys: STORAGE_KEYS,
   CoupleUIComponent,
   CoupleOverlay,
-  CoupleService
+  CoupleService,
+
+  // Onboarding
+  NexoraOnboarding: { renderOnboarding, updateOnboardingStep, dismissOnboarding },
+  OnboardingIntegration
 })
 
 // Initialize Couple module controller
@@ -322,7 +332,11 @@ const initApp = async () => {
       parseFinancialExpression,
       formatCurrency: (v) => Utils.formatCurrency(v),
       showToast: (msg) => Utils.showToast(msg),
-      clipboardDataRef: window.clipboardData
+      clipboardDataRef: window.clipboardData,
+
+      // Onboarding dependencies
+      renderOnboarding,
+      OnboardingIntegration
     })
 
     // Attach handlers after bootstrap

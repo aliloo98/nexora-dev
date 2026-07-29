@@ -1,0 +1,342 @@
+/*
+ * Onboarding V1 Styles
+ * Premium, discreet, and user-oriented onboarding experience
+ */
+
+.onboarding-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+.onboarding-card {
+  background: var(--nx-color-surface);
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--nx-color-border);
+}
+
+.onboarding-welcome-card {
+  text-align: center;
+}
+
+.onboarding-welcome-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.onboarding-icon {
+  color: var(--nx-color-primary);
+  margin-bottom: 8px;
+}
+
+.onboarding-icon svg {
+  display: block;
+}
+
+.onboarding-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--nx-color-text-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.onboarding-description {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--nx-color-text-secondary);
+  margin: 0;
+  max-width: 400px;
+}
+
+.onboarding-time-estimate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--nx-color-text-tertiary);
+  background: var(--nx-color-surface-elevated);
+  padding: 8px 16px;
+  border-radius: 20px;
+}
+
+.onboarding-time-estimate svg {
+  color: var(--nx-color-text-tertiary);
+}
+
+.onboarding-start-btn {
+  margin-top: 8px;
+  min-width: 160px;
+}
+
+.onboarding-progress-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--nx-color-border);
+}
+
+.onboarding-progress-bar {
+  height: 6px;
+  background: var(--nx-color-surface-elevated);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.onboarding-progress-fill {
+  height: 100%;
+  background: var(--nx-color-primary);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.onboarding-progress-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--nx-color-text-secondary);
+}
+
+.onboarding-progress-count {
+  font-weight: 500;
+}
+
+.onboarding-progress-percentage {
+  font-weight: 600;
+  color: var(--nx-color-primary);
+}
+
+.onboarding-checklist {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--nx-color-border);
+}
+
+.onboarding-checklist-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  transition: background-color 0.2s ease;
+  cursor: default;
+}
+
+.onboarding-checklist-item:hover {
+  background: var(--nx-color-surface-elevated);
+}
+
+.onboarding-checklist-item.current {
+  background: var(--nx-color-surface-elevated);
+  border-left: 3px solid var(--nx-color-primary);
+}
+
+.onboarding-checklist-item.completed {
+  opacity: 0.6;
+}
+
+.onboarding-checkbox {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--nx-color-border);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nx-color-surface);
+  background: var(--nx-color-surface);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.onboarding-checklist-item.completed .onboarding-checkbox {
+  background: var(--nx-color-primary);
+  border-color: var(--nx-color-primary);
+  color: var(--nx-color-surface);
+}
+
+.onboarding-step-content {
+  flex: 1;
+}
+
+.onboarding-step-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--nx-color-text-primary);
+  margin-bottom: 4px;
+}
+
+.onboarding-step-description {
+  font-size: 14px;
+  color: var(--nx-color-text-secondary);
+  line-height: 1.4;
+}
+
+.onboarding-dismiss-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  color: var(--nx-color-text-tertiary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.onboarding-dismiss-btn:hover {
+  background: var(--nx-color-surface-elevated);
+  color: var(--nx-color-text-primary);
+}
+
+.onboarding-dismiss-btn:focus {
+  outline: 2px solid var(--nx-color-primary);
+  outline-offset: 2px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .onboarding-container {
+    padding: 12px;
+  }
+  
+  .onboarding-card {
+    padding: 24px;
+    border-radius: 16px;
+  }
+  
+  .onboarding-title {
+    font-size: 20px;
+  }
+  
+  .onboarding-description {
+    font-size: 14px;
+  }
+  
+  .onboarding-checklist-item {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 375px) {
+  .onboarding-card {
+    padding: 20px;
+  }
+  
+  .onboarding-title {
+    font-size: 18px;
+  }
+  
+  .onboarding-icon svg {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .onboarding-card {
+    max-width: 560px;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-container,
+  .onboarding-card,
+  .onboarding-progress-fill,
+  .onboarding-checklist-item,
+  .onboarding-checkbox,
+  .onboarding-dismiss-btn {
+    transition: none !important;
+  }
+}
+
+/* Settings Panel Styles */
+.onboarding-settings-card {
+  background: var(--nx-color-surface);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.onboarding-settings-header {
+  margin-bottom: 16px;
+}
+
+.onboarding-settings-header strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--nx-color-text-primary);
+  margin-bottom: 4px;
+}
+
+.onboarding-settings-header p {
+  font-size: 14px;
+  color: var(--nx-color-text-secondary);
+  margin: 0;
+}
+
+.onboarding-settings-status {
+  margin-bottom: 16px;
+}
+
+.onboarding-settings-progress {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.onboarding-settings-progress-text {
+  color: var(--nx-color-text-secondary);
+}
+
+.onboarding-settings-progress-percentage {
+  font-weight: 600;
+  color: var(--nx-color-primary);
+}
+
+.onboarding-settings-progress-bar {
+  height: 6px;
+  background: var(--nx-color-surface-elevated);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.onboarding-settings-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--nx-color-primary), var(--nx-color-primary-dark));
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.onboarding-settings-actions {
+  display: flex;
+  gap: 12px;
+}
