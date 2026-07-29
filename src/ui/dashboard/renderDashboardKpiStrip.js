@@ -1,5 +1,4 @@
 import { createMetricCard } from '../components/MetricCard.js'
-import { getDocument } from '../internal/dom.js'
 
 const fmt = (value) => {
   const amount = Number(value) || 0
@@ -127,8 +126,9 @@ export function renderDashboardKpiStrip(metrics = {}, options = {}) {
     tauxRoot.appendChild(tauxCard)
   }
 
-  // Trigger animation if available
-  windowRef?.NexoraMotion?.animateCards?.(documentRef.querySelector('.dashboard-primary-kpis'))
+  windowRef?.NexoraMotion?.transitionDashboardProgress?.(
+    documentRef.querySelector('.dashboard-primary-kpis')
+  )
 }
 
 export default renderDashboardKpiStrip

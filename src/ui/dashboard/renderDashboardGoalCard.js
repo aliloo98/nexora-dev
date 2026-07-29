@@ -1,5 +1,4 @@
 import { createGoalCard } from '../components/GoalCard.js'
-import { getDocument } from '../internal/dom.js'
 
 const fmt = (value) => {
   const amount = Number(value) || 0
@@ -97,8 +96,7 @@ export function renderDashboardGoalCard(rootId, goal = null, options = {}) {
   root.innerHTML = ''
   root.appendChild(goalCard)
 
-  // Trigger animation if available
-  windowRef?.NexoraMotion?.animateCards?.(root)
+  windowRef?.NexoraMotion?.transitionDashboardProgress?.(root)
 }
 
 export default renderDashboardGoalCard

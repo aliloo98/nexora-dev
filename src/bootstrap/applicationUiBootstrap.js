@@ -58,6 +58,8 @@ export function applyApplicationMotion({
 }) {
   NexoraMotion?.bindButtonFeedback?.(document)
   NexoraMotion?.animateNavigation?.(document.querySelector('.sidebar .nav-btn.active'))
+  const dashboard = document.getElementById('section-dashboard')
+  if (dashboard?.classList.contains('active')) NexoraMotion?.animateDashboardEnter?.(dashboard)
   const runScrollReveal = () => NexoraMotion?.initScrollReveal?.(document)
   if (typeof requestIdleCallback === 'function') requestIdleCallback(runScrollReveal, { timeout: 2400 })
   else setTimeout(runScrollReveal, 400)

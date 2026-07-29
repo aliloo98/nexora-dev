@@ -14,7 +14,7 @@
 
 // Import core modules
 import { StorageManager } from '../js/storage.js'
-import { Utils, ConfettiEngine } from '../js/utils.js'
+import { Utils } from '../js/utils.js'
 import { ThemeManager } from '../js/theme-manager.js'
 import { LogoManager } from '../js/logo-manager.js'
 import { NexoraPdfExport } from '../js/pdf-export.js'
@@ -83,7 +83,6 @@ installLegacyBridge({
   // Core utilities
   StorageManager,
   Utils,
-  ConfettiEngine,
   ThemeManager,
   LogoManager,
   NexoraPdfExport,

@@ -47,6 +47,7 @@ let activeGraphButton = null
 let currentCenterDataType = 'balance' // 'balance' or 'score'
 let lastCoreMetrics = null
 let hoverTimeout = null
+const ringOffsets = new WeakMap()
 
 const CORE_GRAPH_LIMIT = 8
 
@@ -553,13 +554,16 @@ export function updateNexoraCore(metrics = {}) {
     panel.dataset.health = tone === 'radiant' || tone === 'solid' ? 'solid' : tone === 'watch' ? 'watch' : 'fragile'
 
     const strokeOffset = 264 - (264 * health) / 100
-    if (prefersReducedMotion()) {
+    const previousOffset = ringOffsets.get(ringEl)
+    ringOffsets.set(ringEl, strokeOffset)
+    if (prefersReducedMotion() || previousOffset === undefined) {
+      gsap.killTweensOf(ringEl)
       ringEl.style.strokeDashoffset = `${strokeOffset}`
-    } else {
+    } else if (Math.abs(previousOffset - strokeOffset) > 0.1) {
       gsap.to(ringEl, {
         strokeDashoffset: strokeOffset,
-        duration: 0.95,
-        ease: 'power3.out',
+        duration: 0.22,
+        ease: 'power2.out',
         overwrite: 'auto'
       })
     }

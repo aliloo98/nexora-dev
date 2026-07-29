@@ -1,19 +1,11 @@
 import { createBadge } from '../primitives/Badge.js'
-import { createCard } from '../primitives/Card.js'
-import { getDocument, setText } from '../internal/dom.js'
+import { setText } from '../internal/dom.js'
 
 const fmt = (value) => {
   const amount = Number(value) || 0
   const fractionDigits = Number.isInteger(amount) ? 0 : 2
   return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits })} €`
 }
-
-const escapeHtml = (value) => String(value ?? '')
-  .replace(/&/g, '&amp;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;')
-  .replace(/'/g, '&#039;')
 
 /**
  * Renders the Dashboard Alerts Card using V2 primitives.
@@ -22,7 +14,6 @@ const escapeHtml = (value) => String(value ?? '')
  */
 export function renderDashboardAlerts(metrics = {}, options = {}) {
   const documentRef = options.documentRef || document
-  const windowRef = options.windowRef || (typeof window !== 'undefined' ? window : undefined)
   const getPendingFixedExpenseRows = options.getPendingFixedExpenseRows || (() => [])
 
   const root = documentRef.getElementById('dashboard-alerts-card')
@@ -127,8 +118,6 @@ export function renderDashboardAlerts(metrics = {}, options = {}) {
 
   root.appendChild(list)
 
-  // Trigger animation if available
-  windowRef?.NexoraMotion?.animateCards?.(root)
 }
 
 export default renderDashboardAlerts
