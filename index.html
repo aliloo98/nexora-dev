@@ -4074,8 +4074,12 @@ function updateAll(){
     if (coachMarkup) {
       const actionBtn = coachRoot?.querySelector('.budget-coach-action');
       if (actionBtn) {
-        actionBtn.addEventListener('click', () => {
-          const target = actionBtn.dataset.target;
+        // Remove existing listener to prevent memory leaks
+        const newActionBtn = actionBtn.cloneNode(true);
+        actionBtn.parentNode.replaceChild(newActionBtn, actionBtn);
+        
+        newActionBtn.addEventListener('click', () => {
+          const target = newActionBtn.dataset.target;
           if (target === 'revenues') {
             showSection('saisie');
             setTimeout(() => {

@@ -45,13 +45,14 @@ export const OnboardingIntegration = {
         if (!hasRevenue) {
           const data = args[1]
           if (data) {
-            const hasRevenueEntry = Object.keys(data).some(key => 
-              key.toLowerCase().includes('rev') || 
-              key.toLowerCase().includes('revenu') ||
-              key.toLowerCase().includes('salaire') ||
-              key.toLowerCase().includes('income')
-            )
-            if (hasRevenueEntry && data[key] > 0) {
+            const hasRevenueEntry = Object.keys(data).some(key => {
+              const value = Number(data[key]) || 0
+              return (key.toLowerCase().includes('rev') || 
+                     key.toLowerCase().includes('revenu') ||
+                     key.toLowerCase().includes('salaire') ||
+                     key.toLowerCase().includes('income')) && value > 0
+            })
+            if (hasRevenueEntry) {
               hasRevenue = true
               await OnboardingService.completeStep('add_income')
             }
@@ -62,14 +63,15 @@ export const OnboardingIntegration = {
         if (!hasExpense) {
           const data = args[1]
           if (data) {
-            const hasExpenseEntry = Object.keys(data).some(key => 
-              key.toLowerCase().includes('dep') || 
-              key.toLowerCase().includes('dépense') ||
-              key.toLowerCase().includes('charge') ||
-              key.toLowerCase().includes('fixe') ||
-              key.toLowerCase().includes('variable')
-            )
-            if (hasExpenseEntry && data[key] > 0) {
+            const hasExpenseEntry = Object.keys(data).some(key => {
+              const value = Number(data[key]) || 0
+              return (key.toLowerCase().includes('dep') || 
+                     key.toLowerCase().includes('dépense') ||
+                     key.toLowerCase().includes('charge') ||
+                     key.toLowerCase().includes('fixe') ||
+                     key.toLowerCase().includes('variable')) && value > 0
+            })
+            if (hasExpenseEntry) {
               hasExpense = true
               await OnboardingService.completeStep('add_expense')
             }
