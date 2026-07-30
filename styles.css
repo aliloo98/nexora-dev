@@ -9295,10 +9295,15 @@ body.mode-simple .home-goal-summary {
   color: var(--gold2);
 }
 
-#section-dashboard .dashboard-final-grid,
+#section-dashboard .dashboard-final-grid {
+  display: grid;
+  gap: 16px;
+}
+
 #section-dashboard .dashboard-secondary-kpis {
   display: grid;
   gap: 16px;
+  margin-top: 16px;
 }
 
 #section-dashboard #nexora-core-panel.dashboard-core-logic-host,
@@ -9348,7 +9353,6 @@ body.mode-simple .home-goal-summary {
   }
 
   #section-dashboard .dashboard-lower-grid > .dashboard-card {
-    height: 100%;
     min-height: 280px;
   }
 
@@ -10695,7 +10699,7 @@ body .btn {
   align-items: stretch;
   display: grid;
   gap: 8px;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 0.9fr) minmax(0, 1.4fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
 }
 
 #section-dashboard .dashboard-final-grid > .dashboard-card,
@@ -11062,7 +11066,6 @@ body .btn {
   }
 
   #section-dashboard .dashboard-lower-grid > .dashboard-card {
-    height: 254px;
     min-height: 254px;
   }
 
