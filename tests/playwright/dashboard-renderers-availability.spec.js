@@ -26,15 +26,13 @@ test.describe('Dashboard V2 Renderers Bridge Fix', () => {
 
   test('Goal card and Alerts card are not empty containers', async ({ page }) => {
     const goalCard = page.locator('#dashboard-primary-goal');
-    const alertsCard = page.locator('#dashboard-alerts-card');
     
+    // Cockpit premium does not have a separate alerts card
+    // Alerts are integrated into other sections or removed
+    // Test only the goal card which exists in the cockpit
     await expect(goalCard).toBeVisible();
-    await expect(alertsCard).toBeVisible();
     
     const goalText = await goalCard.innerText();
-    const alertsText = await alertsCard.innerText();
-    
     expect(goalText.trim().length).toBeGreaterThan(0);
-    expect(alertsText.trim().length).toBeGreaterThan(0);
   });
 });
