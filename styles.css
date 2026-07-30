@@ -9360,7 +9360,6 @@ body.mode-simple .home-goal-summary {
 
   #section-dashboard .dashboard-final-grid > .dashboard-card,
   #section-dashboard .dashboard-final-grid > .dashboard-secondary-kpis {
-    height: 100%;
     min-height: 220px;
   }
 
@@ -11069,7 +11068,6 @@ body .btn {
 
   #section-dashboard .dashboard-final-grid > .dashboard-card,
   #section-dashboard .dashboard-final-grid > .dashboard-secondary-kpis {
-    height: 226px;
     min-height: 226px;
   }
 }
