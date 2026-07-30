@@ -1752,6 +1752,28 @@ body.mode-simple .simple-dashboard-grid {
   display: grid;
 }
 
+/* Premium Dashboard Mode Visibility */
+body.mode-simple [data-mode="complete"] {
+  display: none !important;
+}
+
+body.mode-complet [data-mode="simple"] {
+  display: none !important;
+}
+
+/* Simplified mode: adjust grid layouts */
+body.mode-simple .dashboard-lower-grid {
+  grid-template-columns: 1fr;
+}
+
+body.mode-simple .dashboard-final-grid {
+  grid-template-columns: 1fr;
+}
+
+body.mode-simple .dashboard-secondary-kpis {
+  display: none !important;
+}
+
 body.mode-complet .simple-dashboard-grid {
   display: none;
 }

@@ -138,7 +138,7 @@ body.auth-locked > #nexora-status-bar {
         </div>
       </header>
 
-      <section class="dashboard-hero dashboard-panel" id="dashboard-synthesis-hero" data-state="neutral" aria-label="Synthèse du mois">
+      <section class="dashboard-hero dashboard-panel" id="dashboard-synthesis-hero" data-state="neutral" data-mode="both" aria-label="Synthèse du mois">
         <div id="dashboard-hero-root"></div>
       </section>
 
@@ -297,10 +297,10 @@ body.auth-locked > #nexora-status-bar {
       </div>
 
       <section class="dashboard-lower-grid">
-        <section class="dashboard-panel dashboard-card dashboard-card--coach" id="dashboard-coach-card">
+        <section class="dashboard-panel dashboard-card dashboard-card--coach" id="dashboard-coach-card" data-mode="both">
           <div id="dashboard-master-root"></div>
         </section>
-        <section class="dashboard-panel dashboard-card dashboard-card--plan" id="week-plan-card">
+        <section class="dashboard-panel dashboard-card dashboard-card--plan" id="week-plan-card" data-mode="complete">
           <div class="dashboard-card__head">
             <div>
               <span class="dashboard-card__eyebrow">Votre plan des 7 prochains jours</span>
@@ -350,14 +350,14 @@ body.auth-locked > #nexora-status-bar {
       </section>
 
       <section class="dashboard-final-grid">
-        <section class="dashboard-panel dashboard-card dashboard-card--goal" id="dashboard-primary-goal"></section>
+        <section class="dashboard-panel dashboard-card dashboard-card--goal" id="dashboard-primary-goal" data-mode="both"></section>
 
-        <section class="dashboard-panel dashboard-card dashboard-card--alerts" id="dashboard-alerts-card" aria-label="Alertes"></section>
+        <section class="dashboard-panel dashboard-card dashboard-card--alerts" id="dashboard-alerts-card" data-mode="complete" aria-label="Alertes"></section>
 
-        <section class="dashboard-panel dashboard-card dashboard-card--assistant" id="assistant-insights-card" aria-label="Assistant Nexora"></section>
+        <section class="dashboard-panel dashboard-card dashboard-card--assistant" id="assistant-insights-card" data-mode="complete" aria-label="Assistant Nexora"></section>
       </section>
 
-      <section class="dashboard-secondary-kpis" id="dashboard-quick-view" aria-label="Aperçu rapide">
+      <section class="dashboard-secondary-kpis" id="dashboard-quick-view" data-mode="complete" aria-label="Aperçu rapide">
         <div class="dashboard-card__head">
           <div>
             <span class="dashboard-card__eyebrow">Aperçu rapide</span>
