@@ -52,25 +52,45 @@ class DataCollector {
 
   /**
    * Collect budget data for a specific month
-   * @param {string} monthKey - Month key (e.g., "janvier 2026")
+   * @param {string} monthKey - Month key (e.g., "janvier 2026" or "2026-01")
    * @returns {Object} Budget data
    */
   async collectBudgetData(monthKey) {
     const budgetService = this.getBudgetService()
     const helpers = this.getHelpers()
 
+    // Convert French month label to YYYY-MM format if needed
+    const normalizeMonthKey = (key) => {
+      if (!key) return null
+      // If already in YYYY-MM format, return as-is
+      if (/^\d{4}-\d{2}$/.test(key)) return key
+      // Otherwise, try to convert from French format
+      const months = {
+        'janvier': '01', 'février': '02', 'mars': '03', 'avril': '04',
+        'mai': '05', 'juin': '06', 'juillet': '07', 'août': '08',
+        'septembre': '09', 'octobre': '10', 'novembre': '11', 'décembre': '12'
+      }
+      const parts = key.toLowerCase().split(' ')
+      if (parts.length === 2 && months[parts[0]]) {
+        return `${parts[1]}-${months[parts[0]]}`
+      }
+      return key
+    }
+
+    const normalizedMonth = normalizeMonthKey(monthKey)
+
     let state = null
     let data = {}
 
     if (budgetService && typeof budgetService.getMonthlyBudgetState === 'function') {
-      state = await budgetService.getMonthlyBudgetState(monthKey)
+      state = await budgetService.getMonthlyBudgetState(normalizedMonth)
       data = state?.data || {}
     }
 
     // Try to get metrics if available
     let metrics = null
     if (helpers.getMonthMetrics && typeof helpers.getMonthMetrics === 'function') {
-      const month = monthKey || (helpers.getMonth ? helpers.getMonth() : null)
+      const month = normalizedMonth || (helpers.getMonth ? helpers.getMonth() : null)
       metrics = helpers.getMonthMetrics(month, { fromDom: true })
     }
 

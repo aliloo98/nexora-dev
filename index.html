@@ -4767,8 +4767,10 @@ function updateDashboardAlerts(metrics = {}) {
 function updateAssistantInsights() {
   // Use Assistant Nexora V1 if available
   if (typeof window.renderAssistantInsights === 'function') {
+    const currentMonth = getMonth();
     window.renderAssistantInsights({
-      windowRef: window
+      windowRef: window,
+      monthKey: currentMonth
     });
   }
 }

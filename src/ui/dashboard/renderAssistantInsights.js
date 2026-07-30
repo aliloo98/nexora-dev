@@ -36,7 +36,14 @@ export async function renderAssistantInsights(options = {}) {
 
   try {
     const service = getRealAssistantService()
-    const insights = await service.getQuickInsights(monthKey)
+    // Convert YYYY-MM format to French month label if needed
+    const displayMonthKey = monthKey.match(/^\d{4}-\d{2}$/)
+      ? (() => {
+          const [year, monthIndex] = monthKey.split('-').map(Number)
+          return new Date(year, monthIndex - 1).toLocaleString('fr-FR', { month: 'long', year: 'numeric' })
+        })()
+      : monthKey
+    const insights = await service.getQuickInsights(displayMonthKey)
 
     // Create card structure
     root.innerHTML = ''
