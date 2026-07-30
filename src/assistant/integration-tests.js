@@ -325,6 +325,188 @@ export async function runIntegrationTests() {
     assertEqual(service.initialized, false, 'Service should be reset')
   })
 
+  runTest('should handle no data scenario', async () => {
+    const freshRegistry = new RuleRegistry()
+    const mockBudgetService = {
+      getMonthlyBudgetState: async () => ({
+        data: {},
+        metrics: { income: 0, fixed: 0, variable: 0, expenses: 0, savings: 0 }
+      })
+    }
+    const mockGoalsService = {
+      getSummary: async () => ({ goals: [] }),
+      getPrimaryGoal: async () => null
+    }
+    const mockDebtsService = () => []
+    const mockHelpers = {
+      getMonthMetrics: () => ({ income: 0, fixed: 0, variable: 0, expenses: 0, savings: 0 }),
+      getAmountFromData: (data, key) => data[key] || 0,
+      filterTechnicalRecords: (items) => items
+    }
+
+    const service = new AssistantService({
+      services: {
+        budgetService: mockBudgetService,
+        goalsService: mockGoalsService,
+        debtsService: mockDebtsService,
+        helpers: mockHelpers
+      },
+      ruleRegistry: freshRegistry
+    })
+
+    const report = await service.analyze('janvier 2026')
+
+    assertEqual(report.status, 'no_data', 'Should have no_data status')
+    assertEqual(report.score, 0, 'Should have score 0')
+    assert(report.alerts.length > 0, 'Should have alerts')
+  })
+
+  runTest('should handle healthy budget scenario', async () => {
+    const freshRegistry = new RuleRegistry()
+    const mockBudgetService = {
+      getMonthlyBudgetState: async () => ({
+        data: { rev_ali: 3000 },
+        metrics: { income: 3000, fixed: 1000, variable: 800, expenses: 1800, savings: 1200 }
+      })
+    }
+    const mockGoalsService = {
+      getSummary: async () => ({ goals: [] }),
+      getPrimaryGoal: async () => null
+    }
+    const mockDebtsService = () => []
+    const mockHelpers = {
+      getMonthMetrics: () => ({ income: 3000, fixed: 1000, variable: 800, expenses: 1800, savings: 1200 }),
+      getAmountFromData: (data, key) => data[key] || 0,
+      filterTechnicalRecords: (items) => items
+    }
+
+    const service = new AssistantService({
+      services: {
+        budgetService: mockBudgetService,
+        goalsService: mockGoalsService,
+        debtsService: mockDebtsService,
+        helpers: mockHelpers
+      },
+      ruleRegistry: freshRegistry
+    })
+
+    const report = await service.analyze('janvier 2026')
+
+    assert(report.status === 'excellent' || report.status === 'healthy', 'Should have healthy status')
+    assert(report.score >= 70, 'Should have good score')
+    assert(report.metrics.savings > 0, 'Should have positive savings')
+  })
+
+  runTest('should handle critical budget scenario', async () => {
+    const freshRegistry = new RuleRegistry()
+    const mockBudgetService = {
+      getMonthlyBudgetState: async () => ({
+        data: { rev_ali: 1000 },
+        metrics: { income: 1000, fixed: 900, variable: 300, expenses: 1200, savings: -200 }
+      })
+    }
+    const mockGoalsService = {
+      getSummary: async () => ({ goals: [] }),
+      getPrimaryGoal: async () => null
+    }
+    const mockDebtsService = () => []
+    const mockHelpers = {
+      getMonthMetrics: () => ({ income: 1000, fixed: 900, variable: 300, expenses: 1200, savings: -200 }),
+      getAmountFromData: (data, key) => data[key] || 0,
+      filterTechnicalRecords: (items) => items
+    }
+
+    const service = new AssistantService({
+      services: {
+        budgetService: mockBudgetService,
+        goalsService: mockGoalsService,
+        debtsService: mockDebtsService,
+        helpers: mockHelpers
+      },
+      ruleRegistry: freshRegistry
+    })
+
+    const report = await service.analyze('janvier 2026')
+
+    assertEqual(report.status, 'critical', 'Should have critical status')
+    assert(report.metrics.savings < 0, 'Should have negative savings')
+    assert(report.alerts.length > 0, 'Should have alerts')
+  })
+
+  runTest('should handle debt scenario', async () => {
+    const freshRegistry = new RuleRegistry()
+    const mockBudgetService = {
+      getMonthlyBudgetState: async () => ({
+        data: { rev_ali: 2000 },
+        metrics: { income: 2000, fixed: 800, variable: 400, expenses: 1200, savings: 800 }
+      })
+    }
+    const mockGoalsService = {
+      getSummary: async () => ({ goals: [] }),
+      getPrimaryGoal: async () => null
+    }
+    const mockDebtsService = () => [
+      { name: 'Crédit voiture', remaining: 5000, monthly: 200 }
+    ]
+    const mockHelpers = {
+      getMonthMetrics: () => ({ income: 2000, fixed: 800, variable: 400, expenses: 1200, savings: 800 }),
+      getAmountFromData: (data, key) => data[key] || 0,
+      filterTechnicalRecords: (items) => items
+    }
+
+    const service = new AssistantService({
+      services: {
+        budgetService: mockBudgetService,
+        goalsService: mockGoalsService,
+        debtsService: mockDebtsService,
+        helpers: mockHelpers
+      },
+      ruleRegistry: freshRegistry
+    })
+
+    const report = await service.analyze('janvier 2026')
+
+    assert(report.debtAnalysis.total > 0, 'Should have debt total')
+    assertEqual(report.debtAnalysis.total, 5000, 'Debt total should match')
+    assert(report.recommendations.length > 0, 'Should have recommendations')
+  })
+
+  runTest('should handle good savings scenario', async () => {
+    const freshRegistry = new RuleRegistry()
+    const mockBudgetService = {
+      getMonthlyBudgetState: async () => ({
+        data: { rev_ali: 4000 },
+        metrics: { income: 4000, fixed: 1200, variable: 600, expenses: 1800, savings: 2200 }
+      })
+    }
+    const mockGoalsService = {
+      getSummary: async () => ({ goals: [] }),
+      getPrimaryGoal: async () => null
+    }
+    const mockDebtsService = () => []
+    const mockHelpers = {
+      getMonthMetrics: () => ({ income: 4000, fixed: 1200, variable: 600, expenses: 1800, savings: 2200 }),
+      getAmountFromData: (data, key) => data[key] || 0,
+      filterTechnicalRecords: (items) => items
+    }
+
+    const service = new AssistantService({
+      services: {
+        budgetService: mockBudgetService,
+        goalsService: mockGoalsService,
+        debtsService: mockDebtsService,
+        helpers: mockHelpers
+      },
+      ruleRegistry: freshRegistry
+    })
+
+    const report = await service.analyze('janvier 2026')
+
+    assert(report.status === 'excellent' || report.status === 'healthy', 'Should have healthy status')
+    assert(report.metrics.savingsRate >= 40, 'Should have good savings rate')
+    assert(report.score >= 80, 'Should have high score')
+  })
+
   console.log('\n=== All Integration tests passed ===\n')
 }
 

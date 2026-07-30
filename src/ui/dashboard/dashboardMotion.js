@@ -1,5 +1,16 @@
 const reducedMotionQuery = '(prefers-reduced-motion: reduce)'
-const entrySelectors = [
+
+// Nouveaux sélecteurs Cockpit Premium
+const cockpitEntrySelectors = [
+  '.cockpit-core',
+  '.cockpit-zone--coach',
+  '.cockpit-zone--assistant',
+  '.cockpit-lateral-grid',
+  '.cockpit-kpis'
+]
+
+// Anciens sélecteurs Dashboard (fallback)
+const legacyEntrySelectors = [
   '.dashboard-clean-header',
   '.dashboard-hero',
   '.dashboard-primary-kpis',
@@ -10,6 +21,34 @@ const entrySelectors = [
 const activeAnimations = new Set()
 const progressValues = new Map()
 let reducedMotionListenerBound = false
+
+// Fonction de compatibilité : détecte si le cockpit premium est présent
+const isCockpitPremium = (dashboard) => {
+  return dashboard?.querySelector('.cockpit-core') !== null
+}
+
+// Sélecteurs adaptatifs selon la version du dashboard
+const getEntrySelectors = (dashboard) => {
+  return isCockpitPremium(dashboard) ? cockpitEntrySelectors : legacyEntrySelectors
+}
+
+// Delays adaptatifs selon la version du dashboard
+const getEntryDelay = (dashboard, index) => {
+  // Cockpit premium a 5 éléments, delays ajustés pour rester sous 120ms max
+  return isCockpitPremium(dashboard) ? index * 20 : index * 28
+}
+
+const getModeSwitchSelectors = (dashboard, isSimpleMode) => {
+  if (isCockpitPremium(dashboard)) {
+    return isSimpleMode
+      ? ['.cockpit-cta']
+      : ['.cockpit-zone--coach', '.cockpit-zone--assistant', '.cockpit-lateral-grid', '.cockpit-kpis']
+  }
+  // Fallback legacy
+  return isSimpleMode
+    ? ['.simple-dashboard-grid']
+    : ['.dashboard-primary-kpis', '.dashboard-lower-grid', '.dashboard-final-grid']
+}
 
 const prefersReducedMotion = () => {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return true
@@ -85,7 +124,8 @@ export function animateDashboardEnter(container) {
     }
 
     dashboard.dataset.dashboardMotionState = 'entering'
-    const targets = entrySelectors
+    const selectors = getEntrySelectors(dashboard)
+    const targets = selectors
       .map((selector) => dashboard.querySelector(selector))
       .filter(isRendered)
     const animations = targets
@@ -93,7 +133,7 @@ export function animateDashboardEnter(container) {
         { opacity: 0.72, transform: 'translate3d(0, 6px, 0)' },
         { opacity: 1, transform: 'translate3d(0, 0, 0)' }
       ], {
-        delay: index * 28,
+        delay: getEntryDelay(dashboard, index),
         duration: 220
       }))
       .filter(Boolean)
@@ -115,9 +155,8 @@ export function animateDashboardEnter(container) {
 export function animateDashboardModeSwitch(container) {
   const dashboard = resolveDashboard(container)
   if (!dashboard || dashboard.dataset.dashboardMotionState !== 'ready' || prefersReducedMotion()) return
-  const selectors = document.body.classList.contains('mode-simple')
-    ? ['.simple-dashboard-grid']
-    : ['.dashboard-primary-kpis', '.dashboard-lower-grid', '.dashboard-final-grid']
+  const isSimpleMode = document.body.classList.contains('mode-simple')
+  const selectors = getModeSwitchSelectors(dashboard, isSimpleMode)
 
   selectors
     .map((selector) => dashboard.querySelector(selector))
