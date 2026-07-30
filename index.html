@@ -297,7 +297,7 @@ body.auth-locked > #nexora-status-bar {
       </div>
 
       <section class="dashboard-lower-grid">
-        <section class="dashboard-panel dashboard-card dashboard-card--coach" id="dashboard-coach-card" data-mode="both">
+        <section class="dashboard-panel dashboard-card dashboard-card--coach dashboard-card--priority" id="dashboard-coach-card" data-mode="both">
           <div id="dashboard-master-root"></div>
         </section>
         <section class="dashboard-panel dashboard-card dashboard-card--plan" id="week-plan-card" data-mode="complete">
@@ -349,11 +349,13 @@ body.auth-locked > #nexora-status-bar {
         </section>
       </section>
 
-      <section class="dashboard-final-grid">
-        <section class="dashboard-panel dashboard-card dashboard-card--goal" id="dashboard-primary-goal" data-mode="both"></section>
-
+      <section class="dashboard-middle-grid">
         <section class="dashboard-panel dashboard-card dashboard-card--alerts" id="dashboard-alerts-card" data-mode="complete" aria-label="Alertes"></section>
 
+        <section class="dashboard-panel dashboard-card dashboard-card--goal" id="dashboard-primary-goal" data-mode="both"></section>
+      </section>
+
+      <section class="dashboard-final-grid">
         <section class="dashboard-panel dashboard-card dashboard-card--assistant" id="assistant-insights-card" data-mode="complete" aria-label="Assistant Nexora"></section>
       </section>
 
@@ -371,6 +373,10 @@ body.auth-locked > #nexora-status-bar {
           <div class="kpi-card" id="card-dettes"></div>
         </div>
         <div class="dashboard-assistant-host dashboard-assistant-host--compact"></div>
+      </section>
+
+      <section class="dashboard-cta-section" data-mode="simple" hidden>
+        <button type="button" class="btn btn-gold btn--large" onclick="showSection('plan')">Créer mon plan</button>
       </section>
 
       <section class="dashboard-card dashboard-forecast-logic-host" id="month-forecast-card" hidden aria-hidden="true">
