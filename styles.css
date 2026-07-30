@@ -11133,9 +11133,19 @@ body .btn {
     grid-template-columns: 1fr;
   }
 
+  #section-dashboard .dashboard-secondary-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   #section-dashboard .dashboard-final-grid > .dashboard-card,
   #section-dashboard .dashboard-final-grid > .dashboard-secondary-kpis {
     min-height: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  #section-dashboard .dashboard-secondary-kpis {
+    grid-template-columns: 1fr;
   }
 }
 
