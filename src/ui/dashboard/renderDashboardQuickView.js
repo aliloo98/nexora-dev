@@ -244,10 +244,16 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   if (heroMainEl) animateValue(heroMainEl, copilotState.resteAVivre)
 
   const heroStatusEl = documentRef.getElementById('hero-status-phrase')
-  if (heroStatusEl) heroStatusEl.textContent = copilotState.statusPhrase
+  if (heroStatusEl) heroStatusEl.textContent = copilotState.heroEmotionalPhrase || copilotState.statusPhrase
 
   const heroDailyPill = documentRef.getElementById('hero-daily-pill')
-  if (heroDailyPill) heroDailyPill.textContent = `💡 ${fmt(copilotState.dailySafeSpend)} / jour`
+  if (heroDailyPill) {
+    if (copilotState.isConfigured && copilotState.dailySafeSpend !== null) {
+      heroDailyPill.textContent = `💡 ${fmt(copilotState.dailySafeSpend)} / jour`
+    } else {
+      heroDailyPill.textContent = `💡 — € / jour`
+    }
+  }
 
   const heroProjPill = documentRef.getElementById('hero-projection-pill')
   if (heroProjPill) {
@@ -257,7 +263,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
 
   const heroSerenityBar = documentRef.getElementById('hero-serenity-bar')
   if (heroSerenityBar) {
-    const serenityPct = Math.min(100, Math.max(0, savingsRate > 0 ? Math.min(100, savingsRate * 3) : 10))
+    const serenityPct = copilotState.isConfigured ? Math.min(100, Math.max(0, savingsRate > 0 ? Math.min(100, savingsRate * 3) : 10)) : 0
     heroSerenityBar.style.width = `${serenityPct}%`
   }
 
@@ -267,13 +273,16 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   const subChaVal = documentRef.getElementById('hero-sub-charges-val')
   if (subChaVal) subChaVal.textContent = fmt(fixReel)
 
+  const subDispVal = documentRef.getElementById('hero-sub-disponible-val')
+  if (subDispVal) subDispVal.textContent = fmt(copilotState.resteAVivre)
+
   const subObjVal = documentRef.getElementById('hero-sub-objectif-val')
   if (subObjVal) subObjVal.textContent = fmtPct(savingsRate)
 
   // 2. COPILOTE CONVERSATIONNEL
   const copilotTagEl = documentRef.getElementById('copilot-posture-tag')
   if (copilotTagEl) {
-    copilotTagEl.textContent = copilotState.postureLabel
+    copilotTagEl.textContent = copilotState.humanIndicator || copilotState.postureLabel
     copilotTagEl.className = `copilot-badge copilot-badge--${copilotState.posture.toLowerCase()}`
   }
 
@@ -295,6 +304,18 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
     }
   }
 
+  // 3. CARTE NARRATIVE "CE QUE NEXORA A COMPRIS"
+  if (copilotState.understanding) {
+    const headEl = documentRef.getElementById('understanding-headline')
+    if (headEl) headEl.textContent = copilotState.understanding.headline
+
+    const detEl = documentRef.getElementById('understanding-details')
+    if (detEl) detEl.textContent = copilotState.understanding.details
+
+    const landEl = documentRef.getElementById('understanding-landing')
+    if (landEl) landEl.textContent = copilotState.understanding.landingText
+  }
+
   // 3. TIMELINE RUBAN 1-LIGNE
   const weekBalanceEl = documentRef.getElementById('week-plan-balance')
   if (weekBalanceEl) weekBalanceEl.textContent = fmt(soldeFinMois)
@@ -309,7 +330,65 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
     weekToPayEl.textContent = fixReel > 0 ? `${fmt(fixReel)} engagés` : 'Aucune charge'
   }
 
-  // 4. MODE COMPLET - ANALYSES & DETTES
+  // 4. MODE COMPLET - CHARTS SVG DYNAMIQUES (SPRINTS 2 & 3)
+  // SPRINT 2: COURBE DE TRÉSORERIE 30 JOURS
+  const linePath = documentRef.getElementById('treasury-line-path')
+  const areaPath = documentRef.getElementById('treasury-area-path')
+  const hoverDot = documentRef.getElementById('treasury-hover-dot')
+  if (linePath && areaPath) {
+    const yStart = Math.max(20, Math.min(100, 100 - (revReel / Math.max(1, revReel)) * 50))
+    const yMid = Math.max(15, Math.min(105, 100 - (copilotState.resteAVivre / Math.max(1, revReel)) * 70))
+    const yEnd = Math.max(10, Math.min(110, 100 - (soldeFinMois / Math.max(1, revReel)) * 80))
+    
+    const lineD = `M 0,${yStart} Q 250,${yMid} 500,${yEnd}`
+    const areaD = `M 0,120 L 0,${yStart} Q 250,${yMid} 500,${yEnd} L 500,120 Z`
+    
+    linePath.setAttribute('d', lineD)
+    areaPath.setAttribute('d', areaD)
+    if (hoverDot) {
+      hoverDot.setAttribute('cx', '250')
+      hoverDot.setAttribute('cy', String(yMid))
+    }
+  }
+
+  // SPRINT 3: DONUT CHART 360°
+  const totalCircumference = 238.76
+  const pctCh = revReel > 0 ? Math.min(100, Math.round((fixReel / revReel) * 100)) : 0
+  const pctEp = revReel > 0 ? Math.min(100 - pctCh, Math.max(0, Math.round(savingsRate))) : 0
+  const pctVar = Math.max(0, 100 - pctCh - pctEp)
+
+  const lenCh = (pctCh / 100) * totalCircumference
+  const lenEp = (pctEp / 100) * totalCircumference
+  const lenVar = (pctVar / 100) * totalCircumference
+
+  const segCharges = documentRef.getElementById('donut-segment-charges')
+  const segEpargne = documentRef.getElementById('donut-segment-epargne')
+  const segLibre = documentRef.getElementById('donut-segment-libre')
+
+  if (segCharges) {
+    segCharges.setAttribute('stroke-dasharray', `${lenCh} ${totalCircumference - lenCh}`)
+    segCharges.setAttribute('stroke-dashoffset', '0')
+  }
+  if (segEpargne) {
+    segEpargne.setAttribute('stroke-dasharray', `${lenEp} ${totalCircumference - lenEp}`)
+    segEpargne.setAttribute('stroke-dashoffset', String(-lenCh))
+  }
+  if (segLibre) {
+    segLibre.setAttribute('stroke-dasharray', `${lenVar} ${totalCircumference - lenVar}`)
+    segLibre.setAttribute('stroke-dashoffset', String(-(lenCh + lenEp)))
+  }
+
+  const donutCenterPct = documentRef.getElementById('donut-center-pct')
+  if (donutCenterPct) donutCenterPct.textContent = `${pctCh}%`
+
+  const legCh = documentRef.getElementById('donut-leg-charges')
+  if (legCh) legCh.textContent = `${pctCh}%`
+  const legEp = documentRef.getElementById('donut-leg-epargne')
+  if (legEp) legEp.textContent = `${pctEp}%`
+  const legVar = documentRef.getElementById('donut-leg-variables')
+  if (legVar) legVar.textContent = `${pctVar}%`
+
+  // ANALYSES & DETTES
   const analysisProjVal = documentRef.getElementById('analysis-projection-value')
   if (analysisProjVal) animateValue(analysisProjVal, savings * 12)
 
@@ -339,23 +418,58 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   const completeDebtTotal = documentRef.getElementById('complete-debt-total')
   if (completeDebtTotal) completeDebtTotal.textContent = fmt(debtSummary.total)
 
-  const analysisRecommendationValue = documentRef.getElementById('analysis-recommendation-value')
-  const analysisRecommendationAction = documentRef.getElementById('analysis-recommendation-action')
-  if (analysisRecommendationValue && analysisRecommendationAction) {
-    if (savingsRate < 10) {
-      analysisRecommendationValue.textContent = 'Augmenter épargne'
-      analysisRecommendationAction.textContent = 'Réduire variables'
-    } else if (tauxCharges > 50) {
-      analysisRecommendationValue.textContent = 'Optimiser charges'
-      analysisRecommendationAction.textContent = 'Revoir abonnements'
-    } else if (debtSummary.total > 0) {
-      analysisRecommendationValue.textContent = 'Réduire dettes'
-      analysisRecommendationAction.textContent = 'Prioriser remboursement'
-    } else {
-      analysisRecommendationValue.textContent = 'Maintenir cap'
-      analysisRecommendationAction.textContent = 'Continuer ainsi'
-    }
+// Attach global Quick Entry Handlers
+if (typeof window !== 'undefined') {
+  window.openQuickBudgetEntry = function() {
+    const modal = document.getElementById('quick-entry-modal')
+    if (!modal) return
+    const revInput = document.getElementById('quick-rev-input')
+    const chargesInput = document.getElementById('quick-charges-input')
+    const epargneInput = document.getElementById('quick-epargne-input')
+
+    let settings = {}
+    try {
+      settings = JSON.parse(localStorage.getItem('user_app_settings') || '{}')
+    } catch (e) {}
+
+    if (revInput) revInput.value = settings.rev_fixe || ''
+    if (chargesInput) chargesInput.value = settings.charges_fixes || ''
+    if (epargneInput) epargneInput.value = settings.target_epargne || ''
+
+    modal.classList.add('active')
+    modal.setAttribute('aria-hidden', 'false')
   }
+
+  window.closeQuickBudgetEntry = function() {
+    const modal = document.getElementById('quick-entry-modal')
+    if (!modal) return
+    modal.classList.remove('active')
+    modal.setAttribute('aria-hidden', 'true')
+  }
+
+  window.saveQuickBudgetEntry = function() {
+    const revInput = document.getElementById('quick-rev-input')
+    const chargesInput = document.getElementById('quick-charges-input')
+    const epargneInput = document.getElementById('quick-epargne-input')
+
+    let settings = {}
+    try {
+      settings = JSON.parse(localStorage.getItem('user_app_settings') || '{}')
+    } catch (e) {}
+
+    if (revInput && revInput.value) settings.rev_fixe = String(revInput.value)
+    if (chargesInput && chargesInput.value) settings.charges_fixes = String(chargesInput.value)
+    if (epargneInput && epargneInput.value) settings.target_epargne = String(epargneInput.value)
+
+    localStorage.setItem('user_app_settings', JSON.stringify(settings))
+
+    if (typeof window.updateAll === 'function') {
+      window.updateAll()
+    }
+
+    window.closeQuickBudgetEntry()
+  }
+}
 
   // === MODE SIMPLIFIÉ - 8 KPIs COMPACTS ===
   

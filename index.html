@@ -90,6 +90,35 @@ body.auth-locked > #nexora-status-bar {
   </div>
 </div>
 
+<!-- SPRINT 1: QUICK ENTRY SHEET MODAL -->
+<div class="modal-overlay" id="quick-entry-modal" aria-hidden="true">
+  <div class="modal-card quick-entry-card">
+    <div class="modal-header">
+      <h3 class="modal-title">⚡ Saisie rapide du budget</h3>
+      <button class="modal-close" type="button" onclick="closeQuickBudgetEntry()" aria-label="Fermer">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="quick-entry-subtitle">Mets à jour tes montants pour recalculer instantanément ton disponible et ton copilote.</p>
+      <div class="quick-entry-field">
+        <label for="quick-rev-input">Revenus mensuels (€)</label>
+        <input type="number" id="quick-rev-input" class="budget-input" placeholder="ex: 2500" step="10" />
+      </div>
+      <div class="quick-entry-field">
+        <label for="quick-charges-input">Charges fixes mensuelles (€)</label>
+        <input type="number" id="quick-charges-input" class="budget-input" placeholder="ex: 1100" step="10" />
+      </div>
+      <div class="quick-entry-field">
+        <label for="quick-epargne-input">Objectif d'épargne (€)</label>
+        <input type="number" id="quick-epargne-input" class="budget-input" placeholder="ex: 500" step="10" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline" onclick="closeQuickBudgetEntry()">Annuler</button>
+      <button type="button" class="btn btn-gold" onclick="saveQuickBudgetEntry()">Mettre à jour le disponible</button>
+    </div>
+  </div>
+</div>
+
 <!-- MAIN CONTENT -->
 <main class="main">
 
@@ -164,7 +193,7 @@ body.auth-locked > #nexora-status-bar {
               </div>
             </div>
 
-            <!-- Ligne de Sub-KPIs discrets (Label + valeur sans deux-points) -->
+            <!-- Ligne de Sub-KPIs discrets (Revenus, Charges, Disponible, Objectif) -->
             <div class="hero-subkpis-row">
               <div class="hero-subkpi" id="hero-sub-revenus">
                 <span class="subkpi-label">Revenus</span>
@@ -172,8 +201,13 @@ body.auth-locked > #nexora-status-bar {
               </div>
               <div class="hero-subkpi-divider">•</div>
               <div class="hero-subkpi" id="hero-sub-charges">
-                <span class="subkpi-label">Charges rest.</span>
+                <span class="subkpi-label">Charges</span>
                 <span class="subkpi-value" id="hero-sub-charges-val">0 €</span>
+              </div>
+              <div class="hero-subkpi-divider">•</div>
+              <div class="hero-subkpi" id="hero-sub-disponible">
+                <span class="subkpi-label">Disponible</span>
+                <span class="subkpi-value" id="hero-sub-disponible-val">0 €</span>
               </div>
               <div class="hero-subkpi-divider">•</div>
               <div class="hero-subkpi" id="hero-sub-objectif">
@@ -217,37 +251,99 @@ body.auth-locked > #nexora-status-bar {
           </div>
         </section>
 
-        <!-- COUCHES SUPPLEMANTAIRES (MODE COMPLET UNIQUEMENT) -->
+        <!-- CONCLUSION NARRATIVE DU MODE SIMPLIFIÉ & COMPLET : "CE QUE J'AI REMARQUÉ" -->
+        <section class="cockpit-understanding-card" id="dashboard-understanding-card" data-mode="both" aria-label="Ce que j'ai remarqué">
+          <div class="understanding-header">
+            <span class="understanding-icon">💡</span>
+            <h3>Ce que j’ai remarqué</h3>
+          </div>
+          <div class="understanding-body">
+            <div class="understanding-headline" id="understanding-headline">Tes dépenses essentielles sont couvertes.</div>
+            <p class="understanding-details" id="understanding-details">Analyse des données en cours...</p>
+            <div class="understanding-landing" id="understanding-landing">Calcul de la trajectoire...</div>
+          </div>
+        </section>
+
+        <!-- EXPLORATION COCKPIT EXPERT (MODE COMPLET UNIQUEMENT) -->
         <div class="cockpit-complete-zone" data-mode="complete">
-          <!-- Tendance & Répartition -->
-          <section class="complete-block complete-block--analytics">
+          
+          <!-- SECTION 1 : CE QUE MONTRENT TES FINANCES -->
+          <section class="complete-block complete-block--finances">
             <div class="complete-block__header">
-              <h3>📈 Tendance & Répartition du budget</h3>
+              <h3>👉 Ce que montrent tes finances</h3>
             </div>
+            
+            <!-- GRAPH SOURIS INTERACTIF SVG -->
+            <div class="treasury-chart-wrapper" id="treasury-svg-container">
+              <svg class="treasury-svg-chart" viewBox="0 0 500 120" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="treasuryGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.35" />
+                    <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.0" />
+                  </linearGradient>
+                </defs>
+                <path id="treasury-area-path" d="M 0,120 L 0,60 Q 250,20 500,40 L 500,120 Z" fill="url(#treasuryGradient)" />
+                <path id="treasury-line-path" d="M 0,60 Q 250,20 500,40" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" />
+                <circle id="treasury-hover-dot" cx="250" cy="30" r="5" fill="#34d399" stroke="#ffffff" stroke-width="2" style="opacity: 0.8;" />
+              </svg>
+              <div class="treasury-chart-legend">
+                <span>📅 Début de mois</span>
+                <span id="treasury-mid-text">📈 Atterrissage estimé</span>
+                <span>Fin de cycle 🎯</span>
+              </div>
+            </div>
+
             <div class="complete-analytics-grid">
               <div class="analytics-card">
-                <span class="analytics-card__title">Projection Annuelle</span>
+                <span class="analytics-card__title">Voilà où tu devrais terminer le mois</span>
                 <div class="analytics-card__value" id="analysis-projection-value">0 €</div>
-                <div class="analytics-card__sub" id="analysis-projection-trend">Trajectoire neutre</div>
+                <div class="analytics-card__sub" id="analysis-projection-trend">Trajectoire sous contrôle</div>
               </div>
               <div class="analytics-card">
-                <span class="analytics-card__title">Tendance Épargne</span>
+                <span class="analytics-card__title">Part mise de côté</span>
                 <div class="analytics-card__value" id="analysis-trend-value">0%</div>
-                <div class="analytics-card__sub" id="analysis-trend-direction">Stable</div>
+                <div class="analytics-card__sub" id="analysis-trend-direction">Capacité optimale</div>
               </div>
               <div class="analytics-card">
-                <span class="analytics-card__title">Marge d'Optimisation</span>
+                <span class="analytics-card__title">Marge de sécurité</span>
                 <div class="analytics-card__value" id="analysis-ratio-value">0 €</div>
-                <div class="analytics-card__sub" id="analysis-ratio-potential">Marge disponible</div>
+                <div class="analytics-card__sub" id="analysis-ratio-potential">Disponible préservé</div>
               </div>
             </div>
           </section>
 
-          <!-- Jalons d'objectifs & Dettes -->
+          <!-- SECTION 2 & 3 : CE QUI ARRIVE ENSUITE & CE QUE TU CONSTRUIS -->
           <div class="complete-dual-grid">
-            <section class="complete-block">
+            <section class="complete-block complete-block--next">
               <div class="complete-block__header">
-                <h3>🎯 Jalons d'Objectifs</h3>
+                <h3>👉 Ce qui arrive ensuite</h3>
+              </div>
+              
+              <!-- DONUT CHART 360° -->
+              <div class="donut-chart-wrapper" id="expense-donut-container">
+                <div class="donut-svg-box">
+                  <svg class="donut-svg" viewBox="0 0 100 100">
+                    <circle class="donut-bg" cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="12" />
+                    <circle id="donut-segment-charges" class="donut-segment" cx="50" cy="50" r="38" fill="none" stroke="#8b5cf6" stroke-width="12" stroke-dasharray="140 238" stroke-dashoffset="0" />
+                    <circle id="donut-segment-epargne" class="donut-segment" cx="50" cy="50" r="38" fill="none" stroke="#10b981" stroke-width="12" stroke-dasharray="60 238" stroke-dashoffset="-140" />
+                    <circle id="donut-segment-libre" class="donut-segment" cx="50" cy="50" r="38" fill="none" stroke="#3b82f6" stroke-width="12" stroke-dasharray="38 238" stroke-dashoffset="-200" />
+                  </svg>
+                  <div class="donut-center-text">
+                    <span class="donut-center-label">Frais fixes</span>
+                    <strong class="donut-center-val" id="donut-center-pct">50%</strong>
+                  </div>
+                </div>
+                <div class="donut-legend-list">
+                  <div class="donut-legend-item"><span class="donut-dot" style="background:#8b5cf6"></span><span>Frais engagés</span><strong id="donut-leg-charges">50%</strong></div>
+                  <div class="donut-legend-item"><span class="donut-dot" style="background:#10b981"></span><span>Épargne</span><strong id="donut-leg-epargne">20%</strong></div>
+                  <div class="donut-legend-item"><span class="donut-dot" style="background:#3b82f6"></span><span>Disponible libre</span><strong id="donut-leg-variables">30%</strong></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="complete-block complete-block--build">
+              <div class="complete-block__header">
+                <h3>👉 Ce que tu construis</h3>
               </div>
               <div id="dashboard-goals-summary-root" class="goals-summary-list">
                 <div class="goal-milestone-item">
@@ -260,24 +356,29 @@ body.auth-locked > #nexora-status-bar {
                   </div>
                 </div>
               </div>
-            </section>
-
-            <section class="complete-block">
-              <div class="complete-block__header">
-                <h3>💳 Santé des Dettes</h3>
-              </div>
-              <div class="debt-health-card">
+              <div class="debt-health-card" style="margin-top:14px;">
                 <div class="debt-health-row">
-                  <span>Mensualités totales :</span>
+                  <span>Mensualités engagées</span>
                   <strong id="complete-debt-monthly">0 €/mois</strong>
                 </div>
                 <div class="debt-health-row">
-                  <span>Encours total :</span>
+                  <span>Encours total</span>
                   <strong id="complete-debt-total">0 €</strong>
                 </div>
               </div>
             </section>
           </div>
+
+          <!-- SECTION 4 : CE QUE JE TE CONSEILLE AUJOURD'HUI -->
+          <section class="complete-block complete-block--advice">
+            <div class="complete-block__header">
+              <h3>👉 Ce que je te conseille aujourd’hui</h3>
+            </div>
+            <div class="advisor-insight-card">
+              <p id="complete-advisor-text">Tes charges fixes et tes dépenses sont équilibrées. Tu peux continuer ainsi en toute sérénité.</p>
+            </div>
+          </section>
+
         </div>
 
       </div>

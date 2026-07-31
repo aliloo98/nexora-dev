@@ -1,7 +1,6 @@
 /**
- * Moteur du Copilote Intelligent Nexora - Version V2
- * Formule des recommandations personnalisées et naturelles,
- * avec gestion stricte de l'état initial (Zéro donnée).
+ * Moteur du Compagnon Financier Nexora - Version V5 Humanisée (Apple/Linear Style)
+ * Génère une narration naturelle et des titres conversationnels.
  */
 
 const fmtAmount = (value) => {
@@ -17,111 +16,125 @@ export function evaluateCopilotState(metrics = {}) {
   const totalExpenses = fixReel + varReel
   const soldeFinMois = revReel - totalExpenses
 
-  // Date et jours restants dans le mois
+  // Jours restants dans le mois
   const now = new Date()
   const currentDay = now.getDate()
   const totalDaysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
   const daysRemaining = Math.max(1, totalDaysInMonth - currentDay + 1)
 
-  // 1. ÉTAT ZÉRO / DONNÉES NON RENSEIGNÉES
+  // 1. ÉTAT INITIAL / DONNÉES EN ATTENTE
   if (revReel === 0 && totalExpenses === 0) {
     return {
       posture: 'INITIAL',
-      postureLabel: 'Bienvenue',
+      humanIndicator: '🔵 Bienvenue sur Nexora',
+      heroEmotionalPhrase: "Saisis tes premiers montants pour débloquer ton compagnon.",
       statusPhrase: 'En attente de budget',
-      copilotMessage: 'Saisis tes premiers revenus et charges pour débloquer tes conseils personnalisés.',
-      action: { label: 'Configurer mon budget', targetSection: 'plan' },
+      copilotMessage: 'J\'attends tes premiers montants pour t\'accompagner au quotidien.',
+      action: { label: 'Saisir mes montants', targetSection: 'plan' },
       resteAVivre: 0,
-      dailySafeSpend: 0,
+      dailySafeSpend: null,
       daysRemaining,
       soldeFinMois: 0,
-      isConfigured: false
+      isConfigured: false,
+      understanding: {
+        headline: 'J\'attends tes premières informations.',
+        details: 'Ajoute tes revenus et tes charges pour que je puisse calculer ton disponible quotidien.',
+        landingText: 'Configuration rapide disponible en un clic.'
+      }
     }
   }
 
-  // Calculs clés
+  // Calculs sémantiques
   const resteAVivre = Math.max(0, soldeFinMois)
-  const dailySafeSpend = Math.round(resteAVivre / daysRemaining)
+  const dailySafeSpend = daysRemaining > 0 ? Math.round(resteAVivre / daysRemaining) : 0
   const savingsRate = revReel > 0 ? (soldeFinMois / revReel) * 100 : 0
   const tauxCharges = revReel > 0 ? (fixReel / revReel) * 100 : 0
 
-  // 2. DÉFICIT
+  // 2. NIVEAU CRITIQUE (Déficit)
   if (soldeFinMois < 0) {
     const deficit = fmtAmount(Math.abs(soldeFinMois))
     return {
-      posture: 'ALERTE',
-      postureLabel: 'Vigilance',
-      statusPhrase: 'Alerte déficit',
-      copilotMessage: `Attention : tes dépenses dépassent tes revenus de ${deficit}. Ajuste tes dépenses variables pour garder le contrôle.`,
-      action: { label: 'Ajuster les dépenses', targetSection: 'parametres' },
+      posture: 'CRITIQUE',
+      humanIndicator: '🔴 Action recommandée',
+      heroEmotionalPhrase: "Les prochains jours demanderont de la prudence.",
+      statusPhrase: 'Déficit détecté',
+      copilotMessage: `Attention : tes charges dépassent tes revenus de ${deficit}. Réduis tes dépenses variables pour rééquilibrer ton mois.`,
+      action: { label: 'Ajuster mes charges', targetSection: 'parametres' },
       resteAVivre: 0,
       dailySafeSpend: 0,
       daysRemaining,
       soldeFinMois,
-      isConfigured: true
+      isConfigured: true,
+      understanding: {
+        headline: 'Tes dépenses dépassent actuellement tes revenus.',
+        details: `Tu as encaissé ${fmtAmount(revReel)} mais engagé ${fmtAmount(totalExpenses)}.`,
+        landingText: `Une révision de tes abonnements permettrait de résorber ce déficit de ${deficit}.`
+      }
     }
   }
 
-  // 3. EXCELLENTE ÉPARGNE (>= 20%)
+  // 3. NIVEAU EXCELLENT (Épargne >= 20%)
   if (savingsRate >= 20) {
     const epargne = fmtAmount(soldeFinMois)
     return {
-      posture: 'FÉLICITATIONS',
-      postureLabel: 'Excellence',
-      statusPhrase: 'Situation excellente',
-      copilotMessage: `À ce rythme, tu termineras le mois avec environ ${epargne} d'avance. Excellente gestion !`,
-      action: { label: 'Placer en épargne', targetSection: 'objectifs' },
+      posture: 'EXCELLENT',
+      humanIndicator: '🎉 Mois idéal',
+      heroEmotionalPhrase: "Tu es parfaitement dans les temps.",
+      statusPhrase: 'Excellente gestion',
+      copilotMessage: `À ce rythme, tu termineras le mois avec environ ${epargne} d'avance. Belle maîtrise !`,
+      action: { label: 'Mettre de côté', targetSection: 'objectifs' },
       resteAVivre,
       dailySafeSpend,
       daysRemaining,
       soldeFinMois,
-      isConfigured: true
+      isConfigured: true,
+      understanding: {
+        headline: 'Tes dépenses essentielles sont parfaitement couvertes.',
+        details: `Il te reste environ ${dailySafeSpend} € par jour jusqu'à la fin du mois.`,
+        landingText: `Si tu gardes ce rythme, tu termineras le mois dans le vert avec environ ${epargne} d'avance.`
+      }
     }
   }
 
-  // 4. BUDGET SOUS CONTRÔLE
-  if (savingsRate >= 10 && daysRemaining > 3) {
-    return {
-      posture: 'RASSURANT',
-      postureLabel: 'Sérénité',
-      statusPhrase: 'Budget sous contrôle',
-      copilotMessage: `Tu peux dépenser environ ${dailySafeSpend} € aujourd'hui sans mettre ton mois en danger.`,
-      action: { label: 'Consulter le plan', targetSection: 'plan' },
-      resteAVivre,
-      dailySafeSpend,
-      daysRemaining,
-      soldeFinMois,
-      isConfigured: true
-    }
-  }
-
-  // 5. CHARGES FIXES ÉLEVÉES
+  // 4. NIVEAU VIGILANCE (Charges > 50%)
   if (tauxCharges > 50) {
     return {
-      posture: 'OPTIMISATION',
-      postureLabel: 'Optimisation',
-      statusPhrase: 'Charges à surveiller',
-      copilotMessage: `Tes charges fixes absorbent ${Math.round(tauxCharges)}% de tes revenus. Une révision de tes abonnements libérerait de la marge.`,
-      action: { label: 'Revoir mes charges', targetSection: 'parametres' },
+      posture: 'VIGILANCE',
+      humanIndicator: '🟠 À surveiller',
+      heroEmotionalPhrase: "Les prochains jours demanderont un peu plus d'attention.",
+      statusPhrase: 'Charges importantes',
+      copilotMessage: `Tes charges fixes absorbent ${Math.round(tauxCharges)}% de tes revenus. Revoir quelques abonnements te donnerait de l'air.`,
+      action: { label: 'Optimiser mes charges', targetSection: 'parametres' },
       resteAVivre,
       dailySafeSpend,
       daysRemaining,
       soldeFinMois,
-      isConfigured: true
+      isConfigured: true,
+      understanding: {
+        headline: 'Tes charges fixes prennent une part importante de ton budget.',
+        details: `Sur ${fmtAmount(revReel)} reçus, ${fmtAmount(fixReel)} partent immédiatement en frais fixes.`,
+        landingText: `Il te reste ${dailySafeSpend} € par jour pour finir sereinement le cycle.`
+      }
     }
   }
 
-  // 6. FIN DE CYCLE CALME
+  // 5. NIVEAU NORMAL (Budget sous contrôle)
   return {
-    posture: 'MOTIVATION',
-    postureLabel: 'En avant',
-    statusPhrase: 'Objectif en bonne voie',
-    copilotMessage: `Cette semaine est calme, aucune dépense imprévue n'arrive. Garde le cap !`,
-    action: { label: 'Voir le détail', targetSection: 'plan' },
+    posture: 'NORMAL',
+    humanIndicator: '🟢 Tout va bien aujourd\'hui',
+    heroEmotionalPhrase: "Aujourd'hui tu peux vivre normalement.",
+    statusPhrase: 'Budget sous contrôle',
+    copilotMessage: `Tu peux sortir dîner ce soir sans mettre ton budget en danger.`,
+    action: null,
     resteAVivre,
     dailySafeSpend,
     daysRemaining,
     soldeFinMois,
-    isConfigured: true
+    isConfigured: true,
+    understanding: {
+      headline: 'Tes dépenses essentielles sont couvertes.',
+      details: `Il te reste environ ${dailySafeSpend} € par jour jusqu'à la fin du mois.`,
+      landingText: `Si tu gardes ce rythme, tu termineras le mois dans le vert avec environ ${fmtAmount(soldeFinMois)} d'avance.`
+    }
   }
 }

@@ -124,7 +124,7 @@ async function capture() {
   })
   await desktopPage.waitForTimeout(500)
   const desktopSimplePath = path.join(ARTIFACT_DIR, 'desktop_simple.png')
-  await desktopPage.screenshot({ path: desktopSimplePath, fullPage: false })
+  await desktopPage.screenshot({ path: desktopSimplePath, fullPage: true })
   console.log(`Saved ${desktopSimplePath}`)
 
   // Mode Complet Desktop
@@ -133,7 +133,7 @@ async function capture() {
   })
   await desktopPage.waitForTimeout(500)
   const desktopCompletePath = path.join(ARTIFACT_DIR, 'desktop_complete.png')
-  await desktopPage.screenshot({ path: desktopCompletePath, fullPage: false })
+  await desktopPage.screenshot({ path: desktopCompletePath, fullPage: true })
   console.log(`Saved ${desktopCompletePath}`)
 
   // 2. Mobile Context
@@ -146,7 +146,7 @@ async function capture() {
   })
   await mobilePage.waitForTimeout(500)
   const mobileSimplePath = path.join(ARTIFACT_DIR, 'mobile_simple.png')
-  await mobilePage.screenshot({ path: mobileSimplePath, fullPage: false })
+  await mobilePage.screenshot({ path: mobileSimplePath, fullPage: true })
   console.log(`Saved ${mobileSimplePath}`)
 
   // Mode Complet Mobile
@@ -155,7 +155,7 @@ async function capture() {
   })
   await mobilePage.waitForTimeout(500)
   const mobileCompletePath = path.join(ARTIFACT_DIR, 'mobile_complete.png')
-  await mobilePage.screenshot({ path: mobileCompletePath, fullPage: false })
+  await mobilePage.screenshot({ path: mobileCompletePath, fullPage: true })
   console.log(`Saved ${mobileCompletePath}`)
 
   await browser.close()

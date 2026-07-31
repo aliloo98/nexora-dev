@@ -12807,17 +12807,17 @@ body {
    NEXORA - REFINED HERO, COPILOT & TIMELINE (GPU ANIMATED)
    ========================================================================== */
 
-/* Hero Centré sur le Disponible */
+/* Hero Centré sur le Disponible (Hauteur optimisée -15%) */
 .cockpit-hero-v4 {
   position: relative;
   width: 100%;
-  padding: 32px 24px;
+  padding: 24px 20px;
   border-radius: 20px;
   overflow: hidden;
   margin-bottom: 8px;
-  background: linear-gradient(135deg, #0b1329 0%, #111a36 50%, #0d1222 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), 0 0 32px rgba(212, 175, 55, 0.08);
+  background: linear-gradient(135deg, #0a1128 0%, #111a36 60%, #0d1222 100%);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35), 0 0 24px rgba(212, 175, 55, 0.08);
   animation: fadeInUp 0.4s ease-out both;
 }
 
@@ -12831,48 +12831,48 @@ body {
 }
 
 .hero-centerpiece__label {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: rgba(255, 255, 255, 0.65);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .hero-centerpiece__value {
-  font-size: 3.2rem;
+  font-size: 2.8rem;
   font-weight: 800;
   letter-spacing: -0.03em;
   background: linear-gradient(180deg, #ffffff 0%, #d4af37 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   line-height: 1.1;
   transition: transform 0.2s ease;
 }
 
 .hero-centerpiece__status {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 500;
   color: #34d399;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .hero-centerpiece__pills {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .hero-pill {
-  padding: 6px 14px;
+  padding: 5px 12px;
   border-radius: 99px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(8px);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s;
@@ -12885,12 +12885,12 @@ body {
 
 .hero-centerpiece__serenity {
   width: 100%;
-  max-width: 320px;
-  height: 5px;
+  max-width: 300px;
+  height: 4px;
   background: rgba(255, 255, 255, 0.08);
   border-radius: 99px;
   overflow: hidden;
-  margin: 0 auto 20px auto;
+  margin: 0 auto 14px auto;
 }
 
 .hero-serenity-bar {
@@ -12904,15 +12904,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  padding-top: 16px;
+  gap: 14px;
+  padding-top: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   width: 100%;
   flex-wrap: wrap;
 }
 
 .hero-subkpi {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   display: flex;
   gap: 6px;
   align-items: center;
@@ -12932,58 +12932,57 @@ body {
   color: rgba(255, 255, 255, 0.2);
 }
 
-/* Copilote Conversationnel Compact */
+/* Copilote Conversationnel Compact (Bleu Profond Glass) */
 .cockpit-copilot-banner {
-  background: rgba(18, 25, 45, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(30, 58, 138, 0.3);
+  border: 1px solid rgba(59, 130, 246, 0.25);
   border-radius: 14px;
-  padding: 12px 18px;
-  margin-bottom: 12px;
+  padding: 10px 16px;
+  margin-bottom: 10px;
   backdrop-filter: blur(12px);
   animation: fadeInUp 0.4s ease-out 0.05s both;
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s;
 }
 
 .cockpit-copilot-banner:hover {
-  transform: translateY(-2px);
-  border-color: rgba(212, 175, 55, 0.3);
+  transform: translateY(-1px);
+  border-color: rgba(59, 130, 246, 0.4);
 }
 
 .copilot-banner__wrapper {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .copilot-badge {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
   padding: 4px 10px;
   border-radius: 6px;
 }
 
-.copilot-badge--rassurant, .copilot-badge--sérénité {
+.copilot-badge--rassurant, .copilot-badge--sérénité, .copilot-badge--normal {
   background: rgba(16, 185, 129, 0.15);
   color: #34d399;
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
-.copilot-badge--alerte, .copilot-badge--vigilance {
+.copilot-badge--alerte, .copilot-badge--vigilance, .copilot-badge--critique {
   background: rgba(239, 68, 68, 0.15);
   color: #f87171;
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
-.copilot-badge--félicitations {
+.copilot-badge--félicitations, .copilot-badge--excellent {
   background: rgba(212, 175, 55, 0.15);
   color: #fbbf24;
   border: 1px solid rgba(212, 175, 55, 0.3);
 }
 
-.copilot-badge--motivation, .copilot-badge--optimisation {
+.copilot-badge--motivation, .copilot-badge--optimisation, .copilot-badge--initial {
   background: rgba(99, 102, 241, 0.15);
   color: #818cf8;
   border: 1px solid rgba(99, 102, 241, 0.3);
@@ -12992,7 +12991,7 @@ body {
 .copilot-message {
   flex: 1;
   font-size: 0.88rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.95);
   line-height: 1.4;
   margin: 0;
   font-weight: 450;
@@ -13001,30 +13000,31 @@ body {
 .copilot-action-btn {
   font-size: 0.8rem;
   font-weight: 600;
-  padding: 6px 14px;
+  padding: 5px 12px;
   border-radius: 8px;
-  background: rgba(212, 175, 55, 0.08);
+  background: rgba(212, 175, 55, 0.1);
   border: 1px solid rgba(212, 175, 55, 0.3);
   color: #d4af37;
   cursor: pointer;
   white-space: nowrap;
-  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  transition: transform 0.15s ease, background 0.15s ease;
 }
 
 .copilot-action-btn:hover {
   transform: translateY(-1px);
-  background: rgba(212, 175, 55, 0.16);
-  border-color: rgba(212, 175, 55, 0.5);
-  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15);
+  background: rgba(212, 175, 55, 0.2);
 }
 
-/* Timeline Strip 1-Ligne */
+/* Timeline Strip 1-Ligne Ultra-Compacte (~70px) */
 .cockpit-timeline-strip {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
-  padding: 10px 16px;
-  margin-bottom: 16px;
+  padding: 8px 14px;
+  min-height: 65px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
   animation: fadeInUp 0.4s ease-out 0.1s both;
 }
 
@@ -13033,6 +13033,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  width: 100%;
   flex-wrap: wrap;
 }
 
@@ -13040,7 +13041,7 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.83rem;
+  font-size: 0.82rem;
   color: rgba(255, 255, 255, 0.85);
 }
 
@@ -13052,7 +13053,7 @@ body {
   flex: 1;
   height: 1px;
   max-width: 60px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
   margin: 0 8px;
 }
 
@@ -13060,8 +13061,8 @@ body {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: rgba(255, 255, 255, 0.7);
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -13073,6 +13074,207 @@ body {
 .timeline-strip__btn:hover {
   background: rgba(255, 255, 255, 0.1);
   transform: scale(1.05);
+}
+
+/* Carte Narrative "Ce que j'ai remarqué" (Accent Émeraude / Cyan Glass) */
+.cockpit-understanding-card {
+  background: linear-gradient(135deg, rgba(6, 78, 59, 0.25) 0%, rgba(13, 27, 42, 0.7) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  backdrop-filter: blur(12px);
+  animation: fadeInUp 0.4s ease-out 0.12s both;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.understanding-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.understanding-icon {
+  font-size: 1rem;
+}
+
+.understanding-header h3 {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #34d399;
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.understanding-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.understanding-headline {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.understanding-details {
+  font-size: 0.86rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.understanding-landing {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #6ee7b7;
+}
+
+.advisor-insight-card {
+  background: rgba(212, 175, 55, 0.06);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.advisor-insight-card p {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Quick Entry Sheet Modal */
+.quick-entry-card {
+  max-width: 440px;
+  width: 90%;
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 24px;
+}
+
+.quick-entry-subtitle {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.65);
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.quick-entry-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.quick-entry-field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Sprint 2: Courbe de Trésorerie SVG */
+.treasury-chart-wrapper {
+  background: rgba(11, 19, 41, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.treasury-svg-chart {
+  width: 100%;
+  height: 100px;
+  overflow: visible;
+}
+
+.treasury-chart-legend {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* Sprint 3: Donut 360° */
+.donut-chart-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: rgba(11, 19, 41, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.donut-svg-box {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+}
+
+.donut-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.donut-segment {
+  transition: stroke-dasharray 0.6s ease, stroke-dashoffset 0.6s ease;
+}
+
+.donut-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.donut-center-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.donut-center-val {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.donut-legend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.donut-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.83rem;
+  color: rgba(255, 255, 255, 0.85);
+  justify-content: space-between;
+}
+
+.donut-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
 }
 
 /* Mode Complet Zones */
@@ -13087,14 +13289,36 @@ body {
   background: rgba(18, 25, 45, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 16px;
-  padding: 18px;
+  padding: 16px;
+  backdrop-filter: blur(10px);
+  transition: border-color 0.2s;
+}
+
+.complete-block--finances {
+  border-left: 3px solid #3b82f6;
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.2) 0%, rgba(15, 23, 42, 0.5) 100%);
+}
+
+.complete-block--next {
+  border-left: 3px solid #8b5cf6;
+  background: linear-gradient(135deg, rgba(88, 28, 135, 0.2) 0%, rgba(15, 23, 42, 0.5) 100%);
+}
+
+.complete-block--build {
+  border-left: 3px solid #10b981;
+  background: linear-gradient(135deg, rgba(6, 78, 59, 0.2) 0%, rgba(15, 23, 42, 0.5) 100%);
+}
+
+.complete-block--advice {
+  border-left: 3px solid #d4af37;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(15, 23, 42, 0.5) 100%);
 }
 
 .complete-block__header h3 {
   font-size: 0.95rem;
   font-weight: 700;
-  margin: 0 0 14px 0;
-  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 12px 0;
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .complete-analytics-grid {
