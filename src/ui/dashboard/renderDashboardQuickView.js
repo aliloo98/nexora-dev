@@ -1,5 +1,6 @@
 import { createMetricCard } from '../components/MetricCard.js'
 import { evaluateCopilotState } from '../../coach/copilotEngine.js'
+import { getTimeContext } from '../../time/timeEngine.js'
 
 const fmt = (value) => {
   const amount = Number(value) || 0
@@ -210,18 +211,22 @@ function createHeroTile({ label, value, context, tone = 'neutral', accent = 'non
     trendEl.innerHTML = `<span class="hero-tile__trend-icon ${trendClass}">${trendIcon}</span>`
     tile.appendChild(trendEl)
   }
-  
+
   return tile
 }
 
 /**
- * Renders the Dashboard Quick View metrics using V2 createMetricCard components.
- * @param {Object} metrics - Financial metrics from the dashboard
- * @param {Object} options - Additional options (documentRef, windowRef)
+ * Rendu du Dashboard - Version Compagnon Financier V5 Conscient du Temps
+ * @param {Object} metrics - Métriques financières (revReel, fixReel, varReel, debtSummary, etc.)
+ * @param {Object} options - Options additionnelles (documentRef, windowRef, viewedMonth)
  */
 export function renderDashboardQuickView(metrics = {}, options = {}) {
   const documentRef = options.documentRef || document
   const windowRef = options.windowRef || (typeof window !== 'undefined' ? window : undefined)
+
+  const monthSelectEl = documentRef.getElementById('monthSelect')
+  const viewedMonthIso = options.viewedMonth || metrics.viewedMonthIso || (monthSelectEl ? monthSelectEl.value : null)
+  const timeContext = getTimeContext(viewedMonthIso)
 
   const revReel = Number(metrics.revReel || 0)
   const fixReel = Number(metrics.fixReel || 0)
@@ -236,8 +241,8 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   const tauxCharges = revReel > 0 ? Math.round((fixReel / revReel) * 100) : 0
   const depenseMoyenneJour = totalExpenses > 0 ? Math.round(totalExpenses / 30) : 0
 
-  // === CALCUL ÉVALUATION COPILOTE & HERO ===
-  const copilotState = evaluateCopilotState(metrics)
+  // === CALCUL ÉVALUATION COPILOTE & HERO CONSCIENT DU TEMPS ===
+  const copilotState = evaluateCopilotState(metrics, { timeContext })
 
   // 1. HERO COCKPIT
   const heroMainEl = documentRef.getElementById('hero-main-amount')
@@ -248,10 +253,12 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
 
   const heroDailyPill = documentRef.getElementById('hero-daily-pill')
   if (heroDailyPill) {
-    if (copilotState.isConfigured && copilotState.dailySafeSpend !== null) {
+    if (timeContext.isCurrent && copilotState.dailySafeSpend !== null) {
       heroDailyPill.textContent = `💡 ${fmt(copilotState.dailySafeSpend)} / jour`
+    } else if (timeContext.isPast) {
+      heroDailyPill.textContent = `💡 — € / jour (Mois terminé)`
     } else {
-      heroDailyPill.textContent = `💡 — € / jour`
+      heroDailyPill.textContent = `💡 — € / jour (Projection)`
     }
   }
 
@@ -304,7 +311,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
     }
   }
 
-  // 3. CARTE NARRATIVE "CE QUE NEXORA A COMPRIS"
+  // 3. CARTE NARRATIVE "CE QUE J'AI REMARQUÉ"
   if (copilotState.understanding) {
     const headEl = documentRef.getElementById('understanding-headline')
     if (headEl) headEl.textContent = copilotState.understanding.headline
@@ -316,18 +323,40 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
     if (landEl) landEl.textContent = copilotState.understanding.landingText
   }
 
-  // 3. TIMELINE RUBAN 1-LIGNE
+  // 4. TIMELINE RUBAN 1-LIGNE TEMPORELLE
+  const tLabel1 = documentRef.getElementById('timeline-label-1')
+  const tLabel2 = documentRef.getElementById('timeline-label-2')
+  const tLabel3 = documentRef.getElementById('timeline-label-3')
+
   const weekBalanceEl = documentRef.getElementById('week-plan-balance')
-  if (weekBalanceEl) weekBalanceEl.textContent = fmt(soldeFinMois)
-
   const weekIncomeEl = documentRef.getElementById('week-plan-next-income')
-  if (weekIncomeEl) {
-    weekIncomeEl.textContent = revReel > 0 ? 'Revenu confirmé' : 'À définir'
-  }
-
   const weekToPayEl = documentRef.getElementById('week-plan-to-pay')
-  if (weekToPayEl) {
-    weekToPayEl.textContent = fixReel > 0 ? `${fmt(fixReel)} engagés` : 'Aucune charge'
+
+  if (timeContext.isPast) {
+    if (tLabel1) tLabel1.textContent = "Début du mois"
+    if (tLabel2) tLabel2.textContent = "Événement majeur"
+    if (tLabel3) tLabel3.textContent = "Fin du mois"
+
+    if (weekBalanceEl) weekBalanceEl.textContent = fmt(revReel)
+    if (weekIncomeEl) weekIncomeEl.textContent = fixReel > 0 ? `${fmt(fixReel)} payés` : 'Solde neutre'
+    if (weekToPayEl) weekToPayEl.textContent = fmt(soldeFinMois)
+  } else if (timeContext.isFuture) {
+    if (tLabel1) tLabel1.textContent = "Début prévu"
+    if (tLabel2) tLabel2.textContent = "Premier revenu"
+    if (tLabel3) tLabel3.textContent = "Premières charges"
+
+    if (weekBalanceEl) weekBalanceEl.textContent = "1er du mois"
+    if (weekIncomeEl) weekIncomeEl.textContent = revReel > 0 ? fmt(revReel) : 'À définir'
+    if (weekToPayEl) weekToPayEl.textContent = fixReel > 0 ? fmt(fixReel) : '0 €'
+  } else {
+    // CURRENT
+    if (tLabel1) tLabel1.textContent = "Aujourd'hui"
+    if (tLabel2) tLabel2.textContent = "Prochaine entrée"
+    if (tLabel3) tLabel3.textContent = "Charges restantes"
+
+    if (weekBalanceEl) weekBalanceEl.textContent = fmt(soldeFinMois)
+    if (weekIncomeEl) weekIncomeEl.textContent = revReel > 0 ? 'Revenu confirmé' : 'À définir'
+    if (weekToPayEl) weekToPayEl.textContent = fixReel > 0 ? `${fmt(fixReel)} engagés` : 'Aucune charge'
   }
 
   // 4. MODE COMPLET - CHARTS SVG DYNAMIQUES (SPRINTS 2 & 3)
