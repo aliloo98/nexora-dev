@@ -5,6 +5,7 @@ import { join } from 'path'
 const projectRoot = process.cwd()
 const publicDir = join(projectRoot, 'public')
 
+// Clean continuous geometric letter "N" path without transforms or clipping issues
 const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -13,7 +14,7 @@ const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512
       <stop offset="100%" stop-color="#060b18" />
     </linearGradient>
     <radialGradient id="aura" cx="50%" cy="45%" r="45%">
-      <stop offset="0%" stop-color="#d4af37" stop-opacity="0.10" />
+      <stop offset="0%" stop-color="#d4af37" stop-opacity="0.12" />
       <stop offset="100%" stop-color="#d4af37" stop-opacity="0.0" />
     </radialGradient>
     <linearGradient id="goldMetallic" x1="20%" y1="0%" x2="80%" y2="100%">
@@ -39,10 +40,8 @@ const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512
   <!-- Gold Border Ring -->
   <rect x="8" y="8" width="496" height="496" rx="112" ry="112" fill="none" stroke="url(#borderGrad)" stroke-width="4" />
 
-  <!-- Geometric Brand Emblem "N" scaled down 12.5% for optimal margin & metallic depth -->
-  <g transform="translate(256, 256) scale(0.875) translate(-256, -256)">
-    <path d="M 148 368 L 148 144 L 198 144 L 314 316 L 314 144 L 364 144 L 364 368 L 314 368 L 198 196 L 198 368 Z" fill="url(#goldMetallic)" />
-  </g>
+  <!-- Perfectly Centered Geometric Brand Emblem "N" -->
+  <path d="M 156 361 V 151 H 200 L 312 317 V 151 H 356 V 361 H 312 L 200 195 V 361 Z" fill="url(#goldMetallic)" />
 </svg>`
 
 const maskableSvgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
@@ -53,7 +52,7 @@ const maskableSvgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0
       <stop offset="100%" stop-color="#060b18" />
     </linearGradient>
     <radialGradient id="aura" cx="50%" cy="45%" r="45%">
-      <stop offset="0%" stop-color="#d4af37" stop-opacity="0.10" />
+      <stop offset="0%" stop-color="#d4af37" stop-opacity="0.12" />
       <stop offset="100%" stop-color="#d4af37" stop-opacity="0.0" />
     </radialGradient>
     <linearGradient id="goldMetallic" x1="20%" y1="0%" x2="80%" y2="100%">
@@ -68,13 +67,12 @@ const maskableSvgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0
   <rect width="512" height="512" fill="url(#bgGrad)" />
   <circle cx="256" cy="245" r="180" fill="url(#aura)" />
 
-  <g transform="translate(256, 256) scale(0.72) translate(-256, -256)">
-    <path d="M 148 368 L 148 144 L 198 144 L 314 316 L 314 144 L 364 144 L 364 368 L 314 368 L 198 196 L 198 368 Z" fill="url(#goldMetallic)" />
-  </g>
+  <!-- Maskable scaled N (safe zone 80%) -->
+  <path d="M 176 340 V 172 H 211 L 301 305 V 172 H 336 V 340 H 301 L 211 207 V 340 Z" fill="url(#goldMetallic)" />
 </svg>`
 
 async function main() {
-  console.log('Regenerating micro-adjusted Nexora icons...')
+  console.log('Generating corrected official Nexora icons...')
 
   writeFileSync(join(projectRoot, 'favicon.svg'), svgContent)
   writeFileSync(join(publicDir, 'favicon.svg'), svgContent)
@@ -103,7 +101,7 @@ async function main() {
   await renderPng(svgContent, 512, 'icon-gold-512.png')
 
   await browser.close()
-  console.log('NEXORA_MICRO_ADJUSTED_ICON_SUCCESS')
+  console.log('NEXORA_CORRECTED_ICON_SUCCESS')
 }
 
 main().catch(err => {

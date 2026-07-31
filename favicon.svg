@@ -6,7 +6,7 @@
       <stop offset="100%" stop-color="#060b18" />
     </linearGradient>
     <radialGradient id="aura" cx="50%" cy="45%" r="45%">
-      <stop offset="0%" stop-color="#d4af37" stop-opacity="0.10" />
+      <stop offset="0%" stop-color="#d4af37" stop-opacity="0.12" />
       <stop offset="100%" stop-color="#d4af37" stop-opacity="0.0" />
     </radialGradient>
     <linearGradient id="goldMetallic" x1="20%" y1="0%" x2="80%" y2="100%">
@@ -32,8 +32,6 @@
   <!-- Gold Border Ring -->
   <rect x="8" y="8" width="496" height="496" rx="112" ry="112" fill="none" stroke="url(#borderGrad)" stroke-width="4" />
 
-  <!-- Geometric Brand Emblem "N" scaled down 12.5% for optimal margin & metallic depth -->
-  <g transform="translate(256, 256) scale(0.875) translate(-256, -256)">
-    <path d="M 148 368 L 148 144 L 198 144 L 314 316 L 314 144 L 364 144 L 364 368 L 314 368 L 198 196 L 198 368 Z" fill="url(#goldMetallic)" />
-  </g>
+  <!-- Perfectly Centered Geometric Brand Emblem "N" -->
+  <path d="M 156 361 V 151 H 200 L 312 317 V 151 H 356 V 361 H 312 L 200 195 V 361 Z" fill="url(#goldMetallic)" />
 </svg>
