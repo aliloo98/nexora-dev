@@ -5,74 +5,101 @@ import { join } from 'path'
 const projectRoot = process.cwd()
 const publicDir = join(projectRoot, 'public')
 
-// Clean continuous geometric letter "N" path without transforms or clipping issues
+// SVG template duplicating the exact CSS styling of .sidebar-logo::before
 const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:ital,wght@1,800&amp;display=swap');
+      .logo-n {
+        font-family: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-weight: 800;
+        font-style: italic;
+        font-size: 265px;
+        letter-spacing: -0.06em;
+        text-anchor: middle;
+        dominant-baseline: central;
+      }
+      .logo-glow {
+        filter: drop-shadow(0px 0px 16px rgba(232, 184, 74, 0.55));
+      }
+    </style>
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#091024" />
-      <stop offset="50%" stop-color="#101a38" />
-      <stop offset="100%" stop-color="#060b18" />
+      <stop offset="0%" stop-color="#070e16" />
+      <stop offset="50%" stop-color="#0d1828" />
+      <stop offset="100%" stop-color="#050a12" />
     </linearGradient>
-    <radialGradient id="aura" cx="50%" cy="45%" r="45%">
-      <stop offset="0%" stop-color="#d4af37" stop-opacity="0.12" />
-      <stop offset="100%" stop-color="#d4af37" stop-opacity="0.0" />
+    <radialGradient id="aura" cx="50%" cy="35%" r="66%">
+      <stop offset="0%" stop-color="#e8b84a" stop-opacity="0.22" />
+      <stop offset="100%" stop-color="#e8b84a" stop-opacity="0.0" />
     </radialGradient>
-    <linearGradient id="goldMetallic" x1="20%" y1="0%" x2="80%" y2="100%">
-      <stop offset="0%" stop-color="#fffdf0" />
-      <stop offset="22%" stop-color="#fef08a" />
-      <stop offset="48%" stop-color="#eab308" />
-      <stop offset="75%" stop-color="#ca8a04" />
-      <stop offset="100%" stop-color="#854d0e" />
+    <linearGradient id="goldTextGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff8db" />
+      <stop offset="35%" stop-color="#f5d77f" />
+      <stop offset="100%" stop-color="#c9972a" />
     </linearGradient>
     <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fef08a" stop-opacity="0.55" />
-      <stop offset="50%" stop-color="#d4af37" stop-opacity="0.30" />
-      <stop offset="100%" stop-color="#854d0e" stop-opacity="0.15" />
+      <stop offset="0%" stop-color="#e8b84a" stop-opacity="0.6" />
+      <stop offset="50%" stop-color="#e8b84a" stop-opacity="0.34" />
+      <stop offset="100%" stop-color="#966d18" stop-opacity="0.15" />
     </linearGradient>
   </defs>
 
-  <!-- Background Squircle -->
+  <!-- Background Squircle matching .sidebar-logo::before -->
   <rect x="8" y="8" width="496" height="496" rx="112" ry="112" fill="url(#bgGrad)" />
-  
-  <!-- Soft Subdued Radial Ambient Glow -->
-  <circle cx="256" cy="245" r="160" fill="url(#aura)" />
+  <rect x="8" y="8" width="496" height="496" rx="112" ry="112" fill="url(#aura)" />
 
   <!-- Gold Border Ring -->
   <rect x="8" y="8" width="496" height="496" rx="112" ry="112" fill="none" stroke="url(#borderGrad)" stroke-width="4" />
 
-  <!-- Perfectly Centered Geometric Brand Emblem "N" -->
-  <path d="M 156 361 V 151 H 200 L 312 317 V 151 H 356 V 361 H 312 L 200 195 V 361 Z" fill="url(#goldMetallic)" />
+  <!-- Exact Sidebar Italic "N" Brand Symbol -->
+  <g class="logo-glow">
+    <text x="248" y="258" class="logo-n" fill="url(#goldTextGrad)">N</text>
+  </g>
 </svg>`
 
 const maskableSvgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:ital,wght@1,800&amp;display=swap');
+      .logo-n-maskable {
+        font-family: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-weight: 800;
+        font-style: italic;
+        font-size: 220px;
+        letter-spacing: -0.06em;
+        text-anchor: middle;
+        dominant-baseline: central;
+      }
+      .logo-glow {
+        filter: drop-shadow(0px 0px 16px rgba(232, 184, 74, 0.55));
+      }
+    </style>
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#091024" />
-      <stop offset="50%" stop-color="#101a38" />
-      <stop offset="100%" stop-color="#060b18" />
+      <stop offset="0%" stop-color="#070e16" />
+      <stop offset="50%" stop-color="#0d1828" />
+      <stop offset="100%" stop-color="#050a12" />
     </linearGradient>
-    <radialGradient id="aura" cx="50%" cy="45%" r="45%">
-      <stop offset="0%" stop-color="#d4af37" stop-opacity="0.12" />
-      <stop offset="100%" stop-color="#d4af37" stop-opacity="0.0" />
+    <radialGradient id="aura" cx="50%" cy="35%" r="66%">
+      <stop offset="0%" stop-color="#e8b84a" stop-opacity="0.22" />
+      <stop offset="100%" stop-color="#e8b84a" stop-opacity="0.0" />
     </radialGradient>
-    <linearGradient id="goldMetallic" x1="20%" y1="0%" x2="80%" y2="100%">
-      <stop offset="0%" stop-color="#fffdf0" />
-      <stop offset="22%" stop-color="#fef08a" />
-      <stop offset="48%" stop-color="#eab308" />
-      <stop offset="75%" stop-color="#ca8a04" />
-      <stop offset="100%" stop-color="#854d0e" />
+    <linearGradient id="goldTextGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff8db" />
+      <stop offset="35%" stop-color="#f5d77f" />
+      <stop offset="100%" stop-color="#c9972a" />
     </linearGradient>
   </defs>
 
   <rect width="512" height="512" fill="url(#bgGrad)" />
-  <circle cx="256" cy="245" r="180" fill="url(#aura)" />
+  <rect width="512" height="512" fill="url(#aura)" />
 
-  <!-- Maskable scaled N (safe zone 80%) -->
-  <path d="M 176 340 V 172 H 211 L 301 305 V 172 H 336 V 340 H 301 L 211 207 V 340 Z" fill="url(#goldMetallic)" />
+  <g class="logo-glow">
+    <text x="248" y="258" class="logo-n-maskable" fill="url(#goldTextGrad)">N</text>
+  </g>
 </svg>`
 
 async function main() {
-  console.log('Generating corrected official Nexora icons...')
+  console.log('Generating official Nexora icons matching sidebar symbol...')
 
   writeFileSync(join(projectRoot, 'favicon.svg'), svgContent)
   writeFileSync(join(publicDir, 'favicon.svg'), svgContent)
@@ -81,8 +108,24 @@ async function main() {
 
   const renderPng = async (svg, size, filename) => {
     const page = await browser.newPage({ viewport: { width: size, height: size } })
-    const dataUrl = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
-    await page.goto(dataUrl)
+    const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:ital,wght@1,800&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 0; background: transparent; overflow: hidden; }
+  svg { width: ${size}px; height: ${size}px; display: block; }
+</style>
+</head>
+<body>
+${svg}
+</body>
+</html>`
+    await page.setContent(htmlContent, { waitUntil: 'networkidle' })
+    await page.evaluate(() => document.fonts.ready)
     const buffer = await page.screenshot({ omitBackground: true })
     await page.close()
 
@@ -101,7 +144,7 @@ async function main() {
   await renderPng(svgContent, 512, 'icon-gold-512.png')
 
   await browser.close()
-  console.log('NEXORA_CORRECTED_ICON_SUCCESS')
+  console.log('NEXORA_SIDEBAR_EXACT_ICON_SUCCESS')
 }
 
 main().catch(err => {
