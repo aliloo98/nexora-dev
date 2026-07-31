@@ -1,8 +1,9 @@
 /**
- * Moteur du Compagnon Financier Nexora - Time Aware Engine
- * Génère une narration naturelle adaptée au statut temporel (PAST, CURRENT, FUTURE).
+ * Moteur du Compagnon Financier Nexora - Time & Insight Aware Engine
+ * Génère une narration naturelle et intègre les recommandations proactives du FinancialInsightEngine.
  */
 import { getTimeContext } from '../time/timeEngine.js'
+import { getTopFinancialInsight } from './financialInsightEngine.js'
 
 const fmtAmount = (value) => {
   const amount = Math.round(Number(value) || 0)
@@ -12,11 +13,12 @@ const fmtAmount = (value) => {
 export function evaluateCopilotState(metrics = {}, options = {}) {
   const viewedMonthIso = options.viewedMonth || metrics.viewedMonthIso || null
   const timeContext = options.timeContext || getTimeContext(viewedMonthIso)
+  const history = options.history || metrics.history || []
+  const goals = options.goals || metrics.goals || []
 
   const revReel = Number(metrics.revReel || 0)
   const fixReel = Number(metrics.fixReel || 0)
   const varReel = Number(metrics.varReel || 0)
-  const debtSummary = metrics.debtSummary || { total: 0, monthly: 0 }
   const totalExpenses = fixReel + varReel
   const soldeFinMois = revReel - totalExpenses
 
@@ -94,41 +96,18 @@ export function evaluateCopilotState(metrics = {}, options = {}) {
     }
   }
 
-  // 4. MOIS COURANT (CURRENT)
+  // 4. MOIS COURANT (CURRENT) - Intégration du Financial Insight Engine
+  const topInsight = getTopFinancialInsight(metrics, history, goals)
   const dailySafeSpend = timeContext.daysRemaining > 0 ? Math.round(resteAVivre / timeContext.daysRemaining) : 0
 
-  if (soldeFinMois < 0) {
-    const deficit = fmtAmount(Math.abs(soldeFinMois))
+  if (topInsight) {
     return {
-      posture: 'CRITIQUE',
-      humanIndicator: '🔴 Action recommandée',
-      heroEmotionalPhrase: "Les prochains jours demanderont de la prudence.",
-      statusPhrase: 'Déficit détecté',
-      copilotMessage: `Attention : tes charges dépassent tes revenus de ${deficit}. Réduis tes dépenses variables pour rééquilibrer ton mois.`,
-      action: { label: 'Ajuster mes charges', targetSection: 'parametres' },
-      resteAVivre: 0,
-      dailySafeSpend: 0,
-      daysRemaining: timeContext.daysRemaining,
-      timeContext,
-      soldeFinMois,
-      isConfigured: true,
-      understanding: {
-        headline: 'Tes dépenses dépassent actuellement tes revenus.',
-        details: `Tu as encaissé ${fmtAmount(revReel)} mais engagé ${fmtAmount(totalExpenses)}.`,
-        landingText: `Une révision de tes abonnements permettrait de résorber ce déficit de ${deficit}.`
-      }
-    }
-  }
-
-  if (savingsRate >= 20) {
-    const epargne = fmtAmount(soldeFinMois)
-    return {
-      posture: 'EXCELLENT',
-      humanIndicator: '🎉 Mois idéal',
-      heroEmotionalPhrase: "Tu es parfaitement dans les temps.",
-      statusPhrase: 'Excellente gestion',
-      copilotMessage: `À ce rythme, tu termineras le mois avec environ ${epargne} d'avance. Belle maîtrise !`,
-      action: { label: 'Mettre de côté', targetSection: 'objectifs' },
+      posture: topInsight.type || 'NORMAL',
+      humanIndicator: topInsight.humanIndicator,
+      heroEmotionalPhrase: topInsight.headline,
+      statusPhrase: 'Analyse proactive',
+      copilotMessage: topInsight.message,
+      action: topInsight.action,
       resteAVivre,
       dailySafeSpend,
       daysRemaining: timeContext.daysRemaining,
@@ -136,35 +115,14 @@ export function evaluateCopilotState(metrics = {}, options = {}) {
       soldeFinMois,
       isConfigured: true,
       understanding: {
-        headline: 'Tes dépenses essentielles sont parfaitement couvertes.',
+        headline: topInsight.headline,
         details: `Il te reste environ ${dailySafeSpend} € par jour jusqu'à la fin du mois.`,
-        landingText: `Si tu gardes ce rythme, tu termineras le mois dans le vert avec environ ${epargne} d'avance.`
+        landingText: `Trajectoire sous contrôle avec environ ${fmtAmount(soldeFinMois)} d'avance.`
       }
     }
   }
 
-  if (tauxCharges > 50) {
-    return {
-      posture: 'VIGILANCE',
-      humanIndicator: '🟠 À surveiller',
-      heroEmotionalPhrase: "Les prochains jours demanderont un peu plus d'attention.",
-      statusPhrase: 'Charges importantes',
-      copilotMessage: `Tes charges fixes absorbent ${Math.round(tauxCharges)}% de tes revenus. Revoir quelques abonnements te donnerait de l'air.`,
-      action: { label: 'Optimiser mes charges', targetSection: 'parametres' },
-      resteAVivre,
-      dailySafeSpend,
-      daysRemaining: timeContext.daysRemaining,
-      timeContext,
-      soldeFinMois,
-      isConfigured: true,
-      understanding: {
-        headline: 'Tes charges fixes prennent une part importante de ton budget.',
-        details: `Sur ${fmtAmount(revReel)} reçus, ${fmtAmount(fixReel)} partent immédiatement en frais fixes.`,
-        landingText: `Il te reste ${dailySafeSpend} € par jour pour finir sereinement le cycle.`
-      }
-    }
-  }
-
+  // Fallback Mois Courant Normal
   return {
     posture: 'NORMAL',
     humanIndicator: '🟢 Tout va bien aujourd\'hui',
