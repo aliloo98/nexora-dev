@@ -138,87 +138,149 @@ body.auth-locked > #nexora-status-bar {
         </div>
       </header>
 
-      <!-- NEXORA CORE (ancien Hero) -->
-      <section class="cockpit-core dashboard-panel" id="dashboard-synthesis-hero" data-state="neutral" data-mode="both" aria-label="NEXORA CORE">
-        <div id="dashboard-hero-root"></div>
-        <div class="cockpit-connector"></div>
-      </section>
+      <!-- COCKPIT PREMIUM V3 -->
+      <div class="cockpit-premium-v3">
 
-      <!-- COACH IA -->
-      <section class="cockpit-zone cockpit-zone--coach dashboard-panel dashboard-card dashboard-card--coach dashboard-card--priority" id="dashboard-coach-card" data-mode="both" aria-label="Coach IA">
-        <div id="dashboard-master-root"></div>
-      </section>
-
-      <!-- ASSISTANT IA -->
-      <section class="cockpit-zone cockpit-zone--assistant dashboard-panel dashboard-card dashboard-card--assistant" id="assistant-insights-card" data-mode="complete" aria-label="Assistant IA">
-        <div id="assistant-insights-card-content"></div>
-      </section>
-
-      <!-- ZONES LATERALES (TIMELINE + PROGRESSION) -->
-      <section class="cockpit-lateral-grid">
-        <!-- TIMELINE -->
-        <section class="cockpit-zone cockpit-zone--timeline dashboard-panel dashboard-card dashboard-card--plan" id="week-plan-card" data-mode="complete" aria-label="Timeline">
-          <div class="dashboard-card__head">
-            <div>
-              <span class="dashboard-card__eyebrow">Votre plan des 7 prochains jours</span>
-              <strong id="week-plan-title">Ce qui compte à court terme</strong>
-            </div>
-            <button type="button" class="btn btn-gold" onclick="showSection('plan')">Ouvrir le plan</button>
-          </div>
-          <div class="dashboard-timeline" aria-label="Échéances du mois">
-            <div class="dashboard-timeline__item is-current">
-              <div class="dashboard-timeline__date">
-                <strong>Aujourd'hui</strong>
-                <span id="week-plan-today-date">-</span>
+        <!-- HERO CENTRÉ SUR LE DISPONIBLE -->
+        <section class="cockpit-hero-v4" data-mode="both" aria-label="Situation financière du mois">
+          <div class="cockpit-hero-v4__background"></div>
+          
+          <div class="cockpit-hero-v4__content">
+            <!-- Zone centrale : Métrique majeure + Statut -->
+            <div class="hero-centerpiece">
+              <span class="hero-centerpiece__label">Disponible ce mois-ci</span>
+              <div class="hero-centerpiece__value" id="hero-main-amount">0 €</div>
+              <div class="hero-centerpiece__status" id="hero-status-phrase">Calcul en cours...</div>
+              
+              <!-- Sub-indicateurs 2 et 3 -->
+              <div class="hero-centerpiece__pills">
+                <div class="hero-pill hero-pill--daily" id="hero-daily-pill">💡 -- € / jour</div>
+                <div class="hero-pill hero-pill--projection" id="hero-projection-pill">📈 Projection : -- €</div>
               </div>
-              <i aria-hidden="true"></i>
-              <div class="dashboard-timeline__event">
-                <strong>Solde du mois</strong>
-                <span id="week-plan-balance">0 €</span>
-                <em>En cours</em>
+
+              <!-- Jauge de sérénité -->
+              <div class="hero-centerpiece__serenity">
+                <div class="hero-serenity-bar" id="hero-serenity-bar" style="width: 0%;"></div>
               </div>
             </div>
-            <div class="dashboard-timeline__item">
-              <div class="dashboard-timeline__date">
-                <strong>Prochaine entrée</strong>
-                <span id="week-plan-income-date">-</span>
+
+            <!-- Ligne de Sub-KPIs discrets (Label + valeur sans deux-points) -->
+            <div class="hero-subkpis-row">
+              <div class="hero-subkpi" id="hero-sub-revenus">
+                <span class="subkpi-label">Revenus</span>
+                <span class="subkpi-value" id="hero-sub-revenus-val">0 €</span>
               </div>
-              <i aria-hidden="true"></i>
-              <div class="dashboard-timeline__event">
-                <strong id="week-plan-next-income">À définir</strong>
-                <button type="button" class="inline-cta" id="week-plan-income-cta" onclick="showSection('parametres')" style="display:none">Définir un revenu</button>
-                <em>Prévu</em>
+              <div class="hero-subkpi-divider">•</div>
+              <div class="hero-subkpi" id="hero-sub-charges">
+                <span class="subkpi-label">Charges rest.</span>
+                <span class="subkpi-value" id="hero-sub-charges-val">0 €</span>
               </div>
-            </div>
-            <div class="dashboard-timeline__item">
-              <div class="dashboard-timeline__date">
-                <strong>Cette semaine</strong>
-                <span id="week-plan-due-date">7 jours</span>
-              </div>
-              <i aria-hidden="true"></i>
-              <div class="dashboard-timeline__event">
-                <strong id="week-plan-to-pay">0 charge</strong>
-                <span id="week-plan-description">Aucune charge urgente à prévoir.</span>
-                <em>À surveiller</em>
+              <div class="hero-subkpi-divider">•</div>
+              <div class="hero-subkpi" id="hero-sub-objectif">
+                <span class="subkpi-label">Objectif</span>
+                <span class="subkpi-value" id="hero-sub-objectif-val">--%</span>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- PROGRESSION -->
-        <section class="cockpit-zone cockpit-zone--progression dashboard-panel dashboard-card dashboard-card--goal" id="dashboard-primary-goal" data-mode="both" aria-label="Progression">
+        <!-- COPILOTE INTELLIGENT (RUBAN CONVERSATIONNEL COMPACT - SANS EMOJI) -->
+        <section class="cockpit-copilot-banner" id="dashboard-coach-card" data-mode="both" aria-label="Copilote Nexora">
+          <div class="copilot-banner__wrapper">
+            <span class="copilot-badge" id="copilot-posture-tag">Sérénité</span>
+            <p class="copilot-message" id="copilot-message-text">Analyse de vos finances en cours...</p>
+            <button type="button" class="copilot-action-btn" id="copilot-action-btn" style="display:none"></button>
+          </div>
         </section>
-      </section>
 
-      <!-- KPIs SECONDAIRES -->
-      <section class="cockpit-kpis dashboard-secondary-kpis" id="dashboard-quick-view" data-mode="complete" aria-label="KPIs secondaires">
-        <div class="cockpit-kpis-content">
-          <div class="kpi-compact" id="card-revenus"></div>
-          <div class="kpi-compact" id="card-fixes"></div>
-          <div class="kpi-compact" id="card-variables"></div>
-          <div class="kpi-compact" id="card-dettes"></div>
+        <!-- TIMELINE - RUBAN 1-LIGNE ULTRA-COMPACT -->
+        <section class="cockpit-timeline-strip" id="week-plan-card" data-mode="both" aria-label="Timeline 7 jours">
+          <div class="timeline-strip__wrapper">
+            <div class="timeline-strip__item">
+              <span class="strip-icon">📅</span>
+              <span class="strip-label">Aujourd'hui</span>
+              <strong id="week-plan-balance">0 €</strong>
+            </div>
+            <div class="timeline-strip__line" aria-hidden="true"></div>
+            <div class="timeline-strip__item">
+              <span class="strip-icon">💰</span>
+              <span class="strip-label">Prochaine entrée</span>
+              <strong id="week-plan-next-income">À définir</strong>
+            </div>
+            <div class="timeline-strip__line" aria-hidden="true"></div>
+            <div class="timeline-strip__item">
+              <span class="strip-icon">⚠️</span>
+              <span class="strip-label">Charges restantes</span>
+              <strong id="week-plan-to-pay">0 charge</strong>
+            </div>
+            <button type="button" class="timeline-strip__btn" onclick="showSection('plan')" aria-label="Ouvrir le plan">►</button>
+          </div>
+        </section>
+
+        <!-- COUCHES SUPPLEMANTAIRES (MODE COMPLET UNIQUEMENT) -->
+        <div class="cockpit-complete-zone" data-mode="complete">
+          <!-- Tendance & Répartition -->
+          <section class="complete-block complete-block--analytics">
+            <div class="complete-block__header">
+              <h3>📈 Tendance & Répartition du budget</h3>
+            </div>
+            <div class="complete-analytics-grid">
+              <div class="analytics-card">
+                <span class="analytics-card__title">Projection Annuelle</span>
+                <div class="analytics-card__value" id="analysis-projection-value">0 €</div>
+                <div class="analytics-card__sub" id="analysis-projection-trend">Trajectoire neutre</div>
+              </div>
+              <div class="analytics-card">
+                <span class="analytics-card__title">Tendance Épargne</span>
+                <div class="analytics-card__value" id="analysis-trend-value">0%</div>
+                <div class="analytics-card__sub" id="analysis-trend-direction">Stable</div>
+              </div>
+              <div class="analytics-card">
+                <span class="analytics-card__title">Marge d'Optimisation</span>
+                <div class="analytics-card__value" id="analysis-ratio-value">0 €</div>
+                <div class="analytics-card__sub" id="analysis-ratio-potential">Marge disponible</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Jalons d'objectifs & Dettes -->
+          <div class="complete-dual-grid">
+            <section class="complete-block">
+              <div class="complete-block__header">
+                <h3>🎯 Jalons d'Objectifs</h3>
+              </div>
+              <div id="dashboard-goals-summary-root" class="goals-summary-list">
+                <div class="goal-milestone-item">
+                  <div class="goal-milestone-info">
+                    <span>Épargne de précaution</span>
+                    <strong id="complete-goal-progress-text">-- / -- €</strong>
+                  </div>
+                  <div class="goal-milestone-bar-bg">
+                    <div class="goal-milestone-bar-fill" id="complete-goal-bar" style="width: 0%;"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="complete-block">
+              <div class="complete-block__header">
+                <h3>💳 Santé des Dettes</h3>
+              </div>
+              <div class="debt-health-card">
+                <div class="debt-health-row">
+                  <span>Mensualités totales :</span>
+                  <strong id="complete-debt-monthly">0 €/mois</strong>
+                </div>
+                <div class="debt-health-row">
+                  <span>Encours total :</span>
+                  <strong id="complete-debt-total">0 €</strong>
+                </div>
+              </div>
+            </section>
+          </div>
         </div>
-      </section>
+
+      </div>
 
       <!-- CTA SECTION (Mode Simplifié) -->
       <section class="cockpit-cta dashboard-cta-section" data-mode="simple" hidden>
@@ -1345,10 +1407,10 @@ function applyNexoraUxMode(mode = getNexoraUxMode()) {
   const isSimple = mode === 'simple';
   document.body.classList.toggle('mode-simple', isSimple);
   document.body.classList.toggle('mode-complet', !isSimple);
-  ['mode-complete-btn', 'home-mode-complete-btn'].forEach((id) => {
+  ['mode-complete-btn', 'home-mode-complete-btn', 'userModeCompleteBtn'].forEach((id) => {
     document.getElementById(id)?.classList.toggle('active', !isSimple);
   });
-  ['mode-simple-btn', 'home-mode-simple-btn'].forEach((id) => {
+  ['mode-simple-btn', 'home-mode-simple-btn', 'userModeSimpleBtn'].forEach((id) => {
     document.getElementById(id)?.classList.toggle('active', isSimple);
   });
   if (typeof scheduleAssistantRefresh === 'function') {
@@ -4406,7 +4468,7 @@ async function updatePriorityAction(metrics = {}) {
 }
 
 function updateDashboardSynthesisHero(metrics = {}) {
-  const hero = document.getElementById('dashboard-synthesis-hero');
+  const hero = document.querySelector('.cockpit-hero-v4');
   const heroRoot = document.getElementById('dashboard-hero-root');
   const coreStatusEl = document.getElementById('nexora-core-status-badge');
   const coreMissionTitleEl = document.getElementById('nexora-core-mission-title');

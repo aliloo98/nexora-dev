@@ -74,6 +74,14 @@ export const createUserMenu = () => {
           </div>
         </div>
         <div class="user-menu-separator"></div>
+        <div class="user-menu-mode-switch">
+          <div class="user-menu-mode-label">Mode d'affichage</div>
+          <div class="mode-toggle compact">
+            <button type="button" class="mode-toggle-btn" id="userModeCompleteBtn">Complet</button>
+            <button type="button" class="mode-toggle-btn" id="userModeSimpleBtn">Simplifié</button>
+          </div>
+        </div>
+        <div class="user-menu-separator"></div>
         <button class="user-menu-item" id="logoutBtn">
           🚪 Déconnexion
         </button>
@@ -91,6 +99,27 @@ export const renderUserMenu = () => {
 
   userMenuContainer.innerHTML = createUserMenu()
   attachUserMenuListeners()
+  updateModeSwitchState()
+}
+
+/**
+ * Update mode switch button states based on current mode
+ */
+const updateModeSwitchState = () => {
+  const userModeCompleteBtn = document.getElementById('userModeCompleteBtn')
+  const userModeSimpleBtn = document.getElementById('userModeSimpleBtn')
+
+  if (!userModeCompleteBtn || !userModeSimpleBtn) return
+
+  const isSimpleMode = document.body.classList.contains('mode-simple')
+
+  if (isSimpleMode) {
+    userModeSimpleBtn.classList.add('active')
+    userModeCompleteBtn.classList.remove('active')
+  } else {
+    userModeCompleteBtn.classList.add('active')
+    userModeSimpleBtn.classList.remove('active')
+  }
 }
 
 /**
@@ -100,6 +129,8 @@ export const attachUserMenuListeners = () => {
   const userMenuBtn = document.getElementById('userMenuBtn')
   const userMenuDropdown = document.getElementById('userMenuDropdown')
   const logoutBtn = document.getElementById('logoutBtn')
+  const userModeCompleteBtn = document.getElementById('userModeCompleteBtn')
+  const userModeSimpleBtn = document.getElementById('userModeSimpleBtn')
 
   if (!userMenuBtn || !userMenuDropdown) return
 
@@ -120,6 +151,28 @@ export const attachUserMenuListeners = () => {
       }
     })
     hasDocumentClickListener = true
+  }
+
+  // Mode switch - Complete
+  if (userModeCompleteBtn) {
+    userModeCompleteBtn.addEventListener('click', (e) => {
+      e.preventDefault()
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('complete')
+        updateModeSwitchState()
+      }
+    })
+  }
+
+  // Mode switch - Simple
+  if (userModeSimpleBtn) {
+    userModeSimpleBtn.addEventListener('click', (e) => {
+      e.preventDefault()
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('simple')
+        updateModeSwitchState()
+      }
+    })
   }
 
   // Logout
@@ -188,5 +241,6 @@ export default {
   createUserMenu,
   renderUserMenu,
   attachUserMenuListeners,
-  setupAuthStateListener
+  setupAuthStateListener,
+  updateModeSwitchState
 }
