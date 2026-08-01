@@ -2,11 +2,11 @@ const reducedMotionQuery = '(prefers-reduced-motion: reduce)'
 
 // Nouveaux sélecteurs Cockpit Premium
 const cockpitEntrySelectors = [
-  '.cockpit-core',
-  '.cockpit-zone--coach',
-  '.cockpit-zone--assistant',
-  '.cockpit-lateral-grid',
-  '.cockpit-kpis'
+  '.cockpit-hero-v4',
+  '#dashboard-coach-card',
+  '#week-plan-card',
+  '#dashboard-understanding-card',
+  '.cockpit-complete-zone'
 ]
 
 // Anciens sélecteurs Dashboard (fallback)
@@ -24,7 +24,7 @@ let reducedMotionListenerBound = false
 
 // Fonction de compatibilité : détecte si le cockpit premium est présent
 const isCockpitPremium = (dashboard) => {
-  return dashboard?.querySelector('.cockpit-core') !== null
+  return dashboard?.querySelector('.cockpit-hero-v4') !== null
 }
 
 // Sélecteurs adaptatifs selon la version du dashboard
