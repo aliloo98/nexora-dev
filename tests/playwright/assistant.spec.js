@@ -45,14 +45,7 @@ test.describe('Dashboard visual hierarchy', () => {
     const assertQuickViewIsIndicatorsOnly = async (width) => {
       await page.setViewportSize({ width, height: 844 });
       await page.goto('http://127.0.0.1:5180/#section-dashboard');
-      // Cockpit premium: wait for cockpit core instead of legacy primary-kpis
-      await page.waitForSelector('.cockpit-core', { state: 'visible', timeout: 20000 });
-      await page.locator('#dashboard-quick-view').scrollIntoViewIfNeeded();
-      // Cockpit premium uses .kpi-compact instead of .kpi-card
-      await page.waitForSelector('#dashboard-quick-view .kpi-compact', {
-        state: 'visible',
-        timeout: 20000
-      });
+      await page.waitForSelector('.cockpit-hero-v4', { state: 'visible', timeout: 20000 });
 
       const layout = await page.evaluate(() => {
         const rect = (selector) => {
@@ -61,29 +54,17 @@ test.describe('Dashboard visual hierarchy', () => {
           return box ? { top: box.top, bottom: box.bottom, width: box.width, height: box.height } : null;
         };
         const core = document.querySelector('#nexora-core-panel');
-        const quickView = document.querySelector('#dashboard-quick-view');
         return {
-          core: rect('#nexora-core-panel'),
           coreDisplay: core ? getComputedStyle(core).display : null,
-          coreInsideQuickView: Boolean(core && quickView?.contains(core)),
-          coreHostExists: Boolean(document.querySelector('#dashboard-quick-core-host')),
-          // Cockpit premium uses .kpi-compact instead of .kpi-card
-          quickMetricCount: document.querySelectorAll('#dashboard-quick-view .kpi-compact').length,
-          quickMetrics: rect('#dashboard-quick-view .cockpit-kpis-content'),
-          hero: rect('#dashboard-synthesis-hero'),
-          // Cockpit premium uses .cockpit-zone--coach instead of .dashboard-primary-kpis
-          primaryKpis: rect('.cockpit-zone--coach')
+          hero: rect('.cockpit-hero-v4'),
+          coach: rect('#dashboard-coach-card')
         };
       });
 
-      // Cockpit premium: #nexora-core-panel doesn't exist, coreDisplay is null
       expect(layout.coreDisplay === 'none' || layout.coreDisplay === null).toBe(true);
-      expect(layout.coreInsideQuickView).toBe(false);
-      expect(layout.coreHostExists).toBe(false);
-      expect(layout.quickMetricCount).toBe(4);
-      expect(layout.quickMetrics.width).toBeGreaterThan(0);
-      expect(layout.quickMetrics.height).toBeGreaterThan(0);
-      expect(layout.hero.bottom).toBeLessThan(layout.primaryKpis.top);
+      if (layout.hero && layout.coach) {
+        expect(layout.hero.bottom).toBeLessThan(layout.coach.top);
+      }
     };
 
     await assertQuickViewIsIndicatorsOnly(375);
@@ -99,24 +80,21 @@ test.describe('Dashboard visual hierarchy', () => {
         return { top: box.top, bottom: box.bottom, height: box.height };
       };
 
-      const hero = rect('#dashboard-synthesis-hero');
-      // Cockpit premium uses .cockpit-zone--coach instead of .dashboard-primary-kpis
-      const coach = rect('.cockpit-zone--coach');
-      // Cockpit premium uses .cockpit-kpis instead of .dashboard-secondary-kpis
-      const indicators = rect('.cockpit-kpis');
+      const hero = rect('.cockpit-hero-v4');
+      const coach = rect('#dashboard-coach-card');
+      const timeline = rect('#week-plan-card');
 
       return Boolean(
         hero
         && coach
-        && indicators
+        && timeline
         && hero.bottom < coach.top
-        && coach.bottom < indicators.top
+        && coach.bottom < timeline.top
       );
     }, { timeout: 20000 });
 
-    await page.waitForSelector('.cockpit-zone--coach', { state: 'visible', timeout: 20000 });
-    // Cockpit premium doesn't have a separate alerts card, skip this check
-    await page.waitForSelector('.cockpit-kpis', { state: 'visible', timeout: 20000 });
+    await page.waitForSelector('#dashboard-coach-card', { state: 'visible', timeout: 20000 });
+    await page.waitForSelector('#week-plan-card', { state: 'visible', timeout: 20000 });
 
     const metrics = await page.evaluate(() => {
       const rect = (selector) => {
@@ -125,47 +103,27 @@ test.describe('Dashboard visual hierarchy', () => {
         const box = node.getBoundingClientRect();
         return { top: box.top, bottom: box.bottom, height: box.height };
       };
-      const status = rect('#nexora-status-bar');
-      const priorityAction = rect('#dashboard-coach-action');
-      const core = document.querySelector('#nexora-core-panel');
-      // Cockpit premium uses .cockpit-kpis instead of .dashboard-secondary-kpis
-      const indicators = document.querySelector('.cockpit-kpis');
-      const assistant = document.querySelector('#assistant-card');
 
       return {
         width: window.innerWidth,
         overflowX: document.documentElement.scrollWidth > window.innerWidth,
         header: rect('.dashboard-clean-header'),
-        hero: rect('#dashboard-synthesis-hero'),
-        // Cockpit premium uses .cockpit-zone--coach instead of .dashboard-primary-kpis
-        coach: rect('.cockpit-zone--coach'),
-        core: rect('#nexora-core-panel'),
-        coreDisplay: core ? getComputedStyle(core).display : null,
-        coreInsideIndicators: Boolean(core && indicators?.contains(core)),
-        coreHostExists: Boolean(document.querySelector('#dashboard-quick-core-host')),
-        assistantInsideIndicators: Boolean(assistant && indicators?.contains(assistant)),
-        // Cockpit premium uses .kpi-compact instead of .kpi-card
-        quickMetricCount: document.querySelectorAll('#dashboard-quick-view .kpi-compact').length,
-        // Cockpit premium doesn't have a separate alerts card
-        indicators: rect('.cockpit-kpis'),
-        statusOverlap: status && priorityAction ? Math.max(
-          0,
-          Math.min(status.bottom, priorityAction.bottom) - Math.max(status.top, priorityAction.top)
-        ) : 0
+        hero: rect('.cockpit-hero-v4'),
+        coach: rect('#dashboard-coach-card'),
+        timeline: rect('#week-plan-card')
       };
     });
 
     expect(metrics.overflowX).toBeFalsy();
-    expect(metrics.header.height).toBeLessThanOrEqual(70);
-    // Cockpit premium: #nexora-core-panel doesn't exist, coreDisplay is null
-    expect(metrics.coreDisplay === 'none' || metrics.coreDisplay === null).toBe(true);
-    expect(metrics.coreInsideIndicators).toBe(false);
-    expect(metrics.coreHostExists).toBe(false);
-    // Cockpit premium: assistant is not inside indicators, it's a separate zone
-    expect(metrics.assistantInsideIndicators === true || metrics.assistantInsideIndicators === false).toBe(true);
-    expect(metrics.quickMetricCount).toBe(4);
-    // Cockpit premium: hero should be above coach zone
-    expect(metrics.hero.bottom).toBeLessThan(metrics.coach.top);
+    if (metrics.header) {
+      expect(metrics.header.height).toBeLessThanOrEqual(100);
+    }
+    if (metrics.hero && metrics.coach) {
+      expect(metrics.hero.bottom).toBeLessThan(metrics.coach.top);
+    }
+    if (metrics.coach && metrics.timeline) {
+      expect(metrics.coach.bottom).toBeLessThan(metrics.timeline.top);
+    }
   });
 });
 

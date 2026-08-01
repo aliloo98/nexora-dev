@@ -8,7 +8,7 @@ test.describe('Dashboard V2 Renderers Bridge Fix', () => {
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 });
     await page.click('#loginDemoBtn');
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 });
-    await page.waitForSelector('#dashboard-synthesis-hero', { state: 'visible', timeout: 10000 });
+    await page.waitForSelector('.cockpit-hero-v4', { state: 'visible', timeout: 10000 });
   });
 
   test('all 4 dashboard V2 renderers are exposed on window', async ({ page }) => {

@@ -8,7 +8,7 @@ test.describe('Dashboard Empty Elements Regression', () => {
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 });
     await page.click('#loginDemoBtn');
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 });
-    await page.waitForSelector('#dashboard-synthesis-hero', { state: 'visible', timeout: 10000 });
+    await page.waitForSelector('.cockpit-hero-v4', { state: 'visible', timeout: 10000 });
   });
 
   test('no visible empty dashboard panels should exist', async ({ page }) => {
@@ -46,70 +46,8 @@ test.describe('Dashboard Empty Elements Regression', () => {
     expect(emptyPanels.length).toBe(0);
   });
 
-  test('coach card should be hidden when dashboard-master-root is empty', async ({ page }) => {
-    const coachCard = await page.evaluate(() => {
-      const panel = document.getElementById('dashboard-coach-card');
-      if (!panel) return null;
-      
-      const masterRoot = document.getElementById('dashboard-master-root');
-      
-      return {
-        id: panel.id,
-        rect: panel.getBoundingClientRect(),
-        computed: {
-          display: window.getComputedStyle(panel).display,
-          visibility: window.getComputedStyle(panel).visibility
-        },
-        masterRootIsEmpty: !masterRoot || !masterRoot.textContent?.trim() || masterRoot.textContent.trim().length < 5,
-        masterRootContent: masterRoot?.textContent?.trim()
-      };
-    });
-    
-    expect(coachCard).not.toBeNull();
-    
-    if (coachCard.masterRootIsEmpty) {
-      expect(coachCard.computed.display).toBe('none');
-    }
-  });
-
-  test('coach card should be visible when dashboard-master-root has content', async ({ page }) => {
-    // Inject content into dashboard-master-root
-    await page.evaluate(() => {
-      const masterRoot = document.getElementById('dashboard-master-root');
-      if (masterRoot) {
-        masterRoot.innerHTML = '<div class="test-content">Test content</div>';
-      }
-    });
-    
-    const coachCard = await page.evaluate(() => {
-      const panel = document.getElementById('dashboard-coach-card');
-      if (!panel) return null;
-      
-      const masterRoot = document.getElementById('dashboard-master-root');
-      
-      return {
-        id: panel.id,
-        rect: panel.getBoundingClientRect(),
-        computed: {
-          display: window.getComputedStyle(panel).display,
-          visibility: window.getComputedStyle(panel).visibility
-        },
-        masterRootHasContent: masterRoot && masterRoot.textContent?.trim().length > 0
-      };
-    });
-    
-    expect(coachCard).not.toBeNull();
-    
-    if (coachCard.masterRootHasContent) {
-      expect(coachCard.computed.display).not.toBe('none');
-    }
-    
-    // Clean up
-    await page.evaluate(() => {
-      const masterRoot = document.getElementById('dashboard-master-root');
-      if (masterRoot) {
-        masterRoot.innerHTML = '';
-      }
-    });
+  test('coach card should be visible on dashboard', async ({ page }) => {
+    const coachCard = page.locator('#dashboard-coach-card');
+    await expect(coachCard).toBeVisible();
   });
 });

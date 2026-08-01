@@ -6,7 +6,7 @@ test.describe('Dashboard Hero Card Premium', () => {
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 });
     await page.click('#loginDemoBtn');
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 });
-    await page.waitForSelector('#dashboard-synthesis-hero', { state: 'visible', timeout: 10000 });
+    await page.waitForSelector('.cockpit-hero-v4', { state: 'visible', timeout: 10000 });
     // Wait for dashboard to fully load
     await page.waitForTimeout(5000);
     // Manually render Hero Card
@@ -44,7 +44,7 @@ test.describe('Dashboard Hero Card Premium', () => {
 
       const heroMetrics = await page.evaluate(() => {
         const heroRoot = document.querySelector('#dashboard-hero-root');
-        const heroContainer = document.querySelector('#dashboard-synthesis-hero');
+        const heroContainer = document.querySelector('.cockpit-hero-v4');
         const heroCard = heroRoot?.querySelector('.nx-hero-card');
         const legacyContent = heroContainer?.querySelector('.dashboard-hero__copy');
 
@@ -162,7 +162,7 @@ test.describe('Dashboard Hero Card Premium', () => {
   test('shows only one Hero, no duplicate rendering', async ({ page }) => {
     const duplicateCheck = await page.evaluate(() => {
       const heroRoots = document.querySelectorAll('#dashboard-hero-root');
-      const heroContainers = document.querySelectorAll('#dashboard-synthesis-hero');
+      const heroContainers = document.querySelectorAll('.cockpit-hero-v4');
       const heroCards = document.querySelectorAll('.nx-hero-card');
       const legacyHeroContent = document.querySelectorAll('.dashboard-hero__copy');
 
@@ -190,7 +190,7 @@ test.describe('Dashboard Hero Card Premium', () => {
       const heroCard = heroRoot?.querySelector('.nx-hero-card');
       const amount = heroCard?.querySelector('.nx-hero-card__amount');
       const context = heroCard?.querySelector('.nx-hero-card__context');
-      const container = document.querySelector('#dashboard-synthesis-hero');
+      const container = document.querySelector('.cockpit-hero-v4');
 
       return {
         heroCardExists: heroCard !== null,
