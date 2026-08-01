@@ -12,6 +12,7 @@ const normalizeAmount = (value) => {
   const raw = String(value || '').trim()
     .replace(/[\u00A0\u202F\u2009\u2007]/g, ' ')
     .replace(/\s+/g, '')
+    .replace(/[^\d.,+-]/g, '')
   if (!raw) return 0
 
   const hasComma = raw.includes(',')
