@@ -7,7 +7,7 @@
 
 import { DataCollector } from './DataCollector.js'
 import { AnalysisEngine } from './AnalysisEngine.js'
-import { AssistantReport, createEmptyReport } from './AssistantReport.js'
+import { createEmptyReport } from './AssistantReport.js'
 import registry from './RuleRegistry.js'
 import { registerPredefinedRules } from './rules.js'
 

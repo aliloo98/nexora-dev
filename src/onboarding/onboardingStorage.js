@@ -1,7 +1,5 @@
 import { UserAppSettingsService } from '../../js/userAppSettingsService.js'
-import { STORAGE_KEYS } from '../constants/storageKeys.js'
 
-const ONBOARDING_KEY = 'nexora_onboarding_v1'
 const ONBOARDING_STATE_KEY = 'nexora_onboarding_state_v1'
 
 const nowIso = () => new Date().toISOString()

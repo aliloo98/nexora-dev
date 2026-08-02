@@ -20,7 +20,6 @@ import { supabase } from '../supabase.js'
 import { StorageManager } from '../../js/storage.js'
 
 const SHARING_CACHE_KEY = 'nexora_sharing_cache'
-const SHARING_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 export const CoupleShareService = {
   /**
