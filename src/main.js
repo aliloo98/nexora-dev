@@ -26,7 +26,6 @@ import { supabase, testSupabaseConnection } from './supabase.js'
 // Import Authentication system
 import AuthContext from './auth/authContext.js'
 import { initAuthRouting } from './auth/authRouting.js'
-import AuthPages from './pages/AuthPages.js'
 import { authStyles } from './styles/authStyles.js'
 import { TransactionsService } from '../js/transactionsService.js'
 import { BudgetCategoriesService } from '../js/budgetCategoriesService.js'
@@ -77,7 +76,6 @@ import { createCoupleController } from './couple/coupleController.js'
 // Import onboarding module
 import { renderOnboarding, updateOnboardingStep, dismissOnboarding } from './onboarding/onboardingUI.js'
 import { OnboardingIntegration } from './onboarding/onboardingIntegration.js'
-import { OnboardingService } from './onboarding/onboardingService.js'
 import './onboarding/onboarding.css'
 
 // Import bootstrap modules
