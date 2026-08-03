@@ -5303,6 +5303,8 @@ function showSection(id, options = {}){
     }
   }
 
+  const scrollY = window.scrollY;
+
   try {
     document.querySelectorAll('.section').forEach((s) => {
       s.classList.remove('active');
@@ -5314,6 +5316,10 @@ function showSection(id, options = {}){
     nextSection.classList.add('active');
   } catch (err) {
     throw err
+  }
+
+  if (navigationOrigin === 'history' && scrollY > 0) {
+    window.scrollTo(0, scrollY);
   }
 
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -5330,9 +5336,11 @@ function showSection(id, options = {}){
     prepareVoluntarySectionNavigation(nextSection);
   }
 
-  const nextHash = '#section-' + id;
+  if (navigationOrigin !== 'history') {
+    const nextHash = '#section-' + id;
     if (window.location.hash !== nextHash) {
-    history.replaceState(null, '', nextHash);
+      history.replaceState(null, '', nextHash);
+    }
   }
 
   if (id === 'historique' && typeof buildHistory === 'function') {

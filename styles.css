@@ -2944,7 +2944,7 @@ body.mode-simple .simple-dashboard-grid {
 
 .goal-card-footer small {
   display: block;
-  color: var(--text2);
+  color: var(--text);
   font-size: 10.5px;
   line-height: 1.25;
   margin-top: 4px;
