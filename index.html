@@ -999,6 +999,13 @@ body.auth-locked > #nexora-status-bar {
       </div>
       <div class="param-row">
         <div>
+          <div class="param-label">Exporter le budget mensuel en Excel</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Crée un classeur professionnel et détaillé du mois sélectionné</div>
+        </div>
+        <button class="btn btn-gold" onclick="exportMonthlyExcel()">Exporter Excel</button>
+      </div>
+      <div class="param-row">
+        <div>
           <div class="param-label">Exporter mes données</div>
           <div style="font-size:12px;color:var(--text2);margin-top:4px">Télécharge un fichier JSON avec tous tes mois</div>
         </div>
@@ -2373,7 +2380,7 @@ async function applySavedRevenues(force = false) {
   if (!recurringIncomes.length) { showToast('Aucun revenu enregistré'); return; }
   const incomeKeys = getBudgetKeysByType('income');
   const categoriesById = new Map(budgetCategoriesCache.map(c => [c.id, c]));
-  const budgetData = getResolvedBudgetSnapshot();
+  const budgetData = getResolvedBudgetSnapshot({ includeRecurring: false });
   const resolved = window.NexoraRecurringResolver?.resolveBudgetWithRecurring
     ? (window.NexoraRecurringResolver.resolveBudgetWithRecurring({ budgetData, incomeKeys, expenseKeys: [], categoriesById, recurringIncomes, billSchedules: [] }) || {}).resolved || {}
     : {};
@@ -2417,7 +2424,7 @@ async function applySavedExpenses(force = false) {
     if (!billSchedules.length) { showToast('Aucun modèle de dépense'); return; }
   const expenseKeys = getAllExpenseKeys();
   const categoriesById = new Map(budgetCategoriesCache.map(c => [c.id, c]));
-  const budgetData = getResolvedBudgetSnapshot();
+  const budgetData = getResolvedBudgetSnapshot({ includeRecurring: false });
   const resolved = window.NexoraRecurringResolver?.resolveBudgetWithRecurring
     ? (window.NexoraRecurringResolver.resolveBudgetWithRecurring({ budgetData, incomeKeys: [], expenseKeys, categoriesById, recurringIncomes: [], billSchedules }) || {}).resolved || {}
     : {};
@@ -2462,7 +2469,7 @@ async function applySavedAll(force = false) {
   const incomeKeys = getBudgetKeysByType('income');
   const expenseKeys = getAllExpenseKeys();
   const categoriesById = new Map(budgetCategoriesCache.map(c => [c.id, c]));
-  const budgetData = getResolvedBudgetSnapshot();
+  const budgetData = getResolvedBudgetSnapshot({ includeRecurring: false });
   const resolved = window.NexoraRecurringResolver?.resolveBudgetWithRecurring
     ? (window.NexoraRecurringResolver.resolveBudgetWithRecurring({ budgetData, incomeKeys, expenseKeys, categoriesById, recurringIncomes, billSchedules }) || {}).resolved || {}
     : {};
@@ -2501,11 +2508,15 @@ async function applySavedAll(force = false) {
 
 // --- fin modèles enregistrés ---
 
-function getResolvedBudgetSnapshot() {
+function getResolvedBudgetSnapshot(options = {}) {
+  const { includeRecurring = false } = options || {};
   const budgetData = {};
   document.querySelectorAll('[data-key]').forEach(el => {
     budgetData[el.dataset.key] = el.value;
   });
+  if (!includeRecurring) {
+    return budgetData;
+  }
   const incomeKeys = getBudgetKeysByType('income');
   const expenseKeys = getAllExpenseKeys();
   const categoriesById = new Map(budgetCategoriesCache.map(category => [category.id, category]));
@@ -2628,7 +2639,7 @@ function getMonthMetrics(month, { fromDom = false } = {}) {
   const incomeKeys = getBudgetKeysByType('income');
   const fixedKeys = getBudgetKeysByType('fixed_expense');
   const variableKeys = getBudgetKeysByType('variable_expense');
-  const resolved = fromDom ? getResolvedBudgetSnapshot() : {};
+  const resolved = fromDom ? getResolvedBudgetSnapshot({ includeRecurring: false }) : {};
   const read = (key) => {
     if (fromDom && Object.prototype.hasOwnProperty.call(resolved, key)) return parseBudgetNumber(resolved[key]);
     return fromDom ? getVal(key) : getAmountFromData(data, key);
@@ -3938,7 +3949,7 @@ function validateRevenueInput(element) {
 }
 
 function updateAll(){
-    const resolvedBudget = getResolvedBudgetSnapshot();
+    const resolvedBudget = getResolvedBudgetSnapshot({ includeRecurring: false });
   const inputCache = new Map();
   const valueCache = new Map();
   const parseCache = new Map();
@@ -5407,6 +5418,34 @@ async function exportMonthlyPdf(){
 }
 
 window.exportMonthlyPdf = exportMonthlyPdf;
+
+async function exportMonthlyExcel(){
+  try {
+    if (typeof refreshCategoryLabels === 'function') {
+      await refreshCategoryLabels();
+    }
+    if (typeof updateAll === 'function') updateAll();
+
+    if (typeof window.loadNexoraExcelExport !== 'function') {
+      showToast('❌ Export Excel indisponible');
+      return;
+    }
+    const { NexoraExcelExport } = await window.loadNexoraExcelExport();
+    if (!NexoraExcelExport?.exportMonthlyBudgetXlsx) {
+      showToast('❌ Export Excel indisponible');
+      return;
+    }
+
+    const result = await NexoraExcelExport.exportMonthlyBudgetXlsx();
+    showToast('✅ Excel généré et téléchargé');
+    return { data: result.data, size: result.size };
+  } catch (err) {
+    console.error('[Excel] Export impossible', err);
+    showToast('❌ Erreur lors de l’export Excel');
+  }
+}
+
+window.exportMonthlyExcel = exportMonthlyExcel;
 
 function exportBudgetCsv(){
   try {

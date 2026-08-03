@@ -1,3 +1,6 @@
+import { OFFICIAL_LOGO } from './logo-manager.js';
+import { buildBudgetExportFilename, downloadBlob } from './export-utils.js';
+
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 const MARGIN = 42;
@@ -244,7 +247,7 @@ const imageElementToPdfRgb = (image) => {
 const loadLogoForPdf = async () => {
   if (typeof fetch !== 'function') return null;
   try {
-    const response = await fetch('/icon-192.png', { cache: 'force-cache' });
+    const response = await fetch(OFFICIAL_LOGO, { cache: 'force-cache' });
     if (!response.ok) return null;
     return imageElementToPdfRgb(await loadImageElement(await response.blob()));
   } catch {
@@ -257,31 +260,33 @@ const getMonthLabel = () => {
   return sanitize(select?.selectedOptions?.[0]?.textContent || select?.value || 'Mois en cours');
 };
 
-const collectSectionRows = (block, sectionName) => {
-  if (!block) return [];
-  const rows = [];
-  block.querySelectorAll('.budget-row').forEach(row => {
-    const input = row.querySelector('input.budget-input[data-key]:not(.paid-input):not(.note-input)');
-    const label = row.querySelector('.budget-row-label');
-    if (!input || !label) return;
-    rows.push({
+const collectSectionRows = (keys, sectionName) => (Array.isArray(keys) ? keys : [])
+  .map(key => {
+    const input = document.querySelector(
+      `#section-saisie input.budget-input[data-key="${CSS.escape(String(key))}"]:not(.paid-input):not(.note-input)`
+    );
+    if (!input) return null;
+    const label = input.closest('.budget-row')?.querySelector('.budget-row-label');
+    return {
       section: sectionName,
-      key: input.dataset.key,
-      name: getLabelText(label),
+      key,
+      name: getLabelText(label) || sanitize(key).replace(/_/g, ' '),
       amount: amountFromValue(input.value)
-    });
-  });
-  return rows;
-};
+    };
+  })
+  .filter(Boolean);
 
 const collectBudgetData = () => {
-  if (typeof window.updateAll === 'function') window.updateAll();
+  const runtime = window;
+  if (typeof runtime.updateAll === 'function') runtime.updateAll();
 
-  const blocks = Array.from(document.querySelectorAll('#section-saisie .budget-block'));
+  const keysByType = typeof runtime.getBudgetKeysByType === 'function'
+    ? runtime.getBudgetKeysByType
+    : () => [];
   const sections = [
-    { title: 'Revenus', rows: collectSectionRows(blocks[0], 'income') },
-    { title: 'Charges fixes', rows: collectSectionRows(blocks[1], 'fixed_expense') },
-    { title: 'Dépenses variables', rows: collectSectionRows(blocks[2], 'variable_expense') }
+    { title: 'Revenus', rows: collectSectionRows(keysByType('income'), 'income') },
+    { title: 'Charges fixes', rows: collectSectionRows(keysByType('fixed_expense'), 'fixed_expense') },
+    { title: 'Dépenses variables', rows: collectSectionRows(keysByType('variable_expense'), 'variable_expense') }
   ]
     .filter(section => section.rows.length > 0)
     .map(section => ({
@@ -289,15 +294,32 @@ const collectBudgetData = () => {
       total: section.rows.reduce((sum, row) => sum + amountFromValue(row.amount), 0)
     }));
 
-  const totals = {
-    income: sections.find(section => section.title === 'Revenus')?.total || 0,
-    fixed: sections.find(section => section.title === 'Charges fixes')?.total || 0,
-    variable: sections.find(section => section.title === 'Dépenses variables')?.total || 0
-  };
-  totals.balance = totals.income - totals.fixed - totals.variable;
+  const currentMonth = document.getElementById('monthSelect')?.value || null;
+  const metrics = currentMonth && typeof runtime.getMonthMetrics === 'function'
+    ? runtime.getMonthMetrics(currentMonth, { fromDom: true })
+    : null;
+  const totals = metrics
+    ? {
+        income: amountFromValue(metrics.income),
+        fixed: amountFromValue(metrics.fixed),
+        variable: amountFromValue(metrics.variable),
+        balance: amountFromValue(metrics.savings),
+        savingsRate: amountFromValue(metrics.savingsRate)
+      }
+    : {
+        income: sections.find(section => section.title === 'Revenus')?.total || 0,
+        fixed: sections.find(section => section.title === 'Charges fixes')?.total || 0,
+        variable: sections.find(section => section.title === 'Dépenses variables')?.total || 0,
+        balance: 0,
+        savingsRate: 0
+      };
+  if (!metrics) {
+    totals.balance = totals.income - totals.fixed - totals.variable;
+    totals.savingsRate = totals.income > 0 ? totals.balance / totals.income * 100 : 0;
+  }
 
-  const debts = typeof window.readDebts === 'function'
-    ? window.readDebts()
+  const debts = typeof runtime.readDebts === 'function'
+    ? runtime.readDebts()
     : readLocalJson('nexora_debts_v1', []);
   const debtRows = Array.isArray(debts)
     ? debts.filter(debt => amountFromValue(debt?.remaining) > 0).map(debt => ({
@@ -611,27 +633,6 @@ const buildPdf = (pageStreams, images = {}) => {
   return chunks.join('');
 };
 
-const downloadBlob = (blob, filename) => {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-};
-
-const filenameFor = (monthLabel) => {
-  const slug = sanitize(monthLabel)
-    .toLocaleLowerCase('fr-FR')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '') || 'mois';
-  return `nexora-budget-${slug}.pdf`;
-};
-
 const generateMonthlyBudgetPdf = () => {
   const data = collectBudgetData();
   const pdf = new PdfDocument();
@@ -667,7 +668,7 @@ const generateMonthlyBudgetPdfPremium = async () => {
 
 const exportMonthlyBudgetPdf = async () => {
   const { data, blob } = await generateMonthlyBudgetPdfPremium();
-  downloadBlob(blob, filenameFor(data.monthLabel));
+  downloadBlob(blob, buildBudgetExportFilename(data.monthLabel, 'pdf'));
   return { data, size: blob.size };
 };
 

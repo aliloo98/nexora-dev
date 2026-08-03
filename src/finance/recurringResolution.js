@@ -51,11 +51,30 @@ const similar = (a, b) => {
   return left.includes(right) || right.includes(left)
 }
 
-const findMatchingRecurring = (key, label, recurring = []) => recurring.find((item) => {
-  const linked = item.linkedCharge || item.categoryKey || item.key || item.sourceKey
-  if (linked && linked === key) return true
-  return similar(item.name || item.title || item.label, label || key)
-})
+const findMatchingRecurring = (key, label, recurring = [], usedIds = new Set()) => {
+  const markUsed = (item) => {
+    const id = item?.id || item?.name || item?.title || item?.label
+    if (id) usedIds.add(String(id))
+    return item
+  }
+
+  const explicitMatch = recurring.find((item) => {
+    const linked = item.linkedCharge || item.categoryKey || item.key || item.sourceKey
+    return linked && linked === key
+  })
+  if (explicitMatch) return markUsed(explicitMatch)
+
+  const nameMatch = recurring.find((item) => similar(item.name || item.title || item.label, label || key))
+  if (nameMatch) return markUsed(nameMatch)
+
+  const fallback = recurring.find((item) => {
+    const id = item?.id || item?.name || item?.title || item?.label
+    return id && !usedIds.has(String(id))
+  })
+  if (fallback) return markUsed(fallback)
+
+  return undefined
+}
 
 const resolveAmount = ({ key, label, manualAmount, manualMeta, recurringItem }) => {
   const manual = safeNumber(manualAmount)
@@ -75,10 +94,12 @@ const resolveAmount = ({ key, label, manualAmount, manualMeta, recurringItem }) 
 export function resolveBudgetWithRecurring({ budgetData = {}, incomeKeys = [], expenseKeys = [], categoriesById = new Map(), recurringIncomes = [], billSchedules = [] } = {}) {
   const resolved = {}
   const decisions = []
+  const usedRecurringIds = new Set()
+  const usedBillIds = new Set()
 
   incomeKeys.forEach((key) => {
     const category = categoriesById.get(key)
-    const recurringItem = findMatchingRecurring(key, category?.name, recurringIncomes)
+    const recurringItem = findMatchingRecurring(key, category?.name, recurringIncomes, usedRecurringIds)
     const decision = resolveAmount({
       key,
       label: category?.name,
@@ -92,7 +113,7 @@ export function resolveBudgetWithRecurring({ budgetData = {}, incomeKeys = [], e
 
   expenseKeys.forEach((key) => {
     const category = categoriesById.get(key)
-    const recurringItem = findMatchingRecurring(key, category?.name, billSchedules)
+    const recurringItem = findMatchingRecurring(key, category?.name, billSchedules, usedBillIds)
     const decision = resolveAmount({
       key,
       label: category?.name,

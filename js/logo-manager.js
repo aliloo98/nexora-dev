@@ -1,4 +1,4 @@
-const OFFICIAL_LOGO = '/icon-192.png'
+export const OFFICIAL_LOGO = '/icon-192.png'
 
 const LogoManager = (() => {
   const init = async () => {
@@ -19,6 +19,7 @@ const LogoManager = (() => {
     uploadLogoImage: init,
     resetAppLogo: init,
     updateAppLogo,
+    getLogoUrl: () => OFFICIAL_LOGO,
     renderLogoOptions: init
   }
 })()

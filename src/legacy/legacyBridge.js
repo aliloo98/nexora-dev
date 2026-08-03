@@ -29,6 +29,7 @@ export function installLegacyBridge(dependencies) {
     ThemeManager,
     LogoManager,
     NexoraPdfExport,
+    loadNexoraExcelExport,
     NotificationsService,
 
     // AI and analytics
@@ -85,6 +86,7 @@ export function installLegacyBridge(dependencies) {
   window.ThemeManager = ThemeManager
   window.LogoManager = LogoManager
   window.NexoraPdfExport = NexoraPdfExport
+  window.loadNexoraExcelExport = loadNexoraExcelExport
   window.NotificationsService = NotificationsService
 
   // Expose AI and analytics

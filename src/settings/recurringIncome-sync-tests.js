@@ -38,6 +38,10 @@ assert(
   normalizeRecurringIncome({ label: 'Freelance', value: 1500, recurrence: 'mensuel', dayOfMonth: 15 }, { parseAmount }).day === 15,
   'jour dayOfMonth conservé'
 )
+assert(
+  normalizeRecurringIncome({ label: 'Salaire', value: 2110, categoryKey: 'rev_ali' }, { parseAmount }).linkedCharge === 'rev_ali',
+  'liaison de catégorie conservée pendant la normalisation'
+)
 
 const newerPartial = mergeRecurringIncomeArrays(
   [{ id: 'inc_1', name: '', amount: '', frequency: '', day: '', updated_at: '2026-06-03T12:00:00.000Z' }],
@@ -78,6 +82,13 @@ const mergedItem = mergeRecurringIncomeItems([
 assert(mergedItem.name === 'Prime', 'merge champ à champ — nom le plus récent non vide')
 assert(mergedItem.amount === 400, 'merge champ à champ — montant le plus récent non vide')
 assert(mergedItem.day === 20, 'merge champ à champ — jour conservé')
+
+const mergedLinkedItem = mergeRecurringIncomeItems([
+  { id: 'linked', name: 'Salaire', linkedCharge: 'rev_ali', updated_at: '2026-06-01T10:00:00.000Z' },
+  { id: 'linked', name: 'Salaire', amount: 2110, updated_at: '2026-06-02T10:00:00.000Z' }
+], { parseAmount })
+
+assert(mergedLinkedItem.linkedCharge === 'rev_ali', 'liaison de catégorie conservée pendant le merge')
 
 console.log(`\nrecurringIncome-sync-tests: ${passed} passed, ${failed} failed`)
 if (failed > 0) process.exit(1)

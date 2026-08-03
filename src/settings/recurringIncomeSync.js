@@ -74,6 +74,7 @@ export function normalizeRecurringIncome(entry = {}, options = {}) {
   const parsedAmount = amountRaw === null ? null : parseAmount(amountRaw)
   const frequency = resolveFrequency(entry)
   const day = resolveDay(entry)
+  const linkedCharge = entry.linkedCharge || entry.categoryKey || entry.key || entry.sourceKey || ''
 
   return {
     id: entry.id || entry.local_id || makeId('income'),
@@ -81,6 +82,10 @@ export function normalizeRecurringIncome(entry = {}, options = {}) {
     amount: parsedAmount === null ? 0 : parsedAmount,
     day: day === null ? 1 : day,
     frequency: frequency || 'monthly',
+    linkedCharge,
+    categoryKey: entry.categoryKey || linkedCharge,
+    key: entry.key || linkedCharge,
+    sourceKey: entry.sourceKey || linkedCharge,
     updated_at: entry.updated_at || entry.updatedAt || nowIso()
   }
 }
@@ -124,6 +129,7 @@ export function mergeRecurringIncomeItems(items = [], options = {}) {
   const amount = pickFieldByRecency(items, ['amount', 'value', 'montant', 'income'])
   const frequency = pickFieldByRecency(items, ['frequency', 'recurrence', 'recurringFrequency', 'interval'])
   const day = pickFieldByRecency(items, ['day', 'payDay', 'dayOfMonth', 'date', 'dueDay'])
+  const linkedCharge = pickFieldByRecency(items, ['linkedCharge', 'categoryKey', 'key', 'sourceKey'])
   const newestTime = Math.max(...items.map(itemTimestamp), 0)
 
   return normalizeRecurringIncome({
@@ -132,6 +138,7 @@ export function mergeRecurringIncomeItems(items = [], options = {}) {
     amount,
     frequency,
     day,
+    linkedCharge,
     updated_at: newestTime > 0 ? new Date(newestTime).toISOString() : nowIso()
   }, options)
 }

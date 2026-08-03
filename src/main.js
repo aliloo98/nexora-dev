@@ -82,6 +82,8 @@ import './onboarding/onboarding.css'
 import { bootstrapApplication } from './bootstrap/appBootstrap.js'
 import { createAmountInputHandlers } from './ui/amountInputHandlers.js'
 
+const loadNexoraExcelExport = () => import('../js/excel-export.js')
+
 // Expose core modules globally for HTML event handlers and old code
 // These are simple module exposures that can be safely moved to the bridge
 installLegacyBridge({
@@ -91,6 +93,7 @@ installLegacyBridge({
   ThemeManager,
   LogoManager,
   NexoraPdfExport,
+  loadNexoraExcelExport,
   NotificationsService,
 
   // AI and analytics

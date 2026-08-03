@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => ({
         manualChunks(id) {
           if (id.includes('node_modules/gsap')) return 'vendor-gsap'
           if (id.includes('node_modules/@supabase')) return 'vendor-supabase'
+          if (id.includes('node_modules/exceljs')) return 'vendor-exceljs'
         }
       }
     }
@@ -21,6 +22,9 @@ export default defineConfig(({ mode }) => ({
   server: {
     port: 5173,
     open: true,
+  },
+  optimizeDeps: {
+    include: ['exceljs'],
   },
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
