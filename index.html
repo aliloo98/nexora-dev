@@ -42,25 +42,6 @@ body.auth-locked > #nexora-status-bar {
   <a href="#section-parametres" class="nav-btn" data-section="parametres" onclick="showSection('parametres'); return false;" title="Paramètres" aria-label="Paramètres"><span class="nav-icon">⚙️</span><span class="nav-label">Paramètres</span></a>
 </nav>
 
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
-
-<!-- CUSTOM MODAL -->
-<div class="modal-overlay" id="custom-modal">
-  <div class="modal-card">
-    <div class="modal-header">
-      <h3 class="modal-title">Confirmation</h3>
-      <button class="modal-close" onclick="closeModal()" aria-label="Fermer la boîte de dialogue">&times;</button>
-    </div>
-    <div class="modal-body" id="modal-body-content">Voulez-vous vraiment effectuer cette action ?</div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" id="modal-btn-cancel" onclick="closeModal()">Annuler</button>
-      <button class="btn btn-gold" id="modal-btn-confirm">Confirmer</button>
-    </div>
-    <div id="treasury-timeline-root" style="margin-top:12px;padding:12px"></div>
-  </div>
-</div>
-
 <!-- TREASURY PLANNER PANEL -->
 <div id="treasury-planner-root" style="position:fixed;left:12px;right:12px;bottom:12px;z-index:1200;max-width:720px;margin:0 auto;pointer-events:auto"></div>
 
@@ -258,7 +239,7 @@ body.auth-locked > #nexora-status-bar {
         <section class="cockpit-understanding-card" id="dashboard-understanding-card" data-mode="both" aria-label="Ce que j'ai remarqué">
           <div class="understanding-header">
             <span class="understanding-icon">💡</span>
-            <h3>Ce que j’ai remarqué</h3>
+            <h2>Ce que j’ai remarqué</h2>
           </div>
           <div class="understanding-body">
             <div class="understanding-headline" id="understanding-headline">Tes dépenses essentielles sont couvertes.</div>
@@ -826,7 +807,7 @@ body.auth-locked > #nexora-status-bar {
           <div class="param-label">📅 Période du budget</div>
           <div style="font-size:12px;color:var(--text2);margin-top:4px">Choisis entre le mois civil ou une période de salaire récurrente.</div>
         </div>
-        <select id="budget-cycle-mode" class="budget-cycle-select" onchange="handleBudgetCycleModeChange()">
+        <select id="budget-cycle-mode" class="budget-cycle-select" aria-label="Période du budget" onchange="handleBudgetCycleModeChange()">
           <option value="calendar">Mois civil</option>
           <option value="custom">Période salaire</option>
         </select>
@@ -877,7 +858,7 @@ body.auth-locked > #nexora-status-bar {
           <div class="param-label">Niveau de prudence</div>
           <div style="font-size:12px;color:var(--text2);margin-top:4px">Influence les achats, alertes, scénarios et marges acceptées.</div>
         </div>
-        <select id="ai-caution-level" class="budget-cycle-select" onchange="saveNexoraAiSettingsFromUI()">
+        <select id="ai-caution-level" class="budget-cycle-select" aria-label="Niveau de prudence" onchange="saveNexoraAiSettingsFromUI()">
           <option value="very_cautious">Très prudent</option>
           <option value="cautious">Prudent</option>
           <option value="balanced">Équilibré</option>
@@ -890,7 +871,7 @@ body.auth-locked > #nexora-status-bar {
           <div class="param-label">Priorité principale du coach</div>
           <div style="font-size:12px;color:var(--text2);margin-top:4px">Oriente le conseil du jour et les arbitrages.</div>
         </div>
-        <select id="ai-coach-priority" class="budget-cycle-select" onchange="saveNexoraAiSettingsFromUI()">
+        <select id="ai-coach-priority" class="budget-cycle-select" aria-label="Priorité principale du coach" onchange="saveNexoraAiSettingsFromUI()">
           <option value="security">Sécurité financière</option>
           <option value="savings">Épargne</option>
           <option value="primary_goal">Objectif principal</option>
@@ -904,7 +885,7 @@ body.auth-locked > #nexora-status-bar {
           <div class="param-label">Style de communication</div>
           <div style="font-size:12px;color:var(--text2);margin-top:4px">Adapte le ton des réponses Nexora.</div>
         </div>
-        <select id="ai-communication-style" class="budget-cycle-select" onchange="saveNexoraAiSettingsFromUI()">
+        <select id="ai-communication-style" class="budget-cycle-select" aria-label="Style de communication" onchange="saveNexoraAiSettingsFromUI()">
           <option value="direct">Direct</option>
           <option value="benevolent">Bienveillant</option>
           <option value="professional">Professionnel</option>
@@ -916,7 +897,7 @@ body.auth-locked > #nexora-status-bar {
           <div class="param-label">Fréquence des recommandations</div>
           <div style="font-size:12px;color:var(--text2);margin-top:4px">Contrôle la carte “Conseil du jour” et la mémoire.</div>
         </div>
-        <select id="ai-recommendation-frequency" class="budget-cycle-select" onchange="saveNexoraAiSettingsFromUI()">
+        <select id="ai-recommendation-frequency" class="budget-cycle-select" aria-label="Fréquence des recommandations" onchange="saveNexoraAiSettingsFromUI()">
           <option value="daily">Quotidienne</option>
           <option value="weekly">Hebdomadaire</option>
           <option value="risk_only">Seulement si risque détecté</option>
@@ -1555,7 +1536,7 @@ function getNexoraUxMode() {
 function applyNexoraUxMode(mode = getNexoraUxMode()) {
   const isSimple = mode === 'simple';
   document.body.classList.toggle('mode-simple', isSimple);
-  document.body.classList.toggle('mode-complet', !isSimple);
+  document.body.classList.toggle('mode-complete', !isSimple);
   ['mode-complete-btn', 'home-mode-complete-btn', 'userModeCompleteBtn'].forEach((id) => {
     document.getElementById(id)?.classList.toggle('active', !isSimple);
   });
@@ -2393,8 +2374,7 @@ function readLocalJsonArray(key) {
 
 // --- Modèles enregistrés : handlers minimalistes ---
 function _askConfirm(title, message, onConfirm) {
-  if (typeof customConfirm === 'function') return customConfirm(title, message, onConfirm);
-  if (confirm(message)) onConfirm();
+  return customConfirm(title, message, onConfirm);
 }
 
 async function loadSavedBudgetModels() {
@@ -5352,8 +5332,21 @@ function updateDonutChart(fix, vari, soldeVal, rev) {
   segEpargne.setAttribute('transform', `rotate(${rotEp} 100 100)`);
 }
 
-function showSection(id){
+function getSectionTitle(section) {
+  return section?.querySelector('h1, h2, .budget-block-title') || null;
+}
+
+function prepareVoluntarySectionNavigation(section) {
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  const title = getSectionTitle(section);
+  if (!title) return;
+  if (!title.hasAttribute('tabindex')) title.setAttribute('tabindex', '-1');
+  title.focus({ preventScroll: true });
+}
+
+function showSection(id, options = {}){
   let nextSection = null;
+  const navigationOrigin = options.origin || 'voluntary';
 
   const targetSection = document.getElementById('section-' + id);
   if (!targetSection) {
@@ -5384,6 +5377,10 @@ function showSection(id){
   window.NexoraMotion?.initScrollReveal?.(nextSection);
   if (window.NexoraCore?.setNexoraCoreMotionActive) {
     window.NexoraCore.setNexoraCoreMotionActive(id === 'dashboard');
+  }
+
+  if (navigationOrigin === 'voluntary') {
+    prepareVoluntarySectionNavigation(nextSection);
   }
 
   const nextHash = '#section-' + id;
@@ -7670,9 +7667,9 @@ window.initLegacyBudgetUi = () => {
       const currentSection = window.location.hash.replace('#section-', '');
       const activeSectionEl = document.querySelector('.section.active');
       if (currentSection) {
-        showSection(currentSection);
+        showSection(currentSection, { origin: 'restore' });
       } else if (!activeSectionEl) {
-        showSection('dashboard');
+        showSection('dashboard', { origin: 'restore' });
       }
     };
     if (document.readyState === 'complete') applyInitialSection();
@@ -7683,7 +7680,7 @@ window.initLegacyBudgetUi = () => {
 
 window.addEventListener('hashchange', () => {
   const section = window.location.hash.replace('#section-', '');
-  if (section) showSection(section);
+  if (section) showSection(section, { origin: 'history' });
 });
 
 // Service Worker Registration for PWA Installation

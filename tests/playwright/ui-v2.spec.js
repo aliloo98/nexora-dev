@@ -73,8 +73,9 @@ test.describe('Nexora UI V2 catalogue', () => {
 
       const toastTrigger = page.locator('#nx-catalog-show-toast')
       await toastTrigger.click()
-      const toast = page.locator('.nx-toast[role="status"]')
+      const toast = page.locator('.nx-toast')
       await expect(toast).toContainText('Les préférences ont été enregistrées.')
+      await expect(page.locator('.nx-toast-region')).toHaveAttribute('role', 'status')
       await expect(page.locator('.nx-toast-region')).toHaveAttribute('aria-live', 'polite')
       await toast.getByRole('button', { name: 'Fermer la notification' }).click()
       await expect(toast).toHaveCount(0)

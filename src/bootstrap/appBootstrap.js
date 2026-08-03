@@ -44,7 +44,6 @@ export async function bootstrapApplication(dependencies) {
     NexoraMotion,
     renderCoupleSection,
     renderAssistantCard,
-    renderTreasuryTimeline,
     renderDashboardMaster,
     refreshDashboardCoach,
 
@@ -157,10 +156,9 @@ export async function bootstrapApplication(dependencies) {
   })
 
   // ========================================
-  // PHASE 10: ADVANCED UI (Steps 25-27)
+  // PHASE 10: ADVANCED UI (Steps 25-26)
   // ========================================
   await renderAdvancedApplicationUi({
-    renderTreasuryTimeline,
     renderDashboardMaster,
     refreshDashboardCoach,
     documentRef

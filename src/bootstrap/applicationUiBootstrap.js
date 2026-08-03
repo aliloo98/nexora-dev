@@ -13,7 +13,6 @@
  * @param {Function} dependencies.updateCoupleNavigation - Function to update Couple nav
  * @param {Function} dependencies.renderCoupleSection - Function to render Couple section
  * @param {Function} dependencies.renderAssistantCard - Function to render assistant card
- * @param {Function} dependencies.renderTreasuryTimeline - Function to render treasury timeline
  * @param {Function} dependencies.renderDashboardMaster - Function to render dashboard master
  * @param {Function} dependencies.refreshDashboardCoach - Function to refresh dashboard coach
  * @param {Object} dependencies.documentRef - Document reference
@@ -97,35 +96,15 @@ export async function renderAssistant({
 }
 
 /**
- * Steps 25-27: Render advanced application UI (Treasury, Dashboard, Advisor)
+ * Steps 25-26: Render advanced application UI (Dashboard, Advisor)
  */
 export async function renderAdvancedApplicationUi({
-  renderTreasuryTimeline,
   renderDashboardMaster,
   refreshDashboardCoach,
   documentRef = document
 }) {
   try {
-    // Step 25: Render treasury timeline if container exists
-    if (typeof renderTreasuryTimeline === 'function' && documentRef.getElementById('treasury-timeline-root')) {
-      const sampleRevenues = [{ amount: 1700, frequency: 'monthly', day: 5 }]
-      const sampleCharges = [
-        { amount: 65, date: '2026-05-29', title: 'Internet', priority: 'importante' },
-        { amount: 850, date: 2, title: 'Loyer', priority: 'critique' }
-      ]
-      const TreasuryService = (await import('../treasury/treasuryService.js')).default
-      const { timeline } = TreasuryService.buildTimeline({
-        baseBalance: 2085,
-        revenues: sampleRevenues,
-        charges: sampleCharges,
-        fromDate: new Date('2026-05-28'),
-        days: 14
-      })
-      renderTreasuryTimeline('treasury-timeline-root', timeline)
-      window.NexoraMotion?.animateTimeline?.(documentRef.getElementById('treasury-timeline-root'))
-    }
-
-    // Step 26: Render Dashboard Master component if present
+    // Step 25: Render Dashboard Master component if present
     if (
       typeof renderDashboardMaster === 'function'
       && documentRef.getElementById('dashboard-master-root')
@@ -134,13 +113,13 @@ export async function renderAdvancedApplicationUi({
       await refreshDashboardCoach()
     }
 
-    // Step 27: Render Advisor UI
+    // Step 26: Render Advisor UI
     if (documentRef.getElementById('advisor-root')) {
       const { renderAdvisorUI } = await import('../advisor/AdvisorUI.js')
       const AdvisorService = (await import('../advisor/advisorService.js')).default
       renderAdvisorUI('advisor-root', AdvisorService)
     }
   } catch (err) {
-    console.warn('[Treasury] render failed', err)
+    console.warn('[Advanced UI] render failed', err)
   }
 }

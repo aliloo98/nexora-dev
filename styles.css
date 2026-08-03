@@ -1757,7 +1757,7 @@ body.mode-simple [data-mode="complete"] {
   display: none !important;
 }
 
-body.mode-complet [data-mode="simple"] {
+body.mode-complete [data-mode="simple"] {
   display: none !important;
 }
 
@@ -2192,7 +2192,7 @@ body.mode-simple .dashboard-secondary-kpis {
   font-weight: 600;
 }
 
-body.mode-complet .simple-dashboard-grid {
+body.mode-complete .simple-dashboard-grid {
   display: none;
 }
 
@@ -2281,13 +2281,13 @@ body.mode-simple .simple-dashboard-grid {
 /* Desktop layout: argent restant full width, entrant/sortant side by side */
 @media (min-width: 640px) {
   body.mode-simple .simple-dashboard-grid,
-  body.mode-complet .simple-dashboard-grid {
+  body.mode-complete .simple-dashboard-grid {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto auto;
   }
 
   body.mode-simple .simple-card--primary,
-  body.mode-complet .simple-card--primary {
+  body.mode-complete .simple-card--primary {
     grid-column: 1 / -1;
   }
 }
@@ -4279,40 +4279,6 @@ body.has-unsaved-budget-changes .save-bar-spacer {
   transform: translateY(0);
 }
 
-/* TOAST */
-.toast {
-  position: fixed;
-  top: 32px;
-  right: 32px;
-  max-width: calc(100vw - 32px);
-  background: var(--bg3);
-  border: 1px solid var(--gold);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 20px var(--gold-glow);
-  color: var(--text);
-  padding: 16px 24px;
-  border-radius: 14px;
-  font-size: 14px;
-  font-weight: 600;
-  z-index: 999;
-  transform: translateX(150%);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s, visibility 0.3s;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  white-space: normal;
-  word-break: break-word;
-}
-
-.toast.show {
-  transform: translateX(0);
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
 /* HISTORIQUE */
 .history-grid {
   display: grid;
@@ -6113,20 +6079,6 @@ body.mode-demo .settings-page-header::after {
   .save-bar .btn-gold {
     flex: 1 1 auto;
     max-width: none;
-  }
-
-  .toast {
-    left: 16px;
-    right: 16px;
-    top: calc(12px + env(safe-area-inset-top, 0px));
-    max-width: calc(100vw - 32px);
-    padding: 12px 14px;
-    transform: translateY(-140%);
-    width: auto;
-  }
-
-  .toast.show {
-    transform: translateY(0);
   }
 
   #section-parametres {
@@ -13099,7 +13051,7 @@ body {
   font-size: 1rem;
 }
 
-.understanding-header h3 {
+.understanding-header h2 {
   font-size: 0.92rem;
   font-weight: 700;
   color: #34d399;

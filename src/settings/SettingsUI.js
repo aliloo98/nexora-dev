@@ -2,7 +2,7 @@ import { SettingsService } from './settingsService.js'
 import { CoupleService } from '../couple/coupleService.js'
 import AuthContext from '../auth/authContext.js'
 import { createActiveCoupleModeCard, createBillScheduleCard, createRecurringIncomeCard } from './settingsMarkup.js'
-import { showToast } from '../../js/utils.js'
+import { customConfirm, showToast } from '../../js/utils.js'
 import { OnboardingService } from '../onboarding/onboardingService.js'
 
 const formatCurrency = (value) => {
@@ -59,11 +59,15 @@ export async function renderOnboardingSettings() {
   `
 
   root.querySelector('#reset-onboarding-btn')?.addEventListener('click', async () => {
-    const ok = window.confirm('Voulez-vous relancer l\'onboarding ? Cela réinitialisera votre progression.')
-    if (!ok) return
-    await OnboardingService.reset()
-    await renderOnboardingSettings()
-    showToast('Onboarding relancé')
+    customConfirm(
+      'Relancer l’onboarding',
+      'Voulez-vous relancer l’onboarding ? Cela réinitialisera votre progression.',
+      async () => {
+        await OnboardingService.reset()
+        await renderOnboardingSettings()
+        showToast('Onboarding relancé')
+      }
+    )
   })
 }
 
@@ -170,24 +174,32 @@ export async function renderCoupleModeSettings() {
       window.showSection?.('couple')
     })
     root.querySelector('#disable-couple-btn')?.addEventListener('click', async () => {
-      const ok = window.confirm('Quitter le foyer ? Vos données privées resteront intactes.')
-      if (!ok) return
-      CoupleService.leaveLocalHousehold()
-      await renderCoupleModeSettings()
-      if (typeof window.updateCoupleNavigation === 'function') {
-        await window.updateCoupleNavigation()
-      }
-      showToast('Mode couple désactivé')
+      customConfirm(
+        'Quitter le foyer',
+        'Quitter le foyer ? Vos données privées resteront intactes.',
+        async () => {
+          CoupleService.leaveLocalHousehold()
+          await renderCoupleModeSettings()
+          if (typeof window.updateCoupleNavigation === 'function') {
+            await window.updateCoupleNavigation()
+          }
+          showToast('Mode couple désactivé')
+        }
+      )
     })
     root.querySelector('#dissolve-couple-btn')?.addEventListener('click', async () => {
-      const ok = window.confirm('Dissoudre le foyer ? Les données privées resteront intactes.')
-      if (!ok) return
-      CoupleService.dissolveLocalHousehold()
-      await renderCoupleModeSettings()
-      if (typeof window.updateCoupleNavigation === 'function') {
-        await window.updateCoupleNavigation()
-      }
-      showToast('Foyer dissous localement')
+      customConfirm(
+        'Dissoudre le foyer',
+        'Dissoudre le foyer ? Les données privées resteront intactes.',
+        async () => {
+          CoupleService.dissolveLocalHousehold()
+          await renderCoupleModeSettings()
+          if (typeof window.updateCoupleNavigation === 'function') {
+            await window.updateCoupleNavigation()
+          }
+          showToast('Foyer dissous localement')
+        }
+      )
     })
     return
   }

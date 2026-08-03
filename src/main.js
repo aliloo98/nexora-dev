@@ -37,7 +37,6 @@ import { STORAGE_KEYS } from './constants/storageKeys.js'
 import { renderAssistantCard } from './components/AssistantCard.js'
 import CoupleUIComponent from './couple/coupleUIComponent.js'
 import { CoupleService } from './couple/coupleService.js'
-import { renderTreasuryTimeline } from './components/TreasuryTimeline.js'
 import './styles/design-system.css'
 import './ui/index.css'
 import { renderDashboardMaster } from './components/DashboardMaster.js'
@@ -328,7 +327,6 @@ const initApp = async () => {
       NexoraMotion,
       renderCoupleSection: window.renderCoupleSection,
       renderAssistantCard,
-      renderTreasuryTimeline,
       renderDashboardMaster,
       refreshDashboardCoach: window.refreshDashboardCoach,
 

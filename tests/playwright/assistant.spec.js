@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Assistant E2E', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://127.0.0.1:5180/#section-dashboard');
+    await page.goto('http://127.0.0.1:5180/#section-dashboard', { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 });
     await page.click('#loginDemoBtn');
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 });
@@ -31,7 +31,7 @@ test.describe('Assistant E2E', () => {
 
 test.describe('Dashboard visual hierarchy', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://127.0.0.1:5180/#section-dashboard');
+    await page.goto('http://127.0.0.1:5180/#section-dashboard', { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 });
     await page.click('#loginDemoBtn');
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 });
@@ -44,7 +44,7 @@ test.describe('Dashboard visual hierarchy', () => {
   test('keeps Quick View focused on secondary indicators', async ({ page }) => {
     const assertQuickViewIsIndicatorsOnly = async (width) => {
       await page.setViewportSize({ width, height: 844 });
-      await page.goto('http://127.0.0.1:5180/#section-dashboard');
+      await page.goto('http://127.0.0.1:5180/#section-dashboard', { waitUntil: 'domcontentloaded' });
       await page.waitForSelector('.cockpit-hero-v4', { state: 'visible', timeout: 20000 });
 
       const layout = await page.evaluate(() => {
@@ -131,7 +131,7 @@ test.describe('Premium application coherence', () => {
   test('keeps every product surface coherent at the five target widths', async ({ page }) => {
     test.setTimeout(90000);
 
-    await page.goto('http://127.0.0.1:5180/');
+    await page.goto('http://127.0.0.1:5180/', { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 });
     await page.click('#loginDemoBtn');
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 });
@@ -149,7 +149,7 @@ test.describe('Premium application coherence', () => {
         await expect(navButton.first()).toBeVisible({ timeout: 30000 });
         await navButton.first().click();
       } else {
-        await page.goto(`http://127.0.0.1:5180/#section-${section}`);
+        await page.goto(`http://127.0.0.1:5180/#section-${section}`, { waitUntil: 'domcontentloaded' });
       }
 
       await page.waitForFunction((sectionId) => {
@@ -183,41 +183,42 @@ test.describe('Premium application coherence', () => {
 
     for (const width of targetWidths) {
       await page.setViewportSize({ width, height: width <= 390 ? 844 : 1000 });
-      await page.goto('http://127.0.0.1:5180/#section-dashboard');
+      await page.goto('http://127.0.0.1:5180/#section-dashboard', { waitUntil: 'domcontentloaded' });
 
       for (const section of navSections) {
         await assertSectionLayout(section);
       }
 
       for (const section of visibleLinkedSections) {
-        await page.goto(`http://127.0.0.1:5180/#section-${section}`);
+        await page.goto(`http://127.0.0.1:5180/#section-${section}`, { waitUntil: 'domcontentloaded' });
         await assertSectionLayout(section);
       }
     }
 
     await expect(page.locator('#section-objectifs .premium-field')).toHaveCount(6);
-    await page.goto('http://127.0.0.1:5180/#section-dettes');
+    await page.goto('http://127.0.0.1:5180/#section-dettes', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#section-dettes .premium-field')).toHaveCount(5);
-    await page.goto('http://127.0.0.1:5180/#section-plan');
+    await page.goto('http://127.0.0.1:5180/#section-plan', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#section-plan .plan-create-form .premium-field')).toHaveCount(5);
 
-    await page.goto('http://127.0.0.1:5180/#section-historique');
+    await page.goto('http://127.0.0.1:5180/#section-historique', { waitUntil: 'domcontentloaded' });
     const emptyHistory = page.locator('#history-grid > p:only-child');
     await expect(emptyHistory).toBeVisible();
     expect(await emptyHistory.evaluate((node) => node.getBoundingClientRect().height)).toBeGreaterThanOrEqual(180);
 
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('http://127.0.0.1:5180/#section-parametres');
+    await page.goto('http://127.0.0.1:5180/#section-parametres', { waitUntil: 'domcontentloaded' });
     const resetButton = page.getByRole('button', { name: 'Réinitialiser', exact: true });
     await resetButton.scrollIntoViewIfNeeded();
     await resetButton.click();
-    const modal = page.locator('#custom-modal .modal-card');
+    const modal = page.getByRole('dialog', { name: 'Réinitialiser le mois' });
     await expect(modal).toBeVisible();
     const modalBox = await modal.boundingBox();
     expect(modalBox?.width).toBeLessThanOrEqual(390 - 28);
-    await page.locator('#custom-modal .modal-close').focus();
-    await expect(page.locator('#custom-modal .modal-close')).toBeFocused();
-    expect(await page.locator('#custom-modal .modal-close').evaluate((node) => parseFloat(getComputedStyle(node).outlineWidth))).toBeGreaterThanOrEqual(2);
-    await page.locator('#modal-btn-cancel').click();
+    const closeButton = modal.getByRole('button', { name: 'Fermer la boîte de dialogue' });
+    await closeButton.focus();
+    await expect(closeButton).toBeFocused();
+    expect(await closeButton.evaluate((node) => parseFloat(getComputedStyle(node).outlineWidth))).toBeGreaterThanOrEqual(2);
+    await modal.getByRole('button', { name: 'Annuler' }).click();
   });
 });

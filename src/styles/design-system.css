@@ -241,16 +241,6 @@ textarea:focus {
   letter-spacing: 0.03em;
 }
 
-.toast {
-  background: var(--nx-surface-raised);
-  border: 1px solid rgba(229, 192, 96, 0.3);
-  border-radius: var(--nx-radius-md);
-  box-shadow: var(--nx-shadow);
-  font-size: var(--nx-type-body);
-  line-height: var(--nx-line-body);
-  padding: 14px 16px;
-}
-
 .modal-overlay {
   background: rgba(3, 3, 7, 0.82);
 }

@@ -123,14 +123,14 @@ export const NavigationMiddleware = {
     // Intercept existing showSection function
     if (window.showSection) {
       const originalShowSection = window.showSection
-      window.showSection = function(sectionName) {
+      window.showSection = function(sectionName, options) {
 
         if (!RouteGuard.navigateTo(sectionName)) {
           return false
         }
 
         // Call original showSection
-        return originalShowSection.call(this, sectionName)
+        return originalShowSection.call(this, sectionName, options)
       }
     }
 
@@ -197,7 +197,7 @@ export const AuthStateSync = {
 
       // Show dashboard or requested section from hash
       const targetSection = window.location.hash.replace('#section-', '') || 'dashboard'
-      window.showSection(targetSection)
+      window.showSection(targetSection, { origin: 'restore' })
     } else {
       // User logged out or app initialized without user
 

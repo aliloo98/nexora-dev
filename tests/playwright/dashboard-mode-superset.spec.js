@@ -25,7 +25,7 @@ test.describe('Dashboard Mode Superset', () => {
   test('mode complet displays advanced KPIs and hides simple cards', async ({ page }) => {
     // Switch to complete mode
     await page.evaluate(() => window.setNexoraUxMode('complete'));
-    await expect(page.locator('body')).toHaveClass(/mode-complet/);
+    await expect(page.locator('body')).toHaveClass(/mode-complete/);
 
     // Verify advanced elements in complete zone are visible
     await expect(page.locator('.cockpit-complete-zone')).toBeVisible();
@@ -34,7 +34,7 @@ test.describe('Dashboard Mode Superset', () => {
   test('mode complet displays all advanced elements not present in simple mode', async ({ page }) => {
     // Switch to complete mode
     await page.evaluate(() => window.setNexoraUxMode('complete'));
-    await expect(page.locator('body')).toHaveClass(/mode-complet/);
+    await expect(page.locator('body')).toHaveClass(/mode-complete/);
 
     // Verify both hero and complete zone are visible
     await expect(page.locator('.cockpit-hero-v4')).toBeVisible();
@@ -63,7 +63,7 @@ test.describe('Dashboard Mode Superset', () => {
 
     // Switch to complete mode
     await page.evaluate(() => window.setNexoraUxMode('complete'));
-    await expect(page.locator('body')).toHaveClass(/mode-complet/);
+    await expect(page.locator('body')).toHaveClass(/mode-complete/);
     await expect(page.locator('.cockpit-complete-zone')).toBeVisible();
 
     // Switch back to simple mode

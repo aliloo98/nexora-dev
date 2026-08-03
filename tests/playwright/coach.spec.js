@@ -24,7 +24,7 @@ test.describe('Nexora Coach Dashboard pilot', () => {
     await expect(page.locator('#dashboard-master-root .nx-coach-card__action')).toHaveCount(1)
 
     await page.evaluate(() => window.setNexoraUxMode('complete'))
-    await expect(page.locator('body')).toHaveClass(/mode-complet/)
+    await expect(page.locator('body')).toHaveClass(/mode-complete/)
     await expect(coachCard).toBeVisible()
     await expect(page.locator('#dashboard-master-root .nx-coach-card__action')).toHaveCount(1)
   })
