@@ -35,6 +35,19 @@ const makeDate = (year, month, day) => {
   }
 }
 
+const formatLocalDateKey = (value) => {
+  if (!(value instanceof Date) || !Number.isFinite(value.getTime())) {
+    return parseDateOnly(value, 'asOf').dateKey
+  }
+  return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`
+}
+
+const shiftMonthKey = (monthKey, offset) => {
+  const { year, month } = parseMonthKey(monthKey)
+  const shifted = new Date(Date.UTC(year, month - 1 + offset, 1))
+  return `${shifted.getUTCFullYear()}-${pad(shifted.getUTCMonth() + 1)}`
+}
+
 /**
  * Reproduit le cycle calendrier/personnalisé historique avec une horloge injectée.
  * Hors de la période sélectionnée, elapsedDays reste égal à totalDays, comme
@@ -84,4 +97,26 @@ export function computeBudgetCycle({
   }
 }
 
-export default { computeBudgetCycle, daysInMonth }
+/**
+ * Résout la clé du cycle budgétaire qui contient la date locale courante.
+ * La clé d'un cycle personnalisé correspond à son mois de fin, conformément
+ * à computeBudgetCycle() et au sélecteur historique de Nexora.
+ */
+export function resolveActiveBudgetMonth({ settings = {}, asOf = new Date() } = {}) {
+  const dateKey = formatLocalDateKey(asOf)
+  const calendarMonth = dateKey.slice(0, 7)
+  if (settings?.mode !== 'custom') return calendarMonth
+
+  const candidates = [-1, 0, 1].map(offset => shiftMonthKey(calendarMonth, offset))
+  const matchingMonth = candidates.find(monthKey => {
+    const cycle = computeBudgetCycle({ monthKey, settings, asOf: dateKey })
+    return dateKey >= cycle.start && dateKey <= cycle.end
+  })
+
+  // Some legacy custom configurations can leave days outside every explicit
+  // range (for example 10 -> 20). Keep those days attached to their calendar
+  // month instead of inventing a parallel cycle rule.
+  return matchingMonth || calendarMonth
+}
+
+export default { computeBudgetCycle, daysInMonth, resolveActiveBudgetMonth }

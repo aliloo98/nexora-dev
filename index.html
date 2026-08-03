@@ -135,7 +135,7 @@ body.auth-locked > #nexora-status-bar {
           <option value="2026-02">Février 2026</option>
           <option value="2026-03">Mars 2026</option>
           <option value="2026-04">Avril 2026</option>
-          <option value="2026-05" selected>Mai 2026</option>
+          <option value="2026-05">Mai 2026</option>
           <option value="2026-06">Juin 2026</option>
           <option value="2026-07">Juillet 2026</option>
           <option value="2026-08">Août 2026</option>
@@ -1389,6 +1389,43 @@ function ensureMonthOption(month) {
     .forEach(item => select.appendChild(item));
 }
 
+let currentBudgetMonthInitialization = null;
+
+function initializeCurrentBudgetMonth() {
+  const ownerId = getCurrentStorageOwnerId() || 'anonymous';
+  if (currentBudgetMonthInitialization?.ownerId === ownerId) {
+    return currentBudgetMonthInitialization.promise;
+  }
+
+  const promise = (async () => {
+    initBudgetCycleSettings();
+    await syncBudgetCycleSettingsFromCloud({ update: false });
+
+    const resolver = window.NexoraCycleBalance?.resolveActiveBudgetMonth;
+    if (typeof resolver !== 'function') {
+      throw new Error('Budget cycle resolver unavailable during month initialization');
+    }
+
+    const month = resolver({
+      settings: readBudgetCycleSettings(),
+      asOf: new Date()
+    });
+    const select = document.getElementById('monthSelect');
+    ensureMonthOption(month);
+    select.value = month;
+    applyBudgetCycleLabels();
+    return month;
+  })();
+
+  currentBudgetMonthInitialization = { ownerId, promise };
+  promise.catch(() => {
+    if (currentBudgetMonthInitialization?.promise === promise) {
+      currentBudgetMonthInitialization = null;
+    }
+  });
+  return promise;
+}
+
 function applyBudgetCycleLabels() {
   const select = document.getElementById('monthSelect');
   if (select) {
@@ -1885,6 +1922,7 @@ function handleBudgetCycleModeChange() {
 
 window.refreshBudgetCycleSettingsUI = refreshBudgetCycleSettingsUI;
 window.syncBudgetCycleSettingsFromCloud = syncBudgetCycleSettingsFromCloud;
+window.initializeCurrentBudgetMonth = initializeCurrentBudgetMonth;
 
 function navigateBudgetMonth(offset) {
   const nextMonth = monthShift(getMonth(), offset);
@@ -7607,8 +7645,7 @@ window.initLegacyBudgetUi = () => {
     // Initialize app only after the modern entry point has resolved authentication.
     loadPersonalization();
     updateSaveBarSpacer();
-    initBudgetCycleSettings();
-    await syncBudgetCycleSettingsFromCloud({ update: false });
+    await initializeCurrentBudgetMonth();
     installMonthlyHistorySnapshotHook();
     applyNexoraUxMode();
     applyNexoraDemoMode();

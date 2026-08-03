@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict'
-import { computeBudgetCycle } from './budgetCycle.js'
+import { computeBudgetCycle, resolveActiveBudgetMonth } from './budgetCycle.js'
 
 const calendar = computeBudgetCycle({
   monthKey: '2026-07',
@@ -51,6 +51,37 @@ assert.throws(
 assert.throws(
   () => computeBudgetCycle({ monthKey: '2026-07' }),
   /asOf/
+)
+
+assert.equal(
+  resolveActiveBudgetMonth({ settings: { mode: 'calendar' }, asOf: '2026-08-03' }),
+  '2026-08',
+  'calendar mode should select the current calendar month'
+)
+assert.equal(
+  resolveActiveBudgetMonth({ settings: { mode: 'calendar' }, asOf: new Date(2026, 7, 3, 0, 30) }),
+  '2026-08',
+  'Date instances should use the local calendar day without a UTC month shift'
+)
+assert.equal(
+  resolveActiveBudgetMonth({ settings: { mode: 'custom', startDay: 28, endDay: 27 }, asOf: '2026-08-03' }),
+  '2026-08',
+  'a cross-month cycle should use its ending month as the budget key'
+)
+assert.equal(
+  resolveActiveBudgetMonth({ settings: { mode: 'custom', startDay: 28, endDay: 27 }, asOf: '2026-08-28' }),
+  '2026-09',
+  'the first day of the next custom cycle should select its ending month'
+)
+assert.equal(
+  resolveActiveBudgetMonth({ settings: { mode: 'custom', startDay: 28, endDay: 27 }, asOf: '2026-12-28' }),
+  '2027-01',
+  'custom cycle resolution should cross year boundaries'
+)
+assert.equal(
+  resolveActiveBudgetMonth({ settings: { mode: 'custom', startDay: 10, endDay: 20 }, asOf: '2026-08-25' }),
+  '2026-08',
+  'legacy custom gaps should fall back to the current calendar month'
 )
 
 console.log('budgetCycle-tests: OK')

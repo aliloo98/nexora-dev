@@ -90,6 +90,10 @@ export const AuthContext = {
   _syncSupabaseToLocalAfterLogin() {
     setTimeout(async () => {
       try {
+        const initializeCurrentBudgetMonth = window.initializeCurrentBudgetMonth
+        if (typeof initializeCurrentBudgetMonth === 'function') {
+          await initializeCurrentBudgetMonth()
+        }
         if (typeof window.loadMonth === 'function') await window.loadMonth()
         if (typeof window.buildHistory === 'function') window.buildHistory()
         if (typeof window.updateAll === 'function') window.updateAll()

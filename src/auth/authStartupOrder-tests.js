@@ -3,6 +3,7 @@ import fs from 'node:fs'
 
 const html = fs.readFileSync(new URL('../../index.html', import.meta.url), 'utf8')
 const mainSource = fs.readFileSync(new URL('../main.js', import.meta.url), 'utf8')
+const authContextSource = fs.readFileSync(new URL('./authContext.js', import.meta.url), 'utf8')
 
 assert.doesNotMatch(
   html,
@@ -18,6 +19,27 @@ assert.match(
   html,
   /if \(legacyBudgetUiInitPromise\) return legacyBudgetUiInitPromise/,
   'legacy initialization should be idempotent across initial auth and sign-in events'
+)
+const monthSelectMarkup = html.match(/<select id="monthSelect"[\s\S]*?<\/select>/)?.[0] || ''
+assert.doesNotMatch(
+  monthSelectMarkup,
+  /<option[^>]+selected[^>]*>/,
+  'startup month selection must not come from a stale static HTML option'
+)
+assert.match(
+  html,
+  /await initializeCurrentBudgetMonth\(\);[\s\S]*await loadMonth\(\);/,
+  'legacy startup should resolve the current budget cycle before loading its snapshot'
+)
+
+const currentMonthInitIndex = authContextSource.indexOf('await initializeCurrentBudgetMonth()')
+const firstAuthLoadMonthIndex = authContextSource.indexOf('await window.loadMonth()', currentMonthInitIndex)
+assert.notEqual(currentMonthInitIndex, -1, 'session restore should initialize the current budget month')
+assert.notEqual(firstAuthLoadMonthIndex, -1, 'session restore should still refresh the monthly snapshot')
+assert.equal(
+  firstAuthLoadMonthIndex > currentMonthInitIndex,
+  true,
+  'session restore must select the current budget month before its first snapshot read'
 )
 
 const authInitIndex = mainSource.indexOf('await initAuthRouting()')

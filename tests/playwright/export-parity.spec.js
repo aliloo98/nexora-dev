@@ -22,12 +22,13 @@ test.describe('Budget source parity and premium exports', () => {
   test.use({ viewport: { width: 1440, height: 1000 }, serviceWorkers: 'block' });
 
   test.beforeEach(async ({ page }) => {
+    await page.clock.setFixedTime(new Date('2026-08-03T10:00:00+02:00'));
     await page.addInitScript(({ user, session }) => {
       localStorage.setItem('nexora_auth_user', JSON.stringify(user));
       localStorage.setItem('nexora_auth_session', JSON.stringify(session));
       sessionStorage.setItem('nexora_auth_user', JSON.stringify(user));
       sessionStorage.setItem('nexora_auth_session', JSON.stringify(session));
-      localStorage.setItem('budget_export_trace_user_2026-05', JSON.stringify({
+      localStorage.setItem('budget_export_trace_user_2026-08', JSON.stringify({
         rev_ali: '1800',
         rev_megane: '1300',
         loyer: '700',
