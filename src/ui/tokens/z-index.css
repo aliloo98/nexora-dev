@@ -2,7 +2,7 @@
   --nx-z-content: 0;
   --nx-z-sticky: 20;
   --nx-z-dropdown: 40;
-  --nx-z-backdrop: 100;
-  --nx-z-modal: 110;
-  --nx-z-toast: 120;
+  --nx-z-backdrop: 1300;
+  --nx-z-modal: 1310;
+  --nx-z-toast: 1320;
 }

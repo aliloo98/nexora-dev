@@ -31,7 +31,7 @@ export function createModal(options = {}, documentRef) {
   const titleId = options.titleId || createId('nx-modal-title')
   const descriptionId = options.description ? (options.descriptionId || createId('nx-modal-description')) : null
   const overlay = document.createElement('div')
-  overlay.className = 'nx-modal'
+  overlay.className = 'nx-modal nx-scope'
   overlay.hidden = true
   overlay.setAttribute('aria-hidden', 'true')
 
@@ -84,6 +84,7 @@ export function createModal(options = {}, documentRef) {
 
   let open = false
   let previousFocus = null
+  let closeOnBackdrop = options.closeOnBackdrop !== false
   let removeDocumentKeydown = () => {}
 
   const close = (reason = 'programmatic') => {
@@ -123,9 +124,10 @@ export function createModal(options = {}, documentRef) {
     }
   }
 
-  const show = () => {
+  const show = (openOptions = {}) => {
     if (open) return
     open = true
+    closeOnBackdrop = openOptions.closeOnBackdrop ?? (options.closeOnBackdrop !== false)
     previousFocus = document.activeElement
     overlay.hidden = false
     overlay.setAttribute('aria-hidden', 'false')
@@ -141,7 +143,7 @@ export function createModal(options = {}, documentRef) {
 
   listen(closeButton, 'click', () => close('close-button'))
   listen(overlay, 'pointerdown', (event) => {
-    if (event.target !== overlay || options.closeOnBackdrop === false) return
+    if (event.target !== overlay || !closeOnBackdrop) return
     close('backdrop')
   })
 

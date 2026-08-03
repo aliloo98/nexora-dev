@@ -431,6 +431,10 @@
   z-index: var(--nx-z-backdrop);
 }
 
+.nx-modal[hidden] {
+  display: none;
+}
+
 .nx-modal__dialog {
   background: var(--nx-color-surface-2);
   border: 1px solid var(--nx-color-border-strong);
@@ -480,6 +484,7 @@
 }
 
 .nx-toast-region {
+  background: transparent;
   display: grid;
   gap: var(--nx-space-xs);
   inline-size: min(calc(100% - (2 * var(--nx-space-md))), var(--nx-toast-max-width));

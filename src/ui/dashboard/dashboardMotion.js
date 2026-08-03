@@ -100,6 +100,13 @@ const runAnimation = (element, keyframes, options) => {
 
 const isRendered = (element) => Boolean(element && element.getClientRects().length)
 
+const cancelElementAnimations = (element) => {
+  element.getAnimations?.().forEach((animation) => {
+    animation.cancel()
+    activeAnimations.delete(animation)
+  })
+}
+
 export function animateDashboardEnter(container) {
   const dashboard = resolveDashboard(container)
   if (!dashboard) return
@@ -128,6 +135,7 @@ export function animateDashboardEnter(container) {
     const targets = selectors
       .map((selector) => dashboard.querySelector(selector))
       .filter(isRendered)
+    targets.forEach(cancelElementAnimations)
     const animations = targets
       .map((element, index) => runAnimation(element, [
         { opacity: 0.72, transform: 'translate3d(0, 6px, 0)' },

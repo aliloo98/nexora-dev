@@ -11,9 +11,11 @@ export function createToastRegion(options = {}, documentRef) {
   const document = getDocument(documentRef)
   const scheduler = options.scheduler || globalThis
   const region = document.createElement('section')
-  region.className = 'nx-toast-region'
+  region.className = 'nx-toast-region nx-scope'
   region.setAttribute('aria-label', options.ariaLabel || 'Notifications')
+  region.setAttribute('role', 'status')
   region.setAttribute('aria-live', 'polite')
+  region.setAttribute('aria-atomic', 'false')
   region.setAttribute('aria-relevant', 'additions text')
   ;(options.mount || document.body).appendChild(region)
 
@@ -47,15 +49,28 @@ export function createToastRegion(options = {}, documentRef) {
     const duration = Number.isFinite(Number(toastOptions.duration))
       ? Math.max(0, Number(toastOptions.duration))
       : 5000
+    const messageText = String(toastOptions.message || '')
+    const duplicate = Array.from(active.values()).find((entry) => (
+      entry.message === messageText && entry.tone === tone
+    ))
+    if (duplicate) {
+      duplicate.duration = duration
+      schedule(duplicate)
+      return {
+        id: duplicate.id,
+        element: duplicate.element,
+        dismiss: (reason) => dismiss(duplicate.id, reason)
+      }
+    }
+
     const id = toastOptions.id || createId('nx-toast')
     const toast = document.createElement('article')
     toast.className = `nx-toast nx-toast--${tone}`
-    toast.setAttribute('role', tone === 'danger' ? 'alert' : 'status')
     toast.setAttribute('data-toast-id', id)
 
     const message = document.createElement('p')
     message.className = 'nx-toast__message'
-    setText(message, toastOptions.message || '')
+    setText(message, messageText)
     toast.appendChild(message)
 
     const actions = document.createElement('div')
@@ -84,6 +99,8 @@ export function createToastRegion(options = {}, documentRef) {
     const entry = {
       id,
       element: toast,
+      message: messageText,
+      tone,
       duration,
       timer: null,
       onDismiss: toastOptions.onDismiss

@@ -137,7 +137,6 @@ export function installLegacyBridge(dependencies) {
   window.OnboardingService = OnboardingService
 
   // Expose helper functions (for HTML onclick handlers)
-  window.showToast = (msg) => Utils.showToast(msg)
-  window.closeModal = () => Utils.closeModal()
-  window.customConfirm = (title, message, onConfirm) => Utils.customConfirm(title, message, onConfirm)
+  window.showToast = (msg, options) => Utils.showToast(msg, options)
+  window.customConfirm = (title, message, onConfirm, options) => Utils.customConfirm(title, message, onConfirm, options)
 }

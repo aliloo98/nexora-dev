@@ -7,14 +7,20 @@ const scheduler = createTestScheduler()
 const dismissReasons = []
 const region = createToastRegion({ scheduler }, documentRef)
 
+assert.equal(region.element.getAttribute('role'), 'status')
 assert.equal(region.element.getAttribute('aria-live'), 'polite')
+assert.equal(region.element.getAttribute('aria-atomic'), 'false')
+const focusKeeper = documentRef.createElement('button')
+documentRef.body.appendChild(focusKeeper)
+focusKeeper.focus()
 const first = region.show({
   message: 'Budget enregistré',
   tone: 'success',
   duration: 4000,
   onDismiss: (reason) => dismissReasons.push(reason)
 })
-assert.equal(first.element.getAttribute('role'), 'status')
+assert.equal(first.element.getAttribute('role'), null)
+assert.equal(documentRef.activeElement, focusKeeper)
 assert.equal(region.getActiveCount(), 1)
 assert.deepEqual(scheduler.durations(), [4000])
 
@@ -40,11 +46,14 @@ assert.equal(actionCalls, 1)
 assert.equal(region.getActiveCount(), 0)
 
 const alert = region.show({ message: 'Erreur', tone: 'danger', duration: 0 })
-assert.equal(alert.element.getAttribute('role'), 'alert')
+assert.equal(alert.element.classList.contains('nx-toast--danger'), true)
 alert.dismiss('manual')
 assert.equal(region.getActiveCount(), 0)
 
-region.show({ message: 'Un', duration: 1000 })
+const duplicate = region.show({ message: 'Un', duration: 1000 })
+const duplicateAgain = region.show({ message: 'Un', duration: 1000 })
+assert.equal(duplicateAgain.id, duplicate.id)
+assert.equal(region.getActiveCount(), 1)
 region.show({ message: 'Deux', duration: 1000 })
 assert.equal(region.getActiveCount(), 2)
 region.destroy()
