@@ -156,49 +156,6 @@ body.auth-locked > #nexora-status-bar {
         <section class="cockpit-hero-v4" data-mode="both" aria-label="Situation financière du mois">
           <div class="cockpit-hero-v4__background"></div>
           <div id="dashboard-hero-root"></div>
-          
-          <div class="cockpit-hero-v4__content">
-            <!-- Zone centrale : Métrique majeure + Statut -->
-            <div class="hero-centerpiece">
-              <span class="hero-centerpiece__label">Disponible ce mois-ci</span>
-              <div class="hero-centerpiece__value" id="hero-main-amount">0 €</div>
-              <div class="hero-centerpiece__status" id="hero-status-phrase">Calcul en cours...</div>
-              
-              <!-- Sub-indicateurs 2 et 3 -->
-              <div class="hero-centerpiece__pills">
-                <div class="hero-pill hero-pill--daily" id="hero-daily-pill">💡 -- € / jour</div>
-                <div class="hero-pill hero-pill--projection" id="hero-projection-pill">📈 Projection : -- €</div>
-              </div>
-
-              <!-- Jauge de sérénité -->
-              <div class="hero-centerpiece__serenity">
-                <div class="hero-serenity-bar" id="hero-serenity-bar" style="width: 0%;"></div>
-              </div>
-            </div>
-
-            <!-- Ligne de Sub-KPIs discrets (Revenus, Charges, Disponible, Objectif) -->
-            <div class="hero-subkpis-row">
-              <div class="hero-subkpi" id="hero-sub-revenus">
-                <span class="subkpi-label">Revenus</span>
-                <span class="subkpi-value" id="hero-sub-revenus-val">0 €</span>
-              </div>
-              <div class="hero-subkpi-divider">•</div>
-              <div class="hero-subkpi" id="hero-sub-charges">
-                <span class="subkpi-label">Charges</span>
-                <span class="subkpi-value" id="hero-sub-charges-val">0 €</span>
-              </div>
-              <div class="hero-subkpi-divider">•</div>
-              <div class="hero-subkpi" id="hero-sub-disponible">
-                <span class="subkpi-label">Disponible</span>
-                <span class="subkpi-value" id="hero-sub-disponible-val">0 €</span>
-              </div>
-              <div class="hero-subkpi-divider">•</div>
-              <div class="hero-subkpi" id="hero-sub-objectif">
-                <span class="subkpi-label">Objectif</span>
-                <span class="subkpi-value" id="hero-sub-objectif-val">--%</span>
-              </div>
-            </div>
-          </div>
         </section>
 
         <!-- COPILOTE INTELLIGENT (RUBAN CONVERSATIONNEL COMPACT - SANS EMOJI) -->
@@ -4178,16 +4135,6 @@ function updateAll(){
       soldeEstime,
       tauxCh,
       tauxEp
-    }, { windowRef: window });
-  }
-
-  // Use V2 Quick View renderer if available
-  if (typeof window.renderDashboardQuickView === 'function') {
-    window.renderDashboardQuickView({
-      revReel,
-      fixReel,
-      varReel,
-      debtSummary: getDebtSummary()
     }, { windowRef: window });
   }
 
