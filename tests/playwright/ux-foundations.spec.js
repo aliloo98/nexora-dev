@@ -114,7 +114,6 @@ test.describe('UX foundations', () => {
     await expect(page.locator('#section-parametres')).toHaveClass(/active/)
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
   })
-  })
 
   test('Dashboard and Settings pass targeted axe scans', async ({ page }) => {
     const dashboard = await new AxeBuilder({ page }).include('#section-dashboard').analyze()
