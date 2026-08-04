@@ -12997,6 +12997,161 @@ body {
   transform: scale(1.05);
 }
 
+/* Carte Situation Financière Intelligente */
+.cockpit-financial-card {
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  animation: fadeInUp 0.4s ease-out 0.1s both;
+}
+
+.financial-card__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.financial-card__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.financial-card__item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.financial-card__item--primary {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.financial-card__item--warning {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.financial-card__item--success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.financial-card__item--critical {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.financial-card__item--opportunity {
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.financial-card__item--hidden {
+  display: none;
+}
+
+.financial-card__item--info {
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.financial-card__icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.financial-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.financial-card__label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+.financial-card__value {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.financial-card__message {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.financial-card__message--positive {
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  color: rgba(212, 175, 55, 0.95);
+}
+
+.financial-card__message--critical {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: rgba(239, 68, 68, 0.95);
+}
+
+.financial-card__message--warning {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: rgba(245, 158, 11, 0.95);
+}
+
+.financial-card__message-icon {
+  font-size: 1rem;
+}
+
+.financial-card__message-text {
+  flex: 1;
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .financial-card__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .financial-card__item {
+    padding: 6px;
+    gap: 6px;
+  }
+  
+  .financial-card__icon {
+    font-size: 1rem;
+  }
+  
+  .financial-card__label {
+    font-size: 0.7rem;
+  }
+  
+  .financial-card__value {
+    font-size: 0.85rem;
+  }
+  
+  .financial-card__message {
+    margin-top: 8px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+}
+
 /* Carte Narrative "Ce que j'ai remarqué" (Accent Émeraude / Cyan Glass) */
 .cockpit-understanding-card {
   background: linear-gradient(135deg, rgba(6, 78, 59, 0.25) 0%, rgba(13, 27, 42, 0.7) 100%);

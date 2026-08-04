@@ -4,10 +4,45 @@
  */
 import { getTimeContext } from '../time/timeEngine.js'
 import { getTopFinancialInsight } from './financialInsightEngine.js'
+import { calculateRemainingCharges, calculateProjectedBalance } from '../finance/monthlyMetrics.js'
 
 const fmtAmount = (value) => {
   const amount = Math.round(Number(value) || 0)
   return `${amount.toLocaleString('fr-FR')} €`
+}
+
+/**
+ * Génère une recommandation basée sur la situation financière actuelle
+ * Le coach apporte une interprétation/action, pas une répétition des chiffres
+ */
+function generateFinancialRecommendation(metrics = {}) {
+  const currentBalance = metrics.currentBalance || metrics.solde || 0
+  const remainingCharges = calculateRemainingCharges(metrics)
+  const projectedBalance = calculateProjectedBalance(metrics)
+  const revReel = metrics.revReel || 0
+  
+  // Cas 1: Toutes les charges sont payées - Recommandation d'opportunité
+  if (remainingCharges <= 0 && currentBalance > 0) {
+    return `C'est le moment idéal pour alimenter ton objectif d'épargne ou effectuer un remboursement anticipé.`
+  }
+  
+  // Cas 2: Solde prévisionnel négatif - Recommandation d'action
+  if (projectedBalance < 0) {
+    return `Je te conseille de prioriser le paiement de tes charges les plus urgentes et de reporter les dépenses non essentielles.`
+  }
+  
+  // Cas 3: Solde prévisionnel faible - Recommandation de prudence
+  if (projectedBalance < currentBalance * 0.2 && remainingCharges > 0) {
+    return `Garde une marge de sécurité pour les imprévus en limitant les dépenses discrétionnaires ce mois-ci.`
+  }
+  
+  // Cas 4: Situation normale - Recommandation de suivi
+  if (remainingCharges > 0) {
+    return `Continue à suivre tes paiements prévus pour maintenir ta trajectoire financière.`
+  }
+  
+  // Cas 5: Pas de charges et pas de solde
+  return `Ton budget est équilibré. Continue à surveiller tes dépenses pour maintenir cette stabilité.`
 }
 
 export function evaluateCopilotState(metrics = {}, options = {}) {
@@ -99,6 +134,7 @@ export function evaluateCopilotState(metrics = {}, options = {}) {
   // 4. MOIS COURANT (CURRENT) - Intégration du Financial Insight Engine
   const topInsight = getTopFinancialInsight(metrics, history, goals)
   const dailySafeSpend = timeContext.daysRemaining > 0 ? Math.round(resteAVivre / timeContext.daysRemaining) : 0
+  const financialRecommendation = generateFinancialRecommendation(metrics)
 
   if (topInsight) {
     return {
@@ -116,7 +152,7 @@ export function evaluateCopilotState(metrics = {}, options = {}) {
       isConfigured: true,
       understanding: {
         headline: topInsight.headline,
-        details: `Il te reste environ ${dailySafeSpend} € par jour jusqu'à la fin du mois.`,
+        details: financialRecommendation,
         landingText: `Trajectoire sous contrôle avec environ ${fmtAmount(soldeFinMois)} d'avance.`
       }
     }
@@ -138,7 +174,7 @@ export function evaluateCopilotState(metrics = {}, options = {}) {
     isConfigured: true,
     understanding: {
       headline: 'Tes dépenses essentielles sont couvertes.',
-      details: `Il te reste environ ${dailySafeSpend} € par jour jusqu'à la fin du mois.`,
+      details: financialRecommendation,
       landingText: `Si tu gardes ce rythme, tu termineras le mois dans le vert avec environ ${fmtAmount(soldeFinMois)} d'avance.`
     }
   }

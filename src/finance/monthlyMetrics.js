@@ -4,6 +4,10 @@ import { resolveBudgetWithRecurring } from './recurringResolution.js'
 
 const CATEGORY_TYPES = new Set(['income', 'fixed_expense', 'variable_expense'])
 
+// Cache pour optimiser les calculs répétés
+const financialStateCache = new Map()
+const CACHE_TTL = 1000 // 1 seconde
+
 const uniqueActiveCategories = (categories = []) => {
   const byId = new Map()
   for (const category of Array.isArray(categories) ? categories : []) {
@@ -161,4 +165,197 @@ export function computeMonthlyMetrics({
   }
 }
 
-export default { computeMonthlyMetrics, hasBudgetAmount, readBudgetAmount, readBudgetPaidAmount }
+/**
+ * Calcule les charges restantes à payer pour le mois courant.
+ * Filtre uniquement les dépenses (exclut revenus, transferts internes, analyses exclues).
+ * Basé sur toutes les dépenses dont paid === false.
+ * Version avec cache pour optimiser les performances.
+ */
+export function calculateRemainingCharges(metrics = {}) {
+  const cacheKey = JSON.stringify({
+    currentBalance: metrics.currentBalance,
+    categories: metrics.categories,
+    remainingExpenses: metrics.remainingExpenses,
+    remainingToSpend: metrics.remainingToSpend
+  })
+  
+  const cached = financialStateCache.get(cacheKey)
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.value
+  }
+  
+  const categories = metrics.categories || []
+  
+  // Filtrer uniquement les dépenses non payées (exclure revenus)
+  const unpaidExpenses = categories.filter(cat => {
+    // Exclure les revenus
+    if (cat.type === 'income') return false
+    
+    // Exclure les catégories sans montant
+    if (cat.amount <= 0) return false
+    
+    // Exclure les opérations exclues des analyses (si metadata disponible)
+    if (cat.exclude_from_analytics) return false
+    
+    // Exclure les transferts internes (si metadata disponible)
+    if (cat.internal_transfer) return false
+    
+    // Inclure uniquement les dépenses non entièrement payées
+    return cat.paidAmount < cat.amount
+  })
+  
+  // Calculer le montant total restant à payer
+  const remainingAmount = unpaidExpenses.reduce((sum, cat) => {
+    return sum + (cat.amount - cat.paidAmount)
+  }, 0)
+  
+  const result = Math.max(0, remainingAmount)
+  
+  // Mettre en cache
+  financialStateCache.set(cacheKey, {
+    value: result,
+    timestamp: Date.now()
+  })
+  
+  return result
+}
+
+/**
+ * Calcule le solde prévisionnel après paiement de toutes les charges restantes.
+ * Formule: solde actuel - charges restantes
+ * Version avec cache pour optimiser les performances.
+ */
+export function calculateProjectedBalance(metrics = {}) {
+  const cacheKey = JSON.stringify({
+    currentBalance: metrics.currentBalance,
+    categories: metrics.categories,
+    remainingExpenses: metrics.remainingExpenses,
+    remainingToSpend: metrics.remainingToSpend
+  })
+  
+  const cached = financialStateCache.get(cacheKey)
+  if (cached && cached.projectedBalance !== undefined && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.projectedBalance
+  }
+  
+  const currentBalance = metrics.currentBalance || 0
+  const remainingCharges = calculateRemainingCharges(metrics)
+  const result = currentBalance - remainingCharges
+  
+  // Mettre en cache les deux valeurs
+  financialStateCache.set(cacheKey, {
+    value: remainingCharges,
+    projectedBalance: result,
+    timestamp: Date.now()
+  })
+  
+  return result
+}
+
+/**
+ * Retourne les détails des charges restantes (montant total et nombre)
+ * Avec filtrage métier strict : exclut revenus, transferts, analyses exclues
+ */
+export function getRemainingChargesDetails(metrics = {}) {
+  const categories = metrics.categories || []
+  
+  const unpaidExpenses = categories.filter(cat => {
+    // Exclure les revenus
+    if (cat.type === 'income') return false
+    
+    // Exclure les catégories sans montant
+    if (cat.amount <= 0) return false
+    
+    // Exclure les opérations exclues des analyses
+    if (cat.exclude_from_analytics) return false
+    
+    // Exclure les transferts internes
+    if (cat.internal_transfer) return false
+    
+    // Inclure uniquement les dépenses non entièrement payées
+    return cat.paidAmount < cat.amount
+  })
+  
+  const unpaidCount = unpaidExpenses.length
+  const unpaidAmount = unpaidExpenses.reduce((sum, cat) => sum + (cat.amount - cat.paidAmount), 0)
+  
+  return {
+    total: unpaidAmount,
+    count: unpaidCount,
+    amount: unpaidAmount,
+    items: unpaidExpenses.map(cat => ({
+      id: cat.id,
+      name: cat.name,
+      type: cat.type,
+      remaining: cat.amount - cat.paidAmount,
+      total: cat.amount,
+      paid: cat.paidAmount
+    }))
+  }
+}
+
+/**
+ * Détermine l'état de la situation financière pour l'UX
+ * @returns {Object} { state: 'positive'|'warning'|'critical'|'neutral', message: string }
+ */
+export function getFinancialState(metrics = {}) {
+  const remainingCharges = calculateRemainingCharges(metrics)
+  const projectedBalance = calculateProjectedBalance(metrics)
+  const currentBalance = metrics.currentBalance || 0
+  
+  // Cas 1: Toutes les charges sont payées - État positif
+  if (remainingCharges <= 0) {
+    return {
+      state: 'positive',
+      message: currentBalance > 0 
+        ? `Toutes tes charges prévues sont réglées. Tu peux affecter tes ${Math.round(currentBalance).toLocaleString('fr-FR')} € restants à ton objectif ou à ton épargne.`
+        : 'Toutes tes charges prévues sont réglées.',
+      showOpportunity: currentBalance > 0
+    }
+  }
+  
+  // Cas 2: Solde prévisionnel négatif - État critique
+  if (projectedBalance < 0) {
+    return {
+      state: 'critical',
+      message: `Attention : si toutes les charges restantes sont payées, ton solde sera négatif de ${Math.abs(Math.round(projectedBalance)).toLocaleString('fr-FR')} €.`,
+      showOpportunity: false
+    }
+  }
+  
+  // Cas 3: Solde prévisionnel positif mais proche de zéro - État warning
+  if (projectedBalance < currentBalance * 0.2) {
+    return {
+      state: 'warning',
+      message: `Il te restera environ ${Math.round(projectedBalance).toLocaleString('fr-FR')} € après paiement des charges.`,
+      showOpportunity: false
+    }
+  }
+  
+  // Cas 4: Situation normale - État neutre
+  return {
+    state: 'neutral',
+    message: `Tu disposes de ${Math.round(currentBalance).toLocaleString('fr-FR')} € avec ${Math.round(remainingCharges).toLocaleString('fr-FR')} € de charges restantes.`,
+    showOpportunity: false
+  }
+}
+
+/**
+ * Vide le cache des calculs financiers
+ * À appeler lorsque les données changent
+ */
+export function clearFinancialStateCache() {
+  financialStateCache.clear()
+}
+
+export default { 
+  computeMonthlyMetrics, 
+  hasBudgetAmount, 
+  readBudgetAmount, 
+  readBudgetPaidAmount,
+  calculateRemainingCharges,
+  calculateProjectedBalance,
+  getRemainingChargesDetails,
+  getFinancialState,
+  clearFinancialStateCache
+}

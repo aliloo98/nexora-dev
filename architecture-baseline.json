@@ -1,8 +1,12 @@
 {
   "dependencies": {
     "cycles": [],
-    "internalDependencies": 186,
+    "internalDependencies": 346,
     "modulesWithMostIncomingDependencies": [
+      {
+        "count": 25,
+        "name": "src/ui/internal/dom.js"
+      },
       {
         "count": 13,
         "name": "src/supabase.js"
@@ -16,38 +20,42 @@
         "name": "js/utils.js"
       },
       {
-        "count": 10,
+        "count": 11,
         "name": "src/constants/storageKeys.js"
+      },
+      {
+        "count": 9,
+        "name": "src/ui/primitives/Button.js"
       },
       {
         "count": 9,
         "name": "src/utils/htmlEscape.js"
       },
       {
+        "count": 8,
+        "name": "src/coach/models/recommendation.js"
+      },
+      {
         "count": 7,
         "name": "js/storage.js"
       },
       {
-        "count": 6,
+        "count": 7,
         "name": "js/userAppSettingsService.js"
-      },
-      {
-        "count": 6,
-        "name": "js/userStorage.js"
-      },
-      {
-        "count": 5,
-        "name": "src/assistant/judgmentEngine.js"
-      },
-      {
-        "count": 5,
-        "name": "src/utils/userFacingFilter.js"
       }
     ],
     "modulesWithMostOutgoingDependencies": [
       {
-        "count": 50,
+        "count": 57,
         "name": "src/main.js"
+      },
+      {
+        "count": 11,
+        "name": "src/assistant/index.js"
+      },
+      {
+        "count": 11,
+        "name": "src/ui/components/index.js"
       },
       {
         "count": 9,
@@ -58,43 +66,39 @@
         "name": "src/plan/planDataBuilder.js"
       },
       {
+        "count": 7,
+        "name": "src/coach/rules/index.js"
+      },
+      {
         "count": 6,
         "name": "js/userAppSettingsService.js"
       },
       {
-        "count": 5,
-        "name": "src/goals/goalsService.js"
-      },
-      {
-        "count": 5,
-        "name": "src/pages/AuthPages.js"
-      },
-      {
-        "count": 5,
-        "name": "src/plan/PlanHubUI.js"
-      },
-      {
-        "count": 5,
+        "count": 6,
         "name": "src/settings/SettingsUI.js"
       },
       {
-        "count": 5,
-        "name": "src/treasury/treasuryAdapter.js"
+        "count": 6,
+        "name": "src/ui/primitives/index.js"
       },
       {
-        "count": 4,
-        "name": "js/transactionsService.js"
+        "count": 5,
+        "name": "src/assistant/AssistantService.js"
       }
     ],
     "modulesWithoutIncomingImports": [
+      "js/excel-export.js",
       "src/advisor/advisorService.js",
       "src/advisor/AdvisorUI.js",
       "src/app/productCopy.js",
+      "src/assistant/index.js",
       "src/auth/useAuth.js",
       "src/bootstrap/applicationUiBootstrap.js",
       "src/bootstrap/authenticatedBootstrap.js",
       "src/bootstrap/preAuthBootstrap.js",
       "src/bootstrap/userDataBootstrap.js",
+      "src/coach/services/coachContextService.js",
+      "src/coach/tests/coachFixtures.js",
       "src/couple/coupleAssistantService.js",
       "src/couple/coupleBudgetService.js",
       "src/couple/coupleDebtService.js",
@@ -103,28 +107,47 @@
       "src/couple/coupleShareService.js",
       "src/dashboard/dashboardService.js",
       "src/debt/debtPlanner.js",
+      "src/forecast/forecastEngine.js",
+      "src/habits/habitEngine.js",
       "src/main.js",
-      "src/plan/PlanHubUI.js"
+      "src/opportunity/opportunityEngine.js",
+      "src/plan/PlanHubUI.js",
+      "src/simulation/simulationEngine.js",
+      "src/ui/catalog/catalog.js"
     ],
     "unresolvedImports": []
   },
   "playwright": {
     "files": [
       "tests/playwright/assistant.spec.js",
-      "tests/playwright/budgetCoach.spec.js"
+      "tests/playwright/budgetCoach.spec.js",
+      "tests/playwright/coach.spec.js",
+      "tests/playwright/current-month-initialization.spec.js",
+      "tests/playwright/dashboard-empty-elements.spec.js",
+      "tests/playwright/dashboard-hero.spec.js",
+      "tests/playwright/dashboard-mode-superset.spec.js",
+      "tests/playwright/dashboard-motion-robustness.spec.js",
+      "tests/playwright/dashboard-reduced-motion.spec.js",
+      "tests/playwright/dashboard-renderers-availability.spec.js",
+      "tests/playwright/export-parity.spec.js",
+      "tests/playwright/onboarding.spec.js",
+      "tests/playwright/ui-v2.spec.js",
+      "tests/playwright/ux-foundations.spec.js"
     ],
-    "playwrightCaseCount": 7
+    "playwrightCaseCount": 53
   },
   "production": {
-    "averageLinesPerFile": 201,
+    "averageLinesPerFile": 157.3,
     "consoleDebug": 0,
-    "consoleError": 82,
+    "consoleError": 84,
     "consoleInfo": 11,
     "consoleLog": 27,
-    "consoleWarn": 70,
-    "documentRefs": 205,
+    "consoleWarn": 78,
+    "documentRefs": 360,
     "files": [
       "js/budgetCategoriesService.js",
+      "js/excel-export.js",
+      "js/export-utils.js",
       "js/logo-manager.js",
       "js/monthlyBudgetStateService.js",
       "js/notificationsService.js",
@@ -146,8 +169,17 @@
       "src/app/productCopy.js",
       "src/app/sectionLoader.js",
       "src/app/syncStatus.js",
+      "src/assistant/AnalysisEngine.js",
       "src/assistant/assistantEngine.js",
+      "src/assistant/assistantFactory.js",
+      "src/assistant/AssistantReport.js",
+      "src/assistant/AssistantService.js",
+      "src/assistant/AssistantUI.js",
+      "src/assistant/DataCollector.js",
+      "src/assistant/index.js",
       "src/assistant/judgmentEngine.js",
+      "src/assistant/RuleRegistry.js",
+      "src/assistant/rules.js",
       "src/auth/authContext.js",
       "src/auth/authRouting.js",
       "src/auth/authService.js",
@@ -158,6 +190,25 @@
       "src/bootstrap/authenticatedBootstrap.js",
       "src/bootstrap/preAuthBootstrap.js",
       "src/bootstrap/userDataBootstrap.js",
+      "src/coach/copilotEngine.js",
+      "src/coach/engine/recommendationEngine.js",
+      "src/coach/engine/recommendationRanker.js",
+      "src/coach/engine/scoring.js",
+      "src/coach/financialInsightEngine.js",
+      "src/coach/models/coachContext.js",
+      "src/coach/models/recommendation.js",
+      "src/coach/presenters/recommendationPresenter.js",
+      "src/coach/rules/allocatableSurplus.rule.js",
+      "src/coach/rules/criticalRemainder.rule.js",
+      "src/coach/rules/dataCompleteness.rule.js",
+      "src/coach/rules/expenseRate.rule.js",
+      "src/coach/rules/goalPace.rule.js",
+      "src/coach/rules/index.js",
+      "src/coach/rules/projectedDeficit.rule.js",
+      "src/coach/rules/stableForecast.rule.js",
+      "src/coach/services/coachContextService.js",
+      "src/coach/services/coachService.js",
+      "src/coach/tests/coachFixtures.js",
       "src/components/assistant/assistantSparklineRenderer.js",
       "src/components/AssistantCard.js",
       "src/components/DashboardMaster.js",
@@ -186,12 +237,22 @@
       "src/couple/coupleUIComponent.js",
       "src/dashboard/dashboardService.js",
       "src/debt/debtPlanner.js",
+      "src/finance/budgetCycle.js",
       "src/finance/cycleBalance.js",
       "src/finance/financialExpression.js",
+      "src/finance/monthlyMetrics.js",
       "src/finance/recurringResolution.js",
+      "src/forecast/forecastEngine.js",
+      "src/goals/goalMetrics.js",
       "src/goals/goalsService.js",
+      "src/habits/habitEngine.js",
       "src/legacy/legacyBridge.js",
       "src/main.js",
+      "src/onboarding/onboardingIntegration.js",
+      "src/onboarding/onboardingService.js",
+      "src/onboarding/onboardingStorage.js",
+      "src/onboarding/onboardingUI.js",
+      "src/opportunity/opportunityEngine.js",
       "src/pages/AuthPages.js",
       "src/pages/GoalsPage.js",
       "src/plan/planDataBuilder.js",
@@ -204,18 +265,56 @@
       "src/settings/settingsMarkup.js",
       "src/settings/settingsService.js",
       "src/settings/SettingsUI.js",
+      "src/simulation/simulationEngine.js",
       "src/styles/authStyles.js",
       "src/supabase.js",
       "src/sync/arrayTombstones.js",
       "src/sync/syncDiagnostics.js",
+      "src/time/timeEngine.js",
       "src/treasury/treasuryAdapter.js",
       "src/treasury/treasuryService.js",
       "src/ui/amountInputHandlers.js",
       "src/ui/availableMoneyOptions.js",
       "src/ui/budgetCoach.js",
+      "src/ui/catalog/catalog.js",
+      "src/ui/components/CoachCard.js",
+      "src/ui/components/EmptyState.js",
+      "src/ui/components/GoalCard.js",
+      "src/ui/components/HeroCard.js",
+      "src/ui/components/index.js",
+      "src/ui/components/LoadingState.js",
+      "src/ui/components/MetricCard.js",
+      "src/ui/components/Modal.js",
+      "src/ui/components/SectionHeader.js",
+      "src/ui/components/Skeleton.js",
+      "src/ui/components/StatRow.js",
+      "src/ui/components/Toast.js",
+      "src/ui/dashboard/dashboardMotion.js",
+      "src/ui/dashboard/renderAssistantInsights.js",
+      "src/ui/dashboard/renderDashboardAlerts.js",
+      "src/ui/dashboard/renderDashboardGoalCard.js",
+      "src/ui/dashboard/renderDashboardHero.js",
+      "src/ui/dashboard/renderDashboardKpiStrip.js",
+      "src/ui/dashboard/renderDashboardQuickView.js",
       "src/ui/dashboardGuidance.js",
       "src/ui/gsapMotion.js",
+      "src/ui/icons/index.js",
+      "src/ui/index.js",
+      "src/ui/internal/dom.js",
+      "src/ui/layout/AppShell.js",
+      "src/ui/layout/Cluster.js",
+      "src/ui/layout/Divider.js",
+      "src/ui/layout/index.js",
+      "src/ui/layout/PageHeader.js",
+      "src/ui/layout/Stack.js",
       "src/ui/nexoraCore.js",
+      "src/ui/primitives/Badge.js",
+      "src/ui/primitives/Button.js",
+      "src/ui/primitives/Card.js",
+      "src/ui/primitives/Chip.js",
+      "src/ui/primitives/index.js",
+      "src/ui/primitives/Input.js",
+      "src/ui/primitives/Progress.js",
       "src/utils/htmlEscape.js",
       "src/utils/userFacingFilter.js"
     ],
@@ -243,11 +342,11 @@
       },
       {
         "file": "js/pdf-export.js",
-        "lines": 681
+        "lines": 682
       },
       {
         "file": "src/ui/nexoraCore.js",
-        "lines": 625
+        "lines": 629
       },
       {
         "file": "js/userAppSettingsService.js",
@@ -258,12 +357,16 @@
         "lines": 557
       },
       {
+        "file": "src/auth/authService.js",
+        "lines": 499
+      },
+      {
         "file": "src/couple/coupleService.js",
         "lines": 493
       },
       {
-        "file": "src/auth/authService.js",
-        "lines": 487
+        "file": "js/excel-export.js",
+        "lines": 429
       },
       {
         "file": "js/budgetCategoriesService.js",
@@ -271,54 +374,51 @@
       },
       {
         "file": "src/auth/authContext.js",
-        "lines": 423
+        "lines": 419
+      },
+      {
+        "file": "src/ui/dashboard/renderDashboardQuickView.js",
+        "lines": 408
+      },
+      {
+        "file": "src/main.js",
+        "lines": 393
       },
       {
         "file": "src/advisor/proactiveCoachService.js",
         "lines": 371
       },
       {
-        "file": "src/main.js",
-        "lines": 367
-      },
-      {
         "file": "src/couple/coupleInvitationService.js",
         "lines": 359
+      },
+      {
+        "file": "src/ui/gsapMotion.js",
+        "lines": 358
       },
       {
         "file": "src/styles/authStyles.js",
         "lines": 351
       },
       {
-        "file": "src/ui/gsapMotion.js",
-        "lines": 351
-      },
-      {
         "file": "src/advisor/AdvisorUI.js",
         "lines": 349
-      },
-      {
-        "file": "src/couple/coupleShareService.js",
-        "lines": 336
-      },
-      {
-        "file": "src/components/ResetPasswordForm.js",
-        "lines": 302
       }
     ],
-    "lineCount": 18894,
-    "localStorageRefs": 23,
-    "medianLinesPerFile": 134.5,
-    "staticExports": 240,
-    "staticImports": 216,
+    "lineCount": 27055,
+    "localStorageRefs": 27,
+    "medianLinesPerFile": 100.5,
+    "staticExports": 474,
+    "staticImports": 350,
     "todoFixmeCount": 0,
-    "windowAssignments": 107,
-    "windowRefs": 273
+    "windowAssignments": 120,
+    "windowRefs": 317
   },
   "tests": {
     "describeCount": 0,
     "files": [
       "js/budgetCategoriesService-tests.js",
+      "js/excelExport-tests.js",
       "js/monthlyBudgetStateReplay-tests.js",
       "js/monthlyBudgetStateService-tests.js",
       "js/syncedSettingAccess-tests.js",
@@ -329,8 +429,14 @@
       "src/advisor/advisor-tests.js",
       "src/advisor/proactiveCoachStorage-tests.js",
       "src/advisor/scenario-display-tests.js",
+      "src/assistant/AnalysisEngine-tests.js",
+      "src/assistant/DataCollector-tests.js",
+      "src/assistant/integration-tests.js",
       "src/assistant/judgmentEngine-tests.js",
+      "src/assistant/realService-tests.js",
+      "src/assistant/RuleRegistry-tests.js",
       "src/assistant/run-tests.js",
+      "src/auth/authContext-password-tests.js",
       "src/auth/authMode-tests.js",
       "src/auth/authService-password-tests.js",
       "src/auth/authSessionFallback-tests.js",
@@ -339,6 +445,20 @@
       "src/auth/authStoragePolicy-tests.js",
       "src/auth/authVisibility-tests.js",
       "src/auth/userDisplayName-tests.js",
+      "src/coach/financialInsightEngine-tests.js",
+      "src/coach/tests/allocatableSurplus.rule-tests.js",
+      "src/coach/tests/coachContextService-tests.js",
+      "src/coach/tests/coachService-tests.js",
+      "src/coach/tests/criticalRemainder.rule-tests.js",
+      "src/coach/tests/dataCompleteness.rule-tests.js",
+      "src/coach/tests/expenseRate.rule-tests.js",
+      "src/coach/tests/goalPace.rule-tests.js",
+      "src/coach/tests/projectedDeficit.rule-tests.js",
+      "src/coach/tests/recommendationEngine-tests.js",
+      "src/coach/tests/recommendationPresenter-tests.js",
+      "src/coach/tests/recommendationRanker-tests.js",
+      "src/coach/tests/stableForecast.rule-tests.js",
+      "src/components/DashboardMaster-tests.js",
       "src/couple/assistant-tests.js",
       "src/couple/budget-tests.js",
       "src/couple/couple-tests.js",
@@ -351,35 +471,56 @@
       "src/couple/ui-tests.js",
       "src/dashboard/dashboard-tests.js",
       "src/debt/debt-tests.js",
+      "src/finance/budgetCycle-tests.js",
       "src/finance/cycleBalance-tests.js",
       "src/finance/financialExpression-tests.js",
       "src/finance/monthlyHistoryStorage-tests.js",
+      "src/finance/monthlyMetrics-tests.js",
+      "src/finance/recurringResolution-tests.js",
+      "src/forecast/forecastEngine-tests.js",
       "src/goals/cagnottesStorage-tests.js",
+      "src/goals/goalMetrics-tests.js",
+      "src/habits/habitEngine-tests.js",
+      "src/onboarding/onboardingIntegration-tests.js",
+      "src/opportunity/opportunityEngine-tests.js",
       "src/settings/budgetCycleStorage-tests.js",
       "src/settings/recurringIncome-sync-tests.js",
       "src/settings/settingsStorage-tests.js",
       "src/settings/settingsUiSecurity-tests.js",
+      "src/simulation/simulationEngine-tests.js",
       "src/sync/arrayTombstones-tests.js",
+      "src/time/timeEngine-tests.js",
       "src/treasury/treasury-tests.js",
       "src/ui/availableMoneyOptions-tests.js",
       "src/ui/budgetCoach-tests.js",
+      "src/ui/dashboard/dashboardEventListeners-tests.js",
+      "src/ui/dashboard/renderDashboardHero-tests.js",
       "src/ui/dashboardGuidance-tests.js",
+      "src/ui/tests/components-tests.js",
+      "src/ui/tests/modal-tests.js",
+      "src/ui/tests/primitives-tests.js",
+      "src/ui/tests/toast-tests.js",
+      "src/ui/tests/tokens-tests.js",
       "src/utils/exportSecurity-tests.js",
       "src/utils/financialMarkupSecurity-tests.js",
       "src/utils/parseBudgetNumber-tests.js",
-      "tests/architecture-baseline.test.mjs"
+      "tests/architecture-baseline.test.mjs",
+      "tests/helpers/uiTestDom.mjs"
     ],
     "itCaseCount": 0,
     "playwrightFiles": [],
-    "testCaseCount": 37
+    "testCaseCount": 45
   },
   "tooling": {
     "files": [
       "playwright.config.js",
       "scripts/architecture-baseline.mjs",
+      "scripts/capture-dashboard-screenshots.js",
+      "scripts/capture-time-engine-screenshots.js",
       "scripts/check-architecture-baseline.mjs",
+      "scripts/check-ui-v2.mjs",
+      "scripts/generate-nexora-icons.js",
       "scripts/run-js-tests.js",
-      "scripts/save-screenshots-demo.js",
       "scripts/save-screenshots-v3.js",
       "scripts/save-screenshots.js",
       "validate-couple-mode.js",

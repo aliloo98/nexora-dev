@@ -168,27 +168,50 @@ body.auth-locked > #nexora-status-bar {
           </div>
         </section>
 
-        <!-- TIMELINE - RUBAN 1-LIGNE ULTRA-COMPACT -->
-        <section class="cockpit-timeline-strip" id="week-plan-card" data-mode="both" aria-label="Timeline 7 jours">
-          <div class="timeline-strip__wrapper">
-            <div class="timeline-strip__item">
-              <span class="strip-icon">📅</span>
-              <span class="strip-label" id="timeline-label-1">Aujourd'hui</span>
-              <strong id="week-plan-balance">0 €</strong>
+        <!-- CARTE SITUATION FINANCIÈRE INTELLIGENTE -->
+        <section class="cockpit-financial-card" id="financial-card" data-mode="both" aria-label="Situation financière du mois">
+          <div class="financial-card__grid">
+            <!-- Solde actuel -->
+            <div class="financial-card__item financial-card__item--primary">
+              <div class="financial-card__icon">📅</div>
+              <div class="financial-card__content">
+                <span class="financial-card__label">Aujourd'hui</span>
+                <strong class="financial-card__value" id="financial-current-balance">0 €</strong>
+              </div>
             </div>
-            <div class="timeline-strip__line" aria-hidden="true"></div>
-            <div class="timeline-strip__item">
-              <span class="strip-icon">💰</span>
-              <span class="strip-label" id="timeline-label-2">Prochaine entrée</span>
-              <strong id="week-plan-next-income">À définir</strong>
+            
+            <!-- Charges restantes -->
+            <div class="financial-card__item financial-card__item--warning" id="financial-remaining-item">
+              <div class="financial-card__icon">💳</div>
+              <div class="financial-card__content">
+                <span class="financial-card__label">À payer</span>
+                <strong class="financial-card__value" id="financial-remaining-charges">0 € • 0 paiement</strong>
+              </div>
             </div>
-            <div class="timeline-strip__line" aria-hidden="true"></div>
-            <div class="timeline-strip__item">
-              <span class="strip-icon">⚠️</span>
-              <span class="strip-label" id="timeline-label-3">Charges restantes</span>
-              <strong id="week-plan-to-pay">0 charge</strong>
+            
+            <!-- Solde prévisionnel -->
+            <div class="financial-card__item financial-card__item--success" id="financial-projected-item">
+              <div class="financial-card__icon">📈</div>
+              <div class="financial-card__content">
+                <span class="financial-card__label">Solde prévisionnel</span>
+                <strong class="financial-card__value" id="financial-projected-balance">0 €</strong>
+              </div>
             </div>
-            <button type="button" class="timeline-strip__btn" onclick="showSection('plan')" aria-label="Ouvrir le plan">►</button>
+            
+            <!-- Prochaine entrée -->
+            <div class="financial-card__item financial-card__item--info">
+              <div class="financial-card__icon">💰</div>
+              <div class="financial-card__content">
+                <span class="financial-card__label">Prochaine entrée</span>
+                <strong class="financial-card__value" id="financial-next-income">À définir</strong>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Message dynamique (opportunité ou alerte) -->
+          <div class="financial-card__message" id="financial-message" style="display: none;">
+            <span class="financial-card__message-icon" id="financial-message-icon">🎉</span>
+            <span class="financial-card__message-text" id="financial-message-text"></span>
           </div>
         </section>
 
@@ -4362,11 +4385,23 @@ function updateAll(){
     totalDepReel,
     totalDepPayee
   });
-  updateWeekPlan({
-    solde, // Use computeCycleBalances().projectedEndOfCycle
-    variablesPct,
-    totalDepRestant, // Use computeCycleBalances().remainingToSpend
-    revReel
+  
+  // Clear cache before recalculating financial state
+  if (typeof window.clearFinancialStateCache === 'function') {
+    window.clearFinancialStateCache();
+  }
+  
+  // Get detailed metrics with categories for the financial card
+  const currentMonth = getMonth();
+  const detailedMetrics = getMonthMetrics(currentMonth, { fromDom: true });
+  
+  updateFinancialCard({
+    solde,
+    currentBalance: detailedMetrics.currentBalance || solde,
+    remainingExpenses: detailedMetrics.remainingExpenses || totalDepRestant,
+    remainingToSpend: detailedMetrics.remainingToSpend || totalDepRestant,
+    revReel,
+    categories: detailedMetrics.categories || []
   });
   updateDashboardAlerts({
     revReel,
@@ -4727,16 +4762,17 @@ function updateNexoraSphere(metrics = {}) {
   refreshNexoraCore(metrics);
 }
 
-function updateWeekPlan(metrics = {}) {
-  const titleEl = document.getElementById('week-plan-title');
-  const balanceEl = document.getElementById('week-plan-balance');
-  const nextIncomeEl = document.getElementById('week-plan-next-income');
-  const incomeCtaEl = document.getElementById('week-plan-income-cta');
-  const toPayEl = document.getElementById('week-plan-to-pay');
-  const descEl = document.getElementById('week-plan-description');
-  const todayDateEl = document.getElementById('week-plan-today-date');
-  const incomeDateEl = document.getElementById('week-plan-income-date');
-  const dueDateEl = document.getElementById('week-plan-due-date');
+function updateFinancialCard(metrics = {}) {
+  const currentBalanceEl = document.getElementById('financial-current-balance');
+  const remainingChargesEl = document.getElementById('financial-remaining-charges');
+  const projectedBalanceEl = document.getElementById('financial-projected-balance');
+  const nextIncomeEl = document.getElementById('financial-next-income');
+  const remainingItem = document.getElementById('financial-remaining-item');
+  const projectedItem = document.getElementById('financial-projected-item');
+  const messageEl = document.getElementById('financial-message');
+  const messageIconEl = document.getElementById('financial-message-icon');
+  const messageTextEl = document.getElementById('financial-message-text');
+  
   const hasProgrammedIncome = (() => {
     try {
       const storageKey = syncedSettingStorageKey('nexora_recurring_incomes');
@@ -4751,27 +4787,109 @@ function updateWeekPlan(metrics = {}) {
       return false;
     }
   })();
+  
   const range = getBudgetCycleRange(getMonth());
-  const dueCount = getPendingFixedExpenseRows().length;
-  const today = new Date();
-  const weekEnd = new Date(today);
-  weekEnd.setDate(today.getDate() + 7);
-  if (titleEl) titleEl.textContent = metrics.revReel > 0 ? 'Aperçu essentiel' : 'Plan financier';
-  if (balanceEl) balanceEl.textContent = fmt(metrics.solde || 0); // Use source of truth solde from computeCycleBalances
-  console.log('[Timeline update] solde:', metrics.solde, 'balanceEl:', balanceEl?.textContent);
-  if (nextIncomeEl) nextIncomeEl.textContent = hasProgrammedIncome && range.start ? formatShortDate(range.start) : 'Définir un revenu';
-  if (incomeCtaEl) incomeCtaEl.style.display = hasProgrammedIncome ? 'none' : 'inline-flex';
-  if (toPayEl) toPayEl.textContent = `${dueCount} charge${dueCount !== 1 ? 's' : ''}`;
-  if (todayDateEl) todayDateEl.textContent = today.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-  if (incomeDateEl) incomeDateEl.textContent = hasProgrammedIncome && range.start ? formatShortDate(range.start) : 'Non planifiée';
-  if (dueDateEl) dueDateEl.textContent = weekEnd.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-  if (descEl) {
-    descEl.textContent = metrics.revReel > 0
-      ? dueCount > 0
-        ? `${dueCount} paiement${dueCount !== 1 ? 's' : ''} à surveiller`
-        : 'Aucune charge urgente'
-      : 'Budget à compléter';
+  
+  // Utiliser les nouvelles fonctions de calcul
+  const currentBalance = metrics.currentBalance || metrics.solde || 0;
+  const remainingCharges = metrics.remainingExpenses || metrics.remainingToSpend || 0;
+  const projectedBalance = currentBalance - remainingCharges;
+  
+  // Récupérer les détails des charges restantes
+  const remainingChargesCount = (() => {
+    const categories = metrics.categories || [];
+    return categories.filter(cat => 
+      cat.type !== 'income' && cat.amount > 0 && cat.paidAmount < cat.amount
+    ).length;
+  })();
+  
+  // Déterminer l'état financier pour l'UX
+  const financialState = (() => {
+    if (remainingCharges <= 0) {
+      return {
+        state: 'positive',
+        message: currentBalance > 0 
+          ? `Toutes tes charges prévues sont réglées. Tu peux affecter tes ${Math.round(currentBalance).toLocaleString('fr-FR')} € restants à ton objectif ou à ton épargne.`
+          : 'Toutes tes charges prévues sont réglées.',
+        icon: '🎉'
+      };
+    }
+    
+    if (projectedBalance < 0) {
+      return {
+        state: 'critical',
+        message: `Attention : si toutes les charges restantes sont payées, ton solde sera négatif de ${Math.abs(Math.round(projectedBalance)).toLocaleString('fr-FR')} €.`,
+        icon: '⚠️'
+      };
+    }
+    
+    if (projectedBalance < currentBalance * 0.2) {
+      return {
+        state: 'warning',
+        message: `Il te restera environ ${Math.round(projectedBalance).toLocaleString('fr-FR')} € après paiement des charges.`,
+        icon: '📊'
+      };
+    }
+    
+    return {
+      state: 'neutral',
+      message: null,
+      icon: null
+    };
+  })();
+  
+  // Mise à jour de l'UI
+  if (currentBalanceEl) currentBalanceEl.textContent = fmt(currentBalance);
+  
+  // Gestion de l'affichage des charges restantes
+  if (remainingItem) {
+    if (remainingCharges <= 0) {
+      remainingItem.classList.add('financial-card__item--hidden');
+    } else {
+      remainingItem.classList.remove('financial-card__item--hidden');
+      if (remainingChargesEl) {
+        remainingChargesEl.textContent = `${fmt(remainingCharges)} • ${remainingChargesCount} paiement${remainingChargesCount !== 1 ? 's' : ''}`;
+      }
+    }
   }
+  
+  // Gestion de l'affichage du solde prévisionnel
+  if (projectedItem) {
+    if (financialState.state === 'critical') {
+      projectedItem.classList.remove('financial-card__item--success');
+      projectedItem.classList.add('financial-card__item--critical');
+    } else {
+      projectedItem.classList.remove('financial-card__item--critical');
+      projectedItem.classList.add('financial-card__item--success');
+    }
+    if (projectedBalanceEl) projectedBalanceEl.textContent = fmt(projectedBalance);
+  }
+  
+  // Gestion du message dynamique
+  if (messageEl && messageIconEl && messageTextEl) {
+    if (financialState.message) {
+      messageEl.style.display = 'flex';
+      messageEl.className = 'financial-card__message';
+      messageEl.classList.add(`financial-card__message--${financialState.state}`);
+      messageIconEl.textContent = financialState.icon;
+      messageTextEl.textContent = financialState.message;
+    } else {
+      messageEl.style.display = 'none';
+    }
+  }
+  
+  if (nextIncomeEl) {
+    nextIncomeEl.textContent = hasProgrammedIncome && range.start 
+      ? `${formatShortDate(range.start)} (+${fmt(parseBudgetNumber(metrics.revReel || 0))} €)`
+      : 'À définir';
+  }
+  
+  console.log('[Financial Card update] currentBalance:', currentBalance, 'remainingCharges:', remainingCharges, 'projectedBalance:', projectedBalance, 'state:', financialState.state);
+}
+
+/** @deprecated Utiliser updateFinancialCard — conservé pour compatibilité */
+function updateWeekPlan(metrics = {}) {
+  updateFinancialCard(metrics);
 }
 
 function updateDashboardAlerts(metrics = {}) {
