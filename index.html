@@ -5329,15 +5329,6 @@ function showSection(id, options = {}){
   let nextSection = null;
   const navigationOrigin = options.origin || 'voluntary';
 
-  // DIAGNOSTIC TEMPORAIRE - Log navigationOrigin pour comprendre le bug scroll
-  console.log({
-    section: id,
-    optionsOrigin: options?.origin,
-    navigationOrigin,
-    shouldPrepare: navigationOrigin === 'voluntary'
-  });
-  // FIN DIAGNOSTIC TEMPORAIRE
-
   const targetSection = document.getElementById('section-' + id);
   if (!targetSection) {
     id = 'dashboard';
@@ -5375,8 +5366,8 @@ function showSection(id, options = {}){
     window.NexoraCore.setNexoraCoreMotionActive(id === 'dashboard');
   }
 
-  if (navigationOrigin === 'voluntary') {
-    console.trace('prepareVoluntarySectionNavigation');
+  // Skip scroll preparation for browser-managed navigation (history, restore)
+  if (navigationOrigin !== 'history' && navigationOrigin !== 'restore') {
     prepareVoluntarySectionNavigation(nextSection);
   }
 
@@ -7677,6 +7668,7 @@ window.initLegacyBudgetUi = () => {
   return legacyBudgetUiInitPromise;
 };
 
+// INDEX HTML HASHCHANGE LISTENER
 window.addEventListener('hashchange', () => {
   const section = window.location.hash.replace('#section-', '');
   if (section) showSection(section, { origin: 'history' });
