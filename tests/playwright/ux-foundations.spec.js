@@ -95,24 +95,60 @@ test.describe('UX foundations', () => {
   })
 
   test('Back and Forward preserve browser-managed scroll positions', async ({ page }) => {
+    // DIAGNOSTIC TEMPORAIRE - Capturer les valeurs de scroll pendant le test
+    console.log('=== DÉBUT TEST SCROLL RESTORATION ===');
+    
     await page.evaluate(() => {
-      history.scrollRestoration = 'auto'
-      window.scrollTo(0, 700)
-      window.location.hash = '#section-parametres'
+      console.log('=== DANS page.evaluate() AVANT scrollRestoration ===');
+      console.log('window.scrollY avant scrollRestoration:', window.scrollY);
+      history.scrollRestoration = 'auto';
+      console.log('window.scrollY après scrollRestoration:', window.scrollY);
+      
+      console.log('=== DANS page.evaluate() AVANT scrollTo(0, 700) ===');
+      console.log('window.scrollY avant scrollTo(0, 700):', window.scrollY);
+      window.scrollTo(0, 700);
+      console.log('window.scrollY après scrollTo(0, 700):', window.scrollY);
+      
+      console.log('=== DANS page.evaluate() AVANT hash change ===');
+      console.log('window.scrollY avant hash change:', window.scrollY);
+      window.location.hash = '#section-parametres';
+      console.log('window.scrollY après hash change:', window.scrollY);
     })
+    
     await expect(page).toHaveURL(/#section-parametres$/)
     await expect(page.locator('#section-parametres')).toHaveClass(/active/)
+    
+    const scrollAfterFirstHash = await page.evaluate(() => window.scrollY);
+    console.log('window.scrollY après navigation parametres:', scrollAfterFirstHash);
+    
     await page.evaluate(() => window.scrollTo(0, 1200))
-
+    
+    const scrollAfterScroll = await page.evaluate(() => window.scrollY);
+    console.log('window.scrollY après scrollTo(0, 1200):', scrollAfterScroll);
+    
+    console.log('=== AVANT page.goBack() ===');
+    const scrollBeforeBack = await page.evaluate(() => window.scrollY);
+    console.log('window.scrollY AVANT page.goBack():', scrollBeforeBack);
+    
     await page.goBack()
     await expect(page).toHaveURL(/#section-dashboard$/)
     await expect(page.locator('#section-dashboard')).toHaveClass(/active/)
+    
+    const scrollAfterBack = await page.evaluate(() => window.scrollY);
+    console.log('window.scrollY APRÈS page.goBack():', scrollAfterBack);
+    
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
 
     await page.goForward()
     await expect(page).toHaveURL(/#section-parametres$/)
     await expect(page.locator('#section-parametres')).toHaveClass(/active/)
+    
+    const scrollAfterForward = await page.evaluate(() => window.scrollY);
+    console.log('window.scrollY APRÈS page.goForward():', scrollAfterForward);
+    
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
+    
+    console.log('=== FIN TEST SCROLL RESTORATION (GITHUB CI DIAGNOSTIC) ===');
   })
 
   test('Dashboard and Settings pass targeted axe scans', async ({ page }) => {

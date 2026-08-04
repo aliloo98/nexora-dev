@@ -5421,6 +5421,158 @@ function showSection(id, options = {}){
 
 window.showSection = showSection;
 
+// DIAGNOSTIC TEMPORAIRE - Instrumentation des appels scroll pour GitHub CI
+const originalWindowScrollTo = window.scrollTo;
+const originalElementScrollTo = Element.prototype.scrollTo;
+const originalScrollIntoView = Element.prototype.scrollIntoView;
+const originalPushState = history.pushState;
+const originalReplaceState = history.replaceState;
+
+window.scrollTo = function(...args) {
+  const beforeScrollY = window.scrollY;
+  const stack = new Error().stack;
+  originalWindowScrollTo.apply(this, args);
+  const afterScrollY = window.scrollY;
+  console.log('=== window.scrollTo() ===');
+  console.log('args:', args);
+  console.log('beforeScrollY:', beforeScrollY);
+  console.log('afterScrollY:', afterScrollY);
+  console.log('stack:', stack);
+};
+
+Element.prototype.scrollTo = function(...args) {
+  const beforeScrollY = window.scrollY;
+  const stack = new Error().stack;
+  originalElementScrollTo.apply(this, args);
+  const afterScrollY = window.scrollY;
+  console.log('=== Element.scrollTo() ===');
+  console.log('element:', this);
+  console.log('args:', args);
+  console.log('beforeScrollY:', beforeScrollY);
+  console.log('afterScrollY:', afterScrollY);
+  console.log('stack:', stack);
+};
+
+Element.prototype.scrollIntoView = function(...args) {
+  const beforeScrollY = window.scrollY;
+  const stack = new Error().stack;
+  originalScrollIntoView.apply(this, args);
+  const afterScrollY = window.scrollY;
+  console.log('=== Element.scrollIntoView() ===');
+  console.log('element:', this);
+  console.log('args:', args);
+  console.log('beforeScrollY:', beforeScrollY);
+  console.log('afterScrollY:', afterScrollY);
+  console.log('stack:', stack);
+};
+
+history.pushState = function(...args) {
+  const beforeScrollY = window.scrollY;
+  const stack = new Error().stack;
+  originalPushState.apply(this, args);
+  const afterScrollY = window.scrollY;
+  console.log('=== history.pushState() ===');
+  console.log('args:', args);
+  console.log('beforeScrollY:', beforeScrollY);
+  console.log('afterScrollY:', afterScrollY);
+  console.log('stack:', stack);
+};
+
+history.replaceState = function(...args) {
+  const beforeScrollY = window.scrollY;
+  const stack = new Error().stack;
+  originalReplaceState.apply(this, args);
+  const afterScrollY = window.scrollY;
+  console.log('=== history.replaceState() ===');
+  console.log('args:', args);
+  console.log('beforeScrollY:', beforeScrollY);
+  console.log('afterScrollY:', afterScrollY);
+  console.log('stack:', stack);
+};
+
+window.addEventListener('scroll', () => {
+  console.log('=== window scroll event ===');
+  console.log('window.scrollY:', window.scrollY);
+  console.log('stack:', new Error().stack);
+}, { passive: true });
+// FIN DIAGNOSTIC TEMPORAIRE
+
+// DIAGNOSTIC TEMPORAIRE - Instrumentation des appels scroll
+const originalWindowScrollTo = window.scrollTo;
+const originalElementScrollTo = Element.prototype.scrollTo;
+const originalScrollIntoView = Element.prototype.scrollIntoView;
+const originalPushState = history.pushState;
+const originalReplaceState = history.replaceState;
+
+window.scrollTo = function(...args) {
+  const beforeScrollY = window.scrollY;
+  const stack = new Error().stack;
+  originalWindowScrollTo.apply(this, args);
+  const afterScrollY = window.scrollY;
+  console.log('=== window.scrollTo() ===');
+  console.log('args:', args);
+  console.log('beforeScrollY:', beforeScrollY);
+  console.log('afterScrollY:', afterScrollY);
+  console.log('stack:', stack);
+};
+
+Element.prototype.scrollTo = function(...args) {
+  const beforeScrollY = window.scrollY;
+  const stack = new Error().stack;
+  originalElementScrollTo.apply(this, args);
+  const afterScrollY = window.scrollY;
+  console.log('=== Element.scrollTo() ===');
+  console.log('element:', this);
+  console.log('args:', args);
+  console.log('beforeScrollY:', beforeScrollY);
+  console.log('afterScrollY:', afterScrollY);
+  console.log('stack:', stack);
+};
+
+Element.prototype.scrollIntoView = function(...args) {
+  const beforeScrollY = window.scrollY;
+  const stack = new Error().stack;
+  originalScrollIntoView.apply(this, args);
+  const afterScrollY = window.scrollY;
+  console.log('=== Element.scrollIntoView() ===');
+  console.log('element:', this);
+  console.log('args:', args);
+  console.log('beforeScrollY:', beforeScrollY);
+  console.log('afterScrollY:', afterScrollY);
+  console.log('stack:', stack);
+};
+
+history.pushState = function(...args) {
+  const beforeScrollY = window.scrollY;
+  const stack = new Error().stack;
+  originalPushState.apply(this, args);
+  const afterScrollY = window.scrollY;
+  console.log('=== history.pushState() ===');
+  console.log('args:', args);
+  console.log('beforeScrollY:', beforeScrollY);
+  console.log('afterScrollY:', afterScrollY);
+  console.log('stack:', stack);
+};
+
+history.replaceState = function(...args) {
+  const beforeScrollY = window.scrollY;
+  const stack = new Error().stack;
+  originalReplaceState.apply(this, args);
+  const afterScrollY = window.scrollY;
+  console.log('=== history.replaceState() ===');
+  console.log('args:', args);
+  console.log('beforeScrollY:', beforeScrollY);
+  console.log('afterScrollY:', afterScrollY);
+  console.log('stack:', stack);
+};
+
+window.addEventListener('scroll', () => {
+  console.log('=== window scroll event ===');
+  console.log('window.scrollY:', window.scrollY);
+  console.log('stack:', new Error().stack);
+}, { passive: true });
+// FIN DIAGNOSTIC TEMPORAIRE
+
 async function exportMonthlyPdf(){
   try {
     if (typeof refreshCategoryLabels === 'function') {
