@@ -4386,11 +4386,6 @@ function updateAll(){
     totalDepPayee
   });
   
-  // Clear cache before recalculating financial state
-  if (typeof window.clearFinancialStateCache === 'function') {
-    window.clearFinancialStateCache();
-  }
-  
   // Get detailed metrics with categories for the financial card
   const currentMonth = getMonth();
   const detailedMetrics = getMonthMetrics(currentMonth, { fromDom: true });

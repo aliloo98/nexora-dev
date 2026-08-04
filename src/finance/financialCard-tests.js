@@ -3,7 +3,7 @@
  * calculateRemainingCharges, calculateProjectedBalance, getFinancialState
  */
 
-import { calculateRemainingCharges, calculateProjectedBalance, getFinancialState, clearFinancialStateCache } from './monthlyMetrics.js'
+import { calculateRemainingCharges, calculateProjectedBalance, getFinancialState } from './monthlyMetrics.js'
 
 function runFinancialCardTests() {
   console.log('🧪 Running Financial Card Tests')
@@ -40,14 +40,8 @@ function runFinancialCardTests() {
     }
   }
   
-  // Nettoyer le cache avant chaque test
-  const clearCache = () => {
-    clearFinancialStateCache()
-  }
-  
   // Test 1: Aucune charge
   test('calculateRemainingCharges avec aucune charge', () => {
-    clearCache()
     const metrics = {
       categories: [],
       currentBalance: 1000
@@ -58,7 +52,6 @@ function runFinancialCardTests() {
   
   // Test 2: Uniquement des charges payées
   test('calculateRemainingCharges avec uniquement des charges payées', () => {
-    clearCache()
     const metrics = {
       categories: [
         { type: 'fixed_expense', amount: 100, paidAmount: 100, name: 'Loyer' },
@@ -72,7 +65,6 @@ function runFinancialCardTests() {
   
   // Test 3: Uniquement des charges non payées
   test('calculateRemainingCharges avec uniquement des charges non payées', () => {
-    clearCache()
     const metrics = {
       categories: [
         { type: 'fixed_expense', amount: 100, paidAmount: 0, name: 'Loyer' },
@@ -86,7 +78,6 @@ function runFinancialCardTests() {
   
   // Test 4: Mélange charges payées / non payées
   test('calculateRemainingCharges avec mélange de charges', () => {
-    clearCache()
     const metrics = {
       categories: [
         { type: 'fixed_expense', amount: 100, paidAmount: 100, name: 'Loyer' },
@@ -101,7 +92,6 @@ function runFinancialCardTests() {
   
   // Test 5: Exclure les revenus
   test('calculateRemainingCharges exclut les revenus', () => {
-    clearCache()
     const metrics = {
       categories: [
         { type: 'income', amount: 2000, paidAmount: 0, name: 'Salaire' },
@@ -115,7 +105,6 @@ function runFinancialCardTests() {
   
   // Test 6: Exclure les transferts internes
   test('calculateRemainingCharges exclut les transferts internes', () => {
-    clearCache()
     const metrics = {
       categories: [
         { type: 'fixed_expense', amount: 100, paidAmount: 0, name: 'Loyer' },
@@ -129,7 +118,6 @@ function runFinancialCardTests() {
   
   // Test 7: Exclure les analyses exclues
   test('calculateRemainingCharges exclut les analyses exclues', () => {
-    clearCache()
     const metrics = {
       categories: [
         { type: 'fixed_expense', amount: 100, paidAmount: 0, name: 'Loyer' },
@@ -143,7 +131,6 @@ function runFinancialCardTests() {
   
   // Test 8: Mois sans revenu
   test('calculateRemainingCharges fonctionne sans revenu', () => {
-    clearCache()
     const metrics = {
       categories: [
         { type: 'fixed_expense', amount: 100, paidAmount: 0, name: 'Loyer' }
@@ -156,7 +143,6 @@ function runFinancialCardTests() {
   
   // Test 9: Plusieurs revenus dans le mois
   test('calculateRemainingCharges avec plusieurs revenus', () => {
-    clearCache()
     const metrics = {
       categories: [
         { type: 'income', amount: 2000, paidAmount: 0, name: 'Salaire' },
@@ -171,7 +157,6 @@ function runFinancialCardTests() {
   
   // Test 10: calculateProjectedBalance
   test('calculateProjectedBalance calcule correctement le solde', () => {
-    clearCache()
     const metrics = {
       currentBalance: 1000,
       categories: [
@@ -184,7 +169,6 @@ function runFinancialCardTests() {
   
   // Test 11: getFinancialState - État positif
   test('getFinancialState retourne l\'état positif quand charges = 0', () => {
-    clearCache()
     const metrics = {
       currentBalance: 500,
       categories: []
@@ -196,7 +180,6 @@ function runFinancialCardTests() {
   
   // Test 12: getFinancialState - État critique
   test('getFinancialState retourne l\'état critique quand solde négatif', () => {
-    clearCache()
     const metrics = {
       currentBalance: 100,
       categories: [
@@ -210,7 +193,6 @@ function runFinancialCardTests() {
   
   // Test 13: getFinancialState - État warning
   test('getFinancialState retourne l\'état warning quand solde faible', () => {
-    clearCache()
     const metrics = {
       currentBalance: 1000,
       categories: [
@@ -223,7 +205,6 @@ function runFinancialCardTests() {
   
   // Test 14: getFinancialState - État neutre
   test('getFinancialState retourne l\'état neutre pour situation normale', () => {
-    clearCache()
     const metrics = {
       currentBalance: 1000,
       categories: [
@@ -234,9 +215,8 @@ function runFinancialCardTests() {
     assertEqual(result.state, 'neutral', 'Devrait être neutre')
   })
   
-  // Test 15: Cache performance
-  test('Le cache améliore les performances', () => {
-    clearCache()
+  // Test 15: Consistance des calculs
+  test('Les calculs sont cohérents sur plusieurs appels', () => {
     const metrics = {
       currentBalance: 1000,
       categories: [
@@ -244,35 +224,13 @@ function runFinancialCardTests() {
       ]
     }
     
-    // Premier appel - devrait remplir le cache
-    const start1 = Date.now()
     const result1 = calculateRemainingCharges(metrics)
-    const time1 = Date.now() - start1
-    
-    // Deuxième appel - devrait utiliser le cache
-    const start2 = Date.now()
     const result2 = calculateRemainingCharges(metrics)
-    const time2 = Date.now() - start2
+    const result3 = calculateRemainingCharges(metrics)
     
     assertEqual(result1, result2, 'Les résultats devraient être identiques')
-    assertLessThan(time2, time1 + 1, 'Le deuxième appel devrait être au moins aussi rapide')
-  })
-  
-  // Test 16: clearFinancialStateCache
-  test('clearFinancialStateCache vide le cache', () => {
-    const metrics = {
-      currentBalance: 1000,
-      categories: [
-        { type: 'fixed_expense', amount: 200, paidAmount: 0, name: 'Loyer' }
-      ]
-    }
-    
-    calculateRemainingCharges(metrics)
-    clearFinancialStateCache()
-    
-    // Après clear, le cache devrait être vide
-    const result = calculateRemainingCharges(metrics)
-    assertEqual(result, 200, 'Devrait recalculer correctement après clear')
+    assertEqual(result2, result3, 'Les résultats devraient rester identiques')
+    assertEqual(result1, 200, 'Le résultat devrait être correct')
   })
   
   console.log(`\n📊 Financial Card Tests: ${passed} passed, ${failed} failed`)

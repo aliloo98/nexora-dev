@@ -4,10 +4,6 @@ import { resolveBudgetWithRecurring } from './recurringResolution.js'
 
 const CATEGORY_TYPES = new Set(['income', 'fixed_expense', 'variable_expense'])
 
-// Cache pour optimiser les calculs répétés
-const financialStateCache = new Map()
-const CACHE_TTL = 1000 // 1 seconde
-
 const uniqueActiveCategories = (categories = []) => {
   const byId = new Map()
   for (const category of Array.isArray(categories) ? categories : []) {
@@ -169,21 +165,8 @@ export function computeMonthlyMetrics({
  * Calcule les charges restantes à payer pour le mois courant.
  * Filtre uniquement les dépenses (exclut revenus, transferts internes, analyses exclues).
  * Basé sur toutes les dépenses dont paid === false.
- * Version avec cache pour optimiser les performances.
  */
 export function calculateRemainingCharges(metrics = {}) {
-  const cacheKey = JSON.stringify({
-    currentBalance: metrics.currentBalance,
-    categories: metrics.categories,
-    remainingExpenses: metrics.remainingExpenses,
-    remainingToSpend: metrics.remainingToSpend
-  })
-  
-  const cached = financialStateCache.get(cacheKey)
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return cached.value
-  }
-  
   const categories = metrics.categories || []
   
   // Filtrer uniquement les dépenses non payées (exclure revenus)
@@ -209,47 +192,17 @@ export function calculateRemainingCharges(metrics = {}) {
     return sum + (cat.amount - cat.paidAmount)
   }, 0)
   
-  const result = Math.max(0, remainingAmount)
-  
-  // Mettre en cache
-  financialStateCache.set(cacheKey, {
-    value: result,
-    timestamp: Date.now()
-  })
-  
-  return result
+  return Math.max(0, remainingAmount)
 }
 
 /**
  * Calcule le solde prévisionnel après paiement de toutes les charges restantes.
  * Formule: solde actuel - charges restantes
- * Version avec cache pour optimiser les performances.
  */
 export function calculateProjectedBalance(metrics = {}) {
-  const cacheKey = JSON.stringify({
-    currentBalance: metrics.currentBalance,
-    categories: metrics.categories,
-    remainingExpenses: metrics.remainingExpenses,
-    remainingToSpend: metrics.remainingToSpend
-  })
-  
-  const cached = financialStateCache.get(cacheKey)
-  if (cached && cached.projectedBalance !== undefined && Date.now() - cached.timestamp < CACHE_TTL) {
-    return cached.projectedBalance
-  }
-  
   const currentBalance = metrics.currentBalance || 0
   const remainingCharges = calculateRemainingCharges(metrics)
-  const result = currentBalance - remainingCharges
-  
-  // Mettre en cache les deux valeurs
-  financialStateCache.set(cacheKey, {
-    value: remainingCharges,
-    projectedBalance: result,
-    timestamp: Date.now()
-  })
-  
-  return result
+  return currentBalance - remainingCharges
 }
 
 /**

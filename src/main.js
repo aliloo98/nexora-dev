@@ -50,7 +50,6 @@ import { parseFinancialExpression } from './finance/financialExpression.js'
 import { computeCycleBalances, computeCycleBalancesFromMetrics } from './finance/cycleBalance.js'
 import { resolveActiveBudgetMonth } from './finance/budgetCycle.js'
 import NexoraRecurringResolver from './finance/recurringResolution.js'
-import { clearFinancialStateCache } from './finance/monthlyMetrics.js'
 import NexoraCore from './ui/nexoraCore.js'
 import { toggleAvailableMoneyOptions } from './ui/availableMoneyOptions.js'
 import { buildDashboardGuidance } from './ui/dashboardGuidance.js'
@@ -120,7 +119,6 @@ installLegacyBridge({
   readSyncedArray,
   parseFinancialExpression,
   NexoraCycleBalance: { computeCycleBalances, computeCycleBalancesFromMetrics, resolveActiveBudgetMonth },
-  clearFinancialStateCache,
   renderRecurringIncomeSettings,
   renderBillScheduleSettings,
 
