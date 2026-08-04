@@ -5330,10 +5330,12 @@ function showSection(id, options = {}){
   const navigationOrigin = options.origin || 'voluntary';
 
   // DIAGNOSTIC TEMPORAIRE - Log navigationOrigin pour comprendre le bug scroll
-  console.log('=== showSection() ===');
-  console.log('id:', id);
-  console.log('options.origin:', options.origin);
-  console.log('navigationOrigin:', navigationOrigin);
+  console.log({
+    section: id,
+    optionsOrigin: options?.origin,
+    navigationOrigin,
+    shouldPrepare: navigationOrigin === 'voluntary'
+  });
   // FIN DIAGNOSTIC TEMPORAIRE
 
   const targetSection = document.getElementById('section-' + id);
@@ -5373,13 +5375,8 @@ function showSection(id, options = {}){
     window.NexoraCore.setNexoraCoreMotionActive(id === 'dashboard');
   }
 
-  // DIAGNOSTIC TEMPORAIRE - Log avant la condition
-  console.log('=== AVANT CONDITION navigationOrigin === "voluntary" ===');
-  console.log('navigationOrigin:', navigationOrigin);
-  console.log('Condition result:', navigationOrigin === 'voluntary');
-  // FIN DIAGNOSTIC TEMPORAIRE
-
   if (navigationOrigin === 'voluntary') {
+    console.trace('prepareVoluntarySectionNavigation');
     prepareVoluntarySectionNavigation(nextSection);
   }
 
