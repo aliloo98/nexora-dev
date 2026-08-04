@@ -113,7 +113,7 @@ export const AuthContext = {
         if (typeof window.renderRecurringIncomeSettings === 'function') await window.renderRecurringIncomeSettings()
         if (typeof window.renderBillScheduleSettings === 'function') await window.renderBillScheduleSettings()
         if (typeof window.renderDebts === 'function') window.renderDebts()
-        if (typeof window.loadMonth === 'function') await window.loadMonth()
+        // Removed redundant loadMonth() call here (already called above)
         if (typeof window.updateAll === 'function') window.updateAll()
 
         // Ensure custom categories UI is rendered after session restore

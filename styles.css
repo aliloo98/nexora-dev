@@ -917,7 +917,7 @@ body,
   border-radius: 50%;
   box-shadow: 0 2px 12px rgba(229,192,96,0.06) inset, 0 6px 20px rgba(0,0,0,0.35);
   pointer-events: none;
-  z-index: 0;
+  z-index: -1;
 }
 
 .nexora-core-globe .nexora-core-ambient {
@@ -7561,7 +7561,7 @@ body.mode-simple .home-goal-summary {
   inset: 0;
   pointer-events: none;
   position: absolute;
-  z-index: 0;
+  z-index: -1;
 }
 
 .available-money-head,
@@ -7710,7 +7710,7 @@ body.mode-simple .home-goal-summary {
   pointer-events: none;
   position: absolute;
   transition: opacity 0.35s ease;
-  z-index: 0;
+  z-index: -1;
 }
 
 .dashboard-synthesis-main,
@@ -7923,7 +7923,7 @@ body.mode-simple .home-goal-summary {
   inset: 0;
   pointer-events: none;
   position: absolute;
-  z-index: 0;
+  z-index: -1;
 }
 
 .nexora-core-panel--masterpiece .nexora-core-layout--signature {
@@ -7957,7 +7957,7 @@ body.mode-simple .home-goal-summary {
   opacity: 0.85;
   pointer-events: none;
   position: absolute;
-  z-index: 0;
+  z-index: -1;
 }
 
 .nexora-core-panel {
@@ -13294,7 +13294,7 @@ body {
     linear-gradient(135deg, #0a0f1a 0%, #151e2e 40%, #0d121f 100%),
     radial-gradient(ellipse at 30% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
     radial-gradient(ellipse at 70% 80%, rgba(16, 185, 129, 0.06) 0%, transparent 50%);
-  z-index: 0;
+  z-index: -1;
 }
 
 .cockpit-hero-v4__background::before {
@@ -14303,7 +14303,7 @@ body {
   inset: 0;
   position: absolute;
   transform: skewX(-8deg);
-  z-index: 0;
+  z-index: -1;
   opacity: 0.6;
 }
 
@@ -14317,7 +14317,7 @@ body {
   top: 50%;
   transform: translateY(-50%);
   width: 180px;
-  z-index: 0;
+  z-index: -1;
   opacity: 0.5;
 }
 
