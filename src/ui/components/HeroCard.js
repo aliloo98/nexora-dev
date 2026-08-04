@@ -12,8 +12,8 @@ const BADGE_TONES = {
 }
 
 /**
- * Displays the main financial balance as the dashboard focal point.
- * @example createHeroCard({ amount: '1 250 €', label: 'Argent restant ce mois-ci', tone: 'positive', actionLabel: 'Voir le plan', onAction })
+ * Displays the main financial balance as the dashboard focal point with premium indicators.
+ * @example createHeroCard({ amount: '1 250 €', label: 'Argent restant ce mois-ci', tone: 'positive', subMetrics: [{label: 'Épargne', value: '20%'}], actionLabel: 'Voir le plan', onAction })
  */
 export function createHeroCard(options = {}, documentRef) {
   const document = getDocument(documentRef)
@@ -48,16 +48,42 @@ export function createHeroCard(options = {}, documentRef) {
   setText(label, options.label || 'Argent restant ce mois-ci')
   header.appendChild(label)
 
+  const amountWrapper = document.createElement('div')
+  amountWrapper.className = 'nx-hero-card__amount-wrapper'
+  content.appendChild(amountWrapper)
+
   const amount = document.createElement('strong')
   amount.className = 'nx-hero-card__amount nx-numeric'
   setText(amount, options.amount ?? '—')
-  content.appendChild(amount)
+  amountWrapper.appendChild(amount)
 
   if (options.trend) {
     const trend = document.createElement('p')
     trend.className = 'nx-hero-card__trend'
     setText(trend, options.trend)
-    content.appendChild(trend)
+    amountWrapper.appendChild(trend)
+  }
+
+  if (options.subMetrics && Array.isArray(options.subMetrics) && options.subMetrics.length > 0) {
+    const subMetrics = document.createElement('div')
+    subMetrics.className = 'nx-hero-card__sub-metrics'
+    options.subMetrics.forEach(metric => {
+      const metricEl = document.createElement('div')
+      metricEl.className = 'nx-hero-card__sub-metric'
+      
+      const metricLabel = document.createElement('span')
+      metricLabel.className = 'nx-hero-card__sub-metric-label'
+      setText(metricLabel, metric.label)
+      metricEl.appendChild(metricLabel)
+      
+      const metricValue = document.createElement('span')
+      metricValue.className = 'nx-hero-card__sub-metric-value'
+      setText(metricValue, metric.value)
+      metricEl.appendChild(metricValue)
+      
+      subMetrics.appendChild(metricEl)
+    })
+    content.appendChild(subMetrics)
   }
 
   if (options.actionLabel && typeof options.onAction === 'function') {

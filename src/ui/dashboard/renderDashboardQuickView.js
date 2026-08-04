@@ -201,12 +201,25 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   const varReel = Number(metrics.varReel || 0)
   const debtSummary = metrics.debtSummary || { total: 0, monthly: 0 }
 
-  // Calculs dérivés
+  // Use source of truth metrics from updateAll() / computeCycleBalances()
+  const solde = metrics.solde !== undefined ? Number(metrics.solde) : (revReel - fixReel - varReel)
+  const soldeEstime = metrics.soldeEstime !== undefined ? Number(metrics.soldeEstime) : solde
+  const totalDepRestant = metrics.totalDepRestant !== undefined ? Number(metrics.totalDepRestant) : 0
+  const tauxCh = metrics.tauxCh !== undefined ? Number(metrics.tauxCh) : (revReel > 0 ? Math.round(((fixReel + varReel) / revReel) * 100) : 0)
+  const variablesPct = metrics.variablesPct !== undefined ? Number(metrics.variablesPct) : (revReel > 0 ? Math.round((varReel / revReel) * 100) : 0)
+
+  // Use pre-calculated Analytics metrics from updateAll()
+  const savingsRate = metrics.savingsRate !== undefined ? Number(metrics.savingsRate) : (revReel > 0 ? ((solde / revReel) * 100) : 0)
+  const annualProjection = metrics.annualProjection !== undefined ? Number(metrics.annualProjection) : (solde * 12)
+  const safetyMargin = metrics.safetyMargin !== undefined ? Number(metrics.safetyMargin) : (revReel - fixReel)
+  const goalProgressPct = metrics.goalProgressPct !== undefined ? Number(metrics.goalProgressPct) : Math.min(100, Math.max(0, savingsRate * 3))
+  const goalTarget = metrics.goalTarget !== undefined ? Number(metrics.goalTarget) : (revReel * 0.2)
+
+  // Calculs dérivés (only if not provided by source of truth)
   const totalExpenses = fixReel + varReel
-  const savings = revReel - totalExpenses
-  const savingsRate = revReel > 0 ? (savings / revReel) * 100 : 0
-  const soldeFinMois = savings
-  const tauxCharges = revReel > 0 ? Math.round((fixReel / revReel) * 100) : 0
+  const savings = solde // Use source of truth
+  const soldeFinMois = solde // Use source of truth
+  const tauxCharges = tauxCh // Use source of truth
   const depenseMoyenneJour = totalExpenses > 0 ? Math.round(totalExpenses / 30) : 0
 
   // === CALCUL ÉVALUATION COPILOTE ===
@@ -249,41 +262,8 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
     if (landEl) landEl.textContent = copilotState.understanding.landingText
   }
 
-  // 3. TIMELINE RUBAN 1-LIGNE TEMPORELLE
-  const tLabel1 = documentRef.getElementById('timeline-label-1')
-  const tLabel2 = documentRef.getElementById('timeline-label-2')
-  const tLabel3 = documentRef.getElementById('timeline-label-3')
-
-  const weekBalanceEl = documentRef.getElementById('week-plan-balance')
-  const weekIncomeEl = documentRef.getElementById('week-plan-next-income')
-  const weekToPayEl = documentRef.getElementById('week-plan-to-pay')
-
-  if (timeContext.isPast) {
-    if (tLabel1) tLabel1.textContent = "Début du mois"
-    if (tLabel2) tLabel2.textContent = "Événement majeur"
-    if (tLabel3) tLabel3.textContent = "Fin du mois"
-
-    if (weekBalanceEl) weekBalanceEl.textContent = fmt(revReel)
-    if (weekIncomeEl) weekIncomeEl.textContent = fixReel > 0 ? `${fmt(fixReel)} payés` : 'Solde neutre'
-    if (weekToPayEl) weekToPayEl.textContent = fmt(soldeFinMois)
-  } else if (timeContext.isFuture) {
-    if (tLabel1) tLabel1.textContent = "Début prévu"
-    if (tLabel2) tLabel2.textContent = "Premier revenu"
-    if (tLabel3) tLabel3.textContent = "Premières charges"
-
-    if (weekBalanceEl) weekBalanceEl.textContent = "1er du mois"
-    if (weekIncomeEl) weekIncomeEl.textContent = revReel > 0 ? fmt(revReel) : 'À définir'
-    if (weekToPayEl) weekToPayEl.textContent = fixReel > 0 ? fmt(fixReel) : '0 €'
-  } else {
-    // CURRENT
-    if (tLabel1) tLabel1.textContent = "Aujourd'hui"
-    if (tLabel2) tLabel2.textContent = "Prochaine entrée"
-    if (tLabel3) tLabel3.textContent = "Charges restantes"
-
-    if (weekBalanceEl) weekBalanceEl.textContent = fmt(soldeFinMois)
-    if (weekIncomeEl) weekIncomeEl.textContent = revReel > 0 ? 'Revenu confirmé' : 'À définir'
-    if (weekToPayEl) weekToPayEl.textContent = fixReel > 0 ? `${fmt(fixReel)} engagés` : 'Aucune charge'
-  }
+  // 3. TIMELINE RUBAN 1-LIGNE TEMPORELLE - REMOVED: Handled by updateWeekPlan() to avoid conflicts
+  // Timeline is updated by updateWeekPlan() in index.html which is the official source for this component
 
   // 4. MODE COMPLET - CHARTS SVG DYNAMIQUES (SPRINTS 2 & 3)
   // SPRINT 2: COURBE DE TRÉSORERIE 30 JOURS
@@ -343,28 +323,26 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   const legVar = documentRef.getElementById('donut-leg-variables')
   if (legVar) legVar.textContent = `${pctVar}%`
 
-  // ANALYSES & DETTES
+  // ANALYSES & DETTES - Use pre-calculated metrics from updateAll()
   const analysisProjVal = documentRef.getElementById('analysis-projection-value')
-  if (analysisProjVal) analysisProjVal.textContent = fmt(savings * 12)
+  if (analysisProjVal) analysisProjVal.textContent = fmt(annualProjection) // Use pre-calculated annualProjection
 
   const analysisProjTrend = documentRef.getElementById('analysis-projection-trend')
   if (analysisProjTrend) {
-    const annual = savings * 12
-    analysisProjTrend.textContent = annual > 0 ? 'Trajectoire positive' : annual < 0 ? 'Trajectoire négative' : 'Trajectoire neutre'
+    analysisProjTrend.textContent = annualProjection > 0 ? 'Trajectoire positive' : annualProjection < 0 ? 'Trajectoire négative' : 'Trajectoire neutre'
   }
 
   const analysisTrendVal = documentRef.getElementById('analysis-trend-value')
-  if (analysisTrendVal) analysisTrendVal.textContent = fmtPct(savingsRate)
+  if (analysisTrendVal) analysisTrendVal.textContent = fmtPct(savingsRate) // Use pre-calculated savingsRate
 
   const analysisRatioVal = documentRef.getElementById('analysis-ratio-value')
-  if (analysisRatioVal) analysisRatioVal.textContent = fmt(revReel - fixReel)
+  if (analysisRatioVal) analysisRatioVal.textContent = fmt(safetyMargin) // Use pre-calculated safetyMargin
 
   const completeGoalBar = documentRef.getElementById('complete-goal-bar')
   const completeGoalText = documentRef.getElementById('complete-goal-progress-text')
   if (completeGoalBar && completeGoalText) {
-    const goalPct = Math.min(100, Math.max(0, savingsRate * 3))
-    completeGoalBar.style.width = `${goalPct}%`
-    completeGoalText.textContent = `${fmt(soldeFinMois)} / ${fmt(revReel * 0.2)}`
+    completeGoalBar.style.width = `${goalProgressPct}%` // Use pre-calculated goalProgressPct
+    completeGoalText.textContent = `${fmt(soldeFinMois)} / ${fmt(goalTarget)}` // Use pre-calculated goalTarget
   }
 
   const completeDebtMonthly = documentRef.getElementById('complete-debt-monthly')

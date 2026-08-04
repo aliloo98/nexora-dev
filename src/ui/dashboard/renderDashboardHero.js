@@ -6,6 +6,11 @@ const fmt = (value) => {
   return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits })} €`
 }
 
+const fmtPct = (value) => {
+  const pct = Number(value) || 0
+  return `${pct.toFixed(0)}%`
+}
+
 const getNexoraOfficialSituation = ({ revReel, solde, tauxCh, variablesPct }) => {
   if (revReel === 0) {
     return { state: 'neutral', label: 'Synthèse à compléter', riskLabel: '—' }
@@ -27,9 +32,9 @@ const getNexoraOfficialSituation = ({ revReel, solde, tauxCh, variablesPct }) =>
 }
 
 /**
- * Renders the premium Hero Card using V2 components.
+ * Renders the premium Hero Card using V2 components with sub-metrics.
  * @param {string} rootId - The ID of the container element
- * @param {Object} metrics - Financial metrics (revReel, solde, tauxCh, variablesPct)
+ * @param {Object} metrics - Financial metrics (revReel, solde, tauxCh, variablesPct, totalDepRestant, savingsRate)
  * @param {Object} options - Additional options (documentRef, onAction)
  */
 export function renderDashboardHero(rootId, metrics = {}, options = {}) {
@@ -42,16 +47,24 @@ export function renderDashboardHero(rootId, metrics = {}, options = {}) {
   const solde = Number(metrics.solde || 0)
   const tauxCh = Number(metrics.tauxCh || 0)
   const variablesPct = Number(metrics.variablesPct || 0)
+  const totalDepRestant = Number(metrics.totalDepRestant || 0)
+  const savingsRate = Number(metrics.savingsRate || 0)
 
   let tone = 'neutral'
   let context = 'Synthèse à compléter'
   let trend = null
+  let subMetrics = []
 
   if (revReel > 0) {
     const situation = getNexoraOfficialSituation({ revReel, solde, tauxCh, variablesPct })
     tone = situation.state
     context = situation.label
     trend = `Charges ${tauxCh}% · Variables ${variablesPct}%`
+    
+    subMetrics = [
+      { label: 'Taux d\'épargne', value: fmtPct(savingsRate) },
+      { label: 'Reste à dépenser', value: fmt(totalDepRestant) }
+    ]
   }
 
   const heroCard = createHeroCard({
@@ -59,6 +72,7 @@ export function renderDashboardHero(rootId, metrics = {}, options = {}) {
     label: 'Argent restant ce mois-ci',
     context,
     trend,
+    subMetrics,
     tone,
     actionLabel: revReel > 0 ? 'Voir le plan' : 'Saisir le mois',
     onAction: () => {

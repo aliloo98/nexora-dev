@@ -236,12 +236,12 @@ body.auth-locked > #nexora-status-bar {
 
             <div class="complete-analytics-grid">
               <div class="analytics-card">
-                <span class="analytics-card__title">Voilà où tu devrais terminer le mois</span>
+                <span class="analytics-card__title">Projection annuelle</span>
                 <div class="analytics-card__value" id="analysis-projection-value">0 €</div>
                 <div class="analytics-card__sub" id="analysis-projection-trend">Trajectoire sous contrôle</div>
               </div>
               <div class="analytics-card">
-                <span class="analytics-card__title">Part mise de côté</span>
+                <span class="analytics-card__title">Taux d'épargne mensuel</span>
                 <div class="analytics-card__value" id="analysis-trend-value">0%</div>
                 <div class="analytics-card__sub" id="analysis-trend-direction">Capacité optimale</div>
               </div>
@@ -290,7 +290,7 @@ body.auth-locked > #nexora-status-bar {
                 <div id="dashboard-primary-goal"></div>
                 <div class="goal-milestone-item">
                   <div class="goal-milestone-info">
-                    <span>Épargne de précaution</span>
+                    <span>Objectif d'épargne (20% des revenus)</span>
                     <strong id="complete-goal-progress-text">-- / -- €</strong>
                   </div>
                   <div class="goal-milestone-bar-bg">
@@ -4033,6 +4033,16 @@ function updateAll(){
   const tauxEp = revReel > 0 ? Math.round((solde / revReel) * 100) : 0;
   const tauxCh = revReel > 0 ? Math.round((totalDepReel / revReel) * 100) : 0;
 
+  // Additional calculations for Analytics (Mode Complet)
+  const savingsRate = revReel > 0 ? ((solde / revReel) * 100) : 0;
+  const annualProjection = solde * 12;
+  const safetyMargin = revReel - fixReel;
+  // Goal progress: Multiplier of 3 is a business rule to scale savings rate for visual progress bar
+  // A 20% savings rate = 60% progress toward the goal
+  const goalProgressPct = Math.min(100, Math.max(0, savingsRate * 3));
+  // Goal target: 20% of income is the recommended savings rate
+  const goalTarget = revReel * 0.2;
+
   setDashboardGuidanceTextCached('simple-income', fmt(revReel));
   setDashboardGuidanceTextCached('simple-out', fmt(totalDepReel));
   setDashboardGuidanceTextCached('simple-left', fmt(solde));
@@ -4321,6 +4331,25 @@ function updateAll(){
     tauxCh,
     variablesPct
   });
+  // Update Quick View / Analytics / Goals (Mode Complet) with source of truth metrics
+  if (typeof window.renderDashboardQuickView === 'function') {
+    window.renderDashboardQuickView({
+      revReel,
+      fixReel,
+      varReel,
+      solde,
+      soldeEstime,
+      totalDepRestant,
+      tauxCh,
+      variablesPct,
+      savingsRate, // Calculated in updateAll()
+      annualProjection, // Calculated in updateAll()
+      safetyMargin, // Calculated in updateAll()
+      goalProgressPct, // Calculated in updateAll()
+      goalTarget, // Calculated in updateAll()
+      debtSummary: getDebtSummary()
+    }, { windowRef: window });
+  }
   updateMonthForecast({
     revReel,
     solde
@@ -4334,9 +4363,9 @@ function updateAll(){
     totalDepPayee
   });
   updateWeekPlan({
-    solde,
+    solde, // Use computeCycleBalances().projectedEndOfCycle
     variablesPct,
-    totalDepRestant,
+    totalDepRestant, // Use computeCycleBalances().remainingToSpend
     revReel
   });
   updateDashboardAlerts({
@@ -4580,7 +4609,11 @@ function updateDashboardSynthesisHero(metrics = {}) {
 
   // Use V2 HeroCard component
   if (typeof window.renderDashboardHero === 'function') {
-    window.renderDashboardHero('dashboard-hero-root', metrics, {
+    window.renderDashboardHero('dashboard-hero-root', {
+      ...metrics,
+      totalDepRestant: metrics.totalDepRestant || 0,
+      savingsRate: metrics.savingsRate || 0
+    }, {
       documentRef: document,
       windowRef: window,
       onAction: (section) => {
@@ -4724,7 +4757,8 @@ function updateWeekPlan(metrics = {}) {
   const weekEnd = new Date(today);
   weekEnd.setDate(today.getDate() + 7);
   if (titleEl) titleEl.textContent = metrics.revReel > 0 ? 'Aperçu essentiel' : 'Plan financier';
-  if (balanceEl) balanceEl.textContent = fmt(metrics.solde || 0);
+  if (balanceEl) balanceEl.textContent = fmt(metrics.solde || 0); // Use source of truth solde from computeCycleBalances
+  console.log('[Timeline update] solde:', metrics.solde, 'balanceEl:', balanceEl?.textContent);
   if (nextIncomeEl) nextIncomeEl.textContent = hasProgrammedIncome && range.start ? formatShortDate(range.start) : 'Définir un revenu';
   if (incomeCtaEl) incomeCtaEl.style.display = hasProgrammedIncome ? 'none' : 'inline-flex';
   if (toPayEl) toPayEl.textContent = `${dueCount} charge${dueCount !== 1 ? 's' : ''}`;

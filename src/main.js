@@ -104,11 +104,11 @@ installLegacyBridge({
   NexoraSections,
   toggleAvailableMoneyOptions,
   NexoraDashboardGuidance: { buildDashboardGuidance },
-  renderDashboardHero, // TODO: Remove when Dashboard V2 migration is complete
-  renderDashboardGoalCard, // TODO: Remove when Dashboard V2 migration is complete
-  renderDashboardKpiStrip, // TODO: Remove when Dashboard V2 migration is complete
-  renderDashboardQuickView, // TODO: Remove when Dashboard V2 migration is complete
-  renderDashboardAlerts, // TODO: Remove when Dashboard V2 migration is complete
+  renderDashboardHero,
+  renderDashboardGoalCard,
+  renderDashboardKpiStrip,
+  renderDashboardQuickView,
+  renderDashboardAlerts,
   renderAssistantInsights,
   renderBudgetCoach,
   buildBudgetCoachState,
