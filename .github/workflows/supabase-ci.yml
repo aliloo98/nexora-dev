@@ -36,6 +36,14 @@ jobs:
           node-version: "20"
           cache: npm
 
+      - name: Get Playwright cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
       - name: Install locked npm dependencies
         run: npm ci
         timeout-minutes: 5
@@ -93,7 +101,7 @@ jobs:
 
       - name: Install Chromium for Playwright
         run: npx --no-install playwright install --with-deps chromium
-        timeout-minutes: 8
+        timeout-minutes: 10
 
       - name: Run Playwright application tests
         run: npm run test:e2e
