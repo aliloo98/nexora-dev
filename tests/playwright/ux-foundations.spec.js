@@ -116,7 +116,6 @@ test.describe('UX foundations', () => {
   })
 
   test('Dashboard and Settings pass targeted axe scans', async ({ page }) => {
-    // INSTRUMENTATION TEMPORAIRE - Capturer les styles des éléments Axe
     const captureComputedStyles = async () => {
       const smallStyles = await page.evaluate(() => {
         const smalls = document.querySelectorAll('small');
@@ -158,7 +157,6 @@ test.describe('UX foundations', () => {
     const settings = await new AxeBuilder({ page }).include('#section-parametres').analyze()
     expect(formatViolations(settings.violations)).toEqual([])
     
-    // LOG DES STYLES
     const dashboardStyles = await captureComputedStyles();
     console.log('=== DASHBOARD COMPUTED STYLES ===');
     console.log('small elements:', JSON.stringify(dashboardStyles.smallStyles, null, 2));
