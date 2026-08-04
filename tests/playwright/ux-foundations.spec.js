@@ -116,11 +116,52 @@ test.describe('UX foundations', () => {
   })
 
   test('Dashboard and Settings pass targeted axe scans', async ({ page }) => {
+    // INSTRUMENTATION TEMPORAIRE - Capturer les styles des éléments Axe
+    const captureComputedStyles = async () => {
+      const smallStyles = await page.evaluate(() => {
+        const smalls = document.querySelectorAll('small');
+        const styles = [];
+        smalls.forEach((small, index) => {
+          const computed = window.getComputedStyle(small);
+          styles.push({
+            index,
+            color: computed.color,
+            backgroundColor: computed.backgroundColor,
+            fontSize: computed.fontSize,
+            fontWeight: computed.fontWeight,
+            opacity: computed.opacity
+          });
+        });
+        return styles;
+      });
+      
+      const copilotBtnStyles = await page.evaluate(() => {
+        const btn = document.getElementById('copilot-action-btn');
+        if (!btn) return null;
+        const computed = window.getComputedStyle(btn);
+        return {
+          color: computed.color,
+          backgroundColor: computed.backgroundColor,
+          fontSize: computed.fontSize,
+          fontWeight: computed.fontWeight,
+          opacity: computed.opacity
+        };
+      });
+      
+      return { smallStyles, copilotBtnStyles };
+    };
+    
     const dashboard = await new AxeBuilder({ page }).include('#section-dashboard').analyze()
     expect(formatViolations(dashboard.violations)).toEqual([])
 
     await page.locator('.nav-btn[data-section="parametres"]').click()
     const settings = await new AxeBuilder({ page }).include('#section-parametres').analyze()
     expect(formatViolations(settings.violations)).toEqual([])
+    
+    // LOG DES STYLES
+    const dashboardStyles = await captureComputedStyles();
+    console.log('=== DASHBOARD COMPUTED STYLES ===');
+    console.log('small elements:', JSON.stringify(dashboardStyles.smallStyles, null, 2));
+    console.log('#copilot-action-btn:', JSON.stringify(dashboardStyles.copilotBtnStyles, null, 2));
   })
 })
