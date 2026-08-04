@@ -95,9 +95,6 @@ test.describe('UX foundations', () => {
   })
 
   test('Back and Forward preserve browser-managed scroll positions', async ({ page }) => {
-    // DIAGNOSTIC TEMPORAIRE - Logs ciblés pour GitHub CI (sans instrumentation globale)
-    console.log('=== DÉBUT TEST SCROLL RESTORATION (GITHUB CI DIAGNOSTIC) ===');
-    
     await page.evaluate(() => {
       history.scrollRestoration = 'auto'
       window.scrollTo(0, 700)
@@ -107,52 +104,15 @@ test.describe('UX foundations', () => {
     await expect(page.locator('#section-parametres')).toHaveClass(/active/)
     await page.evaluate(() => window.scrollTo(0, 1200))
 
-    // DIAGNOSTIC: Scroll avant page.goBack()
-    const scrollBeforeBack = await page.evaluate(() => window.scrollY);
-    console.log('SCROLL AVANT page.goBack():', scrollBeforeBack);
-    
     await page.goBack()
     await expect(page).toHaveURL(/#section-dashboard$/)
     await expect(page.locator('#section-dashboard')).toHaveClass(/active/)
-    
-    // DIAGNOSTIC: Scroll après page.goBack()
-    const scrollAfterBack = await page.evaluate(() => window.scrollY);
-    console.log('SCROLL APRÈS page.goBack():', scrollAfterBack);
-    
-    // DIAGNOSTIC: Instrumentation temporaire locale pour ce test uniquement
-    const scrollResults = await page.evaluate(() => {
-      let lastScrollReset = null;
-      const originalScrollTo = window.scrollTo;
-      window.scrollTo = function(...args) {
-        const before = window.scrollY;
-        originalScrollTo.apply(this, args);
-        const after = window.scrollY;
-        if (before > 0 && after === 0) {
-          lastScrollReset = {
-            before,
-            after,
-            args,
-            stack: new Error().stack
-          };
-        }
-      };
-      return { lastScrollReset };
-    });
-    
-    console.log('LAST SCROLL RESET:', JSON.stringify(scrollResults.lastScrollReset, null, 2));
-    
-    // DIAGNOSTIC: Scroll juste avant l'assertion
-    const scrollBeforeAssert = await page.evaluate(() => window.scrollY);
-    console.log('SCROLL AVANT ASSERTION:', scrollBeforeAssert);
-    
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
 
     await page.goForward()
     await expect(page).toHaveURL(/#section-parametres$/)
     await expect(page.locator('#section-parametres')).toHaveClass(/active/)
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
-    
-    console.log('=== FIN TEST SCROLL RESTORATION (GITHUB CI DIAGNOSTIC) ===');
   })
   })
 
