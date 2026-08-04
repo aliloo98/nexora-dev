@@ -100,8 +100,8 @@ jobs:
         timeout-minutes: 5
 
       - name: Install Chromium for Playwright
-        run: npx --no-install playwright install chromium
-        timeout-minutes: 5
+        run: npx --no-install playwright install --with-deps chromium
+        timeout-minutes: 20
 
       - name: Run Playwright application tests
         run: npm run test:e2e
