@@ -5366,7 +5366,12 @@ function showSection(id, options = {}){
     window.NexoraCore.setNexoraCoreMotionActive(id === 'dashboard');
   }
 
-  if (navigationOrigin === 'voluntary') {
+  // Skip scroll preparation if hash already matches (browser-managed navigation via hashchange)
+  const currentHash = window.location.hash;
+  const targetHash = '#section-' + id;
+  const isHashAlreadySet = currentHash === targetHash;
+  
+  if (navigationOrigin !== 'history' && navigationOrigin !== 'restore' && !isHashAlreadySet) {
     prepareVoluntarySectionNavigation(nextSection);
   }
 
@@ -7667,6 +7672,7 @@ window.initLegacyBudgetUi = () => {
   return legacyBudgetUiInitPromise;
 };
 
+// INDEX HTML HASHCHANGE LISTENER
 window.addEventListener('hashchange', () => {
   const section = window.location.hash.replace('#section-', '');
   if (section) showSection(section, { origin: 'history' });
