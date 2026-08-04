@@ -5366,8 +5366,12 @@ function showSection(id, options = {}){
     window.NexoraCore.setNexoraCoreMotionActive(id === 'dashboard');
   }
 
-  // Skip scroll preparation for browser-managed navigation (history, restore)
-  if (navigationOrigin !== 'history' && navigationOrigin !== 'restore') {
+  // Skip scroll preparation if hash already matches (browser-managed navigation via hashchange)
+  const currentHash = window.location.hash;
+  const targetHash = '#section-' + id;
+  const isHashAlreadySet = currentHash === targetHash;
+  
+  if (navigationOrigin !== 'history' && navigationOrigin !== 'restore' && !isHashAlreadySet) {
     prepareVoluntarySectionNavigation(nextSection);
   }
 
