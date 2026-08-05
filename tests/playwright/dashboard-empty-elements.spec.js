@@ -8,12 +8,12 @@ test.describe('Dashboard Empty Elements Regression', () => {
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 });
     await page.click('#loginDemoBtn');
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 });
-    await page.waitForSelector('.cockpit-hero-v4', { state: 'visible', timeout: 10000 });
+    await page.waitForSelector('.dashboard-v2-modular', { state: 'visible', timeout: 10000 });
   });
 
   test('no visible empty dashboard panels should exist', async ({ page }) => {
     const panels = await page.evaluate(() => {
-      const panels = document.querySelectorAll('.dashboard-panel, .dashboard-card, .dashboard-secondary-kpis');
+      const panels = document.querySelectorAll('.dashboard-module');
       return Array.from(panels).map(panel => ({
         id: panel.id,
         className: panel.className,
@@ -46,8 +46,8 @@ test.describe('Dashboard Empty Elements Regression', () => {
     expect(emptyPanels.length).toBe(0);
   });
 
-  test('coach card should be visible on dashboard', async ({ page }) => {
-    const coachCard = page.locator('#dashboard-coach-card');
-    await expect(coachCard).toBeVisible();
+  test('coach module should be visible on dashboard', async ({ page }) => {
+    const coachModule = page.locator('.dashboard-module--coach');
+    await expect(coachModule).toBeVisible();
   });
 });
