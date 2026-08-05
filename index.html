@@ -4291,6 +4291,17 @@ function updateAll(){
     tauxCh,
     variablesPct
   });
+  
+  // Update Dashboard Coach with V2 renderer
+  if (typeof window.renderDashboardCoach === 'function') {
+    window.renderDashboardCoach('coach-action-root', {
+      revReel,
+      solde,
+      tauxCh,
+      variablesPct,
+      totalDepRestant
+    }, { windowRef: window });
+  }
   // Update Quick View / Analytics / Goals (Mode Complet) with source of truth metrics
   if (typeof window.renderDashboardQuickView === 'function') {
     window.renderDashboardQuickView({

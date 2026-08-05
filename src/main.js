@@ -193,9 +193,11 @@ window.refreshDashboardCoach = () => {
   if (dashboardCoachRefreshPromise) return dashboardCoachRefreshPromise
 
   dashboardCoachRefreshPromise = (async () => {
-    if (typeof renderDashboardMaster !== 'function' || !document.getElementById('dashboard-master-root')) return
-    const TreasuryService = (await import('./treasury/treasuryService.js')).default
-    await renderDashboardMaster('dashboard-master-root', TreasuryService)
+    // The coach is rendered during updateAll in index.html
+    // This function is kept for compatibility with existing calls
+    if (typeof updateAll === 'function') {
+      updateAll()
+    }
   })().finally(() => {
     dashboardCoachRefreshPromise = null
   })
