@@ -160,6 +160,7 @@ test.describe('Budget coach E2E', () => {
   });
 
   test('validates the official placeholder demo path and the six Budget Coach states', async ({ page }) => {
+    test.setTimeout(120000); // Increase timeout for this test due to fullPage screenshots
     mkdirSync('test-results', { recursive: true });
 
     await page.goto('http://127.0.0.1:5180/', { waitUntil: 'networkidle' });
