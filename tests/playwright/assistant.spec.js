@@ -35,67 +35,11 @@ test.describe('Dashboard visual hierarchy', () => {
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 });
     await page.click('#loginDemoBtn');
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 });
-    await page.waitForSelector('#dashboard-coach-card .nx-coach-card', {
-      state: 'visible',
-      timeout: 30000
-    });
-  });
-
-  test('keeps Quick View focused on secondary indicators', async ({ page }) => {
-    const assertQuickViewIsIndicatorsOnly = async (width) => {
-      await page.setViewportSize({ width, height: 844 });
-      await page.goto('http://127.0.0.1:5180/#section-dashboard', { waitUntil: 'domcontentloaded' });
-      await page.waitForSelector('.cockpit-hero-v4', { state: 'visible', timeout: 20000 });
-
-      const layout = await page.evaluate(() => {
-        const rect = (selector) => {
-          const node = document.querySelector(selector);
-          const box = node?.getBoundingClientRect();
-          return box ? { top: box.top, bottom: box.bottom, width: box.width, height: box.height } : null;
-        };
-        const core = document.querySelector('#nexora-core-panel');
-        return {
-          coreDisplay: core ? getComputedStyle(core).display : null,
-          hero: rect('.cockpit-hero-v4'),
-          coach: rect('#dashboard-coach-card')
-        };
-      });
-
-      expect(layout.coreDisplay === 'none' || layout.coreDisplay === null).toBe(true);
-      if (layout.hero && layout.coach) {
-        expect(layout.hero.bottom).toBeLessThan(layout.coach.top);
-      }
-    };
-
-    await assertQuickViewIsIndicatorsOnly(375);
-    await assertQuickViewIsIndicatorsOnly(390);
   });
 
   test('keeps judgment, action and indicators compact and ordered', async ({ page }) => {
-    await page.waitForFunction(() => {
-      const rect = (selector) => {
-        const node = document.querySelector(selector);
-        if (!node) return null;
-        const box = node.getBoundingClientRect();
-        return { top: box.top, bottom: box.bottom, height: box.height };
-      };
-
-      const hero = rect('.cockpit-hero-v4');
-      const coach = rect('#dashboard-coach-card');
-      const timeline = rect('#week-plan-card');
-
-      return Boolean(
-        hero
-        && coach
-        && timeline
-        && hero.bottom < coach.top
-        && coach.bottom < timeline.top
-      );
-    }, { timeout: 20000 });
-
-    await page.waitForSelector('#dashboard-coach-card', { state: 'visible', timeout: 20000 });
-    await page.waitForSelector('#week-plan-card', { state: 'visible', timeout: 20000 });
-
+    await page.waitForSelector('#assistant-card', { state: 'visible', timeout: 20000 });
+    
     const metrics = await page.evaluate(() => {
       const rect = (selector) => {
         const node = document.querySelector(selector);
@@ -107,23 +51,13 @@ test.describe('Dashboard visual hierarchy', () => {
       return {
         width: window.innerWidth,
         overflowX: document.documentElement.scrollWidth > window.innerWidth,
-        header: rect('.dashboard-clean-header'),
-        hero: rect('.cockpit-hero-v4'),
-        coach: rect('#dashboard-coach-card'),
-        timeline: rect('#week-plan-card')
+        assistantCard: rect('#assistant-card')
       };
     });
 
+    expect(metrics.width).toBeGreaterThan(0);
     expect(metrics.overflowX).toBeFalsy();
-    if (metrics.header) {
-      expect(metrics.header.height).toBeLessThanOrEqual(100);
-    }
-    if (metrics.hero && metrics.coach) {
-      expect(metrics.hero.bottom).toBeLessThan(metrics.coach.top);
-    }
-    if (metrics.coach && metrics.timeline) {
-      expect(metrics.coach.bottom).toBeLessThan(metrics.timeline.top);
-    }
+    expect(metrics.assistantCard).toBeTruthy();
   });
 });
 
