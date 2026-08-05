@@ -70,6 +70,20 @@ test.describe('Dashboard Motion V1 robustness', () => {
     await page.waitForTimeout(500)
     const result = await page.evaluate(async (selector) => {
       const dashboard = document.getElementById('section-dashboard')
+      
+      // Wait for entrance animations to complete
+      await new Promise((resolve) => {
+        const checkAnimations = () => {
+          const diagnostics = window.NexoraMotion.getDashboardMotionDiagnostics()
+          if (diagnostics.activeAnimations === 0 && dashboard.dataset.dashboardMotionState === 'ready') {
+            resolve()
+          } else {
+            requestAnimationFrame(checkAnimations)
+          }
+        }
+        checkAnimations()
+      })
+      
       const before = window.NexoraMotion.getDashboardMotionDiagnostics()
       for (let index = 0; index < 3; index += 1) window.updateAll()
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
