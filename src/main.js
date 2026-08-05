@@ -59,6 +59,7 @@ import { renderDashboardKpiStrip } from './ui/dashboard/renderDashboardKpiStrip.
 import { renderDashboardQuickView } from './ui/dashboard/renderDashboardQuickView.js'
 import { renderDashboardAlerts } from './ui/dashboard/renderDashboardAlerts.js'
 import { renderAssistantInsights } from './ui/dashboard/renderAssistantInsights.js'
+import { renderDashboardCoach } from './ui/dashboard/renderDashboardCoach.js'
 
 
 import { renderBudgetCoach, buildBudgetCoachState } from './ui/budgetCoach.js'
@@ -113,6 +114,7 @@ installLegacyBridge({
 
   renderDashboardAlerts,
   renderAssistantInsights,
+  renderDashboardCoach,
   renderBudgetCoach,
   buildBudgetCoachState,
   buildJudgmentEngine,

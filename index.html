@@ -4545,8 +4545,8 @@ async function updatePriorityAction(metrics = {}) {
 }
 
 function updateDashboardSynthesisHero(metrics = {}) {
-  const hero = document.querySelector('.cockpit-hero-v4');
-  const heroRoot = document.getElementById('dashboard-hero-root');
+  const hero = document.querySelector('.dashboard-module--cockpit');
+  const heroRoot = document.getElementById('cockpit-financier-root');
   const coreStatusEl = document.getElementById('nexora-core-status-badge');
   const coreMissionTitleEl = document.getElementById('nexora-core-mission-title');
   const coreMissionDetailEl = document.getElementById('nexora-core-mission-detail');
@@ -4576,7 +4576,7 @@ function updateDashboardSynthesisHero(metrics = {}) {
 
   // Use V2 HeroCard component
   if (typeof window.renderDashboardHero === 'function') {
-    window.renderDashboardHero('dashboard-hero-root', {
+    window.renderDashboardHero('cockpit-financier-root', {
       ...metrics,
       totalDepRestant: metrics.totalDepRestant || 0,
       savingsRate: metrics.savingsRate || 0
@@ -5287,7 +5287,7 @@ async function updateDashboardPrimaryGoal() {
 
   // Use V2 renderer if available
   if (typeof window.renderDashboardGoalCard === 'function') {
-    window.renderDashboardGoalCard('dashboard-primary-goal', goal, {
+    window.renderDashboardGoalCard('goal-progress-root', goal, {
       monthly,
       estimatedMonths,
       forecast,
