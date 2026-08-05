@@ -40,7 +40,7 @@ test.describe('Dashboard Hero Card Premium', () => {
 
     for (const viewport of viewports) {
       await page.setViewportSize(viewport);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       const heroMetrics = await page.evaluate(() => {
         const heroRoot = document.querySelector('#cockpit-financier-root');

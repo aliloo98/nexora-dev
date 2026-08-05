@@ -1324,6 +1324,11 @@ function initializeCurrentBudgetMonth() {
   return promise;
 }
 
+// Allow explicit reset for test isolation
+window.resetBudgetMonthInitialization = () => {
+  currentBudgetMonthInitialization = null;
+};
+
 function applyBudgetCycleLabels() {
   const select = document.getElementById('monthSelect');
   if (select) {

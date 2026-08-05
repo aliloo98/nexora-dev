@@ -20,7 +20,15 @@ export function createGoalCard(options = {}, documentRef) {
   const eyebrow = document.createElement('span')
   eyebrow.className = 'nx-goal-card__eyebrow'
   setText(eyebrow, options.eyebrow || 'Objectif')
-  const title = createHeading(document, options.headingLevel || 3, options.name || '', 'nx-goal-card__title')
+  // Use heading element only if headingLevel is explicitly provided and valid
+  const useHeading = options.headingLevel && options.headingLevel > 0 && options.headingLevel <= 6
+  const title = useHeading
+    ? createHeading(document, options.headingLevel, options.name || '', 'nx-goal-card__title')
+    : document.createElement('div')
+  if (!useHeading) {
+    title.className = 'nx-goal-card__title'
+    setText(title, options.name || '')
+  }
   heading.appendChild(eyebrow)
   heading.appendChild(title)
   header.appendChild(heading)
