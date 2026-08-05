@@ -101,7 +101,7 @@ const waitForSectionReady = async (page, sectionId) => {
 };
 
 const openBudgetSection = async (page) => {
-  await page.locator('.sidebar .nav-btn[data-section="saisie"]').click();
+  await page.goto('http://127.0.0.1:5180/#section-saisie', { waitUntil: 'domcontentloaded' });
   await waitForSectionReady(page, 'saisie');
 };
 
