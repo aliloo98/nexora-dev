@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 test.describe('Nexora Coach Dashboard pilot', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://127.0.0.1:5180/#section-dashboard')
+    await page.goto('http://127.0.0.1:5180/#section-dashboard', { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 })
     await page.click('#loginDemoBtn')
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 })
