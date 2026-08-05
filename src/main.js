@@ -59,6 +59,8 @@ import { renderDashboardKpiStrip } from './ui/dashboard/renderDashboardKpiStrip.
 import { renderDashboardQuickView } from './ui/dashboard/renderDashboardQuickView.js'
 import { renderDashboardAlerts } from './ui/dashboard/renderDashboardAlerts.js'
 import { renderAssistantInsights } from './ui/dashboard/renderAssistantInsights.js'
+import { renderPremiumCockpit } from './ui/dashboard/renderPremiumCockpit.js'
+import { renderDashboardModular } from './ui/dashboard/renderDashboardModular.js'
 import { renderBudgetCoach, buildBudgetCoachState } from './ui/budgetCoach.js'
 import NexoraSections from './app/sectionLoader.js'
 import { getSyncStatusSnapshot, recordLastSync } from './app/syncStatus.js'
@@ -108,6 +110,8 @@ installLegacyBridge({
   renderDashboardGoalCard,
   renderDashboardKpiStrip,
   renderDashboardQuickView,
+  renderPremiumCockpit,
+  renderDashboardModular,
   renderDashboardAlerts,
   renderAssistantInsights,
   renderBudgetCoach,
@@ -196,6 +200,16 @@ window.refreshDashboardCoach = () => {
   })
 
   return dashboardCoachRefreshPromise
+}
+
+// Refresh modular dashboard
+window.refreshDashboardModular = () => {
+  if (typeof renderDashboardModular === 'function') {
+    renderDashboardModular({
+      monthKey: window.getMonth ? window.getMonth() : '2026-01',
+      asOf: new Date()
+    })
+  }
 }
 
 const formatEuro = (value) => `${(Number(value) || 0).toLocaleString('fr-FR')} €`
@@ -329,6 +343,7 @@ const initApp = async () => {
       renderAssistantCard,
       renderDashboardMaster,
       refreshDashboardCoach: window.refreshDashboardCoach,
+      refreshDashboardModular: window.refreshDashboardModular,
 
       // Event handlers dependencies
       parseFinancialExpression,
@@ -344,6 +359,14 @@ const initApp = async () => {
     // Attach handlers after bootstrap
     if (typeof document !== 'undefined') {
       attachAmountInputHandlers()
+    }
+
+    // Initialize modular dashboard
+    if (typeof renderDashboardModular === 'function') {
+      await renderDashboardModular({
+        monthKey: window.getMonth ? window.getMonth() : '2026-01',
+        asOf: new Date()
+      })
     }
   } catch (err) {
     console.error('❌ App initialization error:', err)

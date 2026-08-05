@@ -703,3 +703,817 @@
     justify-content: flex-end;
   }
 }
+
+/* Premium Cockpit Component */
+.premium-cockpit-section {
+  width: 100%;
+  margin-bottom: var(--nx-space-lg);
+}
+
+.nx-premium-cockpit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-lg);
+  min-width: 0;
+  background: linear-gradient(145deg, var(--nx-color-surface-2) 0%, var(--nx-color-surface-1) 50%, var(--nx-color-surface-3) 100%);
+  position: relative;
+  overflow: hidden;
+  animation: cockpitFadeIn var(--nx-motion-emphasized) var(--nx-easing-entrance) both;
+}
+
+@keyframes cockpitFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nx-premium-cockpit::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--nx-color-border-subtle), transparent);
+  opacity: 0.5;
+}
+
+.nx-premium-cockpit::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 30% 0%, rgba(215, 169, 74, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.nx-premium-cockpit__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-lg);
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.nx-premium-cockpit__header {
+  display: flex;
+  align-items: center;
+  gap: var(--nx-space-sm);
+}
+
+.nx-premium-cockpit__score-badge {
+  font-size: var(--nx-font-size-label);
+  font-weight: var(--nx-font-weight-semibold);
+}
+
+.nx-premium-cockpit__metrics {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--nx-space-md);
+}
+
+@media (min-width: 640px) {
+  .nx-premium-cockpit__metrics {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.nx-premium-cockpit__metric {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-2xs);
+  padding: var(--nx-space-md);
+  background: var(--nx-color-surface-2);
+  border-radius: var(--nx-radius-control);
+  border: 1px solid var(--nx-color-border-subtle);
+  transition: border-color var(--nx-motion-standard) var(--nx-easing-standard);
+}
+
+.nx-premium-cockpit__metric--emphasis {
+  background: var(--nx-color-surface-3);
+  border-color: var(--nx-color-border-strong);
+}
+
+.nx-premium-cockpit__metric--hero {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, var(--nx-color-surface-3) 0%, var(--nx-color-surface-2) 100%);
+}
+
+@media (min-width: 640px) {
+  .nx-premium-cockpit__metric--hero {
+    grid-column: span 1;
+  }
+}
+
+.nx-premium-cockpit__metric--projected {
+  border-color: var(--nx-color-border-interactive);
+}
+
+.nx-premium-cockpit__metric--positive .nx-premium-cockpit__metric-value {
+  color: var(--nx-color-success);
+}
+
+.nx-premium-cockpit__metric--danger .nx-premium-cockpit__metric-value {
+  color: var(--nx-color-danger);
+}
+
+.nx-premium-cockpit__metric--warning .nx-premium-cockpit__metric-value {
+  color: var(--nx-color-warning);
+}
+
+.nx-premium-cockpit__metric-label {
+  color: var(--nx-color-text-secondary);
+  font-size: var(--nx-font-size-caption);
+  line-height: var(--nx-line-height-caption);
+}
+
+.nx-premium-cockpit__metric-value {
+  color: var(--nx-color-text-primary);
+  font-size: clamp(20px, 4vw, 28px);
+  line-height: 1.2;
+  font-weight: var(--nx-font-weight-bold);
+  letter-spacing: -0.02em;
+}
+
+.nx-premium-cockpit__visualizations {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-md);
+}
+
+.nx-premium-cockpit__charges-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-xs);
+}
+
+.nx-premium-cockpit__charges-bar-track {
+  display: flex;
+  height: 8px;
+  background: var(--nx-color-surface-3);
+  border-radius: var(--nx-radius-pill);
+  overflow: hidden;
+}
+
+.nx-premium-cockpit__charges-bar-segment {
+  height: 100%;
+  transition: width var(--nx-motion-emphasized) var(--nx-easing-standard);
+}
+
+.nx-premium-cockpit__charges-bar-segment--available {
+  background: var(--nx-color-stable);
+}
+
+.nx-premium-cockpit__charges-bar-segment--charges {
+  background: var(--nx-color-warning);
+}
+
+.nx-premium-cockpit__charges-bar-legend {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--nx-space-sm);
+}
+
+.nx-premium-cockpit__charges-bar-legend-item {
+  color: var(--nx-color-text-tertiary);
+  font-size: var(--nx-font-size-caption);
+}
+
+.nx-premium-cockpit__month-progress {
+  opacity: 0.8;
+}
+
+.nx-premium-cockpit__coach {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-sm);
+  padding: var(--nx-space-md);
+  background: rgba(215, 169, 74, 0.05);
+  border-left: 3px solid var(--nx-color-gold);
+  border-radius: 0 var(--nx-radius-control) var(--nx-radius-control) 0;
+}
+
+.nx-premium-cockpit__coach-title {
+  color: var(--nx-color-gold);
+  font-size: var(--nx-font-size-body);
+  font-weight: var(--nx-font-weight-semibold);
+}
+
+.nx-premium-cockpit__coach-message {
+  color: var(--nx-color-text-primary);
+  font-size: var(--nx-font-size-body);
+  line-height: var(--nx-line-height-body);
+}
+
+.nx-premium-cockpit__coach-action {
+  justify-self: start;
+}
+
+.nx-premium-cockpit__timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-sm);
+}
+
+.nx-premium-cockpit__timeline-title {
+  color: var(--nx-color-text-secondary);
+  font-size: var(--nx-font-size-caption);
+  font-weight: var(--nx-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.nx-premium-cockpit__timeline-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-xs);
+}
+
+.nx-premium-cockpit__timeline-item {
+  display: flex;
+  align-items: center;
+  gap: var(--nx-space-sm);
+  padding: var(--nx-space-xs) 0;
+  border-bottom: 1px solid var(--nx-color-border-subtle);
+}
+
+.nx-premium-cockpit__timeline-item:last-child {
+  border-bottom: none;
+}
+
+/* Dashboard V2 - Premium Styles */
+.cockpit-v2-master {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-md);
+}
+
+.dashboard-v2-actions {
+  display: flex;
+  justify-content: center;
+  padding: var(--nx-space-lg) 0;
+}
+
+.dashboard-v2-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--nx-space-md) 0;
+}
+
+.dashboard-v2-eyebrow {
+  color: var(--nx-color-text-secondary);
+  font-size: var(--nx-font-size-caption);
+  font-weight: var(--nx-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: var(--nx-space-xs);
+}
+
+.dashboard-v2-header h2 {
+  color: var(--nx-color-text-primary);
+  font-size: var(--nx-font-size-h2);
+  font-weight: var(--nx-font-weight-bold);
+  margin: 0;
+}
+
+/* Premium Cockpit V2 - Elegant Refinement */
+.nx-premium-cockpit {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--nx-radius-lg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nx-premium-cockpit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.nx-premium-cockpit__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-lg);
+}
+
+.nx-premium-cockpit__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nx-premium-cockpit__score-badge {
+  font-size: var(--nx-font-size-caption);
+  font-weight: var(--nx-font-weight-semibold);
+  padding: var(--nx-space-xs) var(--nx-space-sm);
+  border-radius: var(--nx-radius-full);
+}
+
+.nx-premium-cockpit__metrics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-md);
+}
+
+.nx-premium-cockpit__metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--nx-space-sm) 0;
+}
+
+.nx-premium-cockpit__metric--hero {
+  padding: var(--nx-space-md) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.nx-premium-cockpit__metric--projected {
+  padding: var(--nx-space-md) 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: var(--nx-space-sm);
+}
+
+.nx-premium-cockpit__metric-label {
+  color: var(--nx-color-text-secondary);
+  font-size: var(--nx-font-size-body);
+  font-weight: var(--nx-font-weight-medium);
+}
+
+.nx-premium-cockpit__metric-value {
+  color: var(--nx-color-text-primary);
+  font-size: var(--nx-font-size-h3);
+  font-weight: var(--nx-font-weight-bold);
+  letter-spacing: -0.02em;
+}
+
+.nx-premium-cockpit__metric--hero .nx-premium-cockpit__metric-value {
+  font-size: var(--nx-font-size-display);
+  font-weight: var(--nx-font-weight-black);
+  letter-spacing: -0.03em;
+}
+
+.nx-premium-cockpit__metric--positive .nx-premium-cockpit__metric-value {
+  color: var(--nx-color-success);
+}
+
+.nx-premium-cockpit__metric--danger .nx-premium-cockpit__metric-value {
+  color: var(--nx-color-danger);
+}
+
+.nx-premium-cockpit__metric--warning .nx-premium-cockpit__metric-value {
+  color: var(--nx-color-warning);
+}
+
+.nx-premium-cockpit__metric--success .nx-premium-cockpit__metric-value {
+  color: var(--nx-color-success);
+}
+
+.nx-premium-cockpit__visualizations {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-sm);
+}
+
+.nx-premium-cockpit__charges-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-xs);
+}
+
+.nx-premium-cockpit__charges-bar-track {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--nx-radius-full);
+  overflow: hidden;
+  display: flex;
+}
+
+.nx-premium-cockpit__charges-bar-segment {
+  height: 100%;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nx-premium-cockpit__charges-bar-segment--available {
+  background: var(--nx-color-success);
+}
+
+.nx-premium-cockpit__charges-bar-segment--charges {
+  background: var(--nx-color-warning);
+}
+
+.nx-premium-cockpit__charges-bar-legend {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--nx-font-size-caption);
+  color: var(--nx-color-text-secondary);
+}
+
+.nx-premium-cockpit__month-progress {
+  width: 100%;
+  max-width: 200px;
+}
+
+/* Dashboard V2 Modular - Architecture Composée - Premium Polish */
+.dashboard-v2-modular {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dashboard-module {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dashboard-module__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-module__eyebrow {
+  color: var(--nx-color-text-secondary);
+  font-size: var(--nx-font-size-caption);
+  font-weight: var(--nx-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
+
+.dashboard-module__card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: var(--nx-radius-lg);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: var(--nx-shadow-elevation-1);
+  transition: box-shadow var(--nx-motion-fast) var(--nx-easing-hover);
+}
+
+.dashboard-module__card:hover {
+  box-shadow: var(--nx-shadow-elevation-2);
+}
+
+/* Module 1 : Cockpit Financier - Premium Polish */
+.cockpit-financier__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-md);
+  padding: var(--nx-space-lg);
+}
+
+.cockpit-financier__score {
+  align-self: flex-start;
+  font-size: var(--nx-font-size-caption);
+  font-weight: var(--nx-font-weight-semibold);
+  padding: var(--nx-space-xs) var(--nx-space-sm);
+  border-radius: var(--nx-radius-full);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cockpit-financier__metrics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-md);
+}
+
+.cockpit-financier__metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--nx-space-sm) 0;
+}
+
+.cockpit-financier__metric--emphasis {
+  padding: var(--nx-space-md) 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.cockpit-financier__metric-label {
+  color: var(--nx-color-text-secondary);
+  font-size: var(--nx-font-size-body);
+  font-weight: var(--nx-font-weight-medium);
+  letter-spacing: -0.01em;
+}
+
+.cockpit-financier__metric-value {
+  color: var(--nx-color-text-primary);
+  font-size: var(--nx-font-size-h3);
+  font-weight: var(--nx-font-weight-bold);
+  letter-spacing: -0.02em;
+}
+
+.cockpit-financier__metric--emphasis .cockpit-financier__metric-value {
+  font-size: var(--nx-font-size-display);
+  font-weight: var(--nx-font-weight-black);
+  letter-spacing: -0.03em;
+}
+
+.cockpit-financier__metric--positive .cockpit-financier__metric-value {
+  color: var(--nx-color-success);
+}
+
+.cockpit-financier__metric--danger .cockpit-financier__metric-value {
+  color: var(--nx-color-danger);
+}
+
+.cockpit-financier__metric--warning .cockpit-financier__metric-value {
+  color: var(--nx-color-warning);
+}
+
+.cockpit-financier__metric--success .cockpit-financier__metric-value {
+  color: var(--nx-color-success);
+}
+
+/* Module 2 : Prochaine Étape - Premium Polish */
+.prochaine-etape__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-md);
+  padding: var(--nx-space-lg);
+}
+
+.prochaine-etape__timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-sm);
+}
+
+.prochaine-etape__empty {
+  color: var(--nx-color-text-secondary);
+  font-size: var(--nx-font-size-body);
+  text-align: center;
+  padding: var(--nx-space-lg) 0;
+  opacity: 0.6;
+}
+
+.prochaine-etape__item {
+  display: flex;
+  align-items: center;
+  gap: var(--nx-space-sm);
+  padding: var(--nx-space-xs) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.prochaine-etape__item:last-child {
+  border-bottom: none;
+}
+
+.prochaine-etape__item-icon {
+  font-size: var(--nx-font-size-h3);
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.prochaine-etape__item-content {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.prochaine-etape__item-name {
+  color: var(--nx-color-text-primary);
+  font-size: var(--nx-font-size-body);
+  font-weight: var(--nx-font-weight-medium);
+  letter-spacing: -0.01em;
+}
+
+.prochaine-etape__item-amount {
+  font-size: var(--nx-font-size-body);
+  font-weight: var(--nx-font-weight-semibold);
+  letter-spacing: -0.01em;
+}
+
+.prochaine-etape__item-amount--positive {
+  color: var(--nx-color-success);
+}
+
+.prochaine-etape__item-amount--negative {
+  color: var(--nx-color-danger);
+}
+
+.prochaine-etape__projected {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--nx-space-sm);
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.prochaine-etape__projected-label {
+  color: var(--nx-color-text-secondary);
+  font-size: var(--nx-font-size-caption);
+  font-weight: var(--nx-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
+
+.prochaine-etape__projected-value {
+  color: var(--nx-color-text-primary);
+  font-size: var(--nx-font-size-h3);
+  font-weight: var(--nx-font-weight-bold);
+  letter-spacing: -0.02em;
+}
+
+/* Module 3 : Objectif - Premium Polish */
+.objectif__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-md);
+  padding: var(--nx-space-lg);
+}
+
+.objectif__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--nx-space-sm);
+}
+
+.objectif__name {
+  color: var(--nx-color-text-primary);
+  font-size: var(--nx-font-size-h3);
+  font-weight: var(--nx-font-weight-bold);
+  margin: 0;
+  flex: 1;
+  letter-spacing: -0.01em;
+}
+
+.objectif__progress-text {
+  display: flex;
+  align-items: center;
+  gap: var(--nx-space-xs);
+  color: var(--nx-color-text-secondary);
+  font-size: var(--nx-font-size-caption);
+  font-weight: var(--nx-font-weight-medium);
+}
+
+.objectif__current {
+  color: var(--nx-color-text-primary);
+  font-weight: var(--nx-font-weight-semibold);
+}
+
+.objectif__target {
+  color: var(--nx-color-text-secondary);
+  opacity: 0.7;
+}
+
+.objectif__percentage {
+  color: var(--nx-color-gold);
+  font-size: var(--nx-font-size-caption);
+  font-weight: var(--nx-font-weight-bold);
+  padding: var(--nx-space-xs) var(--nx-space-sm);
+  background: rgba(212, 175, 55, 0.08);
+  border-radius: var(--nx-radius-full);
+  letter-spacing: 0.02em;
+}
+
+.objectif__bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.objectif__bar-fill {
+  height: 100%;
+  background: var(--nx-color-gold);
+  border-radius: 4px;
+  transition: width var(--nx-motion-slow) var(--nx-easing-entrance);
+}
+
+.objectif__timeframe {
+  color: var(--nx-color-text-secondary);
+  font-size: var(--nx-font-size-caption);
+  font-weight: var(--nx-font-weight-medium);
+  text-align: center;
+  opacity: 0.6;
+  margin-top: var(--nx-space-xs);
+}
+
+/* Module 4 : Coach - Premium Polish */
+.coach__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-md);
+  padding: var(--nx-space-lg);
+}
+
+.coach__icon {
+  font-size: var(--nx-font-size-h2);
+  align-self: flex-start;
+  opacity: 0.9;
+}
+
+.coach__message {
+  color: var(--nx-color-text-primary);
+  font-size: var(--nx-font-size-body);
+  line-height: var(--nx-line-height-body);
+  font-weight: var(--nx-font-weight-medium);
+  letter-spacing: -0.01em;
+}
+
+.coach__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-sm);
+}
+
+.coach__action--primary {
+  width: 100%;
+  padding: var(--nx-space-sm) var(--nx-space-md);
+  font-size: var(--nx-font-size-body);
+  font-weight: var(--nx-font-weight-semibold);
+  border-radius: var(--nx-radius-md);
+  letter-spacing: -0.01em;
+}
+
+.coach__action--secondary {
+  width: 100%;
+  padding: var(--nx-space-sm) var(--nx-space-md);
+  font-size: var(--nx-font-size-body);
+  font-weight: var(--nx-font-weight-medium);
+  border-radius: var(--nx-radius-md);
+  letter-spacing: -0.01em;
+}
+
+/* Dashboard V2 Header & Actions - Premium Polish */
+.dashboard-v2-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--nx-space-lg) 0 var(--nx-space-md) 0;
+}
+
+.dashboard-v2-eyebrow {
+  color: var(--nx-color-text-secondary);
+  font-size: var(--nx-font-size-caption);
+  font-weight: var(--nx-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: var(--nx-space-xs);
+  opacity: 0.7;
+}
+
+.dashboard-v2-header h2 {
+  color: var(--nx-color-text-primary);
+  font-size: var(--nx-font-size-h2);
+  font-weight: var(--nx-font-weight-bold);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-v2-actions {
+  display: flex;
+  justify-content: center;
+  padding: var(--nx-space-md) 0 var(--nx-space-lg) 0;
+}
+
+.dashboard-v2-actions .btn {
+  padding: var(--nx-space-sm) var(--nx-space-lg);
+  font-size: var(--nx-font-size-body);
+  font-weight: var(--nx-font-weight-semibold);
+  border-radius: var(--nx-radius-lg);
+  letter-spacing: -0.01em;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+  .dashboard-v2-modular {
+    gap: var(--nx-space-md);
+  }
+
+  .dashboard-module {
+    gap: var(--nx-space-sm);
+  }
+
+  .cockpit-financier__content,
+  .prochaine-etape__content,
+  .objectif__content,
+  .coach__content {
+    padding: var(--nx-space-md);
+  }
+
+  .dashboard-v2-header h2 {
+    font-size: var(--nx-font-size-h3);
+  }
+}

@@ -137,107 +137,52 @@ body.auth-locked > #nexora-status-bar {
     <div class="dashboard-shell">
       <header class="dashboard-clean-header dashboard-topbar">
         <div class="dashboard-topbar__copy">
-          <span class="dashboard-eyebrow">Diagnostic</span>
-          <h2>Tableau de bord</h2>
-        </div>
-        <div class="home-mode-switch" aria-label="Mode d’affichage">
-          <span>Mode</span>
-          <div class="mode-toggle compact">
-            <button type="button" id="home-mode-complete-btn" class="mode-toggle-btn" onclick="setNexoraUxMode('complete')">Complet</button>
-            <button type="button" id="home-mode-simple-btn" class="mode-toggle-btn" onclick="setNexoraUxMode('simple')">Simplifié</button>
-          </div>
+          <span class="dashboard-eyebrow">Vos finances</span>
+          <h2>Janvier 2026</h2>
         </div>
       </header>
 
-      <!-- COCKPIT PREMIUM V3 -->
-      <div class="cockpit-premium-v3">
-
-        <!-- HERO CENTRÉ SUR LE DISPONIBLE -->
-        <section class="cockpit-hero-v4" data-mode="both" aria-label="Situation financière du mois">
-          <div class="cockpit-hero-v4__background"></div>
-          <div id="dashboard-hero-root"></div>
+      <!-- DASHBOARD MODULAIRE V2 - 4 Composants Premium -->
+      <div class="dashboard-v2-modular">
+        
+        <!-- MODULE 1 : COCKPIT FINANCIER - Où j'en suis maintenant -->
+        <section class="dashboard-module dashboard-module--cockpit" aria-label="Situation financière actuelle">
+          <div class="dashboard-module__header">
+            <span class="dashboard-module__eyebrow">Où j'en suis</span>
+          </div>
+          <div id="cockpit-financier-root"></div>
         </section>
 
-        <!-- COPILOTE INTELLIGENT (RUBAN CONVERSATIONNEL COMPACT - SANS EMOJI) -->
-        <section class="cockpit-copilot-banner" id="dashboard-coach-card" data-mode="both" aria-label="Copilote Nexora">
-          <div id="dashboard-master-root"></div>
-          <div class="copilot-banner__wrapper">
-            <span class="copilot-badge" id="copilot-posture-tag">Sérénité</span>
-            <p class="copilot-message" id="copilot-message-text">Analyse de vos finances en cours...</p>
-            <button type="button" class="copilot-action-btn" id="copilot-action-btn" style="display:none"></button>
+        <!-- MODULE 2 : PROCHAINE ÉTAPE - Ce qui arrive ensuite -->
+        <section class="dashboard-module dashboard-module--timeline" aria-label="Événements à venir">
+          <div class="dashboard-module__header">
+            <span class="dashboard-module__eyebrow">Prochaine étape</span>
           </div>
+          <div id="timeline-next-root"></div>
         </section>
 
-        <!-- CARTE SITUATION FINANCIÈRE INTELLIGENTE -->
-        <section class="cockpit-financial-card" id="financial-card" data-mode="both" aria-label="Situation financière du mois">
-          <div class="financial-card__grid">
-            <!-- Solde actuel -->
-            <div class="financial-card__item financial-card__item--primary">
-              <div class="financial-card__icon">📅</div>
-              <div class="financial-card__content">
-                <span class="financial-card__label">Aujourd'hui</span>
-                <strong class="financial-card__value" id="financial-current-balance">0 €</strong>
-              </div>
-            </div>
-            
-            <!-- Charges restantes -->
-            <div class="financial-card__item financial-card__item--warning" id="financial-remaining-item">
-              <div class="financial-card__icon">💳</div>
-              <div class="financial-card__content">
-                <span class="financial-card__label">À payer</span>
-                <strong class="financial-card__value" id="financial-remaining-charges">0 € • 0 paiement</strong>
-              </div>
-            </div>
-            
-            <!-- Solde prévisionnel -->
-            <div class="financial-card__item financial-card__item--success" id="financial-projected-item">
-              <div class="financial-card__icon">📈</div>
-              <div class="financial-card__content">
-                <span class="financial-card__label">Solde prévisionnel</span>
-                <strong class="financial-card__value" id="financial-projected-balance">0 €</strong>
-              </div>
-            </div>
-            
-            <!-- Prochaine entrée -->
-            <div class="financial-card__item financial-card__item--info">
-              <div class="financial-card__icon">💰</div>
-              <div class="financial-card__content">
-                <span class="financial-card__label">Prochaine entrée</span>
-                <strong class="financial-card__value" id="financial-next-income">À définir</strong>
-              </div>
-            </div>
+        <!-- MODULE 3 : OBJECTIF - Ce que je construis -->
+        <section class="dashboard-module dashboard-module--goal" aria-label="Objectif d'épargne">
+          <div class="dashboard-module__header">
+            <span class="dashboard-module__eyebrow">Ce que je construis</span>
           </div>
-          
-          <!-- Message dynamique (opportunité ou alerte) -->
-          <div class="financial-card__message" id="financial-message" style="display: none;">
-            <span class="financial-card__message-icon" id="financial-message-icon">🎉</span>
-            <span class="financial-card__message-text" id="financial-message-text"></span>
-          </div>
+          <div id="goal-progress-root"></div>
         </section>
 
-        <!-- CONCLUSION NARRATIVE DU MODE SIMPLIFIÉ & COMPLET : "CE QUE J'AI REMARQUÉ" -->
-        <section class="cockpit-understanding-card" id="dashboard-understanding-card" data-mode="both" aria-label="Ce que j'ai remarqué">
-          <div class="understanding-header">
-            <span class="understanding-icon">💡</span>
-            <h2>Ce que j’ai remarqué</h2>
+        <!-- MODULE 4 : COACH - Ce que je dois faire -->
+        <section class="dashboard-module dashboard-module--coach" aria-label="Recommandation personnalisée">
+          <div class="dashboard-module__header">
+            <span class="dashboard-module__eyebrow">Ce que je dois faire</span>
           </div>
-          <div class="understanding-body">
-            <div class="understanding-headline" id="understanding-headline">Tes dépenses essentielles sont couvertes.</div>
-            <p class="understanding-details" id="understanding-details">Analyse des données en cours...</p>
-            <div class="understanding-landing" id="understanding-landing">Calcul de la trajectoire...</div>
-          </div>
+          <div id="coach-action-root"></div>
         </section>
 
-        <!-- EXPLORATION COCKPIT EXPERT (MODE COMPLET UNIQUEMENT) -->
-        <div class="cockpit-complete-zone" data-mode="complete">
-          
-          <!-- SECTION 1 : CE QUE MONTRENT TES FINANCES -->
-          <section class="complete-block complete-block--finances">
-            <div class="complete-block__header">
-              <h3>👉 Ce que montrent tes finances</h3>
-            </div>
-            
-            <!-- GRAPH SOURIS INTERACTIF SVG -->
+      </div>
+
+      <!-- ACTION PRINCIPALE -->
+      <div class="dashboard-v2-actions">
+        <button type="button" class="btn btn-gold btn--large" onclick="showSection('plan')">Voir le plan financier</button>
+      </div>
             <div class="treasury-chart-wrapper" id="treasury-svg-container">
               <svg class="treasury-svg-chart" viewBox="0 0 500 120" preserveAspectRatio="none">
                 <defs>
@@ -349,15 +294,7 @@ body.auth-locked > #nexora-status-bar {
       </div>
 
       <!-- CTA SECTION (Mode Simplifié) -->
-      <section class="cockpit-cta dashboard-cta-section" data-mode="simple" hidden>
-        <button type="button" class="btn btn-gold btn--large" onclick="showSection('plan')">Créer mon plan</button>
-      </section>
 
-      <section class="dashboard-card dashboard-forecast-logic-host" id="month-forecast-card" hidden aria-hidden="true">
-        <span class="dashboard-card__eyebrow">Prévision & calendrier</span>
-        <strong id="month-forecast-title">Projection en attente</strong>
-        <p id="month-forecast-detail">Le mois doit être saisi pour obtenir une projection fiable.</p>
-      </section>
     </div>
   </div>
 
@@ -4644,6 +4581,17 @@ function updateDashboardSynthesisHero(metrics = {}) {
       totalDepRestant: metrics.totalDepRestant || 0,
       savingsRate: metrics.savingsRate || 0
     }, {
+      documentRef: document,
+      windowRef: window,
+      onAction: (section) => {
+        if (typeof showSection === 'function') showSection(section);
+      }
+    });
+  }
+
+  // Use Premium Cockpit component
+  if (typeof window.renderPremiumCockpit === 'function') {
+    window.renderPremiumCockpit('premium-cockpit-root', {
       documentRef: document,
       windowRef: window,
       onAction: (section) => {

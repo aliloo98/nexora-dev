@@ -1,11 +1,15 @@
 :root {
   --nx-motion-instant: 0ms;
-  --nx-motion-fast: 100ms;
-  --nx-motion-standard: 160ms;
-  --nx-motion-emphasized: 220ms;
-  --nx-motion-maximum: 250ms;
+  --nx-motion-micro: 150ms;
+  --nx-motion-fast: 200ms;
+  --nx-motion-standard: 300ms;
+  --nx-motion-slow: 400ms;
+  --nx-motion-maximum: 400ms;
 
-  --nx-easing-standard: cubic-bezier(0.2, 0, 0, 1);
-  --nx-easing-entrance: cubic-bezier(0, 0, 0.2, 1);
-  --nx-easing-exit: cubic-bezier(0.4, 0, 1, 1);
+  --nx-easing-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+  --nx-easing-exit: cubic-bezier(0.4, 0, 0.2, 1);
+  --nx-easing-hover: cubic-bezier(0.4, 0, 0.2, 1);
+  --nx-easing-linear: linear;
+
+  --nx-easing-standard: var(--nx-easing-hover);
 }

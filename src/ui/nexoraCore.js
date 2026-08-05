@@ -307,28 +307,6 @@ const renderCoreGraph = (panel, payload = {}) => {
   const nodes = buildGraphNodes(payload)
   lastGraphNodes = nodes
 
-  // DEBUG CONSOLE LOG FOR AUDIT
-  console.log('[NexoraCore debug] Rendered nodes:', {
-    goalsCount: (payload.goals || []).length,
-    debtsCount: (payload.debts || []).length,
-    nodesList: nodes.map((n, i) => {
-      const rad = (n.angle * Math.PI) / 180
-      // Polar coordinates relative to center (50%, 50%)
-      const x = 50 + n.radius * Math.cos(rad)
-      const y = 50 + n.radius * Math.sin(rad)
-      return {
-        index: i,
-        kind: n.kind,
-        name: n.name,
-        icon: n.icon,
-        radius: `${n.radius.toFixed(1)}%`,
-        angle: `${n.angle.toFixed(1)}deg`,
-        posX: `${x.toFixed(1)}%`,
-        posY: `${y.toFixed(1)}%`
-      }
-    })
-  })
-  
   graph.innerHTML = nodes.map((node, index) => {
     // Label characters: icon or first letter
     const labelChar = node.icon || (node.name ? node.name.trim().charAt(0).toUpperCase() : '?')
