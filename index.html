@@ -4589,17 +4589,6 @@ function updateDashboardSynthesisHero(metrics = {}) {
     });
   }
 
-  // Use Premium Cockpit component
-  if (typeof window.renderPremiumCockpit === 'function') {
-    window.renderPremiumCockpit('premium-cockpit-root', {
-      documentRef: document,
-      windowRef: window,
-      onAction: (section) => {
-        if (typeof showSection === 'function') showSection(section);
-      }
-    });
-  }
-
   // Update core panel elements if they exist
   if (coreStatusEl) coreStatusEl.textContent = status;
   if (coreMissionTitleEl) coreMissionTitleEl.textContent = actionTitle || 'Voir le plan';

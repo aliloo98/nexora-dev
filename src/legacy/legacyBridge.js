@@ -46,7 +46,6 @@ export function installLegacyBridge(dependencies) {
     renderDashboardQuickView,
     renderDashboardAlerts,
     renderAssistantInsights,
-    renderPremiumCockpit,
     renderBudgetCoach,
     buildBudgetCoachState,
     buildJudgmentEngine,
@@ -104,7 +103,6 @@ export function installLegacyBridge(dependencies) {
   window.renderDashboardQuickView = renderDashboardQuickView
   window.renderDashboardAlerts = renderDashboardAlerts
   window.renderAssistantInsights = renderAssistantInsights
-  window.renderPremiumCockpit = renderPremiumCockpit
   window.renderBudgetCoach = renderBudgetCoach
   window.buildBudgetCoachState = buildBudgetCoachState
   window.buildJudgmentEngine = buildJudgmentEngine

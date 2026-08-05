@@ -5,7 +5,6 @@ import { expenseRateRule } from './expenseRate.rule.js'
 import { goalPaceRule } from './goalPace.rule.js'
 import { createAllocatableSurplusRule } from './allocatableSurplus.rule.js'
 import { stableForecastRule } from './stableForecast.rule.js'
-import premiumCockpitRule from './premiumCockpit.rule.js'
 
 export function createCoachRules(options = {}) {
   return Object.freeze([
@@ -15,8 +14,7 @@ export function createCoachRules(options = {}) {
     expenseRateRule,
     goalPaceRule,
     createAllocatableSurplusRule(options.surplus),
-    stableForecastRule,
-    premiumCockpitRule
+    stableForecastRule
   ])
 }
 
