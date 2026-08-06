@@ -8,31 +8,27 @@ test.describe('Dashboard V2 Renderers Bridge Fix', () => {
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 });
     await page.click('#loginDemoBtn');
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 });
-    await page.waitForSelector('.cockpit-hero-v4', { state: 'visible', timeout: 10000 });
+    await page.waitForSelector('.dashboard-v2-modular', { state: 'visible', timeout: 10000 });
   });
 
   test('all 4 dashboard V2 renderers are exposed on window', async ({ page }) => {
     const renderers = await page.evaluate(() => ({
+      hero: typeof window.renderDashboardHero === 'function',
       goalCard: typeof window.renderDashboardGoalCard === 'function',
-      kpiStrip: typeof window.renderDashboardKpiStrip === 'function',
-      quickView: typeof window.renderDashboardQuickView === 'function',
-      alerts: typeof window.renderDashboardAlerts === 'function'
+      coachCard: typeof window.renderDashboardCoach === 'function',
+      kpiStrip: typeof window.renderDashboardKpiStrip === 'function'
     }));
+    expect(renderers.hero).toBe(true);
     expect(renderers.goalCard).toBe(true);
+    expect(renderers.coachCard).toBe(true);
     expect(renderers.kpiStrip).toBe(true);
-    expect(renderers.quickView).toBe(true);
-    expect(renderers.alerts).toBe(true);
   });
 
-  test('Goal card and Alerts card are not empty containers', async ({ page }) => {
-    const goalCard = page.locator('#dashboard-primary-goal');
+  test('Goal card is not an empty container', async ({ page }) => {
+    const goalModule = page.locator('.dashboard-module--goal');
+    await expect(goalModule).toBeVisible();
     
-    // Cockpit premium does not have a separate alerts card
-    // Alerts are integrated into other sections or removed
-    // Test only the goal card which exists in the cockpit
-    await expect(goalCard).toBeVisible();
-    
-    const goalText = await goalCard.innerText();
+    const goalText = await goalModule.locator('#goal-progress-root').innerText();
     expect(goalText.trim().length).toBeGreaterThan(0);
   });
 });

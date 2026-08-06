@@ -9,7 +9,7 @@ test.describe('Dashboard Motion V1 reduced motion', () => {
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 })
     await page.click('#loginDemoBtn')
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 })
-    await page.waitForSelector('#dashboard-hero-root .nx-hero-card', {
+    await page.waitForSelector('.dashboard-v2-modular', {
       state: 'visible',
       timeout: 20000
     })
@@ -21,7 +21,7 @@ test.describe('Dashboard Motion V1 reduced motion', () => {
       window.NexoraMotion.animateDashboardEnter(dashboard)
       await new Promise((resolve) => requestAnimationFrame(resolve))
       const visibleElements = Array.from(document.querySelectorAll(
-        '#section-dashboard .dashboard-panel, #section-dashboard .dashboard-card, #section-dashboard .dashboard-secondary-kpis, #section-dashboard .cockpit-core, #section-dashboard .cockpit-zone'
+        '#section-dashboard .dashboard-module'
       )).filter((element) => {
         const style = getComputedStyle(element)
         return style.display !== 'none' && element.getBoundingClientRect().width > 0
@@ -89,7 +89,7 @@ test.describe('Dashboard Motion V1 reduced motion', () => {
       window.updateAll()
       return {
         activeAnimations: window.NexoraMotion.getDashboardMotionDiagnostics().activeAnimations,
-        heroButtonEnabled: !document.querySelector('#dashboard-hero-root button')?.disabled,
+        heroButtonEnabled: !document.querySelector('#cockpit-financier-root button')?.disabled,
         overflowX: document.documentElement.scrollWidth > window.innerWidth
       }
     })

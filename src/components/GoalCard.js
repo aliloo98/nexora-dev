@@ -6,7 +6,7 @@ export default function createGoalCard(goal, handlers = {}) {
   card.className = `goal-card${goal.isPrimary ? ' is-primary-goal' : ''}`
   card.style.borderLeft = `6px solid ${goal.color || '#e5c060'}`
 
-  const title = document.createElement('div')
+  const title = document.createElement('h3')
   title.className = 'goal-card-title'
   title.textContent = `${goal.icon || '🎯'} ${goal.name || 'Objectif'}`
 

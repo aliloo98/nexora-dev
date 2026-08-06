@@ -59,6 +59,9 @@ import { renderDashboardKpiStrip } from './ui/dashboard/renderDashboardKpiStrip.
 import { renderDashboardQuickView } from './ui/dashboard/renderDashboardQuickView.js'
 import { renderDashboardAlerts } from './ui/dashboard/renderDashboardAlerts.js'
 import { renderAssistantInsights } from './ui/dashboard/renderAssistantInsights.js'
+import { renderDashboardCoach } from './ui/dashboard/renderDashboardCoach.js'
+
+
 import { renderBudgetCoach, buildBudgetCoachState } from './ui/budgetCoach.js'
 import NexoraSections from './app/sectionLoader.js'
 import { getSyncStatusSnapshot, recordLastSync } from './app/syncStatus.js'
@@ -108,8 +111,10 @@ installLegacyBridge({
   renderDashboardGoalCard,
   renderDashboardKpiStrip,
   renderDashboardQuickView,
+
   renderDashboardAlerts,
   renderAssistantInsights,
+  renderDashboardCoach,
   renderBudgetCoach,
   buildBudgetCoachState,
   buildJudgmentEngine,
@@ -188,9 +193,11 @@ window.refreshDashboardCoach = () => {
   if (dashboardCoachRefreshPromise) return dashboardCoachRefreshPromise
 
   dashboardCoachRefreshPromise = (async () => {
-    if (typeof renderDashboardMaster !== 'function' || !document.getElementById('dashboard-master-root')) return
-    const TreasuryService = (await import('./treasury/treasuryService.js')).default
-    await renderDashboardMaster('dashboard-master-root', TreasuryService)
+    // The coach is rendered during updateAll in index.html
+    // This function is kept for compatibility with existing calls
+    if (typeof updateAll === 'function') {
+      updateAll()
+    }
   })().finally(() => {
     dashboardCoachRefreshPromise = null
   })
@@ -329,6 +336,7 @@ const initApp = async () => {
       renderAssistantCard,
       renderDashboardMaster,
       refreshDashboardCoach: window.refreshDashboardCoach,
+      refreshDashboardModular: window.refreshDashboardModular,
 
       // Event handlers dependencies
       parseFinancialExpression,

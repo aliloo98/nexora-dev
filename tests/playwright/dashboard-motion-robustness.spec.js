@@ -7,18 +7,14 @@ const openDashboard = async (page) => {
   await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 })
   await page.click('#loginDemoBtn')
   await page.waitForURL('**/#section-dashboard', { timeout: 20000 })
-  await page.waitForSelector('#dashboard-hero-root .nx-hero-card', {
+  await page.waitForSelector('.dashboard-v2-modular', {
     state: 'visible',
     timeout: 20000
-  })
-  await page.waitForSelector('#dashboard-master-root .nx-coach-card', {
-    state: 'visible',
-    timeout: 30000
   })
 }
 
 // Main cockpit section selectors for motion entrance checks
-const entranceSelector = '.cockpit-hero-v4, #dashboard-coach-card, #week-plan-card, #dashboard-understanding-card, .cockpit-complete-zone, .dashboard-clean-header, .dashboard-hero, .dashboard-primary-kpis, .dashboard-lower-grid, .dashboard-final-grid'
+const entranceSelector = '.dashboard-module, .dashboard-clean-header'
 
 test.describe('Dashboard Motion V1 robustness', () => {
   test.beforeEach(async ({ page }) => {
@@ -74,6 +70,20 @@ test.describe('Dashboard Motion V1 robustness', () => {
     await page.waitForTimeout(500)
     const result = await page.evaluate(async (selector) => {
       const dashboard = document.getElementById('section-dashboard')
+      
+      // Wait for entrance animations to complete
+      await new Promise((resolve) => {
+        const checkAnimations = () => {
+          const diagnostics = window.NexoraMotion.getDashboardMotionDiagnostics()
+          if (diagnostics.activeAnimations === 0 && dashboard.dataset.dashboardMotionState === 'ready') {
+            resolve()
+          } else {
+            requestAnimationFrame(checkAnimations)
+          }
+        }
+        checkAnimations()
+      })
+      
       const before = window.NexoraMotion.getDashboardMotionDiagnostics()
       for (let index = 0; index < 3; index += 1) window.updateAll()
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
@@ -97,12 +107,12 @@ test.describe('Dashboard Motion V1 robustness', () => {
   })
 
   test('keeps static cards still and limits hover lift to interactive controls', async ({ page }) => {
-    const card = page.locator('#week-plan-card')
+    const card = page.locator('.dashboard-module--timeline')
     await expect(card).toBeVisible()
 
     await card.hover()
     const cardTransform = await card.evaluate((element) => getComputedStyle(element).transform)
-    // Static timeline strip remains still (transform is identity / none)
+    // Static timeline module remains still (transform is identity / none)
     expect(['none', 'matrix(1, 0, 0, 1, 0, 0)']).toContain(cardTransform)
   })
 
@@ -110,7 +120,7 @@ test.describe('Dashboard Motion V1 robustness', () => {
     await page.waitForTimeout(500)
     const state = await page.evaluate(() => {
       const visibleElements = Array.from(document.querySelectorAll(
-        '#section-dashboard .dashboard-panel, #section-dashboard .dashboard-card, #section-dashboard .dashboard-secondary-kpis, #section-dashboard .cockpit-core, #section-dashboard .cockpit-zone'
+        '#section-dashboard .dashboard-module'
       )).filter((element) => {
         const style = getComputedStyle(element)
         const box = element.getBoundingClientRect()

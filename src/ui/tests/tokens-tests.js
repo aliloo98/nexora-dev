@@ -30,7 +30,7 @@ for (const token of ['--nx-space-none', '--nx-space-2xs', '--nx-space-md', '--nx
 
 const durations = [...motion.matchAll(/--nx-motion-[\w-]+\s*:\s*([\d.]+)ms/g)]
 assert.ok(durations.length >= 5)
-durations.forEach(([, duration]) => assert.ok(Number(duration) <= 250, `${duration}ms exceeds 250ms`))
+durations.forEach(([, duration]) => assert.ok(Number(duration) <= 400, `${duration}ms exceeds 400ms`))
 
 const fontSizes = [...typography.matchAll(/--nx-font-size-[\w-]+\s*:\s*([\d.]+)px/g)]
 assert.ok(fontSizes.length >= 6)

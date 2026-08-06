@@ -2,15 +2,15 @@
   --nx-space-none: 0;
   --nx-space-2xs: 4px;
   --nx-space-xs: 8px;
-  --nx-space-sm: 12px;
+  --nx-space-sm: 8px;
   --nx-space-md: 16px;
-  --nx-space-lg: 20px;
-  --nx-space-xl: 24px;
-  --nx-space-2xl: 32px;
-  --nx-space-3xl: 40px;
-  --nx-space-4xl: 48px;
-  --nx-space-5xl: 64px;
-  --nx-space-6xl: 80px;
+  --nx-space-lg: 24px;
+  --nx-space-xl: 32px;
+  --nx-space-2xl: 48px;
+  --nx-space-3xl: 64px;
+  --nx-space-4xl: 80px;
+  --nx-space-5xl: 96px;
+  --nx-space-6xl: 128px;
 
   --nx-gutter-mobile: var(--nx-space-md);
   --nx-gutter-tablet: var(--nx-space-xl);

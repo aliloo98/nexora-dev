@@ -1,8 +1,14 @@
 :root {
-  --nx-radius-control-small: 8px;
-  --nx-radius-control: 12px;
-  --nx-radius-card: 16px;
-  --nx-radius-hero: 20px;
-  --nx-radius-modal: 20px;
-  --nx-radius-pill: 999px;
+  --nx-radius-sm: 4px;
+  --nx-radius-md: 8px;
+  --nx-radius-lg: 12px;
+  --nx-radius-xl: 16px;
+  --nx-radius-full: 9999px;
+
+  --nx-radius-control-small: var(--nx-radius-md);
+  --nx-radius-control: var(--nx-radius-md);
+  --nx-radius-card: var(--nx-radius-lg);
+  --nx-radius-hero: var(--nx-radius-xl);
+  --nx-radius-modal: var(--nx-radius-xl);
+  --nx-radius-pill: var(--nx-radius-full);
 }

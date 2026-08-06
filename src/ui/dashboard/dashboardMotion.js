@@ -1,48 +1,39 @@
 const reducedMotionQuery = '(prefers-reduced-motion: reduce)'
 
-// Nouveaux sélecteurs Cockpit Premium
-const cockpitEntrySelectors = [
-  '.cockpit-hero-v4',
-  '#dashboard-coach-card',
-  '#week-plan-card',
-  '#dashboard-understanding-card',
-  '.cockpit-complete-zone'
-]
-
-// Anciens sélecteurs Dashboard (fallback)
-const legacyEntrySelectors = [
-  '.dashboard-clean-header',
-  '.dashboard-hero',
-  '.dashboard-primary-kpis',
-  '.dashboard-lower-grid',
-  '.dashboard-final-grid'
+// Sélecteurs Dashboard V2 Modulaire
+const modularEntrySelectors = [
+  '.dashboard-module--cockpit',
+  '.dashboard-module--timeline',
+  '.dashboard-module--goal',
+  '.dashboard-module--coach',
+  '.dashboard-clean-header'
 ]
 
 const activeAnimations = new Set()
 const progressValues = new Map()
 let reducedMotionListenerBound = false
 
-// Fonction de compatibilité : détecte si le cockpit premium est présent
-const isCockpitPremium = (dashboard) => {
-  return dashboard?.querySelector('.cockpit-hero-v4') !== null
+// Fonction de compatibilité : détecte si le dashboard V2 modulaire est présent
+const isModularDashboard = (dashboard) => {
+  return dashboard?.querySelector('.dashboard-v2-modular') !== null
 }
 
 // Sélecteurs adaptatifs selon la version du dashboard
 const getEntrySelectors = (dashboard) => {
-  return isCockpitPremium(dashboard) ? cockpitEntrySelectors : legacyEntrySelectors
+  return isModularDashboard(dashboard) ? modularEntrySelectors : ['.dashboard-clean-header']
 }
 
 // Delays adaptatifs selon la version du dashboard
 const getEntryDelay = (dashboard, index) => {
-  // Cockpit premium a 5 éléments, delays ajustés pour rester sous 120ms max
-  return isCockpitPremium(dashboard) ? index * 20 : index * 28
+  // Dashboard V2 modulaire a 4 éléments, delays ajustés pour rester sous 120ms max
+  return isModularDashboard(dashboard) ? index * 25 : index * 28
 }
 
 const getModeSwitchSelectors = (dashboard, isSimpleMode) => {
-  if (isCockpitPremium(dashboard)) {
+  if (isModularDashboard(dashboard)) {
     return isSimpleMode
-      ? ['.cockpit-cta']
-      : ['.cockpit-zone--coach', '.cockpit-zone--assistant', '.cockpit-lateral-grid', '.cockpit-kpis']
+      ? ['.dashboard-module--cockpit', '.dashboard-module--coach']
+      : ['.dashboard-module--cockpit', '.dashboard-module--timeline', '.dashboard-module--goal', '.dashboard-module--coach']
   }
   // Fallback legacy
   return isSimpleMode

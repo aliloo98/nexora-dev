@@ -137,84 +137,52 @@ body.auth-locked > #nexora-status-bar {
     <div class="dashboard-shell">
       <header class="dashboard-clean-header dashboard-topbar">
         <div class="dashboard-topbar__copy">
-          <span class="dashboard-eyebrow">Diagnostic</span>
-          <h2>Tableau de bord</h2>
-        </div>
-        <div class="home-mode-switch" aria-label="Mode d’affichage">
-          <span>Mode</span>
-          <div class="mode-toggle compact">
-            <button type="button" id="home-mode-complete-btn" class="mode-toggle-btn" onclick="setNexoraUxMode('complete')">Complet</button>
-            <button type="button" id="home-mode-simple-btn" class="mode-toggle-btn" onclick="setNexoraUxMode('simple')">Simplifié</button>
-          </div>
+          <span class="dashboard-eyebrow">Vos finances</span>
+          <h2>Janvier 2026</h2>
         </div>
       </header>
 
-      <!-- COCKPIT PREMIUM V3 -->
-      <div class="cockpit-premium-v3">
-
-        <!-- HERO CENTRÉ SUR LE DISPONIBLE -->
-        <section class="cockpit-hero-v4" data-mode="both" aria-label="Situation financière du mois">
-          <div class="cockpit-hero-v4__background"></div>
-          <div id="dashboard-hero-root"></div>
+      <!-- DASHBOARD MODULAIRE V2 - 4 Composants Premium -->
+      <div class="dashboard-v2-modular">
+        
+        <!-- MODULE 1 : COCKPIT FINANCIER - Où j'en suis maintenant -->
+        <section class="dashboard-module dashboard-module--cockpit" aria-label="Situation financière actuelle">
+          <div class="dashboard-module__header">
+            <span class="dashboard-module__eyebrow">Où j'en suis</span>
+          </div>
+          <div id="cockpit-financier-root"></div>
         </section>
 
-        <!-- COPILOTE INTELLIGENT (RUBAN CONVERSATIONNEL COMPACT - SANS EMOJI) -->
-        <section class="cockpit-copilot-banner" id="dashboard-coach-card" data-mode="both" aria-label="Copilote Nexora">
-          <div id="dashboard-master-root"></div>
-          <div class="copilot-banner__wrapper">
-            <span class="copilot-badge" id="copilot-posture-tag">Sérénité</span>
-            <p class="copilot-message" id="copilot-message-text">Analyse de vos finances en cours...</p>
-            <button type="button" class="copilot-action-btn" id="copilot-action-btn" style="display:none"></button>
+        <!-- MODULE 2 : PROCHAINE ÉTAPE - Ce qui arrive ensuite -->
+        <section class="dashboard-module dashboard-module--timeline" aria-label="Événements à venir">
+          <div class="dashboard-module__header">
+            <span class="dashboard-module__eyebrow">Prochaine étape</span>
           </div>
+          <div id="timeline-next-root"></div>
         </section>
 
-        <!-- TIMELINE - RUBAN 1-LIGNE ULTRA-COMPACT -->
-        <section class="cockpit-timeline-strip" id="week-plan-card" data-mode="both" aria-label="Timeline 7 jours">
-          <div class="timeline-strip__wrapper">
-            <div class="timeline-strip__item">
-              <span class="strip-icon">📅</span>
-              <span class="strip-label" id="timeline-label-1">Aujourd'hui</span>
-              <strong id="week-plan-balance">0 €</strong>
-            </div>
-            <div class="timeline-strip__line" aria-hidden="true"></div>
-            <div class="timeline-strip__item">
-              <span class="strip-icon">💰</span>
-              <span class="strip-label" id="timeline-label-2">Prochaine entrée</span>
-              <strong id="week-plan-next-income">À définir</strong>
-            </div>
-            <div class="timeline-strip__line" aria-hidden="true"></div>
-            <div class="timeline-strip__item">
-              <span class="strip-icon">⚠️</span>
-              <span class="strip-label" id="timeline-label-3">Charges restantes</span>
-              <strong id="week-plan-to-pay">0 charge</strong>
-            </div>
-            <button type="button" class="timeline-strip__btn" onclick="showSection('plan')" aria-label="Ouvrir le plan">►</button>
+        <!-- MODULE 3 : OBJECTIF - Ce que je construis -->
+        <section class="dashboard-module dashboard-module--goal" aria-label="Objectif d'épargne">
+          <div class="dashboard-module__header">
+            <span class="dashboard-module__eyebrow">Ce que je construis</span>
           </div>
+          <div id="goal-progress-root"></div>
         </section>
 
-        <!-- CONCLUSION NARRATIVE DU MODE SIMPLIFIÉ & COMPLET : "CE QUE J'AI REMARQUÉ" -->
-        <section class="cockpit-understanding-card" id="dashboard-understanding-card" data-mode="both" aria-label="Ce que j'ai remarqué">
-          <div class="understanding-header">
-            <span class="understanding-icon">💡</span>
-            <h2>Ce que j’ai remarqué</h2>
+        <!-- MODULE 4 : COACH - Ce que je dois faire -->
+        <section class="dashboard-module dashboard-module--coach" aria-label="Recommandation personnalisée">
+          <div class="dashboard-module__header">
+            <span class="dashboard-module__eyebrow">Ce que je dois faire</span>
           </div>
-          <div class="understanding-body">
-            <div class="understanding-headline" id="understanding-headline">Tes dépenses essentielles sont couvertes.</div>
-            <p class="understanding-details" id="understanding-details">Analyse des données en cours...</p>
-            <div class="understanding-landing" id="understanding-landing">Calcul de la trajectoire...</div>
-          </div>
+          <div id="coach-action-root"></div>
         </section>
 
-        <!-- EXPLORATION COCKPIT EXPERT (MODE COMPLET UNIQUEMENT) -->
-        <div class="cockpit-complete-zone" data-mode="complete">
-          
-          <!-- SECTION 1 : CE QUE MONTRENT TES FINANCES -->
-          <section class="complete-block complete-block--finances">
-            <div class="complete-block__header">
-              <h3>👉 Ce que montrent tes finances</h3>
-            </div>
-            
-            <!-- GRAPH SOURIS INTERACTIF SVG -->
+      </div>
+
+      <!-- ACTION PRINCIPALE -->
+      <div class="dashboard-v2-actions">
+        <button type="button" class="btn btn-gold btn--large" onclick="showSection('plan')">Voir le plan financier</button>
+      </div>
             <div class="treasury-chart-wrapper" id="treasury-svg-container">
               <svg class="treasury-svg-chart" viewBox="0 0 500 120" preserveAspectRatio="none">
                 <defs>
@@ -326,15 +294,7 @@ body.auth-locked > #nexora-status-bar {
       </div>
 
       <!-- CTA SECTION (Mode Simplifié) -->
-      <section class="cockpit-cta dashboard-cta-section" data-mode="simple" hidden>
-        <button type="button" class="btn btn-gold btn--large" onclick="showSection('plan')">Créer mon plan</button>
-      </section>
 
-      <section class="dashboard-card dashboard-forecast-logic-host" id="month-forecast-card" hidden aria-hidden="true">
-        <span class="dashboard-card__eyebrow">Prévision & calendrier</span>
-        <strong id="month-forecast-title">Projection en attente</strong>
-        <p id="month-forecast-detail">Le mois doit être saisi pour obtenir une projection fiable.</p>
-      </section>
     </div>
   </div>
 
@@ -1344,9 +1304,11 @@ function initializeCurrentBudgetMonth() {
       throw new Error('Budget cycle resolver unavailable during month initialization');
     }
 
+    // Use test date override if available (for Playwright clock testing)
+    const asOf = window.__testDateOverride || new Date();
     const month = resolver({
       settings: readBudgetCycleSettings(),
-      asOf: new Date()
+      asOf
     });
     const select = document.getElementById('monthSelect');
     ensureMonthOption(month);
@@ -1363,6 +1325,11 @@ function initializeCurrentBudgetMonth() {
   });
   return promise;
 }
+
+// Allow explicit reset for test isolation
+window.resetBudgetMonthInitialization = () => {
+  currentBudgetMonthInitialization = null;
+};
 
 function applyBudgetCycleLabels() {
   const select = document.getElementById('monthSelect');
@@ -4331,6 +4298,17 @@ function updateAll(){
     tauxCh,
     variablesPct
   });
+  
+  // Update Dashboard Coach with V2 renderer
+  if (typeof window.renderDashboardCoach === 'function') {
+    window.renderDashboardCoach('coach-action-root', {
+      revReel,
+      solde,
+      tauxCh,
+      variablesPct,
+      totalDepRestant
+    }, { windowRef: window });
+  }
   // Update Quick View / Analytics / Goals (Mode Complet) with source of truth metrics
   if (typeof window.renderDashboardQuickView === 'function') {
     window.renderDashboardQuickView({
@@ -4362,11 +4340,18 @@ function updateAll(){
     totalDepReel,
     totalDepPayee
   });
-  updateWeekPlan({
-    solde, // Use computeCycleBalances().projectedEndOfCycle
-    variablesPct,
-    totalDepRestant, // Use computeCycleBalances().remainingToSpend
-    revReel
+  
+  // Get detailed metrics with categories for the financial card
+  const currentMonth = getMonth();
+  const detailedMetrics = getMonthMetrics(currentMonth, { fromDom: true });
+  
+  updateFinancialCard({
+    solde,
+    currentBalance: detailedMetrics.currentBalance || solde,
+    remainingExpenses: detailedMetrics.remainingExpenses || totalDepRestant,
+    remainingToSpend: detailedMetrics.remainingToSpend || totalDepRestant,
+    revReel,
+    categories: detailedMetrics.categories || []
   });
   updateDashboardAlerts({
     revReel,
@@ -4578,8 +4563,8 @@ async function updatePriorityAction(metrics = {}) {
 }
 
 function updateDashboardSynthesisHero(metrics = {}) {
-  const hero = document.querySelector('.cockpit-hero-v4');
-  const heroRoot = document.getElementById('dashboard-hero-root');
+  const hero = document.querySelector('.dashboard-module--cockpit');
+  const heroRoot = document.getElementById('cockpit-financier-root');
   const coreStatusEl = document.getElementById('nexora-core-status-badge');
   const coreMissionTitleEl = document.getElementById('nexora-core-mission-title');
   const coreMissionDetailEl = document.getElementById('nexora-core-mission-detail');
@@ -4609,7 +4594,7 @@ function updateDashboardSynthesisHero(metrics = {}) {
 
   // Use V2 HeroCard component
   if (typeof window.renderDashboardHero === 'function') {
-    window.renderDashboardHero('dashboard-hero-root', {
+    window.renderDashboardHero('cockpit-financier-root', {
       ...metrics,
       totalDepRestant: metrics.totalDepRestant || 0,
       savingsRate: metrics.savingsRate || 0
@@ -4727,16 +4712,17 @@ function updateNexoraSphere(metrics = {}) {
   refreshNexoraCore(metrics);
 }
 
-function updateWeekPlan(metrics = {}) {
-  const titleEl = document.getElementById('week-plan-title');
-  const balanceEl = document.getElementById('week-plan-balance');
-  const nextIncomeEl = document.getElementById('week-plan-next-income');
-  const incomeCtaEl = document.getElementById('week-plan-income-cta');
-  const toPayEl = document.getElementById('week-plan-to-pay');
-  const descEl = document.getElementById('week-plan-description');
-  const todayDateEl = document.getElementById('week-plan-today-date');
-  const incomeDateEl = document.getElementById('week-plan-income-date');
-  const dueDateEl = document.getElementById('week-plan-due-date');
+function updateFinancialCard(metrics = {}) {
+  const currentBalanceEl = document.getElementById('financial-current-balance');
+  const remainingChargesEl = document.getElementById('financial-remaining-charges');
+  const projectedBalanceEl = document.getElementById('financial-projected-balance');
+  const nextIncomeEl = document.getElementById('financial-next-income');
+  const remainingItem = document.getElementById('financial-remaining-item');
+  const projectedItem = document.getElementById('financial-projected-item');
+  const messageEl = document.getElementById('financial-message');
+  const messageIconEl = document.getElementById('financial-message-icon');
+  const messageTextEl = document.getElementById('financial-message-text');
+  
   const hasProgrammedIncome = (() => {
     try {
       const storageKey = syncedSettingStorageKey('nexora_recurring_incomes');
@@ -4751,27 +4737,109 @@ function updateWeekPlan(metrics = {}) {
       return false;
     }
   })();
+  
   const range = getBudgetCycleRange(getMonth());
-  const dueCount = getPendingFixedExpenseRows().length;
-  const today = new Date();
-  const weekEnd = new Date(today);
-  weekEnd.setDate(today.getDate() + 7);
-  if (titleEl) titleEl.textContent = metrics.revReel > 0 ? 'Aperçu essentiel' : 'Plan financier';
-  if (balanceEl) balanceEl.textContent = fmt(metrics.solde || 0); // Use source of truth solde from computeCycleBalances
-  console.log('[Timeline update] solde:', metrics.solde, 'balanceEl:', balanceEl?.textContent);
-  if (nextIncomeEl) nextIncomeEl.textContent = hasProgrammedIncome && range.start ? formatShortDate(range.start) : 'Définir un revenu';
-  if (incomeCtaEl) incomeCtaEl.style.display = hasProgrammedIncome ? 'none' : 'inline-flex';
-  if (toPayEl) toPayEl.textContent = `${dueCount} charge${dueCount !== 1 ? 's' : ''}`;
-  if (todayDateEl) todayDateEl.textContent = today.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-  if (incomeDateEl) incomeDateEl.textContent = hasProgrammedIncome && range.start ? formatShortDate(range.start) : 'Non planifiée';
-  if (dueDateEl) dueDateEl.textContent = weekEnd.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-  if (descEl) {
-    descEl.textContent = metrics.revReel > 0
-      ? dueCount > 0
-        ? `${dueCount} paiement${dueCount !== 1 ? 's' : ''} à surveiller`
-        : 'Aucune charge urgente'
-      : 'Budget à compléter';
+  
+  // Utiliser les nouvelles fonctions de calcul
+  const currentBalance = metrics.currentBalance || metrics.solde || 0;
+  const remainingCharges = metrics.remainingExpenses || metrics.remainingToSpend || 0;
+  const projectedBalance = currentBalance - remainingCharges;
+  
+  // Récupérer les détails des charges restantes
+  const remainingChargesCount = (() => {
+    const categories = metrics.categories || [];
+    return categories.filter(cat => 
+      cat.type !== 'income' && cat.amount > 0 && cat.paidAmount < cat.amount
+    ).length;
+  })();
+  
+  // Déterminer l'état financier pour l'UX
+  const financialState = (() => {
+    if (remainingCharges <= 0) {
+      return {
+        state: 'positive',
+        message: currentBalance > 0 
+          ? `Toutes tes charges prévues sont réglées. Tu peux affecter tes ${Math.round(currentBalance).toLocaleString('fr-FR')} € restants à ton objectif ou à ton épargne.`
+          : 'Toutes tes charges prévues sont réglées.',
+        icon: '🎉'
+      };
+    }
+    
+    if (projectedBalance < 0) {
+      return {
+        state: 'critical',
+        message: `Attention : si toutes les charges restantes sont payées, ton solde sera négatif de ${Math.abs(Math.round(projectedBalance)).toLocaleString('fr-FR')} €.`,
+        icon: '⚠️'
+      };
+    }
+    
+    if (projectedBalance < currentBalance * 0.2) {
+      return {
+        state: 'warning',
+        message: `Il te restera environ ${Math.round(projectedBalance).toLocaleString('fr-FR')} € après paiement des charges.`,
+        icon: '📊'
+      };
+    }
+    
+    return {
+      state: 'neutral',
+      message: null,
+      icon: null
+    };
+  })();
+  
+  // Mise à jour de l'UI
+  if (currentBalanceEl) currentBalanceEl.textContent = fmt(currentBalance);
+  
+  // Gestion de l'affichage des charges restantes
+  if (remainingItem) {
+    if (remainingCharges <= 0) {
+      remainingItem.classList.add('financial-card__item--hidden');
+    } else {
+      remainingItem.classList.remove('financial-card__item--hidden');
+      if (remainingChargesEl) {
+        remainingChargesEl.textContent = `${fmt(remainingCharges)} • ${remainingChargesCount} paiement${remainingChargesCount !== 1 ? 's' : ''}`;
+      }
+    }
   }
+  
+  // Gestion de l'affichage du solde prévisionnel
+  if (projectedItem) {
+    if (financialState.state === 'critical') {
+      projectedItem.classList.remove('financial-card__item--success');
+      projectedItem.classList.add('financial-card__item--critical');
+    } else {
+      projectedItem.classList.remove('financial-card__item--critical');
+      projectedItem.classList.add('financial-card__item--success');
+    }
+    if (projectedBalanceEl) projectedBalanceEl.textContent = fmt(projectedBalance);
+  }
+  
+  // Gestion du message dynamique
+  if (messageEl && messageIconEl && messageTextEl) {
+    if (financialState.message) {
+      messageEl.style.display = 'flex';
+      messageEl.className = 'financial-card__message';
+      messageEl.classList.add(`financial-card__message--${financialState.state}`);
+      messageIconEl.textContent = financialState.icon;
+      messageTextEl.textContent = financialState.message;
+    } else {
+      messageEl.style.display = 'none';
+    }
+  }
+  
+  if (nextIncomeEl) {
+    nextIncomeEl.textContent = hasProgrammedIncome && range.start 
+      ? `${formatShortDate(range.start)} (+${fmt(parseBudgetNumber(metrics.revReel || 0))} €)`
+      : 'À définir';
+  }
+  
+  console.log('[Financial Card update] currentBalance:', currentBalance, 'remainingCharges:', remainingCharges, 'projectedBalance:', projectedBalance, 'state:', financialState.state);
+}
+
+/** @deprecated Utiliser updateFinancialCard — conservé pour compatibilité */
+function updateWeekPlan(metrics = {}) {
+  updateFinancialCard(metrics);
 }
 
 function updateDashboardAlerts(metrics = {}) {
@@ -5237,7 +5305,7 @@ async function updateDashboardPrimaryGoal() {
 
   // Use V2 renderer if available
   if (typeof window.renderDashboardGoalCard === 'function') {
-    window.renderDashboardGoalCard('dashboard-primary-goal', goal, {
+    window.renderDashboardGoalCard('goal-progress-root', goal, {
       monthly,
       estimatedMonths,
       forecast,
