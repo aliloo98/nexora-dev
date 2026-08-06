@@ -1436,6 +1436,29 @@ function getNexoraDemoMonthData() {
 function applyNexoraDemoMode() {
   const enabled = isNexoraDemoMode();
   document.body.classList.toggle('mode-demo', enabled);
+  // In demo mode, unlock the app using the same logic as authentication
+  if (enabled) {
+    document.body.classList.remove('auth-locked');
+    const authContainer = document.getElementById('auth-container');
+    if (authContainer) authContainer.style.display = 'none';
+    const main = document.querySelector('main');
+    if (main) main.style.display = 'block';
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) sidebar.style.display = 'flex';
+  } else if (!enabled) {
+    // When disabling demo mode, check if there's a valid session
+    // If no session, lock the app again
+    const { user } = window.AuthContext?.getState() || {};
+    if (!user || !user.id) {
+      document.body.classList.add('auth-locked');
+      const authContainer = document.getElementById('auth-container');
+      if (authContainer) authContainer.style.display = 'flex';
+      const main = document.querySelector('main');
+      if (main) main.style.display = 'none';
+      const sidebar = document.querySelector('.sidebar');
+      if (sidebar) sidebar.style.display = 'none';
+    }
+  }
   const toggle = document.getElementById('demo-mode-toggle');
   if (toggle) toggle.checked = enabled;
 }
@@ -2058,7 +2081,18 @@ document.addEventListener('change', (event) => {
 });
 
 async function readMonthData(m) {
-  if (isNexoraDemoMode()) return getNexoraDemoMonthData();
+  if (isNexoraDemoMode()) {
+    // In demo mode, try to read from localStorage first, then fall back to demo data
+    try {
+      const serviceKey = window.MonthlyBudgetStateService?.getLocalStorageKey?.(m);
+      const key = serviceKey || `nexora_budget_${m}`;
+      const stored = SafeStorage.getItem(key);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {}
+    return getNexoraDemoMonthData();
+  }
 
   if (window.MonthlyBudgetStateService?.getMonthlyBudgetState) {
     const state = await window.MonthlyBudgetStateService.getMonthlyBudgetState(m);
@@ -2152,11 +2186,6 @@ async function loadMonth(){
 }
 
 async function saveData(){
-  if (isNexoraDemoMode()) {
-    showToast('Mode démo actif : aucune donnée réelle sauvegardée');
-    setSaveBarDirty(false);
-    return;
-  }
   const m=getMonth();
   normalizeFormulaInputs();
   if (hasInvalidFinancialInputs()) return;
@@ -2181,7 +2210,11 @@ async function saveData(){
     });
   }
 
-  showToast('✅ Sauvegardé avec succès !');
+  if (isNexoraDemoMode()) {
+    showToast('Mode démo : données sauvegardées localement');
+  } else {
+    showToast('✅ Sauvegardé avec succès !');
+  }
   buildHistory();
   setSaveBarDirty(false);
 }
