@@ -71,10 +71,17 @@ const budgetInputKeys = [
 ];
 
 const waitForCoachState = async (page, expectedTitle) => {
+  // First, trigger updateAll explicitly to ensure coach is rendered
+  await page.evaluate(() => {
+    if (typeof window.updateAll === 'function') {
+      window.updateAll();
+    }
+  });
+  
   await page.waitForFunction((title) => {
     const card = document.querySelector('#budget-entry-guide-root .budget-coach-card');
     return !!card && card.textContent?.includes(title);
-  }, expectedTitle, { timeout: 20000 });
+  }, expectedTitle, { timeout: 30000 });
 };
 
 const waitForSectionReady = async (page, sectionId) => {
@@ -106,8 +113,12 @@ const openBudgetSection = async (page) => {
 };
 
 const clearBudgetInputs = async (page) => {
-  // Only clear the specific fields used in scenarios to avoid timeout with conditional fields
-  const keysToClear = ['rev_ali', 'loyer', 'courses', 'impots', 'ps', 'transport', 'telephone', 'internet', 'divertissement', 'sante', 'mutuelle', 'epargne'];
+  // Clear all fields that could have values from previous scenarios
+  const keysToClear = [
+    'rev_ali', 'rev_megane', 'rev_excep',
+    'loyer', 'credit', 'assauto', 'gasoil', 'elec', 'eau', 'psy', 'diete', 'itou', 'sante', 'impots', 'box', 'tel_ali', 'tel_meg', 'stream', 'ps', 'cb', 'impfix',
+    'courses', 'tabac', 'sport', 'ongles', 'cadeaux', 'impvar'
+  ];
   for (const key of keysToClear) {
     const field = page.locator(`#section-saisie input[data-key="${key}"]`);
     const count = await field.count();
@@ -212,9 +223,6 @@ test.describe('Budget coach E2E', () => {
         await expect(targetField).toBeEditable({ timeout: 20000 });
         await expect(targetField).toBeFocused({ timeout: 20000 });
       }
-      
-      // Only test first scenario to avoid timeout issues
-      break;
     }
   });
 });

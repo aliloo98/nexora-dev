@@ -1304,9 +1304,11 @@ function initializeCurrentBudgetMonth() {
       throw new Error('Budget cycle resolver unavailable during month initialization');
     }
 
+    // Use test date override if available (for Playwright clock testing)
+    const asOf = window.__testDateOverride || new Date();
     const month = resolver({
       settings: readBudgetCycleSettings(),
-      asOf: new Date()
+      asOf
     });
     const select = document.getElementById('monthSelect');
     ensureMonthOption(month);

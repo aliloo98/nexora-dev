@@ -46,6 +46,9 @@ test.describe('Current budget month initialization', () => {
         updatedAt: '2026-08-03T08:00:00.000Z'
       }));
       
+      // Override date for budget month initialization to respect Playwright clock
+      window.__testDateOverride = new Date('2026-08-03T10:00:00+02:00');
+      
       // Reset budget month initialization cache on page load
       if (typeof window.resetBudgetMonthInitialization === 'function') {
         window.resetBudgetMonthInitialization();
@@ -85,6 +88,10 @@ test.describe('Current budget month initialization', () => {
   });
 
   test('restores a backup month without changing the next startup month', async ({ page }) => {
+    await page.addInitScript(() => {
+      // Ensure date override is set for this test too
+      window.__testDateOverride = new Date('2026-08-03T10:00:00+02:00');
+    });
     await page.goto('http://127.0.0.1:5180/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#monthSelect')).toHaveValue('2026-08');
 
@@ -116,6 +123,8 @@ test.describe('Current budget month initialization', () => {
         endDay: 27,
         updatedAt: '2026-08-03T08:00:00.000Z'
       }));
+      // Ensure date override is set for this test too
+      window.__testDateOverride = new Date('2026-08-03T10:00:00+02:00');
     }, { userId: user.id });
 
     await page.goto('http://127.0.0.1:5180/', { waitUntil: 'domcontentloaded' });
