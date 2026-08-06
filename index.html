@@ -5496,7 +5496,12 @@ function showSection(id, options = {}){
   }
 
   if (id === 'dashboard' && typeof window.refreshDashboardCoach === 'function') {
-    window.refreshDashboardCoach().catch(err => console.warn('[Dashboard coach] refresh failed', err));
+    requestAnimationFrame(() => {
+      const currentDashboard = document.getElementById('section-dashboard');
+      if (currentDashboard && !currentDashboard.hidden && currentDashboard.classList.contains('active')) {
+        window.refreshDashboardCoach().catch(err => console.warn('[Dashboard coach] refresh failed', err));
+      }
+    });
   }
 
   if (id === 'objectifs' && window.GoalsPage?.refreshFromCloud) {
