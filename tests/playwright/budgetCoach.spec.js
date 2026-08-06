@@ -163,10 +163,8 @@ test.describe('Budget coach E2E', () => {
     expect(await page.evaluate(() => window.location.hash)).toBe('#section-saisie');
   });
 
-  // Skipped: Coach state transitions are flaky in multi-worker execution due to timing issues
-  // The coach card doesn't update fast enough when changing budget values
-  // This test needs investigation of the coach update logic
-  test.skip('validates the official placeholder demo path and the six Budget Coach states', async ({ page }) => {
+  // Validates the official placeholder demo path and the six Budget Coach states
+  test('validates the official placeholder demo path and the six Budget Coach states', async ({ page }) => {
     mkdirSync('test-results', { recursive: true });
 
     await page.goto('http://127.0.0.1:5180/', { waitUntil: 'networkidle' });
