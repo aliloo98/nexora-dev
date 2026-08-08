@@ -7,7 +7,7 @@
  * TODO: Integration with real Supabase when credentials are added
  */
 
-import { AuthService } from './authService.js'
+import { AuthService, clearPlaceholderAuthStorageIfForbidden } from './authService.js'
 import { STORAGE_KEYS } from '../constants/storageKeys.js'
 import { getUserDisplayName as resolveUserDisplayName } from './userDisplayName.js'
 
@@ -214,6 +214,9 @@ export const AuthContext = {
       // TODO: When Supabase is configured:
       // - Remove placeholder logic
       // - Set up real auth listener with supabase.auth.onAuthStateChange()
+
+      // Clear placeholder storage if not allowed before any restoration
+      clearPlaceholderAuthStorageIfForbidden()
 
       // Try to restore session from placeholder storage
       const { user } = await AuthService.getCurrentUser()

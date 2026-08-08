@@ -14,6 +14,7 @@
  */
 
 import { supabase } from '../supabase.js'
+import { isDemoModeAllowed } from '../auth/authService.js'
 
 const LOCAL_COUPLE_KEY = 'nexora_couple_household'
 const getLocalCouple = () => {
@@ -314,6 +315,11 @@ export const CoupleInvitationService = {
       }
 
       if (!userId) return { status: 'aucune_invitation', details: {} }
+
+      // Prevent Supabase calls in demo mode
+      if (isDemoModeAllowed()) {
+        return { status: 'aucune_invitation', details: {} }
+      }
 
       // Check for active couple
       const { data: coupleData } = await supabase

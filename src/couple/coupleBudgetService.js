@@ -20,6 +20,7 @@
 
 import { supabase } from '../supabase.js'
 import { StorageManager } from '../../js/storage.js'
+import { isDemoModeAllowed } from '../auth/authService.js'
 
 const COUPLE_BUDGET_CACHE_KEY = 'nexora_couple_budget_cache'
 const COUPLE_BUDGET_CACHE_TTL = 10 * 60 * 1000 // 10 minutes
@@ -33,6 +34,11 @@ export const CoupleBudgetService = {
    */
   async getCoupleBudgetForMonth(coupleId, monthYear) {
     try {
+      // Prevent Supabase calls in demo mode
+      if (isDemoModeAllowed()) {
+        return { budget: null, error: null }
+      }
+
       if (!coupleId || !monthYear) {
         throw new Error('Couple ID and month are required')
       }

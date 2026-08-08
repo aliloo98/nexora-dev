@@ -12,6 +12,7 @@
 
 import { supabase } from '../supabase.js'
 import { StorageManager } from '../../js/storage.js'
+import { isDemoModeAllowed } from '../auth/authService.js'
 
 const COUPLE_CACHE_KEY = 'nexora_couple_cache'
 const COUPLE_TTL = 5 * 60 * 1000 // 5 minutes
@@ -74,6 +75,11 @@ export const CoupleService = {
     if (!userId) return { couple: null, partner: null }
 
     try {
+      // Prevent Supabase calls in demo mode
+      if (isDemoModeAllowed()) {
+        return { couple: null, partner: null }
+      }
+
       // Try to get from cache first
       const cached = await StorageManager.getItem(COUPLE_CACHE_KEY)
       if (cached) {
