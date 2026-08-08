@@ -15,8 +15,89 @@ const isSupabaseConfigured = Boolean(
   env.VITE_SUPABASE_ANON_KEY
 )
 
-export const shouldUsePlaceholderAuth = (configured = isSupabaseConfigured) => !configured
-export const shouldPersistPlaceholderAuth = (configured = isSupabaseConfigured) => !configured
+// In demo mode, always use placeholder auth regardless of Supabase configuration
+const isDemoModeBuild = typeof __ALLOW_DEMO_MODE__ !== 'undefined' ? __ALLOW_DEMO_MODE__ : false
+
+/**
+ * Check if running on strict localhost (not 127.0.0.1 or any other hostname)
+ * This is the only environment where demo mode is allowed.
+ */
+const isStrictLocalhost = () => {
+  return typeof window !== 'undefined' && window.location.hostname === 'localhost'
+}
+
+/**
+ * Check if running on local development loopback (localhost OR 127.0.0.1)
+ * This allows placeholder auth for real local development (Vite dev server)
+ */
+const isLocalDevLoopback = () => {
+  if (typeof window === 'undefined') return false
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+}
+
+/**
+ * Centralized security check for demo mode.
+ * Demo mode is ONLY allowed when:
+ * 1. Build was created with __ALLOW_DEMO_MODE__ = true
+ * 2. Running on localhost (strictly "localhost", not 127.0.0.1 or any other hostname)
+ * This prevents accidental activation on production domains or IP addresses.
+ */
+export const isDemoModeAllowed = () => {
+  const allowDemoMode = typeof __ALLOW_DEMO_MODE__ !== 'undefined' ? __ALLOW_DEMO_MODE__ : false
+  return allowDemoMode && isStrictLocalhost()
+}
+
+/**
+ * Check if local development placeholder auth is allowed.
+ * Only allowed when:
+ * 1. Running in development mode (Vite dev server)
+ * 2. Running on localhost OR 127.0.0.1 (local development loopback)
+ * 3. Supabase is not configured
+ * This allows development without real Supabase credentials but not on production builds.
+ */
+export const isLocalDevelopmentPlaceholderAllowed = () => {
+  return isDevelopmentMode() && isLocalDevLoopback() && !isSupabaseConfigured
+}
+
+/**
+ * Check if we're in development mode (Vite dev server).
+ * This is used to show demo button during development but not in production builds.
+ */
+export const isDevelopmentMode = () => {
+  return typeof __DEV__ !== 'undefined' ? __DEV__ : false
+}
+
+/**
+ * Centralized policy for placeholder auth.
+ * Placeholder auth is ONLY allowed when:
+ * 1. Demo mode is explicitly allowed on localhost
+ * OR
+ * 2. Local development on localhost without Supabase configuration
+ * A production build served outside localhost NEVER uses placeholder auth.
+ */
+export const shouldUsePlaceholderAuth = () => {
+  return isDemoModeAllowed() || isLocalDevelopmentPlaceholderAllowed()
+}
+
+/**
+ * Centralized policy for placeholder auth persistence.
+ * Same policy as shouldUsePlaceholderAuth().
+ */
+export const shouldPersistPlaceholderAuth = () => {
+  return shouldUsePlaceholderAuth()
+}
+
+/**
+ * Clear placeholder auth storage if placeholder auth is not allowed.
+ * This prevents unauthorized sessions from being restored.
+ * @returns {boolean} true if storage was cleared, false if placeholder auth is allowed
+ */
+export const clearPlaceholderAuthStorageIfForbidden = () => {
+  if (shouldUsePlaceholderAuth()) return false
+  removeStoredValue(AUTH_USER_KEY)
+  removeStoredValue(AUTH_SESSION_KEY)
+  return true
+}
 
 const AUTH_USER_KEY = 'nexora_auth_user'
 const AUTH_SESSION_KEY = 'nexora_auth_session'
@@ -117,7 +198,7 @@ export const AuthService = {
    */
   async signUp(email, password, username) {
     try {
-      if (isSupabaseConfigured) {
+      if (isSupabaseConfigured && !isDemoModeAllowed()) {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -134,6 +215,15 @@ export const AuthService = {
 
         if (error) throw error
         return { user: data.user, session: data.session, error: null }
+      }
+
+      // PLACEHOLDER: Only allow placeholder signup when policy permits
+      if (!shouldUsePlaceholderAuth()) {
+        return {
+          user: null,
+          session: null,
+          error: new Error('Authentification locale non autorisée dans cet environnement')
+        }
       }
 
       // TODO: Real Supabase implementation (uncomment when ready)
@@ -225,16 +315,18 @@ export const AuthService = {
         return { user: mockUser, session: mockSession, error: null }
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+      if (isSupabaseConfigured && !isDemoModeAllowed()) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        })
 
-      if (error) throw error
-      return {
-        user: data.user,
-        session: data.session,
-        error: null
+        if (error) throw error
+        return {
+          user: data.user,
+          session: data.session,
+          error: null
+        }
       }
     } catch (error) {
       console.error('❌ [PLACEHOLDER] SignIn error:', error.message)
@@ -253,7 +345,7 @@ export const AuthService = {
    */
   async signOut() {
     try {
-      if (isSupabaseConfigured) {
+      if (isSupabaseConfigured && !isDemoModeAllowed()) {
         const { error } = await supabase.auth.signOut()
         if (error) throw error
         this.clearSessionPlaceholder()
@@ -287,7 +379,18 @@ export const AuthService = {
    */
   async getCurrentUser() {
     try {
+      // Clear placeholder storage if not allowed before any restoration
+      clearPlaceholderAuthStorageIfForbidden()
+
       const storedUser = readStoredJson(AUTH_USER_KEY)
+
+      // Only use stored values if placeholder auth is allowed by policy
+      if (shouldUsePlaceholderAuth()) {
+        if (storedUser) {
+          return { user: storedUser, error: null }
+        }
+        return { user: null, error: null }
+      }
 
       if (isSupabaseConfigured) {
         removeStoredValue(AUTH_USER_KEY)
@@ -313,19 +416,21 @@ export const AuthService = {
       // if (error) throw error
       // return { user, error: null }
 
-      if (storedUser) {
+      // Only use stored values if placeholder auth is allowed by policy
+      if (shouldUsePlaceholderAuth() && storedUser) {
         return { user: storedUser, error: null }
       }
       return { user: null, error: null }
     } catch (error) {
       const storedUser = readStoredJson(AUTH_USER_KEY)
       const storedSession = readStoredJson(AUTH_SESSION_KEY)
-      if (!isSupabaseConfigured && storedUser && shouldUseStoredAuthFallback({ session: storedSession, user: storedUser })) {
-        console.warn('⚠️ Auth cloud restore unavailable, using local session:', error.message)
+      // Only use stored values if placeholder auth is allowed by policy
+      if (shouldUsePlaceholderAuth() && storedUser) {
+        console.warn('⚠️ Placeholder auth: using local session despite error:', error.message)
         return { user: storedUser, error: null }
       }
 
-      console.error('❌ [PLACEHOLDER] getCurrentUser error:', error.message)
+      console.warn('⚠️ [PLACEHOLDER] getCurrentUser error:', error.message)
       return { user: null, error }
     }
   },
@@ -340,7 +445,18 @@ export const AuthService = {
    */
   async getSession() {
     try {
+      // Clear placeholder storage if not allowed before any restoration
+      clearPlaceholderAuthStorageIfForbidden()
+
       const storedSession = readStoredJson(AUTH_SESSION_KEY)
+
+      // Only use stored values if placeholder auth is allowed by policy
+      if (shouldUsePlaceholderAuth()) {
+        if (storedSession) {
+          return { session: storedSession, error: null }
+        }
+        return { session: null, error: null }
+      }
 
       if (isSupabaseConfigured) {
         removeStoredValue(AUTH_USER_KEY)
@@ -364,15 +480,17 @@ export const AuthService = {
       // if (error) throw error
       // return { session, error: null }
 
-      if (storedSession) {
+      // Only use stored values if placeholder auth is allowed by policy
+      if (shouldUsePlaceholderAuth() && storedSession) {
         return { session: storedSession, error: null }
       }
       return { session: null, error: null }
     } catch (error) {
       const storedSession = readStoredJson(AUTH_SESSION_KEY)
       const storedUser = readStoredJson(AUTH_USER_KEY)
-      if (!isSupabaseConfigured && storedSession && shouldUseStoredAuthFallback({ session: storedSession, user: storedUser })) {
-        console.warn('⚠️ Auth cloud session unavailable, using local session:', error.message)
+      // Only use stored values if placeholder auth is allowed by policy
+      if (shouldUsePlaceholderAuth() && storedSession) {
+        console.warn('⚠️ Placeholder auth: using local session despite error:', error.message)
         return { session: storedSession, error: null }
       }
 
@@ -391,6 +509,7 @@ export const AuthService = {
    * @param {object} session - Session object
    */
   storeSessionPlaceholder(user, session) {
+    // Only persist if placeholder auth is allowed by policy
     if (!shouldPersistPlaceholderAuth()) {
       this.clearSessionPlaceholder()
       return false

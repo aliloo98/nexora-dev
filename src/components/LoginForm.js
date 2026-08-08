@@ -8,7 +8,7 @@
  */
 
 import AuthContext from '../auth/authContext.js'
-import { shouldUsePlaceholderAuth } from '../auth/authService.js'
+import { shouldUsePlaceholderAuth, isDemoModeAllowed, isDevelopmentMode } from '../auth/authService.js'
 import { showToast } from '../../js/utils.js'
 
 /**
@@ -16,7 +16,8 @@ import { showToast } from '../../js/utils.js'
  * Returns HTML string for login form
  */
 export const createLoginForm = ({ demoModeEnabled = shouldUsePlaceholderAuth() } = {}) => {
-  const demoButton = demoModeEnabled
+  const finalDemoEnabled = shouldUsePlaceholderAuth();
+  const demoButton = finalDemoEnabled
     ? `
           <button
             type="button"
@@ -28,7 +29,7 @@ export const createLoginForm = ({ demoModeEnabled = shouldUsePlaceholderAuth() }
             🧪 Mode test
           </button>`
     : ''
-  const authStatusCopy = demoModeEnabled
+  const authStatusCopy = finalDemoEnabled
     ? 'Mode local de développement actif.'
     : 'Authentification Supabase active.'
 
@@ -218,9 +219,7 @@ export const attachLoginFormListeners = () => {
       showToast('✅ Mode test activé!')
 
       // Activate demo mode to populate dashboard with demo data
-      if (typeof window.setNexoraDemoMode === 'function') {
-        await window.setNexoraDemoMode(true)
-      }
+      localStorage.setItem('nexora_demo_mode_v1', 'on')
 
       const _expectedHashDemo = window.location.hash
       setTimeout(() => {
