@@ -3188,10 +3188,12 @@ function normalizeBudgetNumberToken(token) {
 
 function parseBudgetNumber(value) {
   if (typeof window.parseFinancialExpression === 'function') {
-    return window.parseFinancialExpression(value, { fallback: 0 });
+    // Clean currency symbols before parsing
+    const cleaned = String(value || '').trim().replace(/[€$£¥]/g, '').trim();
+    return window.parseFinancialExpression(cleaned, { fallback: 0 });
   }
   if (value === null || value === undefined) return 0;
-  const normalized = String(value).trim().replace(/\u202F/g, ' ').replace(/\u00A0/g, ' ');
+  const normalized = String(value).trim().replace(/\u202F/g, ' ').replace(/\u00A0/g, ' ').replace(/[€$£¥]/g, '');
   if (!/^[0-9+\-.,\s]+$/.test(normalized)) return 0;
 
   const tokenMatches = normalized.match(/[+-]?\s*[0-9][0-9\s.,]*/g);

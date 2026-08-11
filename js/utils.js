@@ -58,6 +58,14 @@ const getConfirmationModal = () => {
 const Utils = {
   fmt: (n) => n.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' €',
 
+  formatCurrency: (value) => {
+    const amount = Number(value) || 0
+    return `${amount.toLocaleString('fr-FR', {
+      minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
+      maximumFractionDigits: 2
+    })} €`
+  },
+
   showToast: (msg, options = {}) => {
     const message = String(msg || '')
     return getToastRegion().show({
