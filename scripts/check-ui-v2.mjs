@@ -149,6 +149,8 @@ function checkCss(file, source, issues, tokenRoot, uiRoot) {
   let awaitingKeyframesBlock = false
   // justEnteredKeyframes: true = entered keyframes on this line, skip brace counting for this iteration
   let justEnteredKeyframes = false
+  // isKeyframesDeclaration: true = current line is a @keyframes/@-webkit-keyframes declaration
+  let isKeyframesDeclaration = false
   const keyframeKeywords = new Set(['from', 'to'])
 
   for (let i = 0; i < lines.length; i++) {
@@ -156,11 +158,13 @@ function checkCss(file, source, issues, tokenRoot, uiRoot) {
     const trimmedLine = line.trim()
     const lineNumber = i + 1
 
-    // Reset justEnteredKeyframes at start of each iteration
+    // Reset flags at start of each iteration
     justEnteredKeyframes = false
+    isKeyframesDeclaration = false
 
     // Handle @keyframes declaration (with or without brace on same line)
     if (trimmedLine.startsWith('@keyframes') || trimmedLine.startsWith('@-webkit-keyframes')) {
+      isKeyframesDeclaration = true
       const braceCount = (trimmedLine.match(/{/g) || []).length
       if (braceCount > 0) {
         // Brace on same line - enter keyframes block immediately
@@ -175,7 +179,7 @@ function checkCss(file, source, issues, tokenRoot, uiRoot) {
         // No brace on same line - wait for opening brace on next line
         awaitingKeyframesBlock = true
       }
-      continue
+      // Do NOT continue - allow motion/color/font-size checks on this line
     }
 
     // If waiting for keyframes block opening brace
@@ -231,8 +235,8 @@ function checkCss(file, source, issues, tokenRoot, uiRoot) {
       addIssue(issues, file, 'font-size', `${fontSizeMatch[1]}px is below 12px`, lineNumber, column, uiRoot)
     }
 
-    // Selector scope check (only in primitives/components/layout) - SKIP inside keyframes or awaiting block
-    if (!inKeyframes && !awaitingKeyframesBlock) {
+    // Selector scope check (only in primitives/components/layout) - SKIP inside keyframes, awaiting block, or keyframes declaration
+    if (!inKeyframes && !awaitingKeyframesBlock && !isKeyframesDeclaration) {
       if (relativePath.startsWith('primitives/') || relativePath.startsWith('components/') || relativePath.startsWith('layout/') ||
           relativePath.includes('/primitives/') || relativePath.includes('/components/') || relativePath.includes('/layout/')) {
         if (trimmedLine.endsWith('{') && !trimmedLine.startsWith('@')) {

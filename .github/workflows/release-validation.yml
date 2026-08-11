@@ -50,8 +50,8 @@ jobs:
         run: npm run test:js
         timeout-minutes: 5
 
-      - name: Run architecture baseline check
-        run: node ./scripts/check-architecture-baseline.mjs
+      - name: Run architecture gates
+        run: npm run architecture:check
         timeout-minutes: 5
 
       - name: Build demo build

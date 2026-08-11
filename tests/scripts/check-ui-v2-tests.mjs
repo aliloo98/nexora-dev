@@ -660,4 +660,103 @@ console.log('Running UI V2 checker integration tests...')
   }
 }
 
+// Test K: Color on keyframes declaration line
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', '@keyframes flash { from { background: rgba(0, 0, 0, 0.2); } }')
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+
+    const colorViolations = result.newViolations.filter(v => v.rule === 'color-literal')
+    assert.strictEqual(colorViolations.length, 1, 'Should detect color-literal on keyframes declaration line')
+    assert.ok(colorViolations[0].detail.includes('rgba('), 'Should be rgba violation')
+
+    const selectorViolations = result.newViolations.filter(v => v.rule === 'selector-scope')
+    assert.strictEqual(selectorViolations.length, 0, 'Should not trigger selector-scope for @keyframes declaration')
+
+    console.log('✓ Test K: Color on keyframes declaration line')
+  } finally {
+    cleanup(dir)
+  }
+}
+
+// Test L: Motion on keyframes declaration line
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', '@-webkit-keyframes slow { from { transition-duration: 400ms; } }')
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+
+    const motionViolations = result.newViolations.filter(v => v.rule === 'motion')
+    assert.strictEqual(motionViolations.length, 1, 'Should detect motion on keyframes declaration line')
+    assert.ok(motionViolations[0].detail.includes('400ms exceeds 250ms'), 'Should be 400ms violation')
+
+    const selectorViolations = result.newViolations.filter(v => v.rule === 'selector-scope')
+    assert.strictEqual(selectorViolations.length, 0, 'Should not trigger selector-scope for @-webkit-keyframes declaration')
+
+    console.log('✓ Test L: Motion on keyframes declaration line')
+  } finally {
+    cleanup(dir)
+  }
+}
+
+// Test M: Inline keyframes then invalid selector
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', `
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.legacy-after-inline-keyframes {
+  color: var(--nx-color-primary);
+}
+`)
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+
+    const selectorViolations = result.newViolations.filter(v => v.rule === 'selector-scope')
+    assert.strictEqual(selectorViolations.length, 1, 'Should detect exactly one selector-scope violation')
+    assert.ok(selectorViolations[0].detail.includes('.legacy-after-inline-keyframes'), 'Should target .legacy-after-inline-keyframes')
+
+    console.log('✓ Test M: Inline keyframes then invalid selector')
+  } finally {
+    cleanup(dir)
+  }
+}
+
+// Test N: CI workflow contains npm run architecture:check
+{
+  const workflowPath = resolve(process.cwd(), '.github/workflows/release-validation.yml')
+  const workflowContent = readFileSync(workflowPath, 'utf8')
+
+  assert.ok(workflowContent.includes('npm run architecture:check'), 'Workflow must contain "npm run architecture:check"')
+
+  console.log('✓ Test N: CI workflow contains npm run architecture:check')
+}
+
 console.log('\nAll UI V2 checker integration tests passed!')
