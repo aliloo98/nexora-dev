@@ -26,6 +26,7 @@
     "test:e2e:release:normal-supabase": "npm run build && npx playwright test tests/playwright/release-validation.normal-supabase.spec.js --config=./playwright.config.release.js",
     "architecture:baseline": "node ./scripts/architecture-baseline.mjs",
     "architecture:ui": "node ./scripts/check-ui-v2.mjs",
+    "architecture:ui:baseline": "node ./scripts/check-ui-v2.mjs --update-baseline",
     "architecture:check": "node ./scripts/check-architecture-baseline.mjs && node ./scripts/check-ui-v2.mjs"
   },
   "dependencies": {

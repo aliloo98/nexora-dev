@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, extname, relative, resolve } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
@@ -71,22 +71,28 @@ function relativeToUi(path) {
   return relative(uiRoot, path).split('\\').join('/')
 }
 
-function addIssue(issues, file, rule, detail) {
-  issues.push(`${relativeToUi(file)} [${rule}] ${detail}`)
+function addIssue(issues, file, rule, detail, line = null) {
+  const fingerprint = {
+    file: relativeToUi(file),
+    rule,
+    line,
+    detail
+  }
+  issues.push(fingerprint)
 }
 
-function isUiTest(file) {
+function isUiTest(file, testsRoot) {
   return file.startsWith(testsRoot)
 }
 
-function isUiV2File(file) {
-  const relativePath = relativeToUi(file)
+function isUiV2File(file, uiRoot) {
+  const relativePath = relative(uiRoot, file)
   if (relativePath === 'index.js' || relativePath === 'index.css') return true
   return v2Directories.has(relativePath.split('/')[0])
 }
 
-function checkImports(file, source, issues) {
-  if (isUiTest(file)) return
+function checkImports(file, source, issues, uiRoot, testsRoot) {
+  if (isUiTest(file, testsRoot)) return
   const importPattern = /(?:import|export)\s+(?:[^'";]*?\s+from\s+)?['"]([^'"]+)['"]/g
   for (const match of source.matchAll(importPattern)) {
     const specifier = match[1]
@@ -104,9 +110,9 @@ function checkImports(file, source, issues) {
   }
 }
 
-function checkJavaScript(file, source, issues) {
-  checkImports(file, source, issues)
-  if (isUiTest(file)) return
+function checkJavaScript(file, source, issues, uiRoot, testsRoot) {
+  checkImports(file, source, issues, uiRoot, testsRoot)
+  if (isUiTest(file, testsRoot)) return
 
   if (/\bstyle\s*=|\.style(?:\.|\[)/.test(source)) {
     addIssue(issues, file, 'inline-style', 'inline style mutation or attribute detected')
@@ -125,54 +131,125 @@ function checkJavaScript(file, source, issues) {
   }
 }
 
-function checkCss(file, source, issues) {
-  for (const match of source.matchAll(/([\d.]+)(ms|s)\b/g)) {
-    const numeric = Number(match[1])
-    const duration = match[2] === 's' ? numeric * 1000 : numeric
-    if (duration > 250) addIssue(issues, file, 'motion', `${match[0]} exceeds 250ms`)
-  }
+function checkCss(file, source, issues, tokenRoot) {
+  const lines = source.split(/\r?\n/)
 
-  if (!file.startsWith(tokenRoot)) {
-    const colorLiteral = source.match(/#[\da-f]{3,8}\b|(?:rgb|hsl)a?\(/i)
-    if (colorLiteral) addIssue(issues, file, 'color-literal', `literal "${colorLiteral[0]}" must be a token`)
-  }
+  // Track if we're inside a @keyframes block
+  let inKeyframes = false
+  let keyframeDepth = 0
 
-  for (const match of source.matchAll(/font-size\s*:\s*([\d.]+)px/g)) {
-    if (Number(match[1]) < 12) addIssue(issues, file, 'font-size', `${match[1]}px is below 12px`)
-  }
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim()
+    const lineNumber = i + 1
 
-  if (file.includes('/primitives/') || file.includes('/components/') || file.includes('/layout/')) {
-    const selectorLines = source.split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line.endsWith('{') && !line.startsWith('@') && line !== 'to {')
-    for (const line of selectorLines) {
-      if (!line.startsWith('.nx-')) {
-        addIssue(issues, file, 'selector-scope', `unsafe selector "${line.slice(0, -1).trim()}"`)
+    // Track @keyframes blocks more robustly
+    if (line.startsWith('@keyframes')) {
+      inKeyframes = true
+      keyframeDepth = 1
+      continue
+    }
+
+    if (inKeyframes) {
+      // Count braces to track nested blocks
+      keyframeDepth += (line.match(/{/g) || []).length
+      keyframeDepth -= (line.match(/}/g) || []).length
+
+      if (keyframeDepth <= 0) {
+        inKeyframes = false
+        keyframeDepth = 0
+      }
+      continue // Skip all lines inside @keyframes
+    }
+
+    // Motion check
+    for (const match of line.matchAll(/([\d.]+)(ms|s)\b/g)) {
+      const numeric = Number(match[1])
+      const duration = match[2] === 's' ? numeric * 1000 : numeric
+      if (duration > 250) {
+        addIssue(issues, file, 'motion', `${match[0]} exceeds 250ms`, lineNumber)
+      }
+    }
+
+    // Color literal check (skip comments)
+    if (!line.startsWith('/*') && !file.startsWith(tokenRoot)) {
+      for (const match of line.matchAll(/#[\da-f]{3,8}\b|(?:rgb|hsl)a?\(/gi)) {
+        addIssue(issues, file, 'color-literal', `literal "${match[0]}" must be a token`, lineNumber)
+      }
+    }
+
+    // Font size check
+    const fontSizeMatch = line.match(/font-size\s*:\s*([\d.]+)px/)
+    if (fontSizeMatch && Number(fontSizeMatch[1]) < 12) {
+      addIssue(issues, file, 'font-size', `${fontSizeMatch[1]}px is below 12px`, lineNumber)
+    }
+
+    // Selector scope check (only in primitives/components/layout)
+    if (file.includes('/primitives/') || file.includes('/components/') || file.includes('/layout/')) {
+      if (line.endsWith('{') && !line.startsWith('@') && !inKeyframes) {
+        const selector = line.slice(0, -1).trim()
+        if (selector && !selector.startsWith('.nx-')) {
+          addIssue(issues, file, 'selector-scope', `unsafe selector "${selector}"`, lineNumber)
+        }
       }
     }
   }
 }
 
-export function checkUiV2() {
+export function checkUiV2(options = {}) {
+  const {
+    baselinePath = null,
+    updateBaseline = false,
+    uiRoot: customUiRoot = null,
+    skipRequiredFiles = false
+  } = options
+
+  const actualUiRoot = customUiRoot || uiRoot
+  const actualTokenRoot = resolve(actualUiRoot, 'tokens')
+  const actualTestsRoot = resolve(actualUiRoot, 'tests')
+
   const issues = []
-  for (const required of requiredFiles) {
-    if (!existsSync(resolve(uiRoot, required))) {
-      issues.push(`${required} [required-file] missing`)
+
+  if (!skipRequiredFiles) {
+    for (const required of requiredFiles) {
+      if (!existsSync(resolve(actualUiRoot, required))) {
+        issues.push({
+          file: required,
+          rule: 'required-file',
+          line: null,
+          detail: 'missing'
+        })
+      }
     }
   }
 
-  for (const file of listFiles(uiRoot)) {
-    if (!isUiV2File(file)) continue
+  for (const file of listFiles(actualUiRoot)) {
+    if (!isUiV2File(file, actualUiRoot)) continue
     const extension = extname(file)
     if (!['.js', '.css'].includes(extension)) continue
     const source = readFileSync(file, 'utf8')
-    if (extension === '.js') checkJavaScript(file, source, issues)
-    if (extension === '.css') checkCss(file, source, issues)
+    if (extension === '.js') checkJavaScript(file, source, issues, actualUiRoot, actualTestsRoot)
+    if (extension === '.css') checkCss(file, source, issues, actualTokenRoot)
+  }
+
+  // Sort issues deterministically
+  issues.sort((a, b) => {
+    if (a.file !== b.file) return a.file.localeCompare(b.file)
+    if (a.rule !== b.rule) return a.rule.localeCompare(b.rule)
+    if (a.line !== b.line) return (a.line || 0) - (b.line || 0)
+    return a.detail.localeCompare(b.detail)
+  })
+
+  // Handle baseline
+  if (baselinePath) {
+    return checkAgainstBaseline(issues, baselinePath, updateBaseline)
   }
 
   if (issues.length) {
     console.error('Nexora UI V2 architecture violations:')
-    issues.forEach((issue) => console.error(`- ${issue}`))
+    issues.forEach((issue) => {
+      const lineInfo = issue.line ? `:${issue.line}` : ''
+      console.error(`- ${issue.file}${lineInfo} [${issue.rule}] ${issue.detail}`)
+    })
     return { ok: false, issues }
   }
 
@@ -180,7 +257,84 @@ export function checkUiV2() {
   return { ok: true, issues: [] }
 }
 
+function checkAgainstBaseline(issues, baselinePath, updateBaseline) {
+  let baseline = { version: 1, allowed: [] }
+  if (existsSync(baselinePath)) {
+    baseline = JSON.parse(readFileSync(baselinePath, 'utf8'))
+  }
+
+  if (updateBaseline) {
+    baseline.allowed = issues.map(issue => ({
+      file: issue.file,
+      rule: issue.rule,
+      line: issue.line,
+      detail: issue.detail
+    }))
+    writeFileSync(baselinePath, JSON.stringify(baseline, null, 2), 'utf8')
+    console.log(`UI V2 baseline updated with ${issues.length} allowed violations`)
+    return { ok: true, issues, baselineUpdated: true }
+  }
+
+  // Create fingerprint for each issue
+  const currentFingerprints = new Set(
+    issues.map(issue => JSON.stringify({
+      file: issue.file,
+      rule: issue.rule,
+      line: issue.line,
+      detail: issue.detail
+    }))
+  )
+
+  const baselineFingerprints = new Set(
+    baseline.allowed.map(entry => JSON.stringify(entry))
+  )
+
+  // New violations (in current but not in baseline)
+  const newViolations = issues.filter(issue => {
+    const fp = JSON.stringify({
+      file: issue.file,
+      rule: issue.rule,
+      line: issue.line,
+      detail: issue.detail
+    })
+    return !baselineFingerprints.has(fp)
+  })
+
+  // Resolved violations (in baseline but not in current)
+  const resolvedViolations = baseline.allowed.filter(entry => {
+    const fp = JSON.stringify(entry)
+    return !currentFingerprints.has(fp)
+  })
+
+  if (newViolations.length > 0) {
+    console.error('New UI V2 architecture violations:')
+    newViolations.forEach((issue) => {
+      const lineInfo = issue.line ? `:${issue.line}` : ''
+      console.error(`- ${issue.file}${lineInfo} [${issue.rule}] ${issue.detail}`)
+    })
+    return { ok: false, issues: newViolations, newViolations, resolvedViolations }
+  }
+
+  if (resolvedViolations.length > 0) {
+    console.error('UI V2 baseline is outdated - these violations are resolved but still in baseline:')
+    resolvedViolations.forEach((entry) => {
+      const lineInfo = entry.line ? `:${entry.line}` : ''
+      console.error(`- ${entry.file}${lineInfo} [${entry.rule}] ${entry.detail}`)
+    })
+    console.error('Run npm run architecture:ui:baseline to update the baseline')
+    return { ok: false, issues: [], newViolations, resolvedViolations }
+  }
+
+  const knownDebtCount = issues.length
+  console.log(`UI V2 architecture check passed with ${knownDebtCount} known debt entries`)
+  return { ok: true, issues, knownDebtCount }
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const result = checkUiV2()
+  const args = process.argv.slice(2)
+  const updateBaseline = args.includes('--update-baseline')
+  const baselinePath = resolve(scriptDirectory, 'ui-v2-baseline.json')
+
+  const result = checkUiV2({ baselinePath, updateBaseline })
   process.exitCode = result.ok ? 0 : 1
 }
