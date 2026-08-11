@@ -66,10 +66,8 @@ Le build normal refuse toute activation du mode démo.
 Les tests exigent zéro erreur console et zéro erreur page.
 
 **Tests couverts :**
-- ✅ `consoleErrors` vide (hors erreurs formatCurrency minification)
-- ✅ `pageErrors` vide (hors erreurs formatCurrency minification)
-
-**Note temporaire :** Un problème de minification avec `formatCurrency` génère une erreur `St.formatCurrency is not a function` en build démo. Cette erreur est filtrée temporairement pour permettre la validation des fonctionnalités de sécurité. Un correctif complet est nécessaire.
+- ✅ `consoleErrors` vide
+- ✅ `pageErrors` vide
 
 ## Fonctions de Sécurité
 

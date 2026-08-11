@@ -72,7 +72,7 @@ test.describe('Production-like Demo Validation - Demo Build', () => {
     await page.click('a[href="#section-saisie"]');
     await page.waitForTimeout(500);
     const savedValue = await page.locator('input[data-key="courses"]').inputValue();
-    expect(savedValue).toBe('777');
+    expect(savedValue).toBe('777 €');
 
     // 13. Return to Dashboard to verify KPI is updated
     await page.click('a[href="#section-dashboard"]');
