@@ -1,158 +1,304 @@
 import assert from 'node:assert/strict'
-import { writeFileSync, existsSync, mkdirSync, readFileSync, rmSync, unlinkSync } from 'node:fs'
+import { writeFileSync, existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { tmpdir } from 'node:os'
+import { checkUiV2 } from '../../scripts/check-ui-v2.mjs'
 
-console.log('Running UI V2 checker baseline logic tests...')
+function createTempDir() {
+  const dir = resolve(tmpdir(), `ui-v2-test-${Date.now()}`)
+  mkdirSync(dir, { recursive: true })
+  return dir
+}
+
+function cleanup(dir) {
+  if (existsSync(dir)) {
+    rmSync(dir, { recursive: true, force: true })
+  }
+}
+
+function createFixture(dir, file, content) {
+  const filePath = resolve(dir, file)
+  const parentDir = resolve(dir, file.split('/').slice(0, -1).join('/'))
+  mkdirSync(parentDir, { recursive: true })
+  writeFileSync(filePath, content, 'utf8')
+}
+
+console.log('Running UI V2 checker integration tests...')
 
 // Test 1: Baseline matching current state
 {
-  const baselinePath = resolve(tmpdir(), `baseline-test-${Date.now()}.json`)
-  
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
   try {
-    const currentIssues = [
-      { file: 'test.css', rule: 'color-literal', line: 1, detail: 'literal "rgba(" must be a token' }
-    ]
-    
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', '.nx-valid { color: var(--nx-color-primary); }')
+
     writeFileSync(baselinePath, JSON.stringify({
       version: 1,
-      allowed: currentIssues
+      allowed: []
     }, null, 2))
-    
-    const baseline = JSON.parse(readFileSync(baselinePath, 'utf8'))
-    const baselineFingerprints = new Set(baseline.allowed.map(e => JSON.stringify(e)))
-    const currentFingerprints = new Set(currentIssues.map(i => JSON.stringify(i)))
-    
-    const newViolations = currentIssues.filter(i => !baselineFingerprints.has(JSON.stringify(i)))
-    const resolvedViolations = baseline.allowed.filter(e => !currentFingerprints.has(JSON.stringify(e)))
-    
-    assert.strictEqual(newViolations.length, 0, 'Should have no new violations')
-    assert.strictEqual(resolvedViolations.length, 0, 'Should have no resolved violations')
-    
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+    assert.ok(result.ok, 'Should pass with matching baseline')
+    assert.strictEqual(result.knownDebtCount, 0, 'Should have 0 known debt')
+
     console.log('✓ Test 1: Baseline matching current state')
   } finally {
-    if (existsSync(baselinePath)) unlinkSync(baselinePath)
+    cleanup(dir)
   }
 }
 
 // Test 2: New violation detection
 {
-  const baselinePath = resolve(tmpdir(), `baseline-test-${Date.now()}.json`)
-  
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
   try {
-    const currentIssues = [
-      { file: 'test.css', rule: 'color-literal', line: 1, detail: 'literal "rgba(" must be a token' },
-      { file: 'test.css', rule: 'motion', line: 2, detail: '0.3s exceeds 250ms' }
-    ]
-    
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', '.nx-valid { color: var(--nx-color-primary); } .nx-invalid { background: rgba(0,0,0,0.1); }')
+
     writeFileSync(baselinePath, JSON.stringify({
       version: 1,
-      allowed: [
-        { file: 'test.css', rule: 'color-literal', line: 1, detail: 'literal "rgba(" must be a token' }
-      ]
+      allowed: []
     }, null, 2))
-    
-    const baseline = JSON.parse(readFileSync(baselinePath, 'utf8'))
-    const baselineFingerprints = new Set(baseline.allowed.map(e => JSON.stringify(e)))
-    const currentFingerprints = new Set(currentIssues.map(i => JSON.stringify(i)))
-    
-    const newViolations = currentIssues.filter(i => !baselineFingerprints.has(JSON.stringify(i)))
-    
-    assert.strictEqual(newViolations.length, 1, 'Should detect 1 new violation')
-    assert.strictEqual(newViolations[0].rule, 'motion', 'New violation should be motion')
-    
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+    assert.ok(!result.ok, 'Should fail with new violation')
+    assert.ok(result.newViolations.length > 0, 'Should detect new violations')
+
     console.log('✓ Test 2: New violation detection')
   } finally {
-    if (existsSync(baselinePath)) unlinkSync(baselinePath)
+    cleanup(dir)
   }
 }
 
 // Test 3: Outdated baseline detection
 {
-  const baselinePath = resolve(tmpdir(), `baseline-test-${Date.now()}.json`)
-  
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
   try {
-    const currentIssues = [
-      { file: 'test.css', rule: 'color-literal', line: 1, detail: 'literal "rgba(" must be a token' }
-    ]
-    
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+
     writeFileSync(baselinePath, JSON.stringify({
       version: 1,
       allowed: [
-        { file: 'test.css', rule: 'color-literal', line: 1, detail: 'literal "rgba(" must be a token' },
-        { file: 'test.css', rule: 'motion', line: 2, detail: '0.3s exceeds 250ms' }
+        { file: 'components/components.css', rule: 'color-literal', line: 1, column: 1, detail: 'literal "rgba(" must be a token' }
       ]
     }, null, 2))
-    
-    const baseline = JSON.parse(readFileSync(baselinePath, 'utf8'))
-    const baselineFingerprints = new Set(baseline.allowed.map(e => JSON.stringify(e)))
-    const currentFingerprints = new Set(currentIssues.map(i => JSON.stringify(i)))
-    
-    const resolvedViolations = baseline.allowed.filter(e => !currentFingerprints.has(JSON.stringify(e)))
-    
-    assert.strictEqual(resolvedViolations.length, 1, 'Should detect 1 resolved violation')
-    assert.strictEqual(resolvedViolations[0].rule, 'motion', 'Resolved violation should be motion')
-    
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+    assert.ok(!result.ok, 'Should fail with outdated baseline')
+    assert.ok(result.resolvedViolations.length > 0, 'Should detect resolved violations')
+
     console.log('✓ Test 3: Outdated baseline detection')
   } finally {
-    if (existsSync(baselinePath)) unlinkSync(baselinePath)
+    cleanup(dir)
   }
 }
 
-// Test 4: Deterministic ordering
+// Test 4: Keyframes from/to/0%/50%/100% should not trigger selector-scope
 {
-  const issues1 = [
-    { file: 'b.css', rule: 'motion', line: 1, detail: '0.3s exceeds 250ms' },
-    { file: 'a.css', rule: 'color-literal', line: 2, detail: 'literal "rgba(" must be a token' }
-  ]
-  
-  const issues2 = [
-    { file: 'b.css', rule: 'motion', line: 1, detail: '0.3s exceeds 250ms' },
-    { file: 'a.css', rule: 'color-literal', line: 2, detail: 'literal "rgba(" must be a token' }
-  ]
-  
-  const sorted1 = [...issues1].sort((a, b) => {
-    if (a.file !== b.file) return a.file.localeCompare(b.file)
-    if (a.rule !== b.rule) return a.rule.localeCompare(b.rule)
-    if (a.line !== b.line) return (a.line || 0) - (b.line || 0)
-    return a.detail.localeCompare(b.detail)
-  })
-  
-  const sorted2 = [...issues2].sort((a, b) => {
-    if (a.file !== b.file) return a.file.localeCompare(b.file)
-    if (a.rule !== b.rule) return a.rule.localeCompare(b.rule)
-    if (a.line !== b.line) return (a.line || 0) - (b.line || 0)
-    return a.detail.localeCompare(b.detail)
-  })
-  
-  assert.strictEqual(JSON.stringify(sorted1), JSON.stringify(sorted2), 'Sorting should be deterministic')
-  
-  console.log('✓ Test 4: Deterministic ordering')
-}
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
 
-// Test 5: Baseline should not be modified during check
-{
-  const baselinePath = resolve(tmpdir(), `baseline-test-${Date.now()}.json`)
-  
   try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', `
+@keyframes fadeIn {
+  from { opacity: 0; }
+  50% { opacity: 0.5; }
+  to { opacity: 1; }
+}
+@keyframes slideIn {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(0); }
+}
+.nx-component { color: var(--nx-color-primary); }
+`)
+
     writeFileSync(baselinePath, JSON.stringify({
       version: 1,
       allowed: []
     }, null, 2))
-    
-    const baselineBefore = readFileSync(baselinePath, 'utf8')
-    
-    // Simulate check (read only)
-    const baseline = JSON.parse(readFileSync(baselinePath, 'utf8'))
-    
-    const baselineAfter = readFileSync(baselinePath, 'utf8')
-    
-    assert.strictEqual(baselineBefore, baselineAfter, 'Baseline should not be modified')
-    
-    console.log('✓ Test 5: Baseline should not be modified during check')
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+    assert.ok(result.ok, 'Should pass - keyframes should not trigger selector-scope')
+
+    console.log('✓ Test 4: Keyframes from/to/0%/50%/100% should not trigger selector-scope')
   } finally {
-    if (existsSync(baselinePath)) unlinkSync(baselinePath)
+    cleanup(dir)
   }
 }
 
-console.log('\nAll UI V2 checker baseline logic tests passed!')
+// Test 5: @keyframes with brace on next line should not contaminate rest of file
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', `
+@keyframes fadeIn
+{
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.nx-component { color: var(--nx-color-primary); }
+`)
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+    assert.ok(result.ok, 'Should pass - keyframes with brace on next line should not contaminate')
+
+    console.log('✓ Test 5: @keyframes with brace on next line should not contaminate rest of file')
+  } finally {
+    cleanup(dir)
+  }
+}
+
+// Test 6: True selector .legacy-class should trigger violation
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', '.legacy-class {\n  color: red;\n}')
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+    assert.ok(!result.ok, 'Should fail with selector-scope violation')
+    const selectorViolation = result.newViolations.find(v => v.rule === 'selector-scope')
+    assert.ok(selectorViolation, 'Should detect selector-scope violation')
+
+    console.log('✓ Test 6: True selector .legacy-class should trigger violation')
+  } finally {
+    cleanup(dir)
+  }
+}
+
+// Test 7: Multiple rgba() on same line should have different columns
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', '.nx-component { background: linear-gradient(rgba(0,0,0,0.1), rgba(255,255,255,0.2), rgba(128,128,128,0.3)); }')
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+    assert.ok(!result.ok, 'Should fail with color-literal violations')
+    const colorViolations = result.newViolations.filter(v => v.rule === 'color-literal')
+    assert.strictEqual(colorViolations.length, 3, 'Should detect all 3 rgba() occurrences')
+    
+    // Check that columns are different
+    const columns = colorViolations.map(v => v.column)
+    assert.strictEqual(new Set(columns).size, 3, 'Each occurrence should have a different column')
+
+    console.log('✓ Test 7: Multiple rgba() on same line should have different columns')
+  } finally {
+    cleanup(dir)
+  }
+}
+
+// Test 8: Colors in inline and multiline comments should not trigger violations
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', `
+/* This is a comment with rgba(0,0,0,0.1) inside */
+.nx-component {
+  /* Another comment with #ff0000 */
+  color: var(--nx-color-primary);
+  /* Multiline comment
+     with rgba(255,255,255,0.2)
+     and #00ff00
+  */
+}
+`)
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+    assert.ok(result.ok, 'Should pass - colors in comments should not trigger violations')
+
+    console.log('✓ Test 8: Colors in inline and multiline comments should not trigger violations')
+  } finally {
+    cleanup(dir)
+  }
+}
+
+// Test 9: Deterministic ordering
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', '.nx-component { background: rgba(0,0,0,0.1); }')
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const result1 = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+    const result2 = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+
+    assert.strictEqual(JSON.stringify(result1.newViolations), JSON.stringify(result2.newViolations), 'Results should be deterministic')
+
+    console.log('✓ Test 9: Deterministic ordering')
+  } finally {
+    cleanup(dir)
+  }
+}
+
+// Test 10: Normal check should not modify baseline
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const baselineBefore = readFileSync(baselinePath, 'utf8')
+
+    checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+
+    const baselineAfter = readFileSync(baselinePath, 'utf8')
+
+    assert.strictEqual(baselineBefore, baselineAfter, 'Baseline should not be modified during check')
+
+    console.log('✓ Test 10: Normal check should not modify baseline')
+  } finally {
+    cleanup(dir)
+  }
+}
+
+console.log('\nAll UI V2 checker integration tests passed!')

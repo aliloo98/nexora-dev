@@ -67,15 +67,16 @@ function listFiles(directory) {
   })
 }
 
-function relativeToUi(path) {
+function relativeToUi(path, uiRoot) {
   return relative(uiRoot, path).split('\\').join('/')
 }
 
-function addIssue(issues, file, rule, detail, line = null) {
+function addIssue(issues, file, rule, detail, line = null, column = null, uiRoot) {
   const fingerprint = {
-    file: relativeToUi(file),
+    file: relativeToUi(file, uiRoot),
     rule,
     line,
+    column,
     detail
   }
   issues.push(fingerprint)
@@ -97,15 +98,15 @@ function checkImports(file, source, issues, uiRoot, testsRoot) {
   for (const match of source.matchAll(importPattern)) {
     const specifier = match[1]
     if (!specifier.startsWith('.')) {
-      addIssue(issues, file, 'imports', `external import "${specifier}" is not allowed`)
+      addIssue(issues, file, 'imports', `external import "${specifier}" is not allowed`, null, null, uiRoot)
       continue
     }
     const resolved = resolve(dirname(file), specifier)
     if (!resolved.startsWith(uiRoot)) {
-      addIssue(issues, file, 'imports', `import escapes src/ui: "${specifier}"`)
+      addIssue(issues, file, 'imports', `import escapes src/ui: "${specifier}"`, null, null, uiRoot)
     }
     if (/(supabase|storage|finance|coach\/engine|services?|advisor|treasury|goals|debt)/i.test(specifier)) {
-      addIssue(issues, file, 'imports', `business or data import "${specifier}" is not allowed`)
+      addIssue(issues, file, 'imports', `business or data import "${specifier}" is not allowed`, null, null, uiRoot)
     }
   }
 }
@@ -115,7 +116,7 @@ function checkJavaScript(file, source, issues, uiRoot, testsRoot) {
   if (isUiTest(file, testsRoot)) return
 
   if (/\bstyle\s*=|\.style(?:\.|\[)/.test(source)) {
-    addIssue(issues, file, 'inline-style', 'inline style mutation or attribute detected')
+    addIssue(issues, file, 'inline-style', 'inline style mutation or attribute detected', null, null, uiRoot)
   }
 
   const classLiterals = [
@@ -127,32 +128,45 @@ function checkJavaScript(file, source, issues, uiRoot, testsRoot) {
     const literal = classLiteral.replace(/\$\{[^}]+\}/g, '').trim()
     const classes = literal.split(/\s+/).filter(Boolean)
     const invalid = classes.find((name) => !name.startsWith('nx-'))
-    if (invalid) addIssue(issues, file, 'class-prefix', `class "${invalid}" is not prefixed`)
+    if (invalid) addIssue(issues, file, 'class-prefix', `class "${invalid}" is not prefixed`, null, null, uiRoot)
   }
 }
 
-function checkCss(file, source, issues, tokenRoot) {
-  const lines = source.split(/\r?\n/)
+function checkCss(file, source, issues, tokenRoot, uiRoot) {
+  // Remove CSS comments while preserving line positions
+  const sourceWithoutComments = source.replace(/\/\*[\s\S]*?\*\//g, (match) => {
+    // Replace with same number of newlines to preserve line numbers
+    const newlineCount = (match.match(/\n/g) || []).length
+    return '\n'.repeat(newlineCount)
+  })
+
+  const lines = sourceWithoutComments.split(/\r?\n/)
+  const relativePath = relativeToUi(file, uiRoot)
 
   // Track if we're inside a @keyframes block
   let inKeyframes = false
   let keyframeDepth = 0
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim()
+    const line = lines[i]
+    const trimmedLine = line.trim()
     const lineNumber = i + 1
 
-    // Track @keyframes blocks more robustly
-    if (line.startsWith('@keyframes')) {
+    // Track @keyframes blocks more robustly (handle brace on same line or next line)
+    if (trimmedLine.startsWith('@keyframes')) {
       inKeyframes = true
-      keyframeDepth = 1
+      keyframeDepth = (trimmedLine.match(/{/g) || []).length - (trimmedLine.match(/}/g) || []).length
+      if (keyframeDepth <= 0) {
+        inKeyframes = false
+        keyframeDepth = 0
+      }
       continue
     }
 
     if (inKeyframes) {
       // Count braces to track nested blocks
-      keyframeDepth += (line.match(/{/g) || []).length
-      keyframeDepth -= (line.match(/}/g) || []).length
+      keyframeDepth += (trimmedLine.match(/{/g) || []).length
+      keyframeDepth -= (trimmedLine.match(/}/g) || []).length
 
       if (keyframeDepth <= 0) {
         inKeyframes = false
@@ -161,34 +175,39 @@ function checkCss(file, source, issues, tokenRoot) {
       continue // Skip all lines inside @keyframes
     }
 
-    // Motion check
+    // Motion check with column tracking
     for (const match of line.matchAll(/([\d.]+)(ms|s)\b/g)) {
       const numeric = Number(match[1])
       const duration = match[2] === 's' ? numeric * 1000 : numeric
       if (duration > 250) {
-        addIssue(issues, file, 'motion', `${match[0]} exceeds 250ms`, lineNumber)
+        const column = match.index + 1
+        addIssue(issues, file, 'motion', `${match[0]} exceeds 250ms`, lineNumber, column, uiRoot)
       }
     }
 
-    // Color literal check (skip comments)
-    if (!line.startsWith('/*') && !file.startsWith(tokenRoot)) {
+    // Color literal check (comments already removed, tokenRoot check still applies)
+    if (!file.startsWith(tokenRoot)) {
       for (const match of line.matchAll(/#[\da-f]{3,8}\b|(?:rgb|hsl)a?\(/gi)) {
-        addIssue(issues, file, 'color-literal', `literal "${match[0]}" must be a token`, lineNumber)
+        const column = match.index + 1
+        addIssue(issues, file, 'color-literal', `literal "${match[0]}" must be a token`, lineNumber, column, uiRoot)
       }
     }
 
     // Font size check
     const fontSizeMatch = line.match(/font-size\s*:\s*([\d.]+)px/)
     if (fontSizeMatch && Number(fontSizeMatch[1]) < 12) {
-      addIssue(issues, file, 'font-size', `${fontSizeMatch[1]}px is below 12px`, lineNumber)
+      const column = fontSizeMatch.index + 1
+      addIssue(issues, file, 'font-size', `${fontSizeMatch[1]}px is below 12px`, lineNumber, column, uiRoot)
     }
 
-    // Selector scope check (only in primitives/components/layout)
-    if (file.includes('/primitives/') || file.includes('/components/') || file.includes('/layout/')) {
-      if (line.endsWith('{') && !line.startsWith('@') && !inKeyframes) {
-        const selector = line.slice(0, -1).trim()
+    // Selector scope check (only in primitives/components/layout) - use relative path
+    if (relativePath.startsWith('primitives/') || relativePath.startsWith('components/') || relativePath.startsWith('layout/') ||
+        relativePath.includes('/primitives/') || relativePath.includes('/components/') || relativePath.includes('/layout/')) {
+      if (trimmedLine.endsWith('{') && !trimmedLine.startsWith('@') && !inKeyframes) {
+        const selector = trimmedLine.slice(0, -1).trim()
         if (selector && !selector.startsWith('.nx-')) {
-          addIssue(issues, file, 'selector-scope', `unsafe selector "${selector}"`, lineNumber)
+          const column = line.indexOf(selector) + 1
+          addIssue(issues, file, 'selector-scope', `unsafe selector "${selector}"`, lineNumber, column, uiRoot)
         }
       }
     }
@@ -228,7 +247,7 @@ export function checkUiV2(options = {}) {
     if (!['.js', '.css'].includes(extension)) continue
     const source = readFileSync(file, 'utf8')
     if (extension === '.js') checkJavaScript(file, source, issues, actualUiRoot, actualTestsRoot)
-    if (extension === '.css') checkCss(file, source, issues, actualTokenRoot)
+    if (extension === '.css') checkCss(file, source, issues, actualTokenRoot, actualUiRoot)
   }
 
   // Sort issues deterministically
@@ -236,6 +255,7 @@ export function checkUiV2(options = {}) {
     if (a.file !== b.file) return a.file.localeCompare(b.file)
     if (a.rule !== b.rule) return a.rule.localeCompare(b.rule)
     if (a.line !== b.line) return (a.line || 0) - (b.line || 0)
+    if (a.column !== b.column) return (a.column || 0) - (b.column || 0)
     return a.detail.localeCompare(b.detail)
   })
 
@@ -248,7 +268,8 @@ export function checkUiV2(options = {}) {
     console.error('Nexora UI V2 architecture violations:')
     issues.forEach((issue) => {
       const lineInfo = issue.line ? `:${issue.line}` : ''
-      console.error(`- ${issue.file}${lineInfo} [${issue.rule}] ${issue.detail}`)
+      const columnInfo = issue.column ? `:${issue.column}` : ''
+      console.error(`- ${issue.file}${lineInfo}${columnInfo} [${issue.rule}] ${issue.detail}`)
     })
     return { ok: false, issues }
   }
@@ -268,9 +289,10 @@ function checkAgainstBaseline(issues, baselinePath, updateBaseline) {
       file: issue.file,
       rule: issue.rule,
       line: issue.line,
+      column: issue.column,
       detail: issue.detail
     }))
-    writeFileSync(baselinePath, JSON.stringify(baseline, null, 2), 'utf8')
+    writeFileSync(baselinePath, JSON.stringify(baseline, null, 2) + '\n', 'utf8')
     console.log(`UI V2 baseline updated with ${issues.length} allowed violations`)
     return { ok: true, issues, baselineUpdated: true }
   }
@@ -281,6 +303,7 @@ function checkAgainstBaseline(issues, baselinePath, updateBaseline) {
       file: issue.file,
       rule: issue.rule,
       line: issue.line,
+      column: issue.column,
       detail: issue.detail
     }))
   )
@@ -295,6 +318,7 @@ function checkAgainstBaseline(issues, baselinePath, updateBaseline) {
       file: issue.file,
       rule: issue.rule,
       line: issue.line,
+      column: issue.column,
       detail: issue.detail
     })
     return !baselineFingerprints.has(fp)
@@ -310,7 +334,8 @@ function checkAgainstBaseline(issues, baselinePath, updateBaseline) {
     console.error('New UI V2 architecture violations:')
     newViolations.forEach((issue) => {
       const lineInfo = issue.line ? `:${issue.line}` : ''
-      console.error(`- ${issue.file}${lineInfo} [${issue.rule}] ${issue.detail}`)
+      const columnInfo = issue.column ? `:${issue.column}` : ''
+      console.error(`- ${issue.file}${lineInfo}${columnInfo} [${issue.rule}] ${issue.detail}`)
     })
     return { ok: false, issues: newViolations, newViolations, resolvedViolations }
   }
@@ -319,7 +344,8 @@ function checkAgainstBaseline(issues, baselinePath, updateBaseline) {
     console.error('UI V2 baseline is outdated - these violations are resolved but still in baseline:')
     resolvedViolations.forEach((entry) => {
       const lineInfo = entry.line ? `:${entry.line}` : ''
-      console.error(`- ${entry.file}${lineInfo} [${entry.rule}] ${entry.detail}`)
+      const columnInfo = entry.column ? `:${entry.column}` : ''
+      console.error(`- ${entry.file}${lineInfo}${columnInfo} [${entry.rule}] ${entry.detail}`)
     })
     console.error('Run npm run architecture:ui:baseline to update the baseline')
     return { ok: false, issues: [], newViolations, resolvedViolations }

@@ -27,7 +27,8 @@
     "architecture:baseline": "node ./scripts/architecture-baseline.mjs",
     "architecture:ui": "node ./scripts/check-ui-v2.mjs",
     "architecture:ui:baseline": "node ./scripts/check-ui-v2.mjs --update-baseline",
-    "architecture:check": "node ./scripts/check-architecture-baseline.mjs && node ./scripts/check-ui-v2.mjs"
+    "test:architecture:ui": "node ./tests/scripts/check-ui-v2-tests.mjs",
+    "architecture:check": "npm run test:architecture:ui && node ./scripts/check-architecture-baseline.mjs && node ./scripts/check-ui-v2.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
