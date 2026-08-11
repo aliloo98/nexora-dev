@@ -133,38 +133,62 @@ function checkJavaScript(file, source, issues, uiRoot, testsRoot) {
 }
 
 function checkCss(file, source, issues, tokenRoot, uiRoot) {
-  // Remove CSS comments while preserving line positions
+  // Remove CSS comments while preserving line and column positions
+  // Replace each non-newline character with a space to preserve column positions
   const sourceWithoutComments = source.replace(/\/\*[\s\S]*?\*\//g, (match) => {
-    // Replace with same number of newlines to preserve line numbers
-    const newlineCount = (match.match(/\n/g) || []).length
-    return '\n'.repeat(newlineCount)
+    return match.replace(/[^\r\n]/g, ' ')
   })
 
   const lines = sourceWithoutComments.split(/\r?\n/)
   const relativePath = relativeToUi(file, uiRoot)
 
-  // Track if we're inside a @keyframes block
+  // Keyframes state machine: false = not in keyframes, true = inside keyframes block
   let inKeyframes = false
   let keyframeDepth = 0
+  // awaitingKeyframesBlock: true = saw @keyframes without brace, waiting for opening brace
+  let awaitingKeyframesBlock = false
+  const keyframeKeywords = new Set(['from', 'to'])
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
     const trimmedLine = line.trim()
     const lineNumber = i + 1
 
-    // Track @keyframes blocks more robustly (handle brace on same line or next line)
-    if (trimmedLine.startsWith('@keyframes')) {
-      inKeyframes = true
-      keyframeDepth = (trimmedLine.match(/{/g) || []).length - (trimmedLine.match(/}/g) || []).length
-      if (keyframeDepth <= 0) {
-        inKeyframes = false
-        keyframeDepth = 0
+    // Handle @keyframes declaration (with or without brace on same line)
+    if (trimmedLine.startsWith('@keyframes') || trimmedLine.startsWith('@-webkit-keyframes')) {
+      const braceCount = (trimmedLine.match(/{/g) || []).length
+      if (braceCount > 0) {
+        // Brace on same line - enter keyframes block immediately
+        inKeyframes = true
+        keyframeDepth = braceCount - (trimmedLine.match(/}/g) || []).length
+        if (keyframeDepth <= 0) {
+          inKeyframes = false
+          keyframeDepth = 0
+        }
+      } else {
+        // No brace on same line - wait for opening brace on next line
+        awaitingKeyframesBlock = true
       }
       continue
     }
 
+    // If waiting for keyframes block opening brace
+    if (awaitingKeyframesBlock) {
+      const braceCount = (trimmedLine.match(/{/g) || []).length
+      if (braceCount > 0) {
+        awaitingKeyframesBlock = false
+        inKeyframes = true
+        keyframeDepth = braceCount - (trimmedLine.match(/}/g) || []).length
+        if (keyframeDepth <= 0) {
+          inKeyframes = false
+          keyframeDepth = 0
+        }
+      }
+      // Continue processing this line for motion/color checks, but skip selector-scope
+    }
+
+    // Track keyframes block depth
     if (inKeyframes) {
-      // Count braces to track nested blocks
       keyframeDepth += (trimmedLine.match(/{/g) || []).length
       keyframeDepth -= (trimmedLine.match(/}/g) || []).length
 
@@ -172,10 +196,10 @@ function checkCss(file, source, issues, tokenRoot, uiRoot) {
         inKeyframes = false
         keyframeDepth = 0
       }
-      continue // Skip all lines inside @keyframes
+      // DO NOT skip - continue with motion/color/font-size checks
     }
 
-    // Motion check with column tracking
+    // Motion check with column tracking (runs even inside keyframes)
     for (const match of line.matchAll(/([\d.]+)(ms|s)\b/g)) {
       const numeric = Number(match[1])
       const duration = match[2] === 's' ? numeric * 1000 : numeric
@@ -185,7 +209,7 @@ function checkCss(file, source, issues, tokenRoot, uiRoot) {
       }
     }
 
-    // Color literal check (comments already removed, tokenRoot check still applies)
+    // Color literal check (comments already removed, tokenRoot check still applies, runs even inside keyframes)
     if (!file.startsWith(tokenRoot)) {
       for (const match of line.matchAll(/#[\da-f]{3,8}\b|(?:rgb|hsl)a?\(/gi)) {
         const column = match.index + 1
@@ -193,21 +217,24 @@ function checkCss(file, source, issues, tokenRoot, uiRoot) {
       }
     }
 
-    // Font size check
+    // Font size check (runs even inside keyframes)
     const fontSizeMatch = line.match(/font-size\s*:\s*([\d.]+)px/)
     if (fontSizeMatch && Number(fontSizeMatch[1]) < 12) {
       const column = fontSizeMatch.index + 1
       addIssue(issues, file, 'font-size', `${fontSizeMatch[1]}px is below 12px`, lineNumber, column, uiRoot)
     }
 
-    // Selector scope check (only in primitives/components/layout) - use relative path
-    if (relativePath.startsWith('primitives/') || relativePath.startsWith('components/') || relativePath.startsWith('layout/') ||
-        relativePath.includes('/primitives/') || relativePath.includes('/components/') || relativePath.includes('/layout/')) {
-      if (trimmedLine.endsWith('{') && !trimmedLine.startsWith('@') && !inKeyframes) {
-        const selector = trimmedLine.slice(0, -1).trim()
-        if (selector && !selector.startsWith('.nx-')) {
-          const column = line.indexOf(selector) + 1
-          addIssue(issues, file, 'selector-scope', `unsafe selector "${selector}"`, lineNumber, column, uiRoot)
+    // Selector scope check (only in primitives/components/layout) - SKIP inside keyframes or awaiting block
+    if (!inKeyframes && !awaitingKeyframesBlock) {
+      if (relativePath.startsWith('primitives/') || relativePath.startsWith('components/') || relativePath.startsWith('layout/') ||
+          relativePath.includes('/primitives/') || relativePath.includes('/components/') || relativePath.includes('/layout/')) {
+        if (trimmedLine.endsWith('{') && !trimmedLine.startsWith('@')) {
+          const selector = trimmedLine.slice(0, -1).trim()
+          // Skip keyframe keywords (from, to) and percentage steps
+          if (selector && !selector.startsWith('.nx-') && !keyframeKeywords.has(selector) && !/^\d+%$/.test(selector)) {
+            const column = line.indexOf(selector) + 1
+            addIssue(issues, file, 'selector-scope', `unsafe selector "${selector}"`, lineNumber, column, uiRoot)
+          }
         }
       }
     }

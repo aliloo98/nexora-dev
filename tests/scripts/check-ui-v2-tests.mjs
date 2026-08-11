@@ -301,4 +301,170 @@ console.log('Running UI V2 checker integration tests...')
   }
 }
 
+// Test A: Keyframes with brace on next line and multiline declarations
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', `
+@keyframes fadeIn
+{
+  from {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.nx-component {
+  color: var(--nx-color-primary);
+}
+`)
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+    assert.ok(result.ok, 'Should pass - no selector-scope violations for keyframe keywords')
+
+    const selectorViolations = result.newViolations ? result.newViolations.filter(v => v.rule === 'selector-scope') : []
+    assert.strictEqual(selectorViolations.length, 0, 'Should have no selector-scope violations')
+
+    console.log('✓ Test A: Keyframes with brace on next line and multiline declarations')
+  } finally {
+    cleanup(dir)
+  }
+}
+
+// Test B: Keyframes containing motion debt
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', `
+@keyframes slowFade
+{
+  from {
+    transition-duration: 400ms;
+  }
+  to {
+    opacity: 1;
+  }
+}
+`)
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+    assert.ok(!result.ok, 'Should fail with motion violation')
+
+    const motionViolations = result.newViolations.filter(v => v.rule === 'motion')
+    assert.strictEqual(motionViolations.length, 1, 'Should detect motion violation inside keyframes')
+    assert.ok(motionViolations[0].detail.includes('400ms'), 'Should be 400ms violation')
+
+    console.log('✓ Test B: Keyframes containing motion debt')
+  } finally {
+    cleanup(dir)
+  }
+}
+
+// Test C: Keyframes containing rgba
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', `
+@keyframes glow
+{
+  from {
+    background: rgba(0, 0, 0, 0.2);
+  }
+}
+`)
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+    assert.ok(!result.ok, 'Should fail with color-literal violation')
+
+    const colorViolations = result.newViolations.filter(v => v.rule === 'color-literal')
+    assert.strictEqual(colorViolations.length, 1, 'Should detect color-literal inside keyframes')
+
+    console.log('✓ Test C: Keyframes containing rgba')
+  } finally {
+    cleanup(dir)
+  }
+}
+
+// Test D: Inline comment before real color
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', '.nx-component {\n  color: /* commentaire rgba(1,2,3,0.4) */ rgba(0,0,0,0.2);\n}')
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+    assert.ok(!result.ok, 'Should fail with color-literal violation')
+
+    const colorViolations = result.newViolations.filter(v => v.rule === 'color-literal')
+    assert.strictEqual(colorViolations.length, 1, 'Should detect only the real rgba')
+    assert.ok(colorViolations[0].column > 40, 'Column should be after the comment')
+
+    console.log('✓ Test D: Inline comment before real color')
+  } finally {
+    cleanup(dir)
+  }
+}
+
+// Test E: Multiline comment with code on closing line
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', '.nx-component {\n  /* Multiline comment\n     with rgba(255,255,255,0.2)\n     and #00ff00\n  */ color: rgba(0,0,0,0.3);\n}')
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+    assert.ok(!result.ok, 'Should fail with color-literal violation')
+
+    const colorViolations = result.newViolations.filter(v => v.rule === 'color-literal')
+    assert.strictEqual(colorViolations.length, 1, 'Should detect only the real rgba')
+    assert.ok(colorViolations[0].column > 3, 'Column should be after the comment block')
+
+    console.log('✓ Test E: Multiline comment with code on closing line')
+  } finally {
+    cleanup(dir)
+  }
+}
+
 console.log('\nAll UI V2 checker integration tests passed!')
