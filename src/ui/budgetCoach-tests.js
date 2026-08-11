@@ -51,6 +51,26 @@ const cases = [
       title: 'Réduis la pression du mois',
       actionLabel: 'Réviser le budget'
     }
+  },
+  {
+    name: 'formatted currency values with spaces and € symbol',
+    values: { rev_ali: '2 500 €', loyer: '800 €', courses: '250 €' },
+    expected: {
+      tone: 'success',
+      kicker: 'Situation claire',
+      title: 'Le budget tient bien',
+      actionLabel: 'Voir la synthèse'
+    }
+  },
+  {
+    name: 'formatted currency with non-breaking space',
+    values: { rev_ali: '2\u202F500 €' },
+    expected: {
+      tone: 'info',
+      kicker: 'Prochaine étape',
+      title: 'Ajoute tes charges fixes',
+      actionLabel: 'Saisir les charges'
+    }
   }
 ]
 

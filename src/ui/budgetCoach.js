@@ -1,8 +1,14 @@
 import { buildJudgmentEngine } from '../assistant/judgmentEngine.js'
+import { parseFinancialExpression } from '../finance/financialExpression.js'
 
 export function buildBudgetCoachState(values = {}) {
     const parseAmount = (value) => {
-    const amount = Number(value)
+    // Clean currency symbols - parseFinancialExpression handles French decimals and spaces
+    const cleaned = String(value || '')
+      .trim()
+      .replace(/[€$£¥]/g, '') // Remove currency symbols
+      .trim()
+    const amount = parseFinancialExpression(cleaned, { fallback: 0 })
     return Number.isFinite(amount) ? amount : 0
   }
 
