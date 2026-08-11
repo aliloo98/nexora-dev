@@ -84,7 +84,7 @@ jobs:
           VITE_SUPABASE_ANON_KEY: "synthetic_anon_key"
 
       - name: Run normal validation tests (synthetic Supabase)
-        run: npx playwright test tests/playwright/release-validation.normal.spec.js --config=./playwright.config.release.js
+        run: npx playwright test tests/playwright/release-validation.normal-supabase.spec.js --config=./playwright.config.release.js
         timeout-minutes: 10
 
       - name: Upload Playwright diagnostics

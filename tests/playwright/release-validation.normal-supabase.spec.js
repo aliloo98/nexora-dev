@@ -8,19 +8,11 @@ test.describe('Production-like Demo Validation - Normal Build (Synthetic Supabas
 
     page.on('console', message => {
       if (message.type() === 'error') {
-        const text = message.text();
-        // Temporary filter for formatCurrency minification issue (needs investigation)
-        if (!text.includes('formatCurrency')) {
-          consoleErrors.push(text);
-        }
+        consoleErrors.push(message.text());
       }
     });
     page.on('pageerror', error => {
-      const message = error.message;
-      // Temporary filter for formatCurrency minification issue (needs investigation)
-      if (!message.includes('formatCurrency')) {
-        pageErrors.push(message);
-      }
+      pageErrors.push(error.message);
     });
     page.on('request', request => {
       const hostname = new URL(request.url()).hostname;
@@ -61,19 +53,11 @@ test.describe('Production-like Demo Validation - Normal Build (Synthetic Supabas
 
     page.on('console', message => {
       if (message.type() === 'error') {
-        const text = message.text();
-        // Temporary filter for formatCurrency minification issue (needs investigation)
-        if (!text.includes('formatCurrency')) {
-          consoleErrors.push(text);
-        }
+        consoleErrors.push(message.text());
       }
     });
     page.on('pageerror', error => {
-      const message = error.message;
-      // Temporary filter for formatCurrency minification issue (needs investigation)
-      if (!message.includes('formatCurrency')) {
-        pageErrors.push(message);
-      }
+      pageErrors.push(error.message);
     });
     page.on('request', request => {
       const hostname = new URL(request.url()).hostname;
