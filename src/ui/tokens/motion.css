@@ -3,7 +3,7 @@
   --nx-motion-micro: 150ms;
   --nx-motion-fast: 200ms;
   --nx-motion-standard: 300ms;
-  --nx-motion-slow: 400ms;
+  --nx-motion-slow: 250ms;
   --nx-motion-maximum: 250ms;
 
   --nx-easing-entrance: cubic-bezier(0.16, 1, 0.3, 1);

@@ -700,13 +700,6 @@
       "line": 5,
       "column": 25,
       "detail": "300ms exceeds 250ms"
-    },
-    {
-      "file": "tokens/motion.css",
-      "rule": "motion",
-      "line": 6,
-      "column": 21,
-      "detail": "400ms exceeds 250ms"
     }
   ]
 }
