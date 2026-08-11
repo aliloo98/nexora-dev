@@ -381,7 +381,7 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle at 30% 0%, rgba(215, 169, 74, 0.03) 0%, transparent 50%);
+  background: radial-gradient(circle at 30% 0%, var(--nx-color-gold-glow) 0%, transparent 50%);
   pointer-events: none;
 }
 
