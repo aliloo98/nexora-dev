@@ -581,13 +581,6 @@
       "line": 1132,
       "column": 3,
       "detail": "unsafe selector \".dashboard-v2-header h2\""
-    },
-    {
-      "file": "tokens/motion.css",
-      "rule": "motion",
-      "line": 5,
-      "column": 25,
-      "detail": "300ms exceeds 250ms"
     }
   ]
 }
