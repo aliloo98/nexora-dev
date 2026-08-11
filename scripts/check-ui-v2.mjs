@@ -147,12 +147,17 @@ function checkCss(file, source, issues, tokenRoot, uiRoot) {
   let keyframeDepth = 0
   // awaitingKeyframesBlock: true = saw @keyframes without brace, waiting for opening brace
   let awaitingKeyframesBlock = false
+  // justEnteredKeyframes: true = entered keyframes on this line, skip brace counting for this iteration
+  let justEnteredKeyframes = false
   const keyframeKeywords = new Set(['from', 'to'])
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
     const trimmedLine = line.trim()
     const lineNumber = i + 1
+
+    // Reset justEnteredKeyframes at start of each iteration
+    justEnteredKeyframes = false
 
     // Handle @keyframes declaration (with or without brace on same line)
     if (trimmedLine.startsWith('@keyframes') || trimmedLine.startsWith('@-webkit-keyframes')) {
@@ -161,6 +166,7 @@ function checkCss(file, source, issues, tokenRoot, uiRoot) {
         // Brace on same line - enter keyframes block immediately
         inKeyframes = true
         keyframeDepth = braceCount - (trimmedLine.match(/}/g) || []).length
+        justEnteredKeyframes = true
         if (keyframeDepth <= 0) {
           inKeyframes = false
           keyframeDepth = 0
@@ -179,6 +185,7 @@ function checkCss(file, source, issues, tokenRoot, uiRoot) {
         awaitingKeyframesBlock = false
         inKeyframes = true
         keyframeDepth = braceCount - (trimmedLine.match(/}/g) || []).length
+        justEnteredKeyframes = true
         if (keyframeDepth <= 0) {
           inKeyframes = false
           keyframeDepth = 0
@@ -187,8 +194,8 @@ function checkCss(file, source, issues, tokenRoot, uiRoot) {
       // Continue processing this line for motion/color checks, but skip selector-scope
     }
 
-    // Track keyframes block depth
-    if (inKeyframes) {
+    // Track keyframes block depth (only if we didn't just enter on this line)
+    if (inKeyframes && !justEnteredKeyframes) {
       keyframeDepth += (trimmedLine.match(/{/g) || []).length
       keyframeDepth -= (trimmedLine.match(/}/g) || []).length
 
@@ -262,6 +269,7 @@ export function checkUiV2(options = {}) {
           file: required,
           rule: 'required-file',
           line: null,
+          column: null,
           detail: 'missing'
         })
       }

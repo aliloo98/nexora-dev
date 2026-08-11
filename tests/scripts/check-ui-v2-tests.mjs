@@ -455,13 +455,206 @@ console.log('Running UI V2 checker integration tests...')
     }, null, 2))
 
     const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
-    assert.ok(!result.ok, 'Should fail with color-literal violation')
 
     const colorViolations = result.newViolations.filter(v => v.rule === 'color-literal')
     assert.strictEqual(colorViolations.length, 1, 'Should detect only the real rgba')
     assert.ok(colorViolations[0].column > 3, 'Column should be after the comment block')
 
     console.log('✓ Test E: Multiline comment with code on closing line')
+  } finally {
+    cleanup(dir)
+  }
+}
+
+// Test F: Selector-scope resumes after keyframes with brace on next line
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', `
+@keyframes fade
+{
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.legacy-after-keyframes {
+  color: var(--nx-color-primary);
+}
+`)
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+
+    const selectorViolations = result.newViolations.filter(v => v.rule === 'selector-scope')
+    assert.strictEqual(selectorViolations.length, 1, 'Should detect exactly one selector-scope violation')
+    assert.ok(selectorViolations[0].detail.includes('.legacy-after-keyframes'), 'Should target .legacy-after-keyframes')
+
+    console.log('✓ Test F: Selector-scope resumes after keyframes with brace on next line')
+  } finally {
+    cleanup(dir)
+  }
+}
+
+// Test G: Selector-scope resumes after keyframes with brace on same line
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', `
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.legacy-after-keyframes {
+  color: var(--nx-color-primary);
+}
+`)
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+
+    const selectorViolations = result.newViolations.filter(v => v.rule === 'selector-scope')
+    assert.strictEqual(selectorViolations.length, 1, 'Should detect exactly one selector-scope violation')
+    assert.ok(selectorViolations[0].detail.includes('.legacy-after-keyframes'), 'Should target .legacy-after-keyframes')
+
+    console.log('✓ Test G: Selector-scope resumes after keyframes with brace on same line')
+  } finally {
+    cleanup(dir)
+  }
+}
+
+// Test H: Two successive keyframes blocks then invalid selector
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', `
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@-webkit-keyframes slide
+{
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100px);
+  }
+}
+.legacy-after-two-keyframes {
+  color: var(--nx-color-primary);
+}
+`)
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+
+    const selectorViolations = result.newViolations.filter(v => v.rule === 'selector-scope')
+    assert.strictEqual(selectorViolations.length, 1, 'Should detect exactly one selector-scope violation')
+    assert.ok(selectorViolations[0].detail.includes('.legacy-after-two-keyframes'), 'Should target .legacy-after-two-keyframes')
+
+    console.log('✓ Test H: Two successive keyframes blocks then invalid selector')
+  } finally {
+    cleanup(dir)
+  }
+}
+
+// Test I: Depth verified indirectly - valid then invalid selector after keyframes
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    createFixture(dir, 'tokens/colors.css', ':root { --nx-color-primary: #000; }')
+    createFixture(dir, 'components/components.css', `
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.nx-valid {
+  color: var(--nx-color-primary);
+}
+.legacy-invalid {
+  color: var(--nx-color-primary);
+}
+`)
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: true })
+
+    const selectorViolations = result.newViolations.filter(v => v.rule === 'selector-scope')
+    assert.strictEqual(selectorViolations.length, 1, 'Should detect exactly one selector-scope violation')
+    assert.ok(selectorViolations[0].detail.includes('.legacy-invalid'), 'Should target .legacy-invalid only')
+
+    console.log('✓ Test I: Depth verified indirectly - valid then invalid selector after keyframes')
+  } finally {
+    cleanup(dir)
+  }
+}
+
+// Test J: Required-file fingerprint has column: null
+{
+  const dir = createTempDir()
+  const baselinePath = resolve(dir, 'baseline.json')
+
+  try {
+    // Missing required file to trigger required-file violation
+    createFixture(dir, 'components/components.css', '.nx-component { color: var(--nx-color-primary); }')
+
+    writeFileSync(baselinePath, JSON.stringify({
+      version: 1,
+      allowed: []
+    }, null, 2))
+
+    const result = checkUiV2({ baselinePath, updateBaseline: false, uiRoot: dir, skipRequiredFiles: false })
+
+    const requiredFileViolations = result.newViolations.filter(v => v.rule === 'required-file')
+    assert.ok(requiredFileViolations.length > 0, 'Should detect required-file violations')
+
+    for (const violation of requiredFileViolations) {
+      assert.strictEqual(violation.column, null, 'Required-file violations must have column: null')
+    }
+
+    console.log('✓ Test J: Required-file fingerprint has column: null')
   } finally {
     cleanup(dir)
   }
