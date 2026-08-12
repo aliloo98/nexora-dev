@@ -53,14 +53,9 @@
   position: absolute;
 }
 
-/* Dashboard Mode Visibility */
-/* Note: body.mode-simple selector is intentional for mode control, counted as selector-scope */
-body.mode-simple [data-dashboard-mode="complete"] {
+/* Dashboard Mode Visibility - Scoped to V2 modular container */
+.dashboard-v2-modular.nx-dashboard-v2--simple [data-dashboard-mode="complete"] {
   display: none !important;
-}
-
-body.mode-complete [data-dashboard-mode="complete"] {
-  display: revert;
 }
 
 .nx-coach-card--vigilance::before {

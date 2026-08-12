@@ -2,6 +2,99 @@ import { buildJudgmentEngine } from '../assistant/judgmentEngine.js'
 import { CoachService } from '../coach/services/coachService.js'
 import { createCoachCard } from '../ui/components/CoachCard.js'
 
+/**
+ * Dashboard Mode Management
+ * Controls Simplified vs Complete mode visibility
+ */
+const MODE_STORAGE_KEY = 'nexora_ux_mode_v1'
+const DEFAULT_MODE = 'complete'
+
+/**
+ * Set dashboard mode
+ * @param {'simple' | 'complete'} mode
+ */
+window.setNexoraUxMode = (mode) => {
+  if (mode !== 'simple' && mode !== 'complete') {
+    console.warn('[setNexoraUxMode] Invalid mode:', mode)
+    return
+  }
+
+  // Store in SafeStorage
+  if (window.SafeStorage?.setItem) {
+    window.SafeStorage.setItem(MODE_STORAGE_KEY, mode)
+  } else if (window.localStorage) {
+    window.localStorage.setItem(MODE_STORAGE_KEY, mode)
+  }
+
+  // Apply body classes for compatibility with other parts of app
+  document.body.classList.remove('mode-simple', 'mode-complete')
+  document.body.classList.add(`mode-${mode}`)
+
+  // Apply scoped class to V2 dashboard container
+  const dashboardV2 = document.querySelector('.dashboard-v2-modular')
+  if (dashboardV2) {
+    dashboardV2.classList.remove('nx-dashboard-v2--simple')
+    if (mode === 'simple') {
+      dashboardV2.classList.add('nx-dashboard-v2--simple')
+    }
+  }
+
+  // Trigger refreshes
+  if (typeof window.scheduleAssistantRefresh === 'function') {
+    window.scheduleAssistantRefresh()
+  }
+  if (typeof window.refreshDashboardCoach === 'function') {
+    window.refreshDashboardCoach()
+  }
+  if (typeof window.updateAll === 'function') {
+    window.updateAll()
+  }
+
+  // Trigger mode switch animation
+  if (window.NexoraMotion?.animateModeSwitch) {
+    window.NexoraMotion.animateModeSwitch()
+  }
+}
+
+/**
+ * Get current dashboard mode
+ * @returns {'simple' | 'complete'}
+ */
+window.getNexoraUxMode = () => {
+  // Read from SafeStorage
+  if (window.SafeStorage?.getItem) {
+    return window.SafeStorage.getItem(MODE_STORAGE_KEY) || DEFAULT_MODE
+  }
+  if (window.localStorage) {
+    return window.localStorage.getItem(MODE_STORAGE_KEY) || DEFAULT_MODE
+  }
+  return DEFAULT_MODE
+}
+
+/**
+ * Initialize dashboard mode on load
+ */
+const initializeDashboardMode = () => {
+  const mode = window.getNexoraUxMode()
+  document.body.classList.remove('mode-simple', 'mode-complete')
+  document.body.classList.add(`mode-${mode}`)
+
+  const dashboardV2 = document.querySelector('.dashboard-v2-modular')
+  if (dashboardV2) {
+    dashboardV2.classList.remove('nx-dashboard-v2--simple')
+    if (mode === 'simple') {
+      dashboardV2.classList.add('nx-dashboard-v2--simple')
+    }
+  }
+}
+
+// Initialize on load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeDashboardMode)
+} else {
+  initializeDashboardMode()
+}
+
 export const normalizePriorityLevel = (priority) => {
   if (priority === null || priority === undefined) return 'neutral'
 

@@ -130,11 +130,11 @@ export function animateDashboardEnter(container) {
     targets.forEach(cancelElementAnimations)
     const animations = targets
       .map((element, index) => runAnimation(element, [
-        { opacity: 0.72, transform: 'translate3d(0, 6px, 0)' },
+        { opacity: 0.68, transform: 'translate3d(0, 10px, 0)' },
         { opacity: 1, transform: 'translate3d(0, 0, 0)' }
       ], {
         delay: getEntryDelay(dashboard, index),
-        duration: 220 // <= 250ms as per contract
+        duration: 240 // Design System max duration 250ms
       }))
       .filter(Boolean)
 
@@ -163,11 +163,11 @@ export function animateDashboardModeSwitch(container) {
     .filter(isRendered)
     .forEach((element, index) => {
       runAnimation(element, [
-        { opacity: 0.84, transform: 'translate3d(0, 4px, 0)' },
+        { opacity: 0.78, transform: 'translate3d(0, 7px, 0)' },
         { opacity: 1, transform: 'translate3d(0, 0, 0)' }
       ], {
-        delay: index * 16,
-        duration: 160
+        delay: index * 20,
+        duration: 200 // Design System max duration 250ms
       })
     })
 }
@@ -205,9 +205,33 @@ export function getDashboardMotionDiagnostics() {
   }
 }
 
+/**
+ * Reset dashboard motion state for re-entry animation
+ * Cancels active animations and resets motion state to allow re-entry
+ */
+export function resetDashboardMotion() {
+  const dashboard = document.querySelector('#section-dashboard')
+  if (!dashboard) return
+
+  // Cancel all active animations
+  activeAnimations.forEach(animation => {
+    try {
+      animation.cancel()
+    } catch (e) {
+      // Ignore errors from already-cancelled animations
+    }
+  })
+  activeAnimations.clear()
+
+  // Reset motion state
+  dashboard.dataset.dashboardMotionEntered = 'false'
+  dashboard.dataset.dashboardMotionState = 'ready'
+}
+
 export default {
   animateDashboardEnter,
   animateDashboardModeSwitch,
   transitionDashboardProgress,
-  getDashboardMotionDiagnostics
+  getDashboardMotionDiagnostics,
+  resetDashboardMotion
 }

@@ -14,13 +14,12 @@ import { renderUserMenu, updateUserHeader } from '../components/UserProfile.js'
 import { showToast } from '../../js/utils.js'
 
 /**
- * Reset dashboard motion entered flag when navigating away from dashboard
+ * Reset dashboard motion when navigating away from dashboard
+ * Uses window.NexoraMotion.resetDashboardMotion which is exported from gsapMotion
  */
 const resetDashboardMotion = () => {
-  const dashboard = document.querySelector('#section-dashboard')
-  if (dashboard && dashboard.dataset.dashboardMotionEntered === 'true') {
-    dashboard.dataset.dashboardMotionEntered = 'false'
-    dashboard.dataset.dashboardMotionState = 'ready'
+  if (typeof window.NexoraMotion?.resetDashboardMotion === 'function') {
+    window.NexoraMotion.resetDashboardMotion()
   }
 }
 

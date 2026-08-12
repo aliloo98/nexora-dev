@@ -57,11 +57,8 @@ test.describe('Dashboard Motion V1 reduced motion', () => {
     // Cockpit premium may have subtle CSS transforms even in reduced motion
     expect(state.transformedElements).toBeLessThanOrEqual(2)
     expect(state.maxTransitionDuration).toBeLessThanOrEqual(1)
-    // Progress values may not exist in dashboard V2 modular (0 progress bars)
-    // If they exist, they should be positive
-    if (state.progressValues.length > 0) {
-      expect(state.progressValues.every((value) => value > 0)).toBe(true)
-    }
+    expect(state.progressValues.length).toBeGreaterThan(0)
+    expect(state.progressValues.every((value) => value > 0)).toBe(true)
   })
 
   test('keeps keyboard focus visible with motion disabled', async ({ page }) => {
