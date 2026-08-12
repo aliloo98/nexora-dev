@@ -6,6 +6,10 @@
   --nx-shadow-elevation-4: 0 8px 24px rgba(0, 0, 0, 0.20), 0 32px 64px rgba(0, 0, 0, 0.10);
   --nx-shadow-focus: 0 0 0 2px var(--nx-color-gold);
 
+  --nx-shadow-hero-action: 0 4px 20px rgba(215, 169, 74, 0.2);
+  --nx-shadow-hero-action-hover: 0 8px 28px rgba(215, 169, 74, 0.3);
+  --nx-shadow-hero-action-active: 0 2px 12px rgba(215, 169, 74, 0.2);
+
   --nx-shadow-elevated: var(--nx-shadow-elevation-2);
   --nx-shadow-modal: var(--nx-shadow-elevation-3);
 }
