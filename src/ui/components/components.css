@@ -769,79 +769,6 @@
   opacity: 0.7;
 }
 
-/* Module 1 : Cockpit Financier - Premium Polish */
-.cockpit-financier__content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nx-space-md);
-  padding: var(--nx-space-lg);
-}
-
-.cockpit-financier__score {
-  align-self: flex-start;
-  font-size: var(--nx-font-size-caption);
-  font-weight: var(--nx-font-weight-semibold);
-  padding: var(--nx-space-xs) var(--nx-space-sm);
-  border-radius: var(--nx-radius-full);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.cockpit-financier__metrics {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nx-space-md);
-}
-
-.cockpit-financier__metric {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--nx-space-sm) 0;
-}
-
-.cockpit-financier__metric--emphasis {
-  padding: var(--nx-space-md) 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.cockpit-financier__metric-label {
-  color: var(--nx-color-text-secondary);
-  font-size: var(--nx-font-size-body);
-  font-weight: var(--nx-font-weight-medium);
-  letter-spacing: -0.01em;
-}
-
-.cockpit-financier__metric-value {
-  color: var(--nx-color-text-primary);
-  font-size: var(--nx-font-size-h3);
-  font-weight: var(--nx-font-weight-bold);
-  letter-spacing: -0.02em;
-}
-
-.cockpit-financier__metric--emphasis .cockpit-financier__metric-value {
-  font-size: var(--nx-font-size-display);
-  font-weight: var(--nx-font-weight-black);
-  letter-spacing: -0.03em;
-}
-
-.cockpit-financier__metric--positive .cockpit-financier__metric-value {
-  color: var(--nx-color-success);
-}
-
-.cockpit-financier__metric--danger .cockpit-financier__metric-value {
-  color: var(--nx-color-danger);
-}
-
-.cockpit-financier__metric--warning .cockpit-financier__metric-value {
-  color: var(--nx-color-warning);
-}
-
-.cockpit-financier__metric--success .cockpit-financier__metric-value {
-  color: var(--nx-color-success);
-}
-
 /* Module 2 : Prochaine Étape - Premium Polish */
 .prochaine-etape__content {
   display: flex;
@@ -1108,7 +1035,6 @@
     gap: var(--nx-space-sm);
   }
 
-  .cockpit-financier__content,
   .prochaine-etape__content,
   .objectif__content,
   .coach__content {
