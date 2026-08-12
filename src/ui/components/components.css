@@ -509,18 +509,18 @@
   font-size: var(--nx-font-size-body);
   font-weight: var(--nx-font-weight-semibold);
   letter-spacing: 0.01em;
-  box-shadow: 0 4px 20px rgba(215, 169, 74, 0.2);
+  box-shadow: var(--nx-shadow-hero-action);
   transition: all var(--nx-motion-emphasized) var(--nx-easing-standard);
 }
 
 .nx-hero-card__action:hover {
-  box-shadow: 0 8px 28px rgba(215, 169, 74, 0.3);
+  box-shadow: var(--nx-shadow-hero-action-hover);
   transform: translateY(-2px);
 }
 
 .nx-hero-card__action:active {
   transform: translateY(0);
-  box-shadow: 0 2px 12px rgba(215, 169, 74, 0.2);
+  box-shadow: var(--nx-shadow-hero-action-active);
 }
 
 @media (min-width: 768px) {
