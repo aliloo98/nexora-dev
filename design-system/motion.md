@@ -25,9 +25,9 @@ Nexora Dashboard uses a lightweight, performance-focused motion system that prov
 
 **Behavior**:
 - Animates dashboard modules with staggered delays
-- Duration: 220ms per element
+- Duration: 240ms per element (Design System max: 250ms)
 - Delays: 25ms increments (total ≤ 120ms max)
-- Properties: `opacity` (0.72 → 1), `transform: translateY(6px → 0)`
+- Properties: `opacity` (0.68 → 1), `transform: translateY(10px → 0)`
 
 **Implementation**:
 ```javascript
@@ -54,17 +54,19 @@ export function animateDashboardEnter(container) {
 **State Management**:
 - `dashboardMotionEntered`: Prevents re-animation on same session
 - `dashboardMotionState`: Tracks animation phase (scheduled → entering → ready)
-- Reset when navigating away from Dashboard
+- Reset when navigating away from Dashboard via `resetDashboardMotion()`
 
 ### Mode Switch Animation
 
 **Trigger**: Switching between Simplified and Complete modes
 
 **Behavior**:
-- Animates only visible elements
-- Duration: 160ms per element
-- Delays: 16ms increments
-- Properties: `opacity` (0.84 → 1), `transform: translateY(4px → 0)`
+- Animates only visible elements (skips hidden elements)
+- Duration: 200ms per element (Design System max: 250ms)
+- Delays: 20ms increments
+- Properties: `opacity` (0.78 → 1), `transform: translateY(7px → 0)`
+- Simple → Complete: Revealed elements animate
+- Complete → Simple: Elements hide immediately (no exit animation on hidden elements)
 
 **Implementation**:
 ```javascript
@@ -73,7 +75,15 @@ export function animateDashboardModeSwitch(container) {
   if (!dashboard || dashboard.dataset.dashboardMotionState !== 'ready' || prefersReducedMotion()) return
   const isSimpleMode = document.body.classList.contains('mode-simple')
   const selectors = getModeSwitchSelectors(dashboard, isSimpleMode)
-  // ... animation logic
+  
+  // Only animate visible elements (skip hidden)
+  selectors
+    .map((selector) => dashboard.querySelector(selector))
+    .filter(isRendered)
+    .filter(element => !element.hidden)
+    .forEach((element, index) => {
+      // ... animation logic
+    })
 }
 ```
 
@@ -127,21 +137,35 @@ export function transitionDashboardProgress(container) {
 
 ### Reset Logic
 
-Motion state is reset when navigating away from Dashboard:
+Motion state is reset when navigating away from Dashboard via a single authoritative hook in `authRouting.js`:
 
 ```javascript
-const resetDashboardMotion = () => {
+export function resetDashboardMotion() {
   const dashboard = document.querySelector('#section-dashboard')
-  if (dashboard && dashboard.dataset.dashboardMotionEntered === 'true') {
-    dashboard.dataset.dashboardMotionEntered = 'false'
-    dashboard.dataset.dashboardMotionState = 'ready'
-  }
+  if (!dashboard) return
+
+  // Cancel all active animations
+  activeAnimations.forEach(animation => {
+    try {
+      animation.cancel()
+    } catch (e) {
+      // Ignore errors from already-cancelled animations
+    }
+  })
+  activeAnimations.clear()
+
+  // Reset motion state
+  dashboard.dataset.dashboardMotionEntered = 'false'
+  dashboard.dataset.dashboardMotionState = 'ready'
 }
 ```
 
+Exported via `window.NexoraMotion.resetDashboardMotion()`.
+
 Triggered by:
-- Hash changes away from `#section-dashboard`
-- `showSection()` calls with non-dashboard sections
+- Navigation from Dashboard to other sections (Plan, Saisie, etc.)
+- Single authoritative hook in `RouteGuard.navigateTo()` using `previousSection` tracking
+- Reset count: exactly 1 for Dashboard → Plan → Dashboard navigation
 
 ## Reduced Motion
 
@@ -241,6 +265,14 @@ animation.finished.finally(() => {
 ### Motion Tests
 
 Motion robustness is tested in `tests/playwright/dashboard-motion-robustness.spec.js`:
+- Login → Dashboard: Entry animation test
+- Dashboard → Plan → Dashboard: Re-entry animation test
+- Dashboard → Saisie → Dashboard: Re-entry animation test
+- updateAll(): No replay of entry animation
+- Simple → Complete: Revealed elements animate
+- Complete → Simple: Immediate hide (no exit animation)
+- resetDashboardMotion: Existence and runtime test
+- Reset count: Exactly 1 for Dashboard → Plan → Dashboard navigation
 - Validates one bounded compositor-only entrance sequence
 - Confirms no motion restart during `updateAll()`
 - Checks static cards remain still

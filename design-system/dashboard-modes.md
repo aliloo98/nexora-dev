@@ -10,30 +10,55 @@ Nexora Dashboard supports two UX modes to accommodate different user preferences
 ## Mode Storage
 
 The current mode is stored in:
-- **Key**: `nexora_ux_mode_v1` in `SafeStorage`
+- **Key**: `nexora_ux_mode_v1` in `SafeStorage` (or localStorage fallback)
 - **Values**: `'simple'` or `'complete'` (default: `'complete'`)
 - **Access**: Via `window.setNexoraUxMode(mode)` and `window.getNexoraUxMode()`
 
 ## Mode Implementation
 
-### Body Classes
+### Module API
+
+Mode management is implemented in `src/ui/dashboard/dashboardMode.js`:
+
+```javascript
+import { setNexoraUxMode, getNexoraUxMode, applyDashboardMode } from './src/ui/dashboard/dashboardMode.js'
+
+// Set mode and apply visibility
+setNexoraUxMode('simple' | 'complete')
+
+// Get current mode
+getNexoraUxMode() // Returns 'simple' or 'complete'
+
+// Apply mode to DOM
+applyDashboardMode(mode)
+
+// Apply mode to newly inserted elements (after async renderers)
+applyModeToNewElements(container)
+```
+
+### Body Classes (Compatibility)
+
+For compatibility with other parts of the application:
 - `body.mode-simple` - Active when simplified mode is selected
 - `body.mode-complete` - Active when complete mode is selected
 
 ### Visibility Control
 
-Mode distinction is implemented using `data-dashboard-mode` attributes:
+Mode distinction is implemented using the HTML `hidden` attribute on elements marked with `data-dashboard-mode="complete"`:
 
-```css
-/* Mode-specific visibility */
-body.mode-simple [data-dashboard-mode="complete"] {
-  display: none !important;
-}
-
-body.mode-complete [data-dashboard-mode="complete"] {
-  display: revert;
-}
+```javascript
+// In setNexoraUxMode():
+const completeElements = document.querySelectorAll('[data-dashboard-mode="complete"]')
+completeElements.forEach(el => {
+  if (mode === 'simple') {
+    el.hidden = true
+  } else {
+    el.hidden = false
+  }
+})
 ```
+
+**No CSS selector debt**: This approach uses the native `hidden` attribute instead of CSS rules that would create new selector-scope violations.
 
 ### Module Visibility
 
@@ -58,11 +83,25 @@ body.mode-complete [data-dashboard-mode="complete"] {
 ## Mode Switching
 
 Mode switching triggers:
-1. `applyNexoraUxMode(mode)` - Updates body classes
-2. `scheduleAssistantRefresh()` - Refreshes assistant data
-3. `window.refreshDashboardCoach()` - Updates coach recommendations
-4. `updateAll()` - Full data refresh
-5. `window.NexoraMotion?.animateModeSwitch?.()` - Mode transition animation
+1. `setNexoraUxMode(mode)` - Saves to storage and applies visibility
+2. `applyDashboardMode(mode)` - Updates body classes and hidden attributes
+3. `scheduleAssistantRefresh()` - Refreshes assistant data
+4. `window.refreshDashboardCoach()` - Updates coach recommendations
+5. `updateAll()` - Full data refresh
+6. `window.NexoraMotion?.animateModeSwitch?.()` - Mode transition animation
+
+### Async Renderers
+
+For dynamically inserted elements after initial load:
+
+```javascript
+import { applyModeToNewElements } from './src/ui/dashboard/dashboardMode.js'
+
+// After rendering new elements
+applyModeToNewElements(container)
+```
+
+This ensures newly created complete-only elements are immediately hidden in Simple mode.
 
 ## Design Principles
 
@@ -101,10 +140,11 @@ Example:
 ### Testing
 
 Mode switching is tested in `tests/playwright/dashboard-mode-superset.spec.js`:
-- Verifies Simplified mode hides advanced elements
-- Verifies Complete mode shows all elements
+- Verifies Simplified mode hides advanced elements (strict assertions, no optional checks)
+- Verifies Complete mode shows all elements (strict assertions, no optional checks)
 - Tests mode toggle functionality
-- Validates Complete mode is a superset of Simplified mode
+- Validates Complete mode is a strict superset of Simplified mode (simple ⊂ complete)
+- Tests mode persistence across page reload
 
 ## Migration Notes
 
