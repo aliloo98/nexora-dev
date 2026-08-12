@@ -53,6 +53,15 @@
   position: absolute;
 }
 
+/* Dashboard Mode Visibility */
+body.mode-simple [data-dashboard-mode="complete"] {
+  display: none !important;
+}
+
+body.mode-complete [data-dashboard-mode="complete"] {
+  display: revert;
+}
+
 .nx-coach-card--vigilance::before {
   background: var(--nx-color-warning);
 }
