@@ -14,6 +14,17 @@ import { renderUserMenu, updateUserHeader } from '../components/UserProfile.js'
 import { showToast } from '../../js/utils.js'
 
 /**
+ * Reset dashboard motion entered flag when navigating away from dashboard
+ */
+const resetDashboardMotion = () => {
+  const dashboard = document.querySelector('#section-dashboard')
+  if (dashboard && dashboard.dataset.dashboardMotionEntered === 'true') {
+    dashboard.dataset.dashboardMotionEntered = 'false'
+    dashboard.dataset.dashboardMotionState = 'ready'
+  }
+}
+
+/**
  * Route Protection System
  */
 export const RouteGuard = {
@@ -70,6 +81,11 @@ export const RouteGuard = {
       return false
     }
 
+    // Reset dashboard motion when navigating away from dashboard
+    if (sectionName !== 'dashboard') {
+      resetDashboardMotion()
+    }
+
     return true
   },
 
@@ -118,6 +134,11 @@ export const NavigationMiddleware = {
         // Reset hash to dashboard if navigation failed
         window.location.hash = '#section-dashboard'
       }
+      
+      // Reset dashboard motion when navigating away from dashboard
+      if (section !== 'dashboard') {
+        resetDashboardMotion()
+      }
     })
 
     // Intercept existing showSection function
@@ -130,7 +151,14 @@ export const NavigationMiddleware = {
         }
 
         // Call original showSection
-        return originalShowSection.call(this, sectionName, options)
+        const result = originalShowSection.call(this, sectionName, options)
+        
+        // Update current section tracking after successful navigation
+        if (result !== false) {
+          currentSection = sectionName
+        }
+        
+        return result
       }
     }
 

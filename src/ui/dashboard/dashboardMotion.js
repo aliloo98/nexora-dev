@@ -108,6 +108,7 @@ export function animateDashboardEnter(container) {
     return
   }
 
+  // Only animate if the dashboard is not already entered
   if (dashboard.dataset.dashboardMotionEntered === 'true') {
     return
   }
@@ -133,7 +134,7 @@ export function animateDashboardEnter(container) {
         { opacity: 1, transform: 'translate3d(0, 0, 0)' }
       ], {
         delay: getEntryDelay(dashboard, index),
-        duration: 220
+        duration: 220 // <= 250ms as per contract
       }))
       .filter(Boolean)
 
