@@ -18,34 +18,6 @@
     {
       "file": "components/components.css",
       "rule": "color-literal",
-      "line": 477,
-      "column": 39,
-      "detail": "literal \"rgba(\" must be a token"
-    },
-    {
-      "file": "components/components.css",
-      "rule": "color-literal",
-      "line": 477,
-      "column": 69,
-      "detail": "literal \"rgba(\" must be a token"
-    },
-    {
-      "file": "components/components.css",
-      "rule": "color-literal",
-      "line": 487,
-      "column": 39,
-      "detail": "literal \"rgba(\" must be a token"
-    },
-    {
-      "file": "components/components.css",
-      "rule": "color-literal",
-      "line": 487,
-      "column": 69,
-      "detail": "literal \"rgba(\" must be a token"
-    },
-    {
-      "file": "components/components.css",
-      "rule": "color-literal",
       "line": 512,
       "column": 26,
       "detail": "literal \"rgba(\" must be a token"
