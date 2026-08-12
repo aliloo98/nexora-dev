@@ -53,10 +53,7 @@
   position: absolute;
 }
 
-/* Dashboard Mode Visibility - Scoped to V2 modular container */
-.dashboard-v2-modular.nx-dashboard-v2--simple [data-dashboard-mode="complete"] {
-  display: none !important;
-}
+
 
 .nx-coach-card--vigilance::before {
   background: var(--nx-color-warning);
