@@ -54,6 +54,7 @@
 }
 
 /* Dashboard Mode Visibility */
+/* Note: body.mode-simple selector is intentional for mode control, counted as selector-scope */
 body.mode-simple [data-dashboard-mode="complete"] {
   display: none !important;
 }
