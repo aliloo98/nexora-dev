@@ -435,13 +435,13 @@
   width: 100%;
   max-width: 100%;
   letter-spacing: -0.03em;
-  text-shadow: 0 0 40px rgba(61, 214, 198, 0.15);
+  text-shadow: var(--nx-shadow-hero-amount);
   transition: text-shadow var(--nx-motion-emphasized) var(--nx-easing-standard);
 }
 
 .nx-hero-card--positive .nx-hero-card__amount {
   color: var(--nx-color-stable);
-  text-shadow: 0 0 40px rgba(61, 214, 198, 0.25);
+  text-shadow: var(--nx-shadow-hero-amount-positive);
 }
 
 .nx-hero-card--warning .nx-hero-card__amount {

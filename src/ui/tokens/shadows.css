@@ -10,6 +10,9 @@
   --nx-shadow-hero-action-hover: 0 8px 28px rgba(215, 169, 74, 0.3);
   --nx-shadow-hero-action-active: 0 2px 12px rgba(215, 169, 74, 0.2);
 
+  --nx-shadow-hero-amount: 0 0 40px rgba(61, 214, 198, 0.15);
+  --nx-shadow-hero-amount-positive: 0 0 40px rgba(61, 214, 198, 0.25);
+
   --nx-shadow-elevated: var(--nx-shadow-elevation-2);
   --nx-shadow-modal: var(--nx-shadow-elevation-3);
 }

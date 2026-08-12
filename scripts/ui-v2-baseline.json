@@ -4,20 +4,6 @@
     {
       "file": "components/components.css",
       "rule": "color-literal",
-      "line": 438,
-      "column": 25,
-      "detail": "literal \"rgba(\" must be a token"
-    },
-    {
-      "file": "components/components.css",
-      "rule": "color-literal",
-      "line": 444,
-      "column": 25,
-      "detail": "literal \"rgba(\" must be a token"
-    },
-    {
-      "file": "components/components.css",
-      "rule": "color-literal",
       "line": 773,
       "column": 15,
       "detail": "literal \"rgba(\" must be a token"
