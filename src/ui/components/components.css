@@ -474,7 +474,7 @@
   flex-direction: column;
   gap: var(--nx-space-2xs);
   min-width: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  background: var(--nx-gradient-hero-sub-metric);
   border: 1px solid var(--nx-color-border-subtle);
   border-radius: var(--nx-radius-md);
   padding: var(--nx-space-md);
@@ -484,7 +484,7 @@
 }
 
 .nx-hero-card__sub-metric:hover {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  background: var(--nx-gradient-hero-sub-metric-hover);
   border-color: var(--nx-color-border-strong);
   transform: translateY(-2px);
 }

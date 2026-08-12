@@ -31,6 +31,8 @@
   --nx-color-disabled: rgba(255, 255, 255, 0.04);
   --nx-color-overlay: rgba(3, 7, 13, 0.72);
   --nx-color-backdrop: rgba(3, 7, 13, 0.82);
+  --nx-gradient-hero-sub-metric: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  --nx-gradient-hero-sub-metric-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
 
   /*
    * Future theme customisation may change this decorative accent only.
