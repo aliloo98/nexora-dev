@@ -14,7 +14,7 @@ test.describe('Dashboard Mode Superset', () => {
     await loginDemoBtn.click()
     
     // Wait for navigation to dashboard
-    await page.waitForURL('#section-dashboard', { timeout: 30000 })
+    await page.waitForURL('**/#section-dashboard', { timeout: 30000 })
     
     // Wait for dashboard V2 modular to be visible
     await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000, state: 'visible' })
@@ -32,7 +32,7 @@ test.describe('Dashboard Mode Superset', () => {
     await expect(page.locator('body')).toHaveClass(/mode-simple/);
 
     // Essential elements must exist and be visible
-    const hero = page.locator('#dashboard-hero-root')
+    const hero = page.locator('#cockpit-financier-root .nx-hero-card')
     await expect(hero).toHaveCount(1)
     await expect(hero).toBeVisible()
 
@@ -74,7 +74,7 @@ test.describe('Dashboard Mode Superset', () => {
     await expect(page.locator('body')).toHaveClass(/mode-complete/);
 
     // Essential elements must exist and be visible
-    const hero = page.locator('#dashboard-hero-root')
+    const hero = page.locator('#cockpit-financier-root .nx-hero-card')
     await expect(hero).toHaveCount(1)
     await expect(hero).toBeVisible()
 
