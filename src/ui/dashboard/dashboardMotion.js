@@ -158,9 +158,11 @@ export function animateDashboardModeSwitch(container) {
   const isSimpleMode = document.body.classList.contains('mode-simple')
   const selectors = getModeSwitchSelectors(dashboard, isSimpleMode)
 
+  // Only animate elements that are actually visible (not hidden)
   selectors
     .map((selector) => dashboard.querySelector(selector))
     .filter(isRendered)
+    .filter(element => !element.hidden) // Skip hidden elements
     .forEach((element, index) => {
       runAnimation(element, [
         { opacity: 0.78, transform: 'translate3d(0, 7px, 0)' },

@@ -31,211 +31,81 @@ test.describe('Dashboard Mode Superset', () => {
     });
     await expect(page.locator('body')).toHaveClass(/mode-simple/);
 
-    // First prove elements exist in DOM
-    const elementsExist = await page.evaluate(() => {
-      const timeline = document.querySelector('.dashboard-module--timeline');
-      const treasury = document.querySelector('.treasury-chart-wrapper');
-      const donut = document.querySelector('.donut-chart-wrapper');
-      const analytics = document.querySelector('.complete-analytics-grid');
-      const dual = document.querySelector('.complete-dual-grid');
-      return {
-        timeline: !!timeline,
-        treasury: !!treasury,
-        donut: !!donut,
-        analytics: !!analytics,
-        dual: !!dual
-      };
-    });
+    // Essential elements must exist and be visible
+    const hero = page.locator('#dashboard-hero-root')
+    await expect(hero).toHaveCount(1)
+    await expect(hero).toBeVisible()
 
-    // If elements exist, they must be hidden in simple mode
-    if (elementsExist.timeline || elementsExist.treasury || elementsExist.donut || elementsExist.analytics || elementsExist.dual) {
-      const advancedElementsHidden = await page.evaluate(() => {
-        const timeline = document.querySelector('.dashboard-module--timeline');
-        const treasury = document.querySelector('.treasury-chart-wrapper');
-        const donut = document.querySelector('.donut-chart-wrapper');
-        const analytics = document.querySelector('.complete-analytics-grid');
-        const dual = document.querySelector('.complete-dual-grid');
-        
-        const checkHidden = (el) => {
-          if (!el) return true;
-          const style = window.getComputedStyle(el);
-          return style.display === 'none' || style.visibility === 'hidden';
-        };
-        
-        return {
-          timeline: checkHidden(timeline),
-          treasury: checkHidden(treasury),
-          donut: checkHidden(donut),
-          analytics: checkHidden(analytics),
-          dual: checkHidden(dual)
-        };
-      });
+    const goal = page.locator('.dashboard-module--goal')
+    await expect(goal).toHaveCount(1)
+    await expect(goal).toBeVisible()
 
-      // Any existing element must be hidden
-      if (elementsExist.timeline) expect(advancedElementsHidden.timeline).toBe(true);
-      if (elementsExist.treasury) expect(advancedElementsHidden.treasury).toBe(true);
-      if (elementsExist.donut) expect(advancedElementsHidden.donut).toBe(true);
-      if (elementsExist.analytics) expect(advancedElementsHidden.analytics).toBe(true);
-      if (elementsExist.dual) expect(advancedElementsHidden.dual).toBe(true);
-    }
+    const coach = page.locator('.dashboard-module--coach')
+    await expect(coach).toHaveCount(1)
+    await expect(coach).toBeVisible()
+
+    // Advanced elements must exist but be hidden
+    const timeline = page.locator('.dashboard-module--timeline')
+    await expect(timeline).toHaveCount(1)
+    await expect(timeline).toBeHidden()
+
+    const treasury = page.locator('.treasury-chart-wrapper')
+    await expect(treasury).toHaveCount(1)
+    await expect(treasury).toBeHidden()
+
+    const donut = page.locator('.donut-chart-wrapper')
+    await expect(donut).toHaveCount(1)
+    await expect(donut).toBeHidden()
+
+    const analytics = page.locator('.complete-analytics-grid')
+    await expect(analytics).toHaveCount(1)
+    await expect(analytics).toBeHidden()
+
+    const dual = page.locator('.complete-dual-grid')
+    await expect(dual).toHaveCount(1)
+    await expect(dual).toBeHidden()
   });
 
-  test('mode complet displays advanced KPIs and hides simple cards', async ({ page }) => {
+  test('mode complet displays advanced KPIs and all elements visible', async ({ page }) => {
     // Switch to complete mode using real API
     await page.evaluate(() => {
       window.setNexoraUxMode('complete');
     });
     await expect(page.locator('body')).toHaveClass(/mode-complete/);
 
-    // First prove elements exist in DOM
-    const elementsExist = await page.evaluate(() => {
-      const treasury = document.querySelector('.treasury-chart-wrapper');
-      const donut = document.querySelector('.donut-chart-wrapper');
-      const analytics = document.querySelector('.complete-analytics-grid');
-      const dual = document.querySelector('.complete-dual-grid');
-      return {
-        treasury: !!treasury,
-        donut: !!donut,
-        analytics: !!analytics,
-        dual: !!dual
-      };
-    });
+    // Essential elements must exist and be visible
+    const hero = page.locator('#dashboard-hero-root')
+    await expect(hero).toHaveCount(1)
+    await expect(hero).toBeVisible()
 
-    // If elements exist, they must be visible
-    if (elementsExist.treasury || elementsExist.donut || elementsExist.analytics || elementsExist.dual) {
-      const advancedElementsVisible = await page.evaluate(() => {
-        const treasury = document.querySelector('.treasury-chart-wrapper');
-        const donut = document.querySelector('.donut-chart-wrapper');
-        const analytics = document.querySelector('.complete-analytics-grid');
-        const dual = document.querySelector('.complete-dual-grid');
-        
-        const checkVisible = (el) => {
-          if (!el) return false;
-          const style = window.getComputedStyle(el);
-          return style.display !== 'none' && style.visibility !== 'hidden';
-        };
-        
-        return {
-          treasury: checkVisible(treasury),
-          donut: checkVisible(donut),
-          analytics: checkVisible(analytics),
-          dual: checkVisible(dual)
-        };
-      });
+    const goal = page.locator('.dashboard-module--goal')
+    await expect(goal).toHaveCount(1)
+    await expect(goal).toBeVisible()
 
-      // Any existing element must be visible
-      if (elementsExist.treasury) expect(advancedElementsVisible.treasury).toBe(true);
-      if (elementsExist.donut) expect(advancedElementsVisible.donut).toBe(true);
-      if (elementsExist.analytics) expect(advancedElementsVisible.analytics).toBe(true);
-      if (elementsExist.dual) expect(advancedElementsVisible.dual).toBe(true);
-    }
-  });
+    const coach = page.locator('.dashboard-module--coach')
+    await expect(coach).toHaveCount(1)
+    await expect(coach).toBeVisible()
 
-  test('mode complet displays all advanced elements not present in simple mode', async ({ page }) => {
-    // Switch to complete mode using real API
-    await page.evaluate(() => {
-      window.setNexoraUxMode('complete');
-    });
-    await expect(page.locator('body')).toHaveClass(/mode-complete/);
+    // Advanced elements must exist and be visible
+    const timeline = page.locator('.dashboard-module--timeline')
+    await expect(timeline).toHaveCount(1)
+    await expect(timeline).toBeVisible()
 
-    // First prove elements exist in DOM
-    const elementsExist = await page.evaluate(() => {
-      const treasury = document.querySelector('.treasury-chart-wrapper');
-      const donut = document.querySelector('.donut-chart-wrapper');
-      const analytics = document.querySelector('.complete-analytics-grid');
-      const dual = document.querySelector('.complete-dual-grid');
-      return {
-        treasury: !!treasury,
-        donut: !!donut,
-        analytics: !!analytics,
-        dual: !!dual
-      };
-    });
+    const treasury = page.locator('.treasury-chart-wrapper')
+    await expect(treasury).toHaveCount(1)
+    await expect(treasury).toBeVisible()
 
-    // If elements exist, they must be visible
-    if (elementsExist.treasury || elementsExist.donut || elementsExist.analytics || elementsExist.dual) {
-      const advancedElementsVisible = await page.evaluate(() => {
-        const treasury = document.querySelector('.treasury-chart-wrapper');
-        const donut = document.querySelector('.donut-chart-wrapper');
-        const analytics = document.querySelector('.complete-analytics-grid');
-        const dual = document.querySelector('.complete-dual-grid');
-        
-        const checkVisible = (el) => {
-          if (!el) return false;
-          const style = window.getComputedStyle(el);
-          return style.display !== 'none' && style.visibility !== 'hidden';
-        };
-        
-        return {
-          treasury: checkVisible(treasury),
-          donut: checkVisible(donut),
-          analytics: checkVisible(analytics),
-          dual: checkVisible(dual)
-        };
-      });
+    const donut = page.locator('.donut-chart-wrapper')
+    await expect(donut).toHaveCount(1)
+    await expect(donut).toBeVisible()
 
-      // Any existing element must be visible
-      if (elementsExist.treasury) expect(advancedElementsVisible.treasury).toBe(true);
-      if (elementsExist.donut) expect(advancedElementsVisible.donut).toBe(true);
-      if (elementsExist.analytics) expect(advancedElementsVisible.analytics).toBe(true);
-      if (elementsExist.dual) expect(advancedElementsVisible.dual).toBe(true);
-    }
-  });
+    const analytics = page.locator('.complete-analytics-grid')
+    await expect(analytics).toHaveCount(1)
+    await expect(analytics).toBeVisible()
 
-  test('mode simplifié hides advanced elements but keeps essential information', async ({ page }) => {
-    // Switch to simple mode using real API
-    await page.evaluate(() => {
-      window.setNexoraUxMode('simple');
-    });
-    await expect(page.locator('body')).toHaveClass(/mode-simple/);
-
-    // First prove elements exist in DOM
-    const elementsExist = await page.evaluate(() => {
-      const timeline = document.querySelector('.dashboard-module--timeline');
-      const treasury = document.querySelector('.treasury-chart-wrapper');
-      const donut = document.querySelector('.donut-chart-wrapper');
-      const analytics = document.querySelector('.complete-analytics-grid');
-      const dual = document.querySelector('.complete-dual-grid');
-      return {
-        timeline: !!timeline,
-        treasury: !!treasury,
-        donut: !!donut,
-        analytics: !!analytics,
-        dual: !!dual
-      };
-    });
-
-    // If elements exist, they must be hidden in simple mode
-    if (elementsExist.timeline || elementsExist.treasury || elementsExist.donut || elementsExist.analytics || elementsExist.dual) {
-      const advancedElementsHidden = await page.evaluate(() => {
-        const timeline = document.querySelector('.dashboard-module--timeline');
-        const treasury = document.querySelector('.treasury-chart-wrapper');
-        const donut = document.querySelector('.donut-chart-wrapper');
-        const analytics = document.querySelector('.complete-analytics-grid');
-        const dual = document.querySelector('.complete-dual-grid');
-        
-        const checkHidden = (el) => {
-          if (!el) return true;
-          const style = window.getComputedStyle(el);
-          return style.display === 'none' || style.visibility === 'hidden';
-        };
-        
-        return {
-          timeline: checkHidden(timeline),
-          treasury: checkHidden(treasury),
-          donut: checkHidden(donut),
-          analytics: checkHidden(analytics),
-          dual: checkHidden(dual)
-        };
-      });
-
-      // Any existing element must be hidden
-      if (elementsExist.timeline) expect(advancedElementsHidden.timeline).toBe(true);
-      if (elementsExist.treasury) expect(advancedElementsHidden.treasury).toBe(true);
-      if (elementsExist.donut) expect(advancedElementsHidden.donut).toBe(true);
-      if (elementsExist.analytics) expect(advancedElementsHidden.analytics).toBe(true);
-      if (elementsExist.dual) expect(advancedElementsHidden.dual).toBe(true);
-    }
+    const dual = page.locator('.complete-dual-grid')
+    await expect(dual).toHaveCount(1)
+    await expect(dual).toBeVisible()
   });
 
   test('mode toggle correctly switches between simple and complete views', async ({ page }) => {
@@ -245,61 +115,108 @@ test.describe('Dashboard Mode Superset', () => {
     });
     await expect(page.locator('body')).toHaveClass(/mode-simple/);
 
+    // Verify advanced elements hidden
+    await expect(page.locator('.dashboard-module--timeline')).toBeHidden()
+
     // Switch to complete mode using real API
     await page.evaluate(() => {
       window.setNexoraUxMode('complete');
     });
     await expect(page.locator('body')).toHaveClass(/mode-complete/);
 
+    // Verify advanced elements visible
+    await expect(page.locator('.dashboard-module--timeline')).toBeVisible()
+
     // Switch back to simple mode using real API
     await page.evaluate(() => {
       window.setNexoraUxMode('simple');
     });
     await expect(page.locator('body')).toHaveClass(/mode-simple/);
+
+    // Verify advanced elements hidden again
+    await expect(page.locator('.dashboard-module--timeline')).toBeHidden()
   });
 
-  test('complete mode is a superset of simple mode', async ({ page }) => {
-    // Count elements with display:none in simple mode using real API
+  test('complete mode is a strict superset of simple mode', async ({ page }) => {
+    // Get visible elements in simple mode
     await page.evaluate(() => {
       window.setNexoraUxMode('simple');
     });
     await expect(page.locator('body')).toHaveClass(/mode-simple/);
 
-    const simpleHiddenCount = await page.evaluate(() => {
-      const elements = document.querySelectorAll('.dashboard-module--timeline, .treasury-chart-wrapper, .donut-chart-wrapper, .complete-analytics-grid, .complete-dual-grid');
-      let count = 0;
+    const visibleSimple = await page.evaluate(() => {
+      const elements = document.querySelectorAll('.dashboard-module--cockpit, .dashboard-module--timeline, .dashboard-module--goal, .dashboard-module--coach, .treasury-chart-wrapper, .donut-chart-wrapper, .complete-analytics-grid, .complete-dual-grid');
+      const visible = [];
       elements.forEach(el => {
-        if (el) {
-          const style = window.getComputedStyle(el);
-          if (style.display === 'none' || style.visibility === 'hidden') {
-            count++;
-          }
+        const style = window.getComputedStyle(el);
+        if (style.display !== 'none' && style.visibility !== 'hidden' && !el.hidden) {
+          visible.push(el.className);
         }
       });
-      return count;
+      return visible;
     });
 
-    // Count elements with display:none in complete mode using real API
+    // Get visible elements in complete mode
     await page.evaluate(() => {
       window.setNexoraUxMode('complete');
     });
     await expect(page.locator('body')).toHaveClass(/mode-complete/);
 
-    const completeHiddenCount = await page.evaluate(() => {
-      const elements = document.querySelectorAll('.dashboard-module--timeline, .treasury-chart-wrapper, .donut-chart-wrapper, .complete-analytics-grid, .complete-dual-grid');
-      let count = 0;
+    const visibleComplete = await page.evaluate(() => {
+      const elements = document.querySelectorAll('.dashboard-module--cockpit, .dashboard-module--timeline, .dashboard-module--goal, .dashboard-module--coach, .treasury-chart-wrapper, .donut-chart-wrapper, .complete-analytics-grid, .complete-dual-grid');
+      const visible = [];
       elements.forEach(el => {
-        if (el) {
-          const style = window.getComputedStyle(el);
-          if (style.display === 'none' || style.visibility === 'hidden') {
-            count++;
-          }
+        const style = window.getComputedStyle(el);
+        if (style.display !== 'none' && style.visibility !== 'hidden' && !el.hidden) {
+          visible.push(el.className);
         }
       });
-      return count;
+      return visible;
     });
 
-    // Simple mode must have more hidden elements than complete mode
-    expect(simpleHiddenCount).toBeGreaterThan(completeHiddenCount);
+    // Prove simple ⊂ complete
+    expect(visibleSimple.length).toBeGreaterThan(0);
+    expect(visibleComplete.length).toBeGreaterThan(visibleSimple.length);
+
+    // Every element visible in simple must be visible in complete
+    visibleSimple.forEach(className => {
+      expect(visibleComplete).toContain(className);
+    });
+  });
+
+  test('mode persists across reload', async ({ page }) => {
+    // Set simple mode
+    await page.evaluate(() => {
+      window.setNexoraUxMode('simple');
+    });
+    await expect(page.locator('body')).toHaveClass(/mode-simple/);
+
+    // Reload
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000, state: 'visible' })
+
+    // Verify mode persisted
+    const modeAfterReload = await page.evaluate(() => window.getNexoraUxMode())
+    expect(modeAfterReload).toBe('simple')
+    await expect(page.locator('body')).toHaveClass(/mode-simple/)
+    await expect(page.locator('.dashboard-module--timeline')).toBeHidden()
+
+    // Set complete mode
+    await page.evaluate(() => {
+      window.setNexoraUxMode('complete');
+    });
+    await expect(page.locator('body')).toHaveClass(/mode-complete/);
+
+    // Reload
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000, state: 'visible' })
+
+    // Verify mode persisted
+    const modeAfterSecondReload = await page.evaluate(() => window.getNexoraUxMode())
+    expect(modeAfterSecondReload).toBe('complete')
+    await expect(page.locator('body')).toHaveClass(/mode-complete/)
+    await expect(page.locator('.dashboard-module--timeline')).toBeVisible()
   });
 });

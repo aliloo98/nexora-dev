@@ -16,11 +16,26 @@ import { showToast } from '../../js/utils.js'
 /**
  * Reset dashboard motion when navigating away from dashboard
  * Uses window.NexoraMotion.resetDashboardMotion which is exported from gsapMotion
+ * Instrumented to count resets for testing
  */
+let resetCount = 0
+let previousSection = 'dashboard'
 const resetDashboardMotion = () => {
   if (typeof window.NexoraMotion?.resetDashboardMotion === 'function') {
     window.NexoraMotion.resetDashboardMotion()
+    resetCount++
+    console.log('[authRouting] Dashboard motion reset, count:', resetCount)
   }
+}
+
+/**
+ * Get reset count for testing
+ */
+export const getDashboardMotionResetCount = () => resetCount
+
+// Export to window for testing (browser only)
+if (typeof window !== 'undefined') {
+  window.getDashboardMotionResetCount = getDashboardMotionResetCount
 }
 
 /**
@@ -56,7 +71,6 @@ export const RouteGuard = {
    * @param {string} sectionName - Section/route to navigate to
    */
   navigateTo(sectionName) {
-
     // Check if route exists
     const section = document.getElementById(`section-${sectionName}`)
     if (!section) {
@@ -80,10 +94,13 @@ export const RouteGuard = {
       return false
     }
 
-    // Reset dashboard motion when navigating away from dashboard
-    if (sectionName !== 'dashboard') {
+    // Reset dashboard motion only when leaving dashboard (single authoritative hook)
+    if (previousSection === 'dashboard' && sectionName !== 'dashboard') {
       resetDashboardMotion()
     }
+
+    // Update previous section for next comparison
+    previousSection = sectionName
 
     return true
   },
@@ -134,10 +151,7 @@ export const NavigationMiddleware = {
         window.location.hash = '#section-dashboard'
       }
       
-      // Reset dashboard motion when navigating away from dashboard
-      if (section !== 'dashboard') {
-        resetDashboardMotion()
-      }
+      // No duplicate reset here - handled by navigateTo (single authoritative hook)
     })
 
     // Intercept existing showSection function
@@ -150,14 +164,7 @@ export const NavigationMiddleware = {
         }
 
         // Call original showSection
-        const result = originalShowSection.call(this, sectionName, options)
-        
-        // Update current section tracking after successful navigation
-        if (result !== false) {
-          currentSection = sectionName
-        }
-        
-        return result
+        return originalShowSection.call(this, sectionName, options)
       }
     }
 

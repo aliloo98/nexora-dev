@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "cycles": [],
-    "internalDependencies": 346,
+    "internalDependencies": 353,
     "modulesWithMostIncomingDependencies": [
       {
         "count": 25,
@@ -46,7 +46,7 @@
     ],
     "modulesWithMostOutgoingDependencies": [
       {
-        "count": 57,
+        "count": 58,
         "name": "src/main.js"
       },
       {
@@ -131,19 +131,23 @@
       "tests/playwright/dashboard-renderers-availability.spec.js",
       "tests/playwright/export-parity.spec.js",
       "tests/playwright/onboarding.spec.js",
+      "tests/playwright/release-validation.demo.spec.js",
+      "tests/playwright/release-validation.normal-supabase.spec.js",
+      "tests/playwright/release-validation.normal.spec.js",
+      "tests/playwright/save-flow.spec.js",
       "tests/playwright/ui-v2.spec.js",
       "tests/playwright/ux-foundations.spec.js"
     ],
-    "playwrightCaseCount": 53
+    "playwrightCaseCount": 69
   },
   "production": {
-    "averageLinesPerFile": 157.3,
+    "averageLinesPerFile": 158.6,
     "consoleDebug": 0,
-    "consoleError": 84,
+    "consoleError": 83,
     "consoleInfo": 11,
     "consoleLog": 27,
-    "consoleWarn": 78,
-    "documentRefs": 360,
+    "consoleWarn": 80,
+    "documentRefs": 365,
     "files": [
       "js/budgetCategoriesService.js",
       "js/excel-export.js",
@@ -289,9 +293,11 @@
       "src/ui/components/Skeleton.js",
       "src/ui/components/StatRow.js",
       "src/ui/components/Toast.js",
+      "src/ui/dashboard/dashboardMode.js",
       "src/ui/dashboard/dashboardMotion.js",
       "src/ui/dashboard/renderAssistantInsights.js",
       "src/ui/dashboard/renderDashboardAlerts.js",
+      "src/ui/dashboard/renderDashboardCoach.js",
       "src/ui/dashboard/renderDashboardGoalCard.js",
       "src/ui/dashboard/renderDashboardHero.js",
       "src/ui/dashboard/renderDashboardKpiStrip.js",
@@ -345,8 +351,12 @@
         "lines": 682
       },
       {
+        "file": "src/auth/authService.js",
+        "lines": 618
+      },
+      {
         "file": "src/ui/nexoraCore.js",
-        "lines": 629
+        "lines": 607
       },
       {
         "file": "js/userAppSettingsService.js",
@@ -357,12 +367,8 @@
         "lines": 557
       },
       {
-        "file": "src/auth/authService.js",
-        "lines": 499
-      },
-      {
         "file": "src/couple/coupleService.js",
-        "lines": 493
+        "lines": 499
       },
       {
         "file": "js/excel-export.js",
@@ -374,7 +380,7 @@
       },
       {
         "file": "src/auth/authContext.js",
-        "lines": 419
+        "lines": 422
       },
       {
         "file": "src/ui/dashboard/renderDashboardQuickView.js",
@@ -382,7 +388,7 @@
       },
       {
         "file": "src/main.js",
-        "lines": 393
+        "lines": 401
       },
       {
         "file": "src/advisor/proactiveCoachService.js",
@@ -390,11 +396,11 @@
       },
       {
         "file": "src/couple/coupleInvitationService.js",
-        "lines": 359
+        "lines": 365
       },
       {
         "file": "src/ui/gsapMotion.js",
-        "lines": 358
+        "lines": 360
       },
       {
         "file": "src/styles/authStyles.js",
@@ -405,14 +411,14 @@
         "lines": 349
       }
     ],
-    "lineCount": 27055,
-    "localStorageRefs": 27,
+    "lineCount": 27597,
+    "localStorageRefs": 30,
     "medianLinesPerFile": 100.5,
-    "staticExports": 474,
-    "staticImports": 350,
+    "staticExports": 489,
+    "staticImports": 356,
     "todoFixmeCount": 0,
-    "windowAssignments": 120,
-    "windowRefs": 317
+    "windowAssignments": 126,
+    "windowRefs": 341
   },
   "tests": {
     "describeCount": 0,
@@ -473,6 +479,7 @@
       "src/debt/debt-tests.js",
       "src/finance/budgetCycle-tests.js",
       "src/finance/cycleBalance-tests.js",
+      "src/finance/financialCard-tests.js",
       "src/finance/financialExpression-tests.js",
       "src/finance/monthlyHistoryStorage-tests.js",
       "src/finance/monthlyMetrics-tests.js",
@@ -505,11 +512,12 @@
       "src/utils/financialMarkupSecurity-tests.js",
       "src/utils/parseBudgetNumber-tests.js",
       "tests/architecture-baseline.test.mjs",
-      "tests/helpers/uiTestDom.mjs"
+      "tests/helpers/uiTestDom.mjs",
+      "tests/scripts/check-ui-v2-tests.mjs"
     ],
     "itCaseCount": 0,
     "playwrightFiles": [],
-    "testCaseCount": 45
+    "testCaseCount": 60
   },
   "tooling": {
     "files": [
