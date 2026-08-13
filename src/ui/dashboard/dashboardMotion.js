@@ -13,6 +13,11 @@ const activeAnimations = new Set()
 const progressValues = new Map()
 let reducedMotionListenerBound = false
 
+// Diagnostic counters for testing
+let resetCount = 0
+let entryCount = 0
+let modeSwitchCount = 0
+
 // Fonction de compatibilité : détecte si le dashboard V2 modulaire est présent
 const isModularDashboard = (dashboard) => {
   return dashboard?.querySelector('.dashboard-v2-modular') !== null
@@ -32,7 +37,7 @@ const getEntryDelay = (dashboard, index) => {
 const getModeSwitchSelectors = (dashboard, isSimpleMode) => {
   if (isModularDashboard(dashboard)) {
     return isSimpleMode
-      ? ['.dashboard-module--cockpit', '.dashboard-module--coach']
+      ? ['.dashboard-module--cockpit', '.dashboard-module--goal', '.dashboard-module--coach']
       : ['.dashboard-module--cockpit', '.dashboard-module--timeline', '.dashboard-module--goal', '.dashboard-module--coach']
   }
   // Fallback legacy
@@ -108,12 +113,14 @@ export function animateDashboardEnter(container) {
     return
   }
 
+  // Only animate if the dashboard is not already entered
   if (dashboard.dataset.dashboardMotionEntered === 'true') {
     return
   }
 
   dashboard.dataset.dashboardMotionEntered = 'true'
   dashboard.dataset.dashboardMotionState = 'scheduled'
+  entryCount++
   scheduleAnimationFrame(() => {
     if (!dashboard.isConnected || dashboard.dataset.dashboardMotionState !== 'scheduled') return
     if (prefersReducedMotion()) {
@@ -129,11 +136,11 @@ export function animateDashboardEnter(container) {
     targets.forEach(cancelElementAnimations)
     const animations = targets
       .map((element, index) => runAnimation(element, [
-        { opacity: 0.72, transform: 'translate3d(0, 6px, 0)' },
+        { opacity: 0.68, transform: 'translate3d(0, 10px, 0)' },
         { opacity: 1, transform: 'translate3d(0, 0, 0)' }
       ], {
         delay: getEntryDelay(dashboard, index),
-        duration: 220
+        duration: 240 // Design System max duration 250ms
       }))
       .filter(Boolean)
 
@@ -156,17 +163,20 @@ export function animateDashboardModeSwitch(container) {
   if (!dashboard || dashboard.dataset.dashboardMotionState !== 'ready' || prefersReducedMotion()) return
   const isSimpleMode = document.body.classList.contains('mode-simple')
   const selectors = getModeSwitchSelectors(dashboard, isSimpleMode)
+  modeSwitchCount++
 
+  // Only animate elements that are actually visible (not hidden)
   selectors
     .map((selector) => dashboard.querySelector(selector))
     .filter(isRendered)
+    .filter(element => !element.hidden) // Skip hidden elements
     .forEach((element, index) => {
       runAnimation(element, [
-        { opacity: 0.84, transform: 'translate3d(0, 4px, 0)' },
+        { opacity: 0.78, transform: 'translate3d(0, 7px, 0)' },
         { opacity: 1, transform: 'translate3d(0, 0, 0)' }
       ], {
-        delay: index * 16,
-        duration: 160
+        delay: index * 20,
+        duration: 200 // Design System max duration 250ms
       })
     })
 }
@@ -200,13 +210,41 @@ export function getDashboardMotionDiagnostics() {
   return {
     activeAnimations: activeAnimations.size,
     trackedProgressBars: progressValues.size,
-    reducedMotion: prefersReducedMotion()
+    reducedMotion: prefersReducedMotion(),
+    resetCount,
+    entryCount,
+    modeSwitchCount
   }
+}
+
+/**
+ * Reset dashboard motion state for re-entry animation
+ * Cancels active animations and resets motion state to allow re-entry
+ */
+export function resetDashboardMotion() {
+  const dashboard = document.querySelector('#section-dashboard')
+  if (!dashboard) return
+
+  // Cancel all active animations
+  activeAnimations.forEach(animation => {
+    try {
+      animation.cancel()
+    } catch (e) {
+      // Ignore errors from already-cancelled animations
+    }
+  })
+  activeAnimations.clear()
+
+  // Reset motion state
+  dashboard.dataset.dashboardMotionEntered = 'false'
+  dashboard.dataset.dashboardMotionState = 'ready'
+  resetCount++
 }
 
 export default {
   animateDashboardEnter,
   animateDashboardModeSwitch,
   transitionDashboardProgress,
-  getDashboardMotionDiagnostics
+  getDashboardMotionDiagnostics,
+  resetDashboardMotion
 }

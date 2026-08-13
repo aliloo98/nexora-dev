@@ -14,6 +14,17 @@ import { renderUserMenu, updateUserHeader } from '../components/UserProfile.js'
 import { showToast } from '../../js/utils.js'
 
 /**
+ * Reset dashboard motion when navigating away from dashboard
+ * Uses window.NexoraMotion.resetDashboardMotion which is exported from gsapMotion
+ */
+let previousSection = 'dashboard'
+const resetDashboardMotion = () => {
+  if (typeof window.NexoraMotion?.resetDashboardMotion === 'function') {
+    window.NexoraMotion.resetDashboardMotion()
+  }
+}
+
+/**
  * Route Protection System
  */
 export const RouteGuard = {
@@ -46,7 +57,6 @@ export const RouteGuard = {
    * @param {string} sectionName - Section/route to navigate to
    */
   navigateTo(sectionName) {
-
     // Check if route exists
     const section = document.getElementById(`section-${sectionName}`)
     if (!section) {
@@ -69,6 +79,14 @@ export const RouteGuard = {
       }
       return false
     }
+
+    // Reset dashboard motion only when leaving dashboard (single authoritative hook)
+    if (previousSection === 'dashboard' && sectionName !== 'dashboard') {
+      resetDashboardMotion()
+    }
+
+    // Update previous section for next comparison
+    previousSection = sectionName
 
     return true
   },
@@ -118,6 +136,8 @@ export const NavigationMiddleware = {
         // Reset hash to dashboard if navigation failed
         window.location.hash = '#section-dashboard'
       }
+
+      // No duplicate reset here - handled by navigateTo (single authoritative hook)
     })
 
     // Intercept existing showSection function

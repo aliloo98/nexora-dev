@@ -134,7 +134,7 @@ body.auth-locked > #nexora-status-bar {
 
   <!-- DASHBOARD -->
   <div id="section-dashboard" class="section active">
-    <div class="dashboard-shell">
+    <div class="dashboard-shell nx-scope">
       <header class="dashboard-clean-header dashboard-topbar">
         <div class="dashboard-topbar__copy">
           <span class="dashboard-eyebrow">Vos finances</span>
@@ -154,7 +154,7 @@ body.auth-locked > #nexora-status-bar {
         </section>
 
         <!-- MODULE 2 : PROCHAINE ÉTAPE - Ce qui arrive ensuite -->
-        <section class="dashboard-module dashboard-module--timeline" aria-label="Événements à venir">
+        <section class="dashboard-module dashboard-module--timeline" data-dashboard-mode="complete" aria-label="Événements à venir">
           <div class="dashboard-module__header">
             <span class="dashboard-module__eyebrow">Prochaine étape</span>
           </div>
@@ -183,7 +183,7 @@ body.auth-locked > #nexora-status-bar {
       <div class="dashboard-v2-actions">
         <button type="button" class="btn btn-gold btn--large" onclick="showSection('plan')">Voir le plan financier</button>
       </div>
-            <div class="treasury-chart-wrapper" id="treasury-svg-container">
+            <div class="treasury-chart-wrapper" id="treasury-svg-container" data-dashboard-mode="complete">
               <svg class="treasury-svg-chart" viewBox="0 0 500 120" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="treasuryGradient" x1="0" y1="0" x2="0" y2="1">
@@ -202,7 +202,7 @@ body.auth-locked > #nexora-status-bar {
               </div>
             </div>
 
-            <div class="complete-analytics-grid">
+            <div class="complete-analytics-grid" data-dashboard-mode="complete">
               <div class="analytics-card">
                 <span class="analytics-card__title">Projection annuelle</span>
                 <div class="analytics-card__value" id="analysis-projection-value">0 €</div>
@@ -222,14 +222,14 @@ body.auth-locked > #nexora-status-bar {
           </section>
 
           <!-- SECTION 2 & 3 : CE QUI ARRIVE ENSUITE & CE QUE TU CONSTRUIS -->
-          <div class="complete-dual-grid">
+          <div class="complete-dual-grid" data-dashboard-mode="complete">
             <section class="complete-block complete-block--next">
               <div class="complete-block__header">
                 <h3>👉 Ce qui arrive ensuite</h3>
               </div>
               
               <!-- DONUT CHART 360° -->
-              <div class="donut-chart-wrapper" id="expense-donut-container">
+              <div class="donut-chart-wrapper" id="expense-donut-container" data-dashboard-mode="complete">
                 <div class="donut-svg-box">
                   <svg class="donut-svg" viewBox="0 0 100 100">
                     <circle class="donut-bg" cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="12" />
@@ -1489,6 +1489,10 @@ function applyNexoraUxMode(mode = getNexoraUxMode()) {
   });
   ['mode-simple-btn', 'home-mode-simple-btn', 'userModeSimpleBtn'].forEach((id) => {
     document.getElementById(id)?.classList.toggle('active', isSimple);
+  });
+  // V2 Dashboard visibility control using hidden attribute (requires nx-scope on dashboard-shell)
+  document.querySelectorAll('[data-dashboard-mode="complete"]').forEach((element) => {
+    element.hidden = isSimple;
   });
   if (typeof scheduleAssistantRefresh === 'function') {
     try { scheduleAssistantRefresh(); } catch (err) { console.warn('[Assistant] simplified refresh failed', err); }

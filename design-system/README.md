@@ -123,3 +123,10 @@ Il améliore uniquement :
 - la lisibilité ;
 - la hiérarchie ;
 - l'expérience utilisateur.
+
+---
+
+## Dashboard Experience V2
+
+- [Dashboard Modes](./dashboard-modes.md)
+- [Motion](./motion.md)

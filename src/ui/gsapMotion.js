@@ -4,7 +4,8 @@ import {
   animateDashboardEnter,
   animateDashboardModeSwitch,
   getDashboardMotionDiagnostics,
-  transitionDashboardProgress
+  transitionDashboardProgress,
+  resetDashboardMotion
 } from './dashboard/dashboardMotion.js'
 
 const reducedMotionQuery = '(prefers-reduced-motion: reduce)'
@@ -354,5 +355,6 @@ export default {
   animateDashboardEnter,
   animateDashboardModeSwitch,
   transitionDashboardProgress,
-  getDashboardMotionDiagnostics
+  getDashboardMotionDiagnostics,
+  resetDashboardMotion
 }

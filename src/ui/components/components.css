@@ -53,6 +53,8 @@
   position: absolute;
 }
 
+
+
 .nx-coach-card--vigilance::before {
   background: var(--nx-color-warning);
 }
