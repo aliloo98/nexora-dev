@@ -703,32 +703,32 @@
 }
 
 /* Dashboard V2 - Premium Styles */
-.dashboard-v2-actions {
+.nx-scope .dashboard-v2-actions {
   display: flex;
   justify-content: center;
-  padding: var(--nx-space-lg) 0;
+  padding: var(--nx-space-md) 0 var(--nx-space-lg) 0;
 }
 
 /* Dashboard V2 Modular - Architecture Composée - Premium Polish */
-.dashboard-v2-modular {
+.nx-scope .dashboard-v2-modular {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-.dashboard-module {
+.nx-scope .dashboard-module {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.dashboard-module__header {
+.nx-scope .dashboard-module__header {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.dashboard-module__eyebrow {
+.nx-scope .dashboard-module__eyebrow {
   color: var(--nx-color-text-secondary);
   font-size: var(--nx-font-size-caption);
   font-weight: var(--nx-font-weight-semibold);
@@ -737,14 +737,7 @@
   opacity: 0.7;
 }
 
-/* Dashboard V2 Header & Actions - Premium Polish */
-.dashboard-v2-actions {
-  display: flex;
-  justify-content: center;
-  padding: var(--nx-space-md) 0 var(--nx-space-lg) 0;
-}
-
-.dashboard-v2-actions .btn {
+.nx-scope .dashboard-v2-actions .btn {
   padding: var(--nx-space-sm) var(--nx-space-lg);
   font-size: var(--nx-font-size-body);
   font-weight: var(--nx-font-weight-semibold);
@@ -754,11 +747,11 @@
 
 /* Responsive adjustments for mobile */
 @media (max-width: 768px) {
-  .dashboard-v2-modular {
+  .nx-scope .dashboard-v2-modular {
     gap: var(--nx-space-md);
   }
 
-  .dashboard-module {
+  .nx-scope .dashboard-module {
     gap: var(--nx-space-sm);
   }
 }
