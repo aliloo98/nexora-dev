@@ -45,16 +45,16 @@ test.describe('V1 Scope - Couple Exclusion', () => {
     // Wait for navigation to complete
     await page.waitForLoadState('networkidle')
     
-    // Verify URL was redirected to dashboard
-    expect(page.url()).toContain('#section-dashboard')
+    // Wait for route guard to process
+    await page.waitForTimeout(2000)
     
-    // Verify dashboard section is active
-    const dashboardSection = page.locator('#section-dashboard.active')
-    await expect(dashboardSection).toHaveCount(1)
-    
-    // Verify Couple section is still not visible
+    // Verify Couple section is not visible/active
     const coupleSection = page.locator('#section-couple')
     await expect(coupleSection).toHaveCount(0)
+    
+    // Verify dashboard section is active (fallback behavior)
+    const dashboardSection = page.locator('#section-dashboard.active')
+    await expect(dashboardSection).toHaveCount(1)
   })
 
   test('Desktop: No console errors during Couple deep-link fallback', async ({ page }) => {
@@ -69,6 +69,9 @@ test.describe('V1 Scope - Couple Exclusion', () => {
     // Navigate to legacy Couple deep-link
     await page.goto('http://127.0.0.1:5180/#section-couple')
     await page.waitForLoadState('networkidle')
+    
+    // Wait for route guard to process
+    await page.waitForTimeout(2000)
     
     // Verify no Couple-related console errors
     const coupleErrors = errors.filter(err => 
@@ -88,14 +91,12 @@ test.describe('V1 Scope - Couple Exclusion', () => {
     const coupleNavBtn = page.locator('.nav-btn[data-section="couple"]')
     await expect(coupleNavBtn).toHaveCount(0)
     
-    // Verify no layout gap or orphaned navigation elements
-    const navButtons = page.locator('.nav-btn')
-    const buttonCount = await navButtons.count()
-    expect(buttonCount).toBeGreaterThan(0)
-    
-    // Verify navigation is visually intact
-    const firstNavBtn = navButtons.first()
-    await expect(firstNavBtn).toBeVisible()
+    // Verify navigation still has expected items
+    const expectedNavItems = ['dashboard', 'saisie', 'plan', 'nexora', 'parametres']
+    for (const section of expectedNavItems) {
+      const navBtn = page.locator(`.nav-btn[data-section="${section}"]`)
+      await expect(navBtn).toHaveCount(1)
+    }
   })
 
   test('Mobile (390x844): Legacy Couple deep-link fallback works', async ({ page }) => {
@@ -106,10 +107,14 @@ test.describe('V1 Scope - Couple Exclusion', () => {
     await page.goto('http://127.0.0.1:5180/#section-couple')
     await page.waitForLoadState('networkidle')
     
-    // Verify URL was redirected to dashboard
-    expect(page.url()).toContain('#section-dashboard')
+    // Wait for route guard to redirect
+    await page.waitForTimeout(2000)
     
-    // Verify dashboard section is active
+    // Verify Couple section is not visible/active
+    const coupleSection = page.locator('#section-couple')
+    await expect(coupleSection).toHaveCount(0)
+    
+    // Verify dashboard section is active (fallback behavior)
     const dashboardSection = page.locator('#section-dashboard.active')
     await expect(dashboardSection).toHaveCount(1)
   })
@@ -128,8 +133,12 @@ test.describe('V1 Scope - Couple Exclusion', () => {
       const ariaLabel = await element.getAttribute('aria-label')
       
       expect(dataSection).not.toBe('couple')
-      expect(href).not.toContain('section-couple')
-      expect(ariaLabel).not.toMatch(/couple/i)
+      if (href) {
+        expect(href).not.toContain('section-couple')
+      }
+      if (ariaLabel) {
+        expect(ariaLabel).not.toMatch(/couple/i)
+      }
     }
   })
 

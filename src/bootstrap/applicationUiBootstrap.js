@@ -18,9 +18,7 @@
  * @param {Object} dependencies.documentRef - Document reference
  */
 
-// V1 scope reduction: Couple mode is out of scope for V1
-// Feature implementation is preserved for future restoration
-const COUPLE_MODE_V1_ENABLED = false
+import { V1_SCOPE } from '../constants/v1Scope.js'
 
 /**
  * Steps 15-17: Render primary application UI (Goals, Settings, About)
@@ -77,12 +75,12 @@ export async function refreshCoupleUi({
   renderCoupleSection
 }) {
   // Step 20: Second Couple navigation update (V1: disabled)
-  if (COUPLE_MODE_V1_ENABLED && typeof updateCoupleNavigation === 'function') {
+  if (V1_SCOPE.COUPLE_MODE_ENABLED && typeof updateCoupleNavigation === 'function') {
     await updateCoupleNavigation()
   }
 
   // Step 21: Render Couple section (V1: disabled)
-  if (COUPLE_MODE_V1_ENABLED && typeof renderCoupleSection === 'function') {
+  if (V1_SCOPE.COUPLE_MODE_ENABLED && typeof renderCoupleSection === 'function') {
     await renderCoupleSection()
   }
 }

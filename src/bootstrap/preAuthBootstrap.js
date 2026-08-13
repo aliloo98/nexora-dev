@@ -20,9 +20,7 @@
  * @returns {Promise<Object>} Authenticated state
  */
 
-// V1 scope reduction: Couple mode is out of scope for V1
-// Feature implementation is preserved for future restoration
-const COUPLE_MODE_V1_ENABLED = false
+import { V1_SCOPE } from '../constants/v1Scope.js'
 
 export async function bootstrapPreAuth({
   StorageManager,
@@ -47,7 +45,7 @@ export async function bootstrapPreAuth({
   injectAuthStyles()
 
   // Step 5: Inject couple UI styles (V1: disabled)
-  if (COUPLE_MODE_V1_ENABLED && typeof injectCoupleStyles === 'function') {
+  if (V1_SCOPE.COUPLE_MODE_ENABLED && typeof injectCoupleStyles === 'function') {
     injectCoupleStyles()
   }
 

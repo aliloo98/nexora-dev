@@ -34,6 +34,7 @@ import GoalsPage from './pages/GoalsPage.js'
 import { GoalsService } from './goals/goalsService.js'
 import { UserAppSettingsService } from '../js/userAppSettingsService.js'
 import { STORAGE_KEYS } from './constants/storageKeys.js'
+import { V1_SCOPE } from './constants/v1Scope.js'
 import { renderAssistantCard } from './components/AssistantCard.js'
 import CoupleUIComponent from './couple/coupleUIComponent.js'
 import { CoupleService } from './couple/coupleService.js'
@@ -150,7 +151,7 @@ installLegacyBridge({
 
 // V1 scope reduction: Couple mode is out of scope for V1
 // Feature implementation is preserved for future restoration
-const COUPLE_MODE_V1_ENABLED = false
+const COUPLE_MODE_V1_ENABLED = V1_SCOPE.COUPLE_MODE_ENABLED
 
 // Initialize Couple module controller (V1: disabled)
 let coupleController = null
@@ -177,15 +178,18 @@ if (COUPLE_MODE_V1_ENABLED) {
   })
 }
 
-// Expose Couple functions for legacy compatibility (V1: disabled)
+// Expose Couple functions for legacy compatibility
 if (COUPLE_MODE_V1_ENABLED && coupleController) {
+  // Couple enabled: expose real controller methods
   window.renderCoupleSection = coupleController.renderCoupleSection
   window.updateCoupleNavigation = coupleController.updateCoupleNavigation
+} else {
+  // Couple disabled: expose safe no-op compatibility functions for V1
+  window.renderCoupleSection = () => {}
+  window.updateCoupleNavigation = () => Promise.resolve()
 }
 
-// Fallback no-op functions for V1 to prevent errors
-window.renderCoupleSection = () => {}
-window.updateCoupleNavigation = () => Promise.resolve()
+// Shared fallback message function (works in both states)
 window.setCoupleFallbackMessage = (message) => {
   const banner = document.getElementById('couple-fallback-message')
   if (!banner) return
@@ -265,7 +269,7 @@ const injectAuthStyles = () => {
  * V1: Disabled - Couple mode is out of scope for V1
  */
 const injectCoupleStyles = () => {
-  if (!COUPLE_MODE_V1_ENABLED) {
+  if (!V1_SCOPE.COUPLE_MODE_ENABLED) {
     return // V1 scope reduction: skip Couple styles
   }
   try {

@@ -19,9 +19,7 @@
  * @returns {Object} Cleanup functions (e.g., unsubscribe)
  */
 
-// V1 scope reduction: Couple mode is out of scope for V1
-// Feature implementation is preserved for future restoration
-const COUPLE_MODE_V1_ENABLED = false
+import { V1_SCOPE } from '../constants/v1Scope.js'
 
 export async function bootstrapAuthenticatedServices({
   NotificationsService,
@@ -49,7 +47,7 @@ export async function bootstrapAuthenticatedServices({
   await initializeLegacyUiForAuthState()
 
   // Step 12: First Couple navigation update (V1: disabled)
-  if (COUPLE_MODE_V1_ENABLED && typeof updateCoupleNavigation === 'function') {
+  if (V1_SCOPE.COUPLE_MODE_ENABLED && typeof updateCoupleNavigation === 'function') {
     await updateCoupleNavigation()
   }
 
@@ -57,7 +55,7 @@ export async function bootstrapAuthenticatedServices({
   let unsubscribe = null
   if (typeof AuthContext.subscribe === 'function') {
     unsubscribe = AuthContext.subscribe(() => {
-      if (COUPLE_MODE_V1_ENABLED && typeof updateCoupleNavigation === 'function') {
+      if (V1_SCOPE.COUPLE_MODE_ENABLED && typeof updateCoupleNavigation === 'function') {
         updateCoupleNavigation().catch((err) => {
           console.warn('[Couple] update navigation failed', err)
         })
