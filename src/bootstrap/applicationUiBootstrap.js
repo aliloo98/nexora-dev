@@ -18,6 +18,8 @@
  * @param {Object} dependencies.documentRef - Document reference
  */
 
+import { V1_SCOPE } from '../constants/v1Scope.js'
+
 /**
  * Steps 15-17: Render primary application UI (Goals, Settings, About)
  */
@@ -66,18 +68,19 @@ export function applyApplicationMotion({
 
 /**
  * Steps 20-21: Refresh Couple UI (navigation and section)
+ * V1: Disabled - Couple mode is out of scope for V1
  */
 export async function refreshCoupleUi({
   updateCoupleNavigation,
   renderCoupleSection
 }) {
-  // Step 20: Second Couple navigation update
-  if (typeof updateCoupleNavigation === 'function') {
+  // Step 20: Second Couple navigation update (V1: disabled)
+  if (V1_SCOPE.COUPLE_MODE_ENABLED && typeof updateCoupleNavigation === 'function') {
     await updateCoupleNavigation()
   }
 
-  // Step 21: Render Couple section
-  if (typeof renderCoupleSection === 'function') {
+  // Step 21: Render Couple section (V1: disabled)
+  if (V1_SCOPE.COUPLE_MODE_ENABLED && typeof renderCoupleSection === 'function') {
     await renderCoupleSection()
   }
 }

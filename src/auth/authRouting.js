@@ -12,6 +12,7 @@ import AuthContext from '../auth/authContext.js'
 import AuthPages from '../pages/AuthPages.js'
 import { renderUserMenu, updateUserHeader } from '../components/UserProfile.js'
 import { showToast } from '../../js/utils.js'
+import { V1_SCOPE } from '../constants/v1Scope.js'
 
 /**
  * Reset dashboard motion when navigating away from dashboard
@@ -34,7 +35,11 @@ export const RouteGuard = {
    * @returns {boolean} True if route requires auth
    */
   requiresAuth(routeName) {
-    const protectedRoutes = ['dashboard', 'saisie', 'historique', 'plan', 'nexora', 'parametres', 'couple']
+    const protectedRoutes = ['dashboard', 'saisie', 'historique', 'plan', 'nexora', 'parametres']
+    // Include Couple in protected routes only when enabled
+    if (V1_SCOPE.COUPLE_MODE_ENABLED) {
+      protectedRoutes.push('couple')
+    }
     return protectedRoutes.includes(routeName)
   },
 
@@ -57,6 +62,18 @@ export const RouteGuard = {
    * @param {string} sectionName - Section/route to navigate to
    */
   navigateTo(sectionName) {
+    // V1 scope reduction: Couple mode is out of scope for V1
+    // Block Couple navigation only when disabled
+    if (sectionName === 'couple' && !V1_SCOPE.COUPLE_MODE_ENABLED) {
+      console.warn('🔒 Couple mode is out of scope for V1 - redirecting to dashboard')
+      if (typeof window.setCoupleFallbackMessage === 'function') {
+        window.setCoupleFallbackMessage('Mode couple non disponible dans cette version')
+      }
+      // Fallback to dashboard
+      window.location.hash = '#section-dashboard'
+      return false
+    }
+
     // Check if route exists
     const section = document.getElementById(`section-${sectionName}`)
     if (!section) {
@@ -70,13 +87,6 @@ export const RouteGuard = {
       showToast('❌ Connectez-vous pour accéder à cette page')
       AuthPages.showAuthPages()
       AuthPages.showLoginPage()
-      return false
-    }
-
-    if (sectionName === 'couple' && AuthContext.isAuthenticated() && window.__isCoupleTabVisible === false) {
-      if (typeof window.setCoupleFallbackMessage === 'function') {
-        window.setCoupleFallbackMessage('Mode couple bientôt disponible / activez-le depuis les réglages')
-      }
       return false
     }
 
@@ -129,11 +139,8 @@ export const NavigationMiddleware = {
       const section = RouteGuard.getCurrentSection()
 
       if (!RouteGuard.navigateTo(section)) {
-        if (section === 'couple' && AuthContext.isAuthenticated() && window.__isCoupleTabVisible === false) {
-          window.location.hash = '#section-parametres'
-          return
-        }
         // Reset hash to dashboard if navigation failed
+        // This handles the Couple deep-link fallback automatically
         window.location.hash = '#section-dashboard'
       }
 
@@ -172,7 +179,11 @@ export const NavigationMiddleware = {
    * Validate all protected sections on init
    */
   validateProtectedSections() {
-    const protectedSections = ['dashboard', 'saisie', 'historique', 'plan', 'nexora', 'parametres', 'couple']
+    const protectedSections = ['dashboard', 'saisie', 'historique', 'plan', 'nexora', 'parametres']
+    // Include Couple in validation only when enabled
+    if (V1_SCOPE.COUPLE_MODE_ENABLED) {
+      protectedSections.push('couple')
+    }
 
     protectedSections.forEach(section => {
       const element = document.getElementById(`section-${section}`)

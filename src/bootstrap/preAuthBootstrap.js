@@ -19,6 +19,9 @@
  * @param {Function} dependencies.waitForAuthenticatedState - Function to wait for auth
  * @returns {Promise<Object>} Authenticated state
  */
+
+import { V1_SCOPE } from '../constants/v1Scope.js'
+
 export async function bootstrapPreAuth({
   StorageManager,
   ThemeManager,
@@ -41,8 +44,24 @@ export async function bootstrapPreAuth({
   // Step 4: Inject auth styles
   injectAuthStyles()
 
-  // Step 5: Inject couple UI styles
-  injectCoupleStyles()
+  // Step 5: Inject couple UI styles (V1: disabled)
+  if (V1_SCOPE.COUPLE_MODE_ENABLED && typeof injectCoupleStyles === 'function') {
+    injectCoupleStyles()
+  }
+
+  // Step 5.5: Show/hide Couple DOM elements based on V1 scope
+  const coupleNavBtn = documentRef.querySelector('.couple-nav-btn')
+  const coupleSection = documentRef.getElementById('section-couple')
+  
+  if (V1_SCOPE.COUPLE_MODE_ENABLED) {
+    // Enable Couple: show navigation and section
+    if (coupleNavBtn) coupleNavBtn.style.display = ''
+    if (coupleSection) coupleSection.style.display = ''
+  } else {
+    // Disable Couple: hide navigation and section
+    if (coupleNavBtn) coupleNavBtn.style.display = 'none'
+    if (coupleSection) coupleSection.style.display = 'none'
+  }
 
   // Step 6: Initialize authentication routing
   await initAuthRouting()

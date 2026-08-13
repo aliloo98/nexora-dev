@@ -4,6 +4,7 @@ import AuthContext from '../auth/authContext.js'
 import { createActiveCoupleModeCard, createBillScheduleCard, createRecurringIncomeCard } from './settingsMarkup.js'
 import { customConfirm, showToast } from '../../js/utils.js'
 import { OnboardingService } from '../onboarding/onboardingService.js'
+import { V1_SCOPE } from '../constants/v1Scope.js'
 
 const formatCurrency = (value) => {
   const amount = Number(value) || 0
@@ -154,9 +155,18 @@ export async function renderBillScheduleSettings() {
 }
 
 export async function renderCoupleModeSettings() {
+  // V1 scope reduction: Couple mode is out of scope for V1
+  // Feature implementation is preserved for future restoration
   const root = document.getElementById('couple-mode-settings-root')
   if (!root) return
 
+  // V1: Couple is completely hidden
+  if (!V1_SCOPE.COUPLE_MODE_ENABLED) {
+    root.innerHTML = ''
+    return
+  }
+
+  // Couple mode enabled (preserved implementation for future restoration)
   const status = await CoupleService.getCombinedStatus(AuthContext.getState()?.user)
   const localHousehold = CoupleService.getLocalHousehold()
   const active = status.status === 'couple_actif'
