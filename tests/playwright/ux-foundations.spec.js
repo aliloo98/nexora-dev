@@ -116,6 +116,12 @@ test.describe('UX foundations', () => {
   })
 
   test('Dashboard and Settings pass targeted axe scans', async ({ page }) => {
+    // Wait for dashboard motion to reach stable state before accessibility scan
+    await page.waitForFunction(() => {
+      const dashboard = document.querySelector('#section-dashboard')
+      return dashboard && dashboard.dataset.dashboardMotionState === 'ready'
+    }, { timeout: 10000 })
+
     const dashboard = await new AxeBuilder({ page }).include('#section-dashboard').analyze()
     // Allow moderate heading-order violations for GoalCard as it uses heading level 3 within dashboard section
     const criticalViolations = dashboard.violations.filter(v => v.impact !== 'moderate')
