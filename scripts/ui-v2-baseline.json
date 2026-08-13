@@ -3,374 +3,66 @@
   "allowed": [
     {
       "file": "components/components.css",
-      "rule": "color-literal",
-      "line": 801,
-      "column": 28,
-      "detail": "literal \"rgba(\" must be a token"
-    },
-    {
-      "file": "components/components.css",
-      "rule": "color-literal",
-      "line": 847,
-      "column": 25,
-      "detail": "literal \"rgba(\" must be a token"
-    },
-    {
-      "file": "components/components.css",
-      "rule": "color-literal",
-      "line": 914,
-      "column": 15,
-      "detail": "literal \"rgba(\" must be a token"
-    },
-    {
-      "file": "components/components.css",
-      "rule": "color-literal",
-      "line": 922,
-      "column": 15,
-      "detail": "literal \"rgba(\" must be a token"
-    },
-    {
-      "file": "components/components.css",
       "rule": "selector-scope",
-      "line": 390,
-      "column": 1,
-      "detail": "unsafe selector \"#dashboard-hero-root\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 710,
-      "column": 1,
-      "detail": "unsafe selector \".cockpit-v2-master\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 716,
+      "line": 706,
       "column": 1,
       "detail": "unsafe selector \".dashboard-v2-actions\""
     },
     {
       "file": "components/components.css",
       "rule": "selector-scope",
-      "line": 722,
-      "column": 1,
-      "detail": "unsafe selector \".dashboard-v2-header\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 729,
-      "column": 1,
-      "detail": "unsafe selector \".dashboard-v2-eyebrow\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 739,
-      "column": 1,
-      "detail": "unsafe selector \".dashboard-v2-header h2\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 747,
+      "line": 713,
       "column": 1,
       "detail": "unsafe selector \".dashboard-v2-modular\""
     },
     {
       "file": "components/components.css",
       "rule": "selector-scope",
-      "line": 753,
+      "line": 719,
       "column": 1,
       "detail": "unsafe selector \".dashboard-module\""
     },
     {
       "file": "components/components.css",
       "rule": "selector-scope",
-      "line": 759,
+      "line": 725,
       "column": 1,
       "detail": "unsafe selector \".dashboard-module__header\""
     },
     {
       "file": "components/components.css",
       "rule": "selector-scope",
-      "line": 765,
+      "line": 731,
       "column": 1,
       "detail": "unsafe selector \".dashboard-module__eyebrow\""
     },
     {
       "file": "components/components.css",
       "rule": "selector-scope",
-      "line": 775,
-      "column": 1,
-      "detail": "unsafe selector \".prochaine-etape__content\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 782,
-      "column": 1,
-      "detail": "unsafe selector \".prochaine-etape__timeline\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 788,
-      "column": 1,
-      "detail": "unsafe selector \".prochaine-etape__empty\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 796,
-      "column": 1,
-      "detail": "unsafe selector \".prochaine-etape__item\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 804,
-      "column": 1,
-      "detail": "unsafe selector \".prochaine-etape__item:last-child\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 808,
-      "column": 1,
-      "detail": "unsafe selector \".prochaine-etape__item-icon\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 814,
-      "column": 1,
-      "detail": "unsafe selector \".prochaine-etape__item-content\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 821,
-      "column": 1,
-      "detail": "unsafe selector \".prochaine-etape__item-name\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 828,
-      "column": 1,
-      "detail": "unsafe selector \".prochaine-etape__item-amount\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 834,
-      "column": 1,
-      "detail": "unsafe selector \".prochaine-etape__item-amount--positive\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 838,
-      "column": 1,
-      "detail": "unsafe selector \".prochaine-etape__item-amount--negative\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 842,
-      "column": 1,
-      "detail": "unsafe selector \".prochaine-etape__projected\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 850,
-      "column": 1,
-      "detail": "unsafe selector \".prochaine-etape__projected-label\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 859,
-      "column": 1,
-      "detail": "unsafe selector \".prochaine-etape__projected-value\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 867,
-      "column": 1,
-      "detail": "unsafe selector \".objectif__content\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 874,
-      "column": 1,
-      "detail": "unsafe selector \".objectif__header\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 881,
-      "column": 1,
-      "detail": "unsafe selector \".objectif__name\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 890,
-      "column": 1,
-      "detail": "unsafe selector \".objectif__progress-text\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 899,
-      "column": 1,
-      "detail": "unsafe selector \".objectif__current\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 904,
-      "column": 1,
-      "detail": "unsafe selector \".objectif__target\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 909,
-      "column": 1,
-      "detail": "unsafe selector \".objectif__percentage\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 919,
-      "column": 1,
-      "detail": "unsafe selector \".objectif__bar\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 927,
-      "column": 1,
-      "detail": "unsafe selector \".objectif__bar-fill\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 934,
-      "column": 1,
-      "detail": "unsafe selector \".objectif__timeframe\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 944,
-      "column": 1,
-      "detail": "unsafe selector \".coach__content\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 951,
-      "column": 1,
-      "detail": "unsafe selector \".coach__icon\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 957,
-      "column": 1,
-      "detail": "unsafe selector \".coach__message\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 965,
-      "column": 1,
-      "detail": "unsafe selector \".coach__actions\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 971,
-      "column": 1,
-      "detail": "unsafe selector \".coach__action--primary\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 980,
-      "column": 1,
-      "detail": "unsafe selector \".coach__action--secondary\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 990,
-      "column": 1,
-      "detail": "unsafe selector \".dashboard-v2-header\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 997,
-      "column": 1,
-      "detail": "unsafe selector \".dashboard-v2-eyebrow\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 1008,
-      "column": 1,
-      "detail": "unsafe selector \".dashboard-v2-header h2\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 1016,
+      "line": 741,
       "column": 1,
       "detail": "unsafe selector \".dashboard-v2-actions\""
     },
     {
       "file": "components/components.css",
       "rule": "selector-scope",
-      "line": 1022,
+      "line": 747,
       "column": 1,
       "detail": "unsafe selector \".dashboard-v2-actions .btn\""
     },
     {
       "file": "components/components.css",
       "rule": "selector-scope",
-      "line": 1032,
+      "line": 757,
       "column": 3,
       "detail": "unsafe selector \".dashboard-v2-modular\""
     },
     {
       "file": "components/components.css",
       "rule": "selector-scope",
-      "line": 1036,
+      "line": 761,
       "column": 3,
       "detail": "unsafe selector \".dashboard-module\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 1042,
-      "column": 3,
-      "detail": "unsafe selector \".coach__content\""
-    },
-    {
-      "file": "components/components.css",
-      "rule": "selector-scope",
-      "line": 1046,
-      "column": 3,
-      "detail": "unsafe selector \".dashboard-v2-header h2\""
     }
   ]
 }
