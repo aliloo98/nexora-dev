@@ -18,6 +18,11 @@
  * @param {Object} dependencies.navigatorRef - Navigator reference
  * @returns {Object} Cleanup functions (e.g., unsubscribe)
  */
+
+// V1 scope reduction: Couple mode is out of scope for V1
+// Feature implementation is preserved for future restoration
+const COUPLE_MODE_V1_ENABLED = false
+
 export async function bootstrapAuthenticatedServices({
   NotificationsService,
   MonthlyBudgetStateService,
@@ -43,14 +48,16 @@ export async function bootstrapAuthenticatedServices({
   // Step 11: Initialize legacy UI for auth state
   await initializeLegacyUiForAuthState()
 
-  // Step 12: First Couple navigation update
-  await updateCoupleNavigation()
+  // Step 12: First Couple navigation update (V1: disabled)
+  if (COUPLE_MODE_V1_ENABLED && typeof updateCoupleNavigation === 'function') {
+    await updateCoupleNavigation()
+  }
 
-  // Step 13: Subscribe to auth context changes
+  // Step 13: Subscribe to auth context changes (V1: Couple navigation disabled)
   let unsubscribe = null
   if (typeof AuthContext.subscribe === 'function') {
     unsubscribe = AuthContext.subscribe(() => {
-      if (typeof updateCoupleNavigation === 'function') {
+      if (COUPLE_MODE_V1_ENABLED && typeof updateCoupleNavigation === 'function') {
         updateCoupleNavigation().catch((err) => {
           console.warn('[Couple] update navigation failed', err)
         })

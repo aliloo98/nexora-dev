@@ -19,6 +19,11 @@
  * @param {Function} dependencies.waitForAuthenticatedState - Function to wait for auth
  * @returns {Promise<Object>} Authenticated state
  */
+
+// V1 scope reduction: Couple mode is out of scope for V1
+// Feature implementation is preserved for future restoration
+const COUPLE_MODE_V1_ENABLED = false
+
 export async function bootstrapPreAuth({
   StorageManager,
   ThemeManager,
@@ -41,8 +46,10 @@ export async function bootstrapPreAuth({
   // Step 4: Inject auth styles
   injectAuthStyles()
 
-  // Step 5: Inject couple UI styles
-  injectCoupleStyles()
+  // Step 5: Inject couple UI styles (V1: disabled)
+  if (COUPLE_MODE_V1_ENABLED && typeof injectCoupleStyles === 'function') {
+    injectCoupleStyles()
+  }
 
   // Step 6: Initialize authentication routing
   await initAuthRouting()

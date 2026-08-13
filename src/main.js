@@ -148,31 +148,44 @@ installLegacyBridge({
   OnboardingIntegration
 })
 
-// Initialize Couple module controller
-const coupleController = createCoupleController({
-  CoupleService,
-  GoalsService,
-  readSyncedArray,
-  filterUserFacingRecords,
-  storageKeys: STORAGE_KEYS,
-  parseFinancialExpression,
-  escapeHtml,
-  showToast: (msg) => Utils.showToast(msg),
-  setCoupleFallbackMessage: (message) => {
-    const banner = document.getElementById('couple-fallback-message')
-    if (!banner) return
-    banner.textContent = message
-    banner.style.display = 'block'
-  },
-  onCoupleVisibilityChange: (value) => {
-    window.__isCoupleTabVisible = Boolean(value)
-  },
-  documentRef: document
-})
+// V1 scope reduction: Couple mode is out of scope for V1
+// Feature implementation is preserved for future restoration
+const COUPLE_MODE_V1_ENABLED = false
 
-// Expose Couple functions for legacy compatibility
-window.renderCoupleSection = coupleController.renderCoupleSection
-window.updateCoupleNavigation = coupleController.updateCoupleNavigation
+// Initialize Couple module controller (V1: disabled)
+let coupleController = null
+if (COUPLE_MODE_V1_ENABLED) {
+  coupleController = createCoupleController({
+    CoupleService,
+    GoalsService,
+    readSyncedArray,
+    filterUserFacingRecords,
+    storageKeys: STORAGE_KEYS,
+    parseFinancialExpression,
+    escapeHtml,
+    showToast: (msg) => Utils.showToast(msg),
+    setCoupleFallbackMessage: (message) => {
+      const banner = document.getElementById('couple-fallback-message')
+      if (!banner) return
+      banner.textContent = message
+      banner.style.display = 'block'
+    },
+    onCoupleVisibilityChange: (value) => {
+      window.__isCoupleTabVisible = Boolean(value)
+    },
+    documentRef: document
+  })
+}
+
+// Expose Couple functions for legacy compatibility (V1: disabled)
+if (COUPLE_MODE_V1_ENABLED && coupleController) {
+  window.renderCoupleSection = coupleController.renderCoupleSection
+  window.updateCoupleNavigation = coupleController.updateCoupleNavigation
+}
+
+// Fallback no-op functions for V1 to prevent errors
+window.renderCoupleSection = () => {}
+window.updateCoupleNavigation = () => Promise.resolve()
 window.setCoupleFallbackMessage = (message) => {
   const banner = document.getElementById('couple-fallback-message')
   if (!banner) return
@@ -249,8 +262,12 @@ const injectAuthStyles = () => {
 /**
  * Inject Couple UI Styles
  * Called during app initialization
+ * V1: Disabled - Couple mode is out of scope for V1
  */
 const injectCoupleStyles = () => {
+  if (!COUPLE_MODE_V1_ENABLED) {
+    return // V1 scope reduction: skip Couple styles
+  }
   try {
     const styleElement = document.createElement('style')
     styleElement.id = 'nexora-couple-styles'
