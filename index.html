@@ -1490,6 +1490,10 @@ function applyNexoraUxMode(mode = getNexoraUxMode()) {
   ['mode-simple-btn', 'home-mode-simple-btn', 'userModeSimpleBtn'].forEach((id) => {
     document.getElementById(id)?.classList.toggle('active', isSimple);
   });
+  // V2 Dashboard visibility control using hidden attribute (requires nx-scope on dashboard-shell)
+  document.querySelectorAll('[data-dashboard-mode="complete"]').forEach((element) => {
+    element.hidden = isSimple;
+  });
   if (typeof scheduleAssistantRefresh === 'function') {
     try { scheduleAssistantRefresh(); } catch (err) { console.warn('[Assistant] simplified refresh failed', err); }
   }
@@ -1509,6 +1513,10 @@ function setNexoraUxMode(mode) {
   applyNexoraUxMode(nextMode);
   // updateAll is already called in applyNexoraUxMode, no need to call again
 }
+
+// Expose mode API to window for tests and runtime access
+window.getNexoraUxMode = getNexoraUxMode;
+window.setNexoraUxMode = setNexoraUxMode;
 
 function getDefaultNexoraAiSettings() {
   return {

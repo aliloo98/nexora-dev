@@ -75,7 +75,7 @@ export function animateDashboardModeSwitch(container) {
   if (!dashboard || dashboard.dataset.dashboardMotionState !== 'ready' || prefersReducedMotion()) return
   const isSimpleMode = document.body.classList.contains('mode-simple')
   const selectors = getModeSwitchSelectors(dashboard, isSimpleMode)
-  
+
   // Only animate visible elements (skip hidden)
   selectors
     .map((selector) => dashboard.querySelector(selector))

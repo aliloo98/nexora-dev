@@ -150,7 +150,7 @@ export const NavigationMiddleware = {
         // Reset hash to dashboard if navigation failed
         window.location.hash = '#section-dashboard'
       }
-      
+
       // No duplicate reset here - handled by navigateTo (single authoritative hook)
     })
 

@@ -1,17 +1,6 @@
 import { buildJudgmentEngine } from '../assistant/judgmentEngine.js'
 import { CoachService } from '../coach/services/coachService.js'
 import { createCoachCard } from '../ui/components/CoachCard.js'
-import { registerGlobalAPI, initializeDashboardMode } from '../ui/dashboard/dashboardMode.js'
-
-// Register global API and initialize mode (browser only)
-if (typeof window !== 'undefined') {
-  registerGlobalAPI()
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeDashboardMode)
-  } else {
-    initializeDashboardMode()
-  }
-}
 
 export const normalizePriorityLevel = (priority) => {
   if (priority === null || priority === undefined) return 'neutral'

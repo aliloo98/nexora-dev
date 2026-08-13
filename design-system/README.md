@@ -1,46 +1,132 @@
-# Design System Documentation
+# Nexora Design System
 
-This directory contains the official design system documentation for Nexora.
+## Implémentation UI V2
 
-## Documentation Files
+Les principes de ce dossier restent la référence produit. Leur implémentation
+technique, les tokens, les contrats de composants et la stratégie de migration
+progressive sont documentés dans :
 
-- **[dashboard-modes.md](./dashboard-modes.md)** - Dashboard mode system (Simplified vs Complete)
-- **[motion.md](./motion.md)** - Motion system and animation guidelines
+`docs/nexora-ui-v2-design-system.md`
 
-## Purpose
+La bibliothèque correspondante vit sous `src/ui` et utilise exclusivement des
+classes préfixées `nx-*`.
 
-These documents serve as the authoritative reference for:
-- UX patterns and interaction design
-- Component behavior and state management
-- Accessibility requirements
-- Performance guidelines
-- Implementation best practices
+## Vision
 
-## Usage
+Nexora n'est pas une application de budget.
 
-When working on the Nexora codebase, always consult these documents before making design or UX changes. They provide the context and specifications needed to maintain consistency across the application.
+Nexora est un cockpit de décision financière.
 
-## Maintaining Documentation
+Chaque écran doit permettre à l'utilisateur de comprendre sa situation financière en moins de 3 secondes.
 
-When implementing new features or modifying existing ones:
-1. Update the relevant documentation files
-2. Ensure all patterns follow the documented guidelines
-3. Update test coverage to validate new patterns
-4. Reference these documents in code comments where appropriate
+Chaque couleur doit guider une décision.
 
-## Design Principles
+Chaque composant doit avoir une utilité.
 
-The Nexora design system follows these core principles:
+Chaque pixel doit transmettre :
 
-1. **Clarity**: Interface should be immediately understandable
-2. **Simplicity**: Avoid unnecessary complexity
-3. **Consistency**: Maintain uniform patterns across the application
-4. **Maintainability**: Code should be easy to understand and modify
-5. **Performance**: Never sacrifice performance for visual effects
-6. **Accessibility**: Ensure all users can use the application effectively
+- Intelligence
+- Calme
+- Maîtrise
+- Confiance
+- Précision
 
-## Related Resources
+Jamais :
 
-- **AGENTS.md** (project root) - General development rules and guidelines
-- **Component CSS** (`src/ui/components/components.css`) - Component styling
-- **Motion CSS** (`src/ui/tokens/motion.css`) - Motion tokens and timing
+- Surcharge visuelle
+- Design crypto
+- Style gaming
+- Material Design
+- Bootstrap par défaut
+- Effets inutiles
+
+---
+
+# Référence officielle
+
+Le fichier :
+
+dashboard-reference.png
+
+est la référence graphique officielle de Nexora.
+
+Toutes les futures interfaces devront converger vers cette référence.
+
+Aucun redesign ne devra s'en éloigner sans justification.
+
+---
+
+# Philosophie
+
+Toujours respecter cette hiérarchie :
+
+1. Action
+2. Situation
+3. Compréhension
+4. Projection
+5. Détails
+
+L'utilisateur doit toujours comprendre immédiatement :
+
+- Ce qu'il doit faire
+- Pourquoi
+- Quel sera l'impact
+
+---
+
+# Les principes de Nexora
+
+## Une seule action principale
+
+Chaque écran possède une action dominante.
+
+Jamais deux CTA principaux qui se battent visuellement.
+
+---
+
+## Les chiffres sont prioritaires
+
+Les montants sont plus importants que leur libellé.
+
+Les valeurs financières doivent être immédiatement visibles.
+
+---
+
+## Les couleurs ont un sens
+
+L'or attire l'attention.
+
+Le turquoise représente la stabilité.
+
+Le vert représente une bonne décision.
+
+Le rouge représente un risque réel.
+
+Les couleurs ne sont jamais décoratives.
+
+---
+
+## La simplicité avant tout
+
+Chaque élément affiché doit avoir une utilité.
+
+Si une information n'aide pas à prendre une décision, elle ne devrait probablement pas être affichée.
+
+---
+
+## Règle absolue
+
+Le design ne doit jamais modifier la logique métier.
+
+Il améliore uniquement :
+
+- la lisibilité ;
+- la hiérarchie ;
+- l'expérience utilisateur.
+
+---
+
+## Dashboard Experience V2
+
+- [Dashboard Modes](./dashboard-modes.md)
+- [Motion](./motion.md)

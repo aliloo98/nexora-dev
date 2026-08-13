@@ -4,21 +4,21 @@ test.describe('Dashboard Mode Superset', () => {
   test.beforeEach(async ({ page }) => {
     // Use official test server URL from playwright.config.js
     await page.goto('http://127.0.0.1:5180');
-    
+
     // Wait for page to load
     await page.waitForLoadState('networkidle');
-    
+
     // Perform real demo login
     const loginDemoBtn = page.locator('#loginDemoBtn')
     await expect(loginDemoBtn).toBeVisible()
     await loginDemoBtn.click()
-    
+
     // Wait for navigation to dashboard
     await page.waitForURL('**/#section-dashboard', { timeout: 30000 })
-    
+
     // Wait for dashboard V2 modular to be visible
     await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000, state: 'visible' })
-    
+
     // Verify setNexoraUxMode exists in runtime
     const hasSetNexoraUxMode = await page.evaluate(() => typeof window.setNexoraUxMode === 'function')
     expect(hasSetNexoraUxMode).toBe(true)

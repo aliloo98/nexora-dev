@@ -16,25 +16,22 @@ The current mode is stored in:
 
 ## Mode Implementation
 
-### Module API
+### Core Functions
 
-Mode management is implemented in `src/ui/dashboard/dashboardMode.js`:
+Mode management is implemented in `index.html` with browser-safe functions:
 
 ```javascript
-import { setNexoraUxMode, getNexoraUxMode, applyDashboardMode } from './src/ui/dashboard/dashboardMode.js'
+// Get current mode
+window.getNexoraUxMode() // Returns 'simple' or 'complete'
 
 // Set mode and apply visibility
-setNexoraUxMode('simple' | 'complete')
+window.setNexoraUxMode('simple' | 'complete')
 
-// Get current mode
-getNexoraUxMode() // Returns 'simple' or 'complete'
-
-// Apply mode to DOM
-applyDashboardMode(mode)
-
-// Apply mode to newly inserted elements (after async renderers)
-applyModeToNewElements(container)
+// Apply mode to DOM (internal function)
+applyNexoraUxMode(mode)
 ```
+
+These functions are defined globally and available throughout the application.
 
 ### Body Classes (Compatibility)
 
@@ -47,15 +44,18 @@ For compatibility with other parts of the application:
 Mode distinction is implemented using the HTML `hidden` attribute on elements marked with `data-dashboard-mode="complete"`:
 
 ```javascript
-// In setNexoraUxMode():
-const completeElements = document.querySelectorAll('[data-dashboard-mode="complete"]')
-completeElements.forEach(el => {
-  if (mode === 'simple') {
-    el.hidden = true
-  } else {
-    el.hidden = false
-  }
-})
+// In applyNexoraUxMode():
+document.querySelectorAll('[data-dashboard-mode="complete"]').forEach((element) => {
+  element.hidden = isSimple;
+});
+```
+
+**Design System Scope**: The dashboard-shell container carries the `nx-scope` class, which enables the native `hidden` attribute to work correctly via the Design System reset rule:
+
+```css
+.nx-scope [hidden] {
+  display: none !important;
+}
 ```
 
 **No CSS selector debt**: This approach uses the native `hidden` attribute instead of CSS rules that would create new selector-scope violations.
@@ -83,8 +83,8 @@ completeElements.forEach(el => {
 ## Mode Switching
 
 Mode switching triggers:
-1. `setNexoraUxMode(mode)` - Saves to storage and applies visibility
-2. `applyDashboardMode(mode)` - Updates body classes and hidden attributes
+1. `window.setNexoraUxMode(mode)` - Saves to storage and calls applyNexoraUxMode
+2. `applyNexoraUxMode(mode)` - Updates body classes, hidden attributes, and triggers refreshes
 3. `scheduleAssistantRefresh()` - Refreshes assistant data
 4. `window.refreshDashboardCoach()` - Updates coach recommendations
 5. `updateAll()` - Full data refresh
@@ -92,13 +92,14 @@ Mode switching triggers:
 
 ### Async Renderers
 
-For dynamically inserted elements after initial load:
+For dynamically inserted elements after initial load, set the `hidden` attribute at creation time based on the current mode:
 
 ```javascript
-import { applyModeToNewElements } from './src/ui/dashboard/dashboardMode.js'
-
-// After rendering new elements
-applyModeToNewElements(container)
+const isSimple = window.getNexoraUxMode?.() === 'simple';
+const element = document.createElement('div');
+element.setAttribute('data-dashboard-mode', 'complete');
+element.hidden = isSimple; // Set immediately based on current mode
+container.appendChild(element);
 ```
 
 This ensures newly created complete-only elements are immediately hidden in Simple mode.
@@ -145,6 +146,12 @@ Mode switching is tested in `tests/playwright/dashboard-mode-superset.spec.js`:
 - Tests mode toggle functionality
 - Validates Complete mode is a strict superset of Simplified mode (simple ⊂ complete)
 - Tests mode persistence across page reload
+
+Tests use the actual runtime API:
+```javascript
+window.setNexoraUxMode('simple')
+window.getNexoraUxMode()
+```
 
 ## Migration Notes
 

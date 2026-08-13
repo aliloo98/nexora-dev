@@ -63,7 +63,7 @@ test.describe('Dashboard Motion V1 robustness', () => {
 
   test('Dashboard → Plan → Dashboard triggers new entrance animation', async ({ page }) => {
     await page.waitForTimeout(500)
-    
+
     // Navigate to Plan
     await page.evaluate(() => {
       window.location.hash = '#section-plan'
@@ -110,7 +110,7 @@ test.describe('Dashboard Motion V1 robustness', () => {
 
   test('Dashboard → Saisie → Dashboard triggers new entrance animation', async ({ page }) => {
     await page.waitForTimeout(500)
-    
+
     // Navigate to Saisie
     await page.evaluate(() => {
       window.location.hash = '#section-saisie'
@@ -197,7 +197,7 @@ test.describe('Dashboard Motion V1 robustness', () => {
 
   test('Simple → Complete animates revealed surfaces', async ({ page }) => {
     await page.waitForTimeout(500)
-    
+
     // Switch to Simple first
     await page.evaluate(() => {
       window.setNexoraUxMode('simple')
@@ -240,7 +240,7 @@ test.describe('Dashboard Motion V1 robustness', () => {
 
   test('Complete → Simple hides immediately (no exit animation)', async ({ page }) => {
     await page.waitForTimeout(500)
-    
+
     // Switch to Complete first
     await page.evaluate(() => {
       window.setNexoraUxMode('complete')
@@ -280,7 +280,7 @@ test.describe('Dashboard Motion V1 robustness', () => {
 
   test('Dashboard → Plan → Dashboard resets exactly once', async ({ page }) => {
     await page.waitForTimeout(500)
-    
+
     // Navigate to Plan
     await page.evaluate(() => {
       window.location.hash = '#section-plan'
