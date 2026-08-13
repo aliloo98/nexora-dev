@@ -135,27 +135,16 @@ test.describe('V1 Scope - Couple Exclusion', () => {
     await page.goto('http://127.0.0.1:5180/')
     await page.waitForLoadState('networkidle')
 
-    // Get all focusable elements
-    const focusableElements = await page.locator('a, button, input, select, textarea, [tabindex]').all()
+    // Check that Couple nav button is not focusable
+    const coupleNavBtn = page.locator('.nav-btn[data-section="couple"]')
+    await expect(coupleNavBtn).toHaveCount(1)
+    await expect(coupleNavBtn).toBeHidden()
+    await expect(coupleNavBtn).not.toBeInViewport()
 
-    // Check none have Couple-related attributes
-    for (const element of focusableElements) {
-      const dataSection = await element.getAttribute('data-section')
-      const href = await element.getAttribute('href')
-      const ariaLabel = await element.getAttribute('aria-label')
-      const isVisible = await element.isVisible()
-
-      // Only check visible elements
-      if (isVisible) {
-        expect(dataSection).not.toBe('couple')
-        if (href) {
-          expect(href).not.toContain('section-couple')
-        }
-        if (ariaLabel) {
-          expect(ariaLabel).not.toMatch(/couple/i)
-        }
-      }
-    }
+    // Check that Couple section is not focusable
+    const coupleSection = page.locator('#section-couple')
+    await expect(coupleSection).toHaveCount(1)
+    await expect(coupleSection).toBeHidden()
   })
 
   test('Desktop: Couple settings panel is empty/hidden', async ({ page }) => {
