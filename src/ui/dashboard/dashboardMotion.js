@@ -13,6 +13,11 @@ const activeAnimations = new Set()
 const progressValues = new Map()
 let reducedMotionListenerBound = false
 
+// Diagnostic counters for testing
+let resetCount = 0
+let entryCount = 0
+let modeSwitchCount = 0
+
 // Fonction de compatibilité : détecte si le dashboard V2 modulaire est présent
 const isModularDashboard = (dashboard) => {
   return dashboard?.querySelector('.dashboard-v2-modular') !== null
@@ -32,7 +37,7 @@ const getEntryDelay = (dashboard, index) => {
 const getModeSwitchSelectors = (dashboard, isSimpleMode) => {
   if (isModularDashboard(dashboard)) {
     return isSimpleMode
-      ? ['.dashboard-module--cockpit', '.dashboard-module--coach']
+      ? ['.dashboard-module--cockpit', '.dashboard-module--goal', '.dashboard-module--coach']
       : ['.dashboard-module--cockpit', '.dashboard-module--timeline', '.dashboard-module--goal', '.dashboard-module--coach']
   }
   // Fallback legacy
@@ -115,6 +120,7 @@ export function animateDashboardEnter(container) {
 
   dashboard.dataset.dashboardMotionEntered = 'true'
   dashboard.dataset.dashboardMotionState = 'scheduled'
+  entryCount++
   scheduleAnimationFrame(() => {
     if (!dashboard.isConnected || dashboard.dataset.dashboardMotionState !== 'scheduled') return
     if (prefersReducedMotion()) {
@@ -157,6 +163,7 @@ export function animateDashboardModeSwitch(container) {
   if (!dashboard || dashboard.dataset.dashboardMotionState !== 'ready' || prefersReducedMotion()) return
   const isSimpleMode = document.body.classList.contains('mode-simple')
   const selectors = getModeSwitchSelectors(dashboard, isSimpleMode)
+  modeSwitchCount++
 
   // Only animate elements that are actually visible (not hidden)
   selectors
@@ -203,7 +210,10 @@ export function getDashboardMotionDiagnostics() {
   return {
     activeAnimations: activeAnimations.size,
     trackedProgressBars: progressValues.size,
-    reducedMotion: prefersReducedMotion()
+    reducedMotion: prefersReducedMotion(),
+    resetCount,
+    entryCount,
+    modeSwitchCount
   }
 }
 
@@ -228,6 +238,7 @@ export function resetDashboardMotion() {
   // Reset motion state
   dashboard.dataset.dashboardMotionEntered = 'false'
   dashboard.dataset.dashboardMotionState = 'ready'
+  resetCount++
 }
 
 export default {

@@ -191,6 +191,7 @@ test.describe('Dashboard Motion V1 robustness', () => {
 
     expect(result.before.activeAnimations).toBe(0)
     expect(result.after.activeAnimations).toBe(0)
+    expect(result.after.entryCount).toBe(result.before.entryCount) // entryCount unchanged
     expect(result.dashboardAnimations).toBeLessThanOrEqual(5)
     expect(result.state).toBe('ready')
   })
@@ -204,13 +205,17 @@ test.describe('Dashboard Motion V1 robustness', () => {
     })
     await page.waitForTimeout(300)
 
+    const before = page.evaluate(() => {
+      return window.NexoraMotion.getDashboardMotionDiagnostics()
+    })
+
     // Switch to Complete
     await page.evaluate(() => {
       window.setNexoraUxMode('complete')
     })
     await page.waitForTimeout(300)
 
-    const motion = await page.evaluate(async (selector) => {
+    const after = await page.evaluate(async (selector) => {
       const animations = document.getAnimations()
         .filter((animation) => {
           const target = animation.effect?.target
@@ -228,14 +233,18 @@ test.describe('Dashboard Motion V1 robustness', () => {
           }
         })
 
-      return { animations }
+      return {
+        animations,
+        diagnostics: window.NexoraMotion.getDashboardMotionDiagnostics()
+      }
     }, entranceSelector)
 
-    expect(motion.animations.length).toBeGreaterThan(0)
-    motion.animations.forEach((animation) => {
+    expect(after.animations.length).toBeGreaterThan(0)
+    after.animations.forEach((animation) => {
       expect(animation.duration).toBeLessThanOrEqual(250)
       expect(animation.animatedProperties.sort()).toEqual(['opacity', 'transform'])
     })
+    expect(after.diagnostics.modeSwitchCount).toBe(before.modeSwitchCount + 1)
   })
 
   test('Complete → Simple hides immediately (no exit animation)', async ({ page }) => {
@@ -296,15 +305,11 @@ test.describe('Dashboard Motion V1 robustness', () => {
     await page.waitForSelector('.dashboard-v2-modular', { state: 'visible', timeout: 20000 })
     await page.waitForTimeout(500)
 
-    const resetCount = await page.evaluate(() => {
-      // Check if instrumentation is available
-      if (typeof window.getDashboardMotionResetCount === 'function') {
-        return window.getDashboardMotionResetCount()
-      }
-      return 0
+    const diagnostics = await page.evaluate(() => {
+      return window.NexoraMotion.getDashboardMotionDiagnostics()
     })
 
-    expect(resetCount).toBe(1)
+    expect(diagnostics.resetCount).toBe(1)
   })
 
   test('uses one bounded compositor-only entrance sequence', async ({ page }) => {

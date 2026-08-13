@@ -24,18 +24,7 @@ const resetDashboardMotion = () => {
   if (typeof window.NexoraMotion?.resetDashboardMotion === 'function') {
     window.NexoraMotion.resetDashboardMotion()
     resetCount++
-    console.log('[authRouting] Dashboard motion reset, count:', resetCount)
   }
-}
-
-/**
- * Get reset count for testing
- */
-export const getDashboardMotionResetCount = () => resetCount
-
-// Export to window for testing (browser only)
-if (typeof window !== 'undefined') {
-  window.getDashboardMotionResetCount = getDashboardMotionResetCount
 }
 
 /**
