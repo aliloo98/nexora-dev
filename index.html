@@ -1514,10 +1514,6 @@ function setNexoraUxMode(mode) {
   // updateAll is already called in applyNexoraUxMode, no need to call again
 }
 
-// Expose mode API to window for tests and runtime access
-window.getNexoraUxMode = getNexoraUxMode;
-window.setNexoraUxMode = setNexoraUxMode;
-
 function getDefaultNexoraAiSettings() {
   return {
     cautionLevel: 'balanced',

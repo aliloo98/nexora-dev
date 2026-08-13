@@ -16,14 +16,11 @@ import { showToast } from '../../js/utils.js'
 /**
  * Reset dashboard motion when navigating away from dashboard
  * Uses window.NexoraMotion.resetDashboardMotion which is exported from gsapMotion
- * Instrumented to count resets for testing
  */
-let resetCount = 0
 let previousSection = 'dashboard'
 const resetDashboardMotion = () => {
   if (typeof window.NexoraMotion?.resetDashboardMotion === 'function') {
     window.NexoraMotion.resetDashboardMotion()
-    resetCount++
   }
 }
 
