@@ -5,6 +5,10 @@ import { buildPlanData, readDebts, saveDebts, makeDebtId } from './planDataBuild
 import { showToast } from '../../js/utils.js'
 
 const attachPlanEditors = (root, planData) => {
+  root.querySelector('[data-plan-action="navigate-budget"]')?.addEventListener('click', () => {
+    window.showSection?.('saisie')
+  })
+
   root.querySelectorAll('.plan-edit-item[data-goal-id]').forEach((item) => {
     const goalId = item.dataset.goalId
     const readPatch = () => {

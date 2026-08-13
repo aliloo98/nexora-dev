@@ -45,12 +45,17 @@ export const buildTodayActionCard = (judgment) => {
     `
   }
 
+  const problemKind = judgment?.primaryProblem?.kind || ''
+  const isBudgetAction = ['income', 'charges', 'balance', 'buffer'].includes(problemKind)
+  const ctaLabel = problemKind === 'income' ? 'Saisir mes revenus' : 'Vérifier mon budget'
+
   return `
     <section class="plan-card">
       <div class="plan-card-header"><h3>Ce qu'il faut faire aujourd'hui</h3></div>
       <div class="plan-card-body">
         <strong>${escapeHtml(action)}</strong>
         ${why ? `<p>${escapeHtml(why)}</p>` : ''}
+        ${isBudgetAction ? `<button class="btn btn-gold" data-plan-action="navigate-budget">${escapeHtml(ctaLabel)}</button>` : ''}
       </div>
     </section>
   `
