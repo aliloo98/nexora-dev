@@ -100,20 +100,18 @@ test.describe('Dashboard Motion V1 robustness', () => {
     await page.waitForTimeout(500)
     const result = await page.evaluate(async () => {
       const dashboard = document.getElementById('section-dashboard')
-      
-      // Wait for entrance animations to complete
-      await new Promise((resolve) => {
-        const checkAnimations = () => {
-          const diagnostics = window.NexoraMotion.getDashboardMotionDiagnostics()
-          if (diagnostics.activeAnimations === 0 && dashboard.dataset.dashboardMotionState === 'ready') {
-            resolve()
-          } else {
-            requestAnimationFrame(checkAnimations)
-          }
+
+      // Wait for entrance animations to complete with timeout
+      const startTime = Date.now()
+      const timeout = 5000
+      while (Date.now() - startTime < timeout) {
+        const diagnostics = window.NexoraMotion.getDashboardMotionDiagnostics()
+        if (diagnostics.activeAnimations === 0 && dashboard.dataset.dashboardMotionState === 'ready') {
+          break
         }
-        checkAnimations()
-      })
-      
+        await new Promise((resolve) => requestAnimationFrame(resolve))
+      }
+
       const before = window.NexoraMotion.getDashboardMotionDiagnostics()
       for (let index = 0; index < 3; index += 1) window.updateAll()
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
@@ -129,19 +127,17 @@ test.describe('Dashboard Motion V1 robustness', () => {
   test('Simple → Complete triggers mode switch and reveals surfaces', async ({ page }) => {
     await page.waitForTimeout(500)
 
-    // Wait for dashboard to be ready
+    // Wait for dashboard to be ready with timeout
     await page.evaluate(async () => {
       const dashboard = document.getElementById('section-dashboard')
-      await new Promise((resolve) => {
-        const checkReady = () => {
-          if (dashboard.dataset.dashboardMotionState === 'ready') {
-            resolve()
-          } else {
-            requestAnimationFrame(checkReady)
-          }
+      const startTime = Date.now()
+      const timeout = 5000
+      while (Date.now() - startTime < timeout) {
+        if (dashboard.dataset.dashboardMotionState === 'ready') {
+          break
         }
-        checkReady()
-      })
+        await new Promise((resolve) => requestAnimationFrame(resolve))
+      }
     })
 
     const before = await page.evaluate(() => {
@@ -392,17 +388,15 @@ test.describe('Dashboard Motion V1 robustness', () => {
     const animations = await page.evaluate(async (selector) => {
       const dashboard = document.getElementById('section-dashboard')
 
-      // Wait for ready state
-      await new Promise((resolve) => {
-        const checkReady = () => {
-          if (dashboard.dataset.dashboardMotionState === 'ready') {
-            resolve()
-          } else {
-            requestAnimationFrame(checkReady)
-          }
+      // Wait for ready state with timeout
+      const startTime = Date.now()
+      const timeout = 5000
+      while (Date.now() - startTime < timeout) {
+        if (dashboard.dataset.dashboardMotionState === 'ready') {
+          break
         }
-        checkReady()
-      })
+        await new Promise((resolve) => requestAnimationFrame(resolve))
+      }
 
       // Trigger mode switch
       window.setNexoraUxMode('simple')
@@ -438,16 +432,15 @@ test.describe('Dashboard Motion V1 robustness', () => {
       return animations
     }, entranceSelector)
 
-    if (animations.length > 0) {
-      animations.forEach((animation) => {
-        expect(animation.duration).toBeLessThanOrEqual(250)
-        expect(animation.fromOpacity).toBeCloseTo(0.78, 1)
-        expect(animation.toOpacity).toBe(1)
-        expect(animation.fromTransform).toContain('translate3d(0px, 7px, 0px)')
-        expect(animation.toTransform).toBe('translate3d(0px, 0px, 0px)')
-        expect(animation.animatedProperties.sort()).toEqual(['opacity', 'transform'])
-      })
-    }
+    expect(animations.length).toBeGreaterThan(0)
+    animations.forEach((animation) => {
+      expect(animation.duration).toBeLessThanOrEqual(250)
+      expect(animation.fromOpacity).toBeCloseTo(0.78, 1)
+      expect(animation.toOpacity).toBe(1)
+      expect(animation.fromTransform).toContain('translate3d(0px, 7px, 0px)')
+      expect(animation.toTransform).toBe('translate3d(0px, 0px, 0px)')
+      expect(animation.animatedProperties.sort()).toEqual(['opacity', 'transform'])
+    })
   })
 
   test('keeps static cards still and limits hover lift to interactive controls', async ({ page }) => {
