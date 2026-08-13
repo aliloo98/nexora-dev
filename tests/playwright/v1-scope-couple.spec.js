@@ -131,20 +131,25 @@ test.describe('V1 Scope - Couple Exclusion', () => {
     expect(page.url()).toContain('#section-dashboard')
   })
 
-  test('Desktop: No focusable Couple control in accessibility tree', async ({ page }) => {
+  test('Desktop: Couple controls remain hidden and unavailable in V1', async ({ page }) => {
     await page.goto('http://127.0.0.1:5180/')
     await page.waitForLoadState('networkidle')
 
-    // Check that Couple nav button is not focusable
+    // Verify Couple nav button is hidden and not in viewport
     const coupleNavBtn = page.locator('.nav-btn[data-section="couple"]')
     await expect(coupleNavBtn).toHaveCount(1)
     await expect(coupleNavBtn).toBeHidden()
     await expect(coupleNavBtn).not.toBeInViewport()
 
-    // Check that Couple section is not focusable
+    // Verify Couple section is hidden
     const coupleSection = page.locator('#section-couple')
     await expect(coupleSection).toHaveCount(1)
     await expect(coupleSection).toBeHidden()
+
+    // Verify Couple nav button cannot receive keyboard focus
+    await coupleNavBtn.focus()
+    const focusedElement = await page.evaluate(() => document.activeElement?.getAttribute('data-section'))
+    expect(focusedElement).not.toBe('couple')
   })
 
   test('Desktop: Couple settings panel is empty/hidden', async ({ page }) => {
@@ -206,30 +211,21 @@ test.describe('V1 Scope - Restoration Contract', () => {
     await expect(coupleSection).toBeHidden()
   })
 
-  test('Route guard respects V1_SCOPE flag when blocking Couple', async ({ page }) => {
+  test('V1 disabled state: Couple controls are hidden by flag', async ({ page }) => {
     // Wait for page to load
     await page.goto('http://127.0.0.1:5180/')
     await page.waitForLoadState('networkidle')
 
-    // Verify V1_SCOPE.COUPLE_MODE_ENABLED is false in production
-    const flagValue = await page.evaluate(() => {
-      // Try to access the flag - it should be defined and false
-      try {
-        // The flag is in src/constants/v1Scope.js which is imported
-        // We can check if it's available via the V1_SCOPE object if exposed
-        // For now, verify the behavior which implies the flag is false
-        const coupleNav = document.querySelector('.nav-btn[data-section="couple"]')
-        const coupleSection = document.getElementById('section-couple')
-        return {
-          navHidden: coupleNav && coupleNav.style.display === 'none',
-          sectionHidden: coupleSection && coupleSection.style.display === 'none'
-        }
-      } catch (e) {
-        return { error: e.message }
-      }
+    // Verify Couple controls are hidden (indicates V1_SCOPE.COUPLE_MODE_ENABLED = false)
+    const flagState = await page.evaluate(() => {
+      const coupleNav = document.querySelector('.nav-btn[data-section="couple"]')
+      const coupleSection = document.getElementById('section-couple')
+      const navHidden = coupleNav && coupleNav.style.display === 'none'
+      const sectionHidden = coupleSection && coupleSection.style.display === 'none'
+      return { navHidden, sectionHidden }
     })
 
-    expect(flagValue.navHidden).toBe(true)
-    expect(flagValue.sectionHidden).toBe(true)
+    expect(flagState.navHidden).toBe(true)
+    expect(flagState.sectionHidden).toBe(true)
   })
 })
