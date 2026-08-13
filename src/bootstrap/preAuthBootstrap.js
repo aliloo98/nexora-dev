@@ -49,6 +49,20 @@ export async function bootstrapPreAuth({
     injectCoupleStyles()
   }
 
+  // Step 5.5: Show/hide Couple DOM elements based on V1 scope
+  const coupleNavBtn = documentRef.querySelector('.couple-nav-btn')
+  const coupleSection = documentRef.getElementById('section-couple')
+  
+  if (V1_SCOPE.COUPLE_MODE_ENABLED) {
+    // Enable Couple: show navigation and section
+    if (coupleNavBtn) coupleNavBtn.style.display = ''
+    if (coupleSection) coupleSection.style.display = ''
+  } else {
+    // Disable Couple: hide navigation and section
+    if (coupleNavBtn) coupleNavBtn.style.display = 'none'
+    if (coupleSection) coupleSection.style.display = 'none'
+  }
+
   // Step 6: Initialize authentication routing
   await initAuthRouting()
 

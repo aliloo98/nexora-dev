@@ -12,6 +12,7 @@ import AuthContext from '../auth/authContext.js'
 import AuthPages from '../pages/AuthPages.js'
 import { renderUserMenu, updateUserHeader } from '../components/UserProfile.js'
 import { showToast } from '../../js/utils.js'
+import { V1_SCOPE } from '../constants/v1Scope.js'
 
 /**
  * Reset dashboard motion when navigating away from dashboard
@@ -35,6 +36,10 @@ export const RouteGuard = {
    */
   requiresAuth(routeName) {
     const protectedRoutes = ['dashboard', 'saisie', 'historique', 'plan', 'nexora', 'parametres']
+    // Include Couple in protected routes only when enabled
+    if (V1_SCOPE.COUPLE_MODE_ENABLED) {
+      protectedRoutes.push('couple')
+    }
     return protectedRoutes.includes(routeName)
   },
 
@@ -58,8 +63,8 @@ export const RouteGuard = {
    */
   navigateTo(sectionName) {
     // V1 scope reduction: Couple mode is out of scope for V1
-    // Always block Couple navigation and fallback to dashboard
-    if (sectionName === 'couple') {
+    // Block Couple navigation only when disabled
+    if (sectionName === 'couple' && !V1_SCOPE.COUPLE_MODE_ENABLED) {
       console.warn('🔒 Couple mode is out of scope for V1 - redirecting to dashboard')
       if (typeof window.setCoupleFallbackMessage === 'function') {
         window.setCoupleFallbackMessage('Mode couple non disponible dans cette version')
@@ -175,6 +180,10 @@ export const NavigationMiddleware = {
    */
   validateProtectedSections() {
     const protectedSections = ['dashboard', 'saisie', 'historique', 'plan', 'nexora', 'parametres']
+    // Include Couple in validation only when enabled
+    if (V1_SCOPE.COUPLE_MODE_ENABLED) {
+      protectedSections.push('couple')
+    }
 
     protectedSections.forEach(section => {
       const element = document.getElementById(`section-${section}`)
