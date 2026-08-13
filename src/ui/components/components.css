@@ -387,11 +387,7 @@
   pointer-events: none;
 }
 
-#dashboard-hero-root {
-  max-width: 100%;
-  overflow: hidden;
-  min-width: 0;
-}
+
 
 .nx-hero-card__content {
   display: flex;
@@ -707,40 +703,10 @@
 }
 
 /* Dashboard V2 - Premium Styles */
-.cockpit-v2-master {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nx-space-md);
-}
-
 .dashboard-v2-actions {
   display: flex;
   justify-content: center;
   padding: var(--nx-space-lg) 0;
-}
-
-.dashboard-v2-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--nx-space-md) 0;
-}
-
-.dashboard-v2-eyebrow {
-  color: var(--nx-color-text-secondary);
-  font-size: var(--nx-font-size-caption);
-  font-weight: var(--nx-font-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  display: block;
-  margin-bottom: var(--nx-space-xs);
-}
-
-.dashboard-v2-header h2 {
-  color: var(--nx-color-text-primary);
-  font-size: var(--nx-font-size-h2);
-  font-weight: var(--nx-font-weight-bold);
-  margin: 0;
 }
 
 /* Dashboard V2 Modular - Architecture Composée - Premium Polish */
@@ -771,248 +737,7 @@
   opacity: 0.7;
 }
 
-/* Module 2 : Prochaine Étape - Premium Polish */
-.prochaine-etape__content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nx-space-md);
-  padding: var(--nx-space-lg);
-}
-
-.prochaine-etape__timeline {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nx-space-sm);
-}
-
-.prochaine-etape__empty {
-  color: var(--nx-color-text-secondary);
-  font-size: var(--nx-font-size-body);
-  text-align: center;
-  padding: var(--nx-space-lg) 0;
-  opacity: 0.6;
-}
-
-.prochaine-etape__item {
-  display: flex;
-  align-items: center;
-  gap: var(--nx-space-sm);
-  padding: var(--nx-space-xs) 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.prochaine-etape__item:last-child {
-  border-bottom: none;
-}
-
-.prochaine-etape__item-icon {
-  font-size: var(--nx-font-size-h3);
-  flex-shrink: 0;
-  opacity: 0.8;
-}
-
-.prochaine-etape__item-content {
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.prochaine-etape__item-name {
-  color: var(--nx-color-text-primary);
-  font-size: var(--nx-font-size-body);
-  font-weight: var(--nx-font-weight-medium);
-  letter-spacing: -0.01em;
-}
-
-.prochaine-etape__item-amount {
-  font-size: var(--nx-font-size-body);
-  font-weight: var(--nx-font-weight-semibold);
-  letter-spacing: -0.01em;
-}
-
-.prochaine-etape__item-amount--positive {
-  color: var(--nx-color-success);
-}
-
-.prochaine-etape__item-amount--negative {
-  color: var(--nx-color-danger);
-}
-
-.prochaine-etape__projected {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: var(--nx-space-sm);
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.prochaine-etape__projected-label {
-  color: var(--nx-color-text-secondary);
-  font-size: var(--nx-font-size-caption);
-  font-weight: var(--nx-font-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  opacity: 0.7;
-}
-
-.prochaine-etape__projected-value {
-  color: var(--nx-color-text-primary);
-  font-size: var(--nx-font-size-h3);
-  font-weight: var(--nx-font-weight-bold);
-  letter-spacing: -0.02em;
-}
-
-/* Module 3 : Objectif - Premium Polish */
-.objectif__content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nx-space-md);
-  padding: var(--nx-space-lg);
-}
-
-.objectif__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--nx-space-sm);
-}
-
-.objectif__name {
-  color: var(--nx-color-text-primary);
-  font-size: var(--nx-font-size-h3);
-  font-weight: var(--nx-font-weight-bold);
-  margin: 0;
-  flex: 1;
-  letter-spacing: -0.01em;
-}
-
-.objectif__progress-text {
-  display: flex;
-  align-items: center;
-  gap: var(--nx-space-xs);
-  color: var(--nx-color-text-secondary);
-  font-size: var(--nx-font-size-caption);
-  font-weight: var(--nx-font-weight-medium);
-}
-
-.objectif__current {
-  color: var(--nx-color-text-primary);
-  font-weight: var(--nx-font-weight-semibold);
-}
-
-.objectif__target {
-  color: var(--nx-color-text-secondary);
-  opacity: 0.7;
-}
-
-.objectif__percentage {
-  color: var(--nx-color-gold);
-  font-size: var(--nx-font-size-caption);
-  font-weight: var(--nx-font-weight-bold);
-  padding: var(--nx-space-xs) var(--nx-space-sm);
-  background: rgba(212, 175, 55, 0.08);
-  border-radius: var(--nx-radius-full);
-  letter-spacing: 0.02em;
-}
-
-.objectif__bar {
-  width: 100%;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.objectif__bar-fill {
-  height: 100%;
-  background: var(--nx-color-gold);
-  border-radius: 4px;
-  transition: width var(--nx-motion-slow) var(--nx-easing-entrance);
-}
-
-.objectif__timeframe {
-  color: var(--nx-color-text-secondary);
-  font-size: var(--nx-font-size-caption);
-  font-weight: var(--nx-font-weight-medium);
-  text-align: center;
-  opacity: 0.6;
-  margin-top: var(--nx-space-xs);
-}
-
-/* Module 4 : Coach - Premium Polish */
-.coach__content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nx-space-md);
-  padding: var(--nx-space-lg);
-}
-
-.coach__icon {
-  font-size: var(--nx-font-size-h2);
-  align-self: flex-start;
-  opacity: 0.9;
-}
-
-.coach__message {
-  color: var(--nx-color-text-primary);
-  font-size: var(--nx-font-size-body);
-  line-height: var(--nx-line-height-body);
-  font-weight: var(--nx-font-weight-medium);
-  letter-spacing: -0.01em;
-}
-
-.coach__actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nx-space-sm);
-}
-
-.coach__action--primary {
-  width: 100%;
-  padding: var(--nx-space-sm) var(--nx-space-md);
-  font-size: var(--nx-font-size-body);
-  font-weight: var(--nx-font-weight-semibold);
-  border-radius: var(--nx-radius-md);
-  letter-spacing: -0.01em;
-}
-
-.coach__action--secondary {
-  width: 100%;
-  padding: var(--nx-space-sm) var(--nx-space-md);
-  font-size: var(--nx-font-size-body);
-  font-weight: var(--nx-font-weight-medium);
-  border-radius: var(--nx-radius-md);
-  letter-spacing: -0.01em;
-}
-
 /* Dashboard V2 Header & Actions - Premium Polish */
-.dashboard-v2-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--nx-space-lg) 0 var(--nx-space-md) 0;
-}
-
-.dashboard-v2-eyebrow {
-  color: var(--nx-color-text-secondary);
-  font-size: var(--nx-font-size-caption);
-  font-weight: var(--nx-font-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  display: block;
-  margin-bottom: var(--nx-space-xs);
-  opacity: 0.7;
-}
-
-.dashboard-v2-header h2 {
-  color: var(--nx-color-text-primary);
-  font-size: var(--nx-font-size-h2);
-  font-weight: var(--nx-font-weight-bold);
-  margin: 0;
-  letter-spacing: -0.02em;
-}
-
 .dashboard-v2-actions {
   display: flex;
   justify-content: center;
@@ -1035,15 +760,5 @@
 
   .dashboard-module {
     gap: var(--nx-space-sm);
-  }
-
-  .prochaine-etape__content,
-  .objectif__content,
-  .coach__content {
-    padding: var(--nx-space-md);
-  }
-
-  .dashboard-v2-header h2 {
-    font-size: var(--nx-font-size-h3);
   }
 }
