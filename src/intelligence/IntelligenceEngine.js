@@ -414,7 +414,17 @@ export function buildIntelligenceSnapshot(input = {}, options = {}) {
     budget: {
       fixed: metrics.fixedExpenses || 0,
       variable: metrics.variableExpenses || 0,
-      total: metrics.plannedExpenses || metrics.expenses || 0
+      total: metrics.plannedExpenses || metrics.expenses || 0,
+      categories: Array.isArray(metrics.categories)
+        ? metrics.categories.map(category => ({
+          id: category.id,
+          name: category.name,
+          type: category.type,
+          amount: category.amount || 0,
+          paidAmount: category.paidAmount || 0,
+          source: category.source || 'unknown'
+        }))
+        : []
     },
     buffer: {
       available: cycleBalances.projectedEndOfCycle,

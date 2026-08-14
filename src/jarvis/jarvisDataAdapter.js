@@ -74,6 +74,21 @@ function normalizeBillSchedules(billSchedules) {
     }))
 }
 
+function normalizeMetricCategories(categories) {
+  if (!Array.isArray(categories)) return []
+
+  return categories
+    .filter(category => category && category.id && category.type && Number(category.amount || 0) > 0)
+    .map(category => ({
+      id: String(category.id),
+      name: String(category.name || category.id),
+      type: category.type,
+      amount: Number(category.amount || 0),
+      paidAmount: Number(category.paidAmount || 0),
+      source: category.source || 'unknown'
+    }))
+}
+
 function isBrowserDemoMode() {
   if (typeof window === 'undefined') return false
   try {
@@ -271,7 +286,8 @@ export async function buildJarvisIntelligenceInput(monthKey, dependencies = {}) 
         fixedExpenses: metrics.fixedExpenses || 0,
         variableExpenses: metrics.variableExpenses || 0,
         plannedExpenses: metrics.plannedExpenses || 0,
-        paidExpenses: metrics.paidExpenses || 0
+        paidExpenses: metrics.paidExpenses || 0,
+        categories: normalizeMetricCategories(metrics.categories)
       },
       history,
       goals: normalizeGoals(goals),

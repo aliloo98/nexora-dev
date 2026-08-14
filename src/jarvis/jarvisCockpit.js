@@ -8,6 +8,7 @@
 import { buildIntelligenceSnapshot } from '../intelligence/IntelligenceEngine.js'
 import { buildJarvisIntelligenceInput } from './jarvisDataAdapter.js'
 import { createJarvisViewModel } from './jarvisViewModel.js'
+import { attachJarvisCopilot, renderJarvisCopilot } from './copilot/jarvisCopilot.js'
 
 /**
  * Single observer instance to prevent duplicates
@@ -191,7 +192,21 @@ export async function renderJarvisCockpit(container, options = {}) {
 
     // If core data is missing, show data quality mode
     if (!coreDataAvailable) {
-      container.innerHTML = renderDataQualityMode(viewModel)
+      container.innerHTML = renderDataQualityMode(viewModel, snapshot)
+      attachJarvisCopilot(container, {
+        initialSnapshot: snapshot,
+        documentRef,
+        windowRef,
+        getSnapshot: async () => {
+          const activeMonthKey = typeof windowRef.getMonth === 'function'
+            ? windowRef.getMonth()
+            : monthKey
+          const nextInput = await buildJarvisIntelligenceInput(activeMonthKey)
+          return buildIntelligenceSnapshot(nextInput, {
+            referenceDate: new Date()
+          })
+        }
+      })
       return
     }
 
@@ -200,6 +215,7 @@ export async function renderJarvisCockpit(container, options = {}) {
     const cockpitMarkup = `
       <div class="jarvis-cockpit" data-dashboard-mode="complete" data-motion="entry">
         ${renderJarvisHero(viewModel)}
+        ${renderJarvisCopilot(snapshot)}
         ${renderPriorityCard(viewModel)}
         ${renderTrajectoryPanel(viewModel)}
         ${renderSignalsSection(viewModel)}
@@ -211,6 +227,20 @@ export async function renderJarvisCockpit(container, options = {}) {
 
     // Attach CTA listeners
     attachCtaListeners(container, windowRef)
+    attachJarvisCopilot(container, {
+      initialSnapshot: snapshot,
+      documentRef,
+      windowRef,
+      getSnapshot: async () => {
+        const activeMonthKey = typeof windowRef.getMonth === 'function'
+          ? windowRef.getMonth()
+          : monthKey
+        const nextInput = await buildJarvisIntelligenceInput(activeMonthKey)
+        return buildIntelligenceSnapshot(nextInput, {
+          referenceDate: new Date()
+        })
+      }
+    })
 
     // Trigger entry animation
     requestAnimationFrame(() => {
@@ -255,7 +285,7 @@ function renderErrorFallback(container, documentRef) {
 /**
  * Renders data quality mode
  */
-function renderDataQualityMode(viewModel) {
+function renderDataQualityMode(viewModel, snapshot) {
   const { dataQuality, headline } = viewModel
 
   const issuesMarkup = dataQuality.issues.map(issue => `
@@ -272,6 +302,7 @@ function renderDataQualityMode(viewModel) {
           ${issuesMarkup}
         </div>
       </div>
+      ${renderJarvisCopilot(snapshot)}
     </div>
   `
 }

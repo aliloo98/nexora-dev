@@ -2237,13 +2237,7 @@ body.mode-simple .couple-insights-card,
 body.mode-simple .week-plan-card,
 body.mode-simple .analytics-premium,
 body.mode-simple .simulator-block,
-body.mode-simple .print-actions-container,
-body.mode-simple .assistant-kpis,
-body.mode-simple .assistant-advanced-insights,
-body.mode-simple .assistant-charts-section,
-body.mode-simple .assistant-projections-section,
-body.mode-simple .assistant-forecast-section,
-body.mode-simple .assistant-timeline-section {
+body.mode-simple .print-actions-container {
   display: none !important;
 }
 

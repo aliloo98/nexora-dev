@@ -4,12 +4,19 @@
  */
 import { test, expect } from '@playwright/test';
 
+async function setSimpleMode(page) {
+  await page.waitForFunction(() => typeof window.setNexoraUxMode === 'function');
+  await page.evaluate(() => window.setNexoraUxMode('simple'));
+  await expect(page.locator('body')).toHaveClass(/mode-simple/);
+}
+
 test.describe('Assistant E2E', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('http://127.0.0.1:5180/#section-dashboard', { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 });
     await page.click('#loginDemoBtn');
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 });
+    await setSimpleMode(page);
     await page.waitForSelector('#assistant-card', { state: 'visible', timeout: 30000 });
     await page.getByRole('button', { name: 'Voir l’analyse' }).click();
     await expect(page.locator('#assistant-details')).toBeVisible();
@@ -35,6 +42,7 @@ test.describe('Dashboard visual hierarchy', () => {
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 });
     await page.click('#loginDemoBtn');
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 });
+    await setSimpleMode(page);
   });
 
   test('keeps judgment, action and indicators compact and ordered', async ({ page }) => {
