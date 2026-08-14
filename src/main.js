@@ -61,6 +61,7 @@ import { renderDashboardQuickView } from './ui/dashboard/renderDashboardQuickVie
 import { renderDashboardAlerts } from './ui/dashboard/renderDashboardAlerts.js'
 import { renderAssistantInsights } from './ui/dashboard/renderAssistantInsights.js'
 import { renderDashboardCoach } from './ui/dashboard/renderDashboardCoach.js'
+import { initJarvisDashboardIntegration } from './jarvis/jarvisCockpit.js'
 
 
 import { renderBudgetCoach, buildBudgetCoachState } from './ui/budgetCoach.js'
@@ -358,6 +359,7 @@ const initApp = async () => {
       renderDashboardMaster,
       refreshDashboardCoach: window.refreshDashboardCoach,
       refreshDashboardModular: window.refreshDashboardModular,
+      initJarvisDashboardIntegration,
 
       // Event handlers dependencies
       parseFinancialExpression,

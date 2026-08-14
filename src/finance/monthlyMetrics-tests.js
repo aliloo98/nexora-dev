@@ -11,11 +11,11 @@ const categories = [
 const metrics = computeMonthlyMetrics({
   monthKey: '2026-07',
   budgetData: {
-    salary: '3 000,50',
-    rent: 1000,
+    salary: '3 000,50 €',
+    rent: '1 000 €',
     rent_paye: true,
-    custom_restaurant: 250,
-    custom_restaurant_paye: '125'
+    custom_restaurant: '250 €',
+    custom_restaurant_paye: '125 €'
   },
   categories
 })

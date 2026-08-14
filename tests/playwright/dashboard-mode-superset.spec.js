@@ -36,6 +36,10 @@ test.describe('Dashboard Mode Superset', () => {
     await expect(hero).toHaveCount(1)
     await expect(hero).toBeVisible()
 
+    // Jarvis must NOT be visible in Simple mode
+    const jarvis = page.locator('#cockpit-financier-root .jarvis-cockpit')
+    await expect(jarvis).toHaveCount(0)
+
     const goal = page.locator('.dashboard-module--goal')
     await expect(goal).toHaveCount(1)
     await expect(goal).toBeVisible()
@@ -74,9 +78,14 @@ test.describe('Dashboard Mode Superset', () => {
     await expect(page.locator('body')).toHaveClass(/mode-complete/);
 
     // Essential elements must exist and be visible
+    // In Complete mode, Jarvis replaces the HeroCard
+    const jarvis = page.locator('#cockpit-financier-root .jarvis-cockpit')
+    await expect(jarvis).toHaveCount(1)
+    await expect(jarvis).toBeVisible()
+
+    // Legacy HeroCard should NOT be visible in Complete mode
     const hero = page.locator('#cockpit-financier-root .nx-hero-card')
-    await expect(hero).toHaveCount(1)
-    await expect(hero).toBeVisible()
+    await expect(hero).toHaveCount(0)
 
     const goal = page.locator('.dashboard-module--goal')
     await expect(goal).toHaveCount(1)

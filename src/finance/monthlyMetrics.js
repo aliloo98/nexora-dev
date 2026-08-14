@@ -14,8 +14,13 @@ const uniqueActiveCategories = (categories = []) => {
   return [...byId.values()]
 }
 
+const normalizeStoredAmount = (value) => String(value ?? '')
+  .trim()
+  .replace(/[€$£¥]/g, '')
+  .trim()
+
 const parseAmount = (value) => {
-  const amount = parseFinancialExpression(value, { fallback: 0 })
+  const amount = parseFinancialExpression(normalizeStoredAmount(value), { fallback: 0 })
   return Number.isFinite(amount) ? amount : 0
 }
 

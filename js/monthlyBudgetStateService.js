@@ -283,8 +283,8 @@ const DEFAULT_CATEGORY_GROUPS = {
 
 const parseAmount = (value) => {
   if (typeof value === 'number') return Number.isFinite(value) ? value : 0
-  if (typeof value !== 'string') return 0
-  const normalized = value.replace(/\s/g, '').replace(',', '.')
+  if (value === null || value === undefined) return 0
+  const normalized = String(value).replace(/[€$£¥]/g, '').replace(/\s/g, '').replace(',', '.')
   const amount = Number(normalized)
   return Number.isFinite(amount) ? amount : 0
 }

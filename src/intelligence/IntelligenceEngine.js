@@ -231,6 +231,32 @@ function analyzeTrends(metrics = {}, history = []) {
   }
 }
 
+function buildLegacyMetricsAliases(metrics = {}) {
+  const toNumber = (value, fallback = 0) => {
+    const number = Number(value ?? fallback)
+    return Number.isFinite(number) ? number : fallback
+  }
+  const income = toNumber(metrics.income)
+  const fixedExpenses = toNumber(metrics.fixedExpenses ?? metrics.fixed)
+  const variableExpenses = toNumber(metrics.variableExpenses ?? metrics.variable)
+  const plannedExpenses = toNumber(metrics.plannedExpenses ?? metrics.expenses, fixedExpenses + variableExpenses)
+  const paidExpenses = toNumber(metrics.paidExpenses)
+  const projectedBalance = toNumber(
+    metrics.projectedBalance ?? metrics.projectedEndOfCycle ?? metrics.savings,
+    income - plannedExpenses
+  )
+
+  return {
+    ...metrics,
+    revReel: toNumber(metrics.revReel, income),
+    fixReel: toNumber(metrics.fixReel, fixedExpenses),
+    varReel: toNumber(metrics.varReel, variableExpenses),
+    totalDepReel: toNumber(metrics.totalDepReel, plannedExpenses),
+    totalDepPayee: toNumber(metrics.totalDepPayee, paidExpenses),
+    solde: toNumber(metrics.solde, projectedBalance)
+  }
+}
+
 /**
  * Hiérarchise les priorités
  */
@@ -300,6 +326,7 @@ export function buildIntelligenceSnapshot(input = {}, options = {}) {
   } = input
   
   const referenceDate = options.referenceDate ? new Date(options.referenceDate) : new Date()
+  const legacyMetrics = buildLegacyMetricsAliases(metrics)
   
   // 1. Assurer la qualité des données
   const dataQuality = assessDataQuality(metrics, goals, debts, history, dataAvailability)
@@ -328,13 +355,13 @@ export function buildIntelligenceSnapshot(input = {}, options = {}) {
   const health = buildHealthState(metrics, cycleBalances, scoreResult)
   
   // 5. Prévision (réutilisation de forecastEngine)
-  const forecast = calculateForecast(metrics, { referenceDate, billSchedules })
+  const forecast = calculateForecast(legacyMetrics, { referenceDate, billSchedules })
   
   // 6. Risques
   const risks = detectRisks(cycleBalances, metrics, dataQuality, forecast)
   
   // 7. Opportunités
-  const opportunities = detectFinancialOpportunities(cycleBalances, metrics, dataQuality, goals, billSchedules)
+  const opportunities = detectFinancialOpportunities(cycleBalances, legacyMetrics, dataQuality, goals, billSchedules)
   
   // 8. Tendances
   const trends = analyzeTrends(metrics, history)

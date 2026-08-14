@@ -1468,9 +1468,19 @@ async function setNexoraDemoMode(enabled) {
   applyNexoraDemoMode();
   setSaveBarDirty(false);
   await loadMonth();
+  if (typeof applyNexoraUxMode === 'function') {
+    applyNexoraUxMode(getNexoraUxMode());
+  }
   if (typeof window.refreshPlanHub === 'function') window.refreshPlanHub().catch(() => {});
   showToast(enabled ? 'Mode démo activé — données fictives affichées' : 'Mode démo désactivé — données réelles affichées');
 }
+
+document.addEventListener('nexora:demo-mode-request', (event) => {
+  const activation = setNexoraDemoMode(event?.detail?.enabled === true);
+  if (typeof event?.detail?.respondWith === 'function') {
+    event.detail.respondWith(activation);
+  }
+});
 
 function getNexoraUxMode() {
   try {
@@ -1503,6 +1513,13 @@ function applyNexoraUxMode(mode = getNexoraUxMode()) {
   // Refresh simple dashboard grid when switching modes
   if (typeof updateAll === 'function') {
     updateAll();
+  }
+  try {
+    document.dispatchEvent(new CustomEvent('nexora:ux-mode-applied', {
+      detail: { mode: isSimple ? 'simple' : 'complete' }
+    }));
+  } catch (err) {
+    console.warn('[Nexora UX mode] Jarvis dispatch failed', err);
   }
   window.NexoraMotion?.animateModeSwitch?.(document.getElementById('section-dashboard'));
 }
@@ -2187,6 +2204,15 @@ async function loadMonth(){
   });
 
   updateAll();
+  if (document.body.classList.contains('mode-complete')) {
+    try {
+      document.dispatchEvent(new CustomEvent('nexora:ux-mode-applied', {
+        detail: { mode: 'complete' }
+      }));
+    } catch (err) {
+      console.warn('[Nexora UX mode] Jarvis dispatch failed', err);
+    }
+  }
 }
 
 async function saveData(){
@@ -4631,8 +4657,12 @@ function updateDashboardSynthesisHero(metrics = {}) {
 
   hero.dataset.state = state;
 
-  // Use V2 HeroCard component
-  if (typeof window.renderDashboardHero === 'function') {
+  // Render HeroCard in Simplified mode only
+  // Complete mode uses Jarvis through bootstrap integration
+  const isCompleteMode = document.body.classList.contains('mode-complete');
+  
+  if (!isCompleteMode && typeof window.renderDashboardHero === 'function') {
+    // Mode Simplifié: Utiliser le HeroCard existant
     window.renderDashboardHero('cockpit-financier-root', {
       ...metrics,
       totalDepRestant: metrics.totalDepRestant || 0,

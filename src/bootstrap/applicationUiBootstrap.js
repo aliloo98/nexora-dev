@@ -15,6 +15,7 @@
  * @param {Function} dependencies.renderAssistantCard - Function to render assistant card
  * @param {Function} dependencies.renderDashboardMaster - Function to render dashboard master
  * @param {Function} dependencies.refreshDashboardCoach - Function to refresh dashboard coach
+ * @param {Function} dependencies.initJarvisDashboardIntegration - Function to init Jarvis
  * @param {Object} dependencies.documentRef - Document reference
  */
 
@@ -104,7 +105,9 @@ export async function renderAssistant({
 export async function renderAdvancedApplicationUi({
   renderDashboardMaster,
   refreshDashboardCoach,
-  documentRef = document
+  initJarvisDashboardIntegration,
+  documentRef = document,
+  windowRef = window
 }) {
   try {
     // Step 25: Render Dashboard Master component if present
@@ -114,6 +117,11 @@ export async function renderAdvancedApplicationUi({
       && !documentRef.querySelector('#dashboard-master-root .dashboard-coach-content')
     ) {
       await refreshDashboardCoach()
+    }
+
+    // Step 25.5: Initialize Jarvis Dashboard integration (J5)
+    if (typeof initJarvisDashboardIntegration === 'function') {
+      initJarvisDashboardIntegration({ windowRef, documentRef })
     }
 
     // Step 26: Render Advisor UI

@@ -46,6 +46,7 @@ export async function bootstrapApplication(dependencies) {
     renderAssistantCard,
     renderDashboardMaster,
     refreshDashboardCoach,
+    initJarvisDashboardIntegration,
 
     // Event handlers dependencies
     parseFinancialExpression,
@@ -161,6 +162,8 @@ export async function bootstrapApplication(dependencies) {
   await renderAdvancedApplicationUi({
     renderDashboardMaster,
     refreshDashboardCoach,
+    initJarvisDashboardIntegration,
+    windowRef: documentRef?.defaultView,
     documentRef
   })
 
