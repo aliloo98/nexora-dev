@@ -52,25 +52,25 @@ function createAssistantCard() {
       </div>
 
       <!-- Advanced Insights -->
-      <div class="assistant-block assistant-advanced-insights" id="assistant-insights-block" data-dashboard-mode="complete" style="display:none;">
+      <div class="assistant-block assistant-advanced-insights" id="assistant-insights-block" style="display:none;">
         <strong>Insights financiers avancés</strong>
         <div class="assistant-advanced-grid" id="assistant-advanced-grid"></div>
       </div>
 
       <!-- Charts Section -->
-      <div class="assistant-block assistant-charts-section" id="assistant-charts-block" data-dashboard-mode="complete" style="display:none;">
+      <div class="assistant-block assistant-charts-section" id="assistant-charts-block" style="display:none;">
         <strong>Évolutions (12 mois)</strong>
         <div class="assistant-chart-grid" id="assistant-charts-grid"></div>
       </div>
 
       <!-- Visual Projections Section -->
-      <div class="assistant-block assistant-projections-section" id="assistant-projections-block" data-dashboard-mode="complete" style="display:none;">
+      <div class="assistant-block assistant-projections-section" id="assistant-projections-block" style="display:none;">
         <strong>Projections & Rythmes d'Épargne</strong>
         <div class="assistant-projections-grid" id="assistant-projections-grid"></div>
       </div>
 
       <!-- Forecasts Section -->
-      <div class="assistant-block assistant-forecast-section" id="assistant-forecast-block" data-dashboard-mode="complete" style="display:none;">
+      <div class="assistant-block assistant-forecast-section" id="assistant-forecast-block" style="display:none;">
         <strong>Prévisions financières</strong>
         <div class="assistant-forecast-grid" id="assistant-forecast-grid"></div>
       </div>
@@ -552,6 +552,14 @@ async function renderAssistantCard() {
   if (corePanel) {
     corePanel.classList.remove('dashboard-core-embedded')
     corePanel.setAttribute('aria-hidden', 'true')
+  }
+
+  if (document.body?.classList?.contains('mode-complete')) {
+    const existingAssistant = document.getElementById('assistant-card')
+    const previousHost = existingAssistant?.closest('.dashboard-assistant-host')
+    existingAssistant?.remove()
+    if (previousHost && !previousHost.children.length) previousHost.remove()
+    return null
   }
 
   const preferredContainers = [

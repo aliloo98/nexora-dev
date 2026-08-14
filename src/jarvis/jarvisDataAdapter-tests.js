@@ -54,6 +54,15 @@ async function testSuccessfulMetricsCollection() {
   assert.strictEqual(result.metrics.fixedExpenses, 1200, 'Fixed expenses should include rent')
   assert.strictEqual(result.metrics.variableExpenses, 500, 'Variable expenses should include food')
   assert.strictEqual(result.metrics.plannedExpenses, 1700, 'Planned expenses should sum fixed + variable')
+  assert.deepStrictEqual(
+    result.metrics.categories.map(category => ({ id: category.id, name: category.name, amount: category.amount })),
+    [
+      { id: 'income_salary', name: 'Salaire', amount: 3000 },
+      { id: 'rent', name: 'Loyer', amount: 1200 },
+      { id: 'food', name: 'Courses', amount: 500 }
+    ],
+    'Metrics should expose real categories for Copilot expense analysis'
+  )
 }
 
 async function testCategoriesReused() {
@@ -236,6 +245,7 @@ async function testJ4InputShape() {
   assert.ok(typeof result.metrics.variableExpenses === 'number', 'Variable expenses should be number')
   assert.ok(typeof result.metrics.plannedExpenses === 'number', 'Planned expenses should be number')
   assert.ok(typeof result.metrics.paidExpenses === 'number', 'Paid expenses should be number')
+  assert.ok(Array.isArray(result.metrics.categories), 'Categories should be array')
   
   assert.ok(Array.isArray(result.history), 'J4 expects history array')
   assert.ok(Array.isArray(result.goals), 'J4 expects goals array')
