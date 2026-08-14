@@ -14,25 +14,18 @@
  */
 
 import { computeCycleBalances } from '../finance/cycleBalance.js'
-import { computeMonthlyMetrics } from '../finance/monthlyMetrics.js'
 import { AnalysisEngine } from '../assistant/AnalysisEngine.js'
 import { calculateForecast } from '../forecast/forecastEngine.js'
 import { detectOpportunities } from '../opportunity/opportunityEngine.js'
-import { generateFinancialInsights } from '../coach/financialInsightEngine.js'
 import { DebtPlanner } from '../debt/debtPlanner.js'
 import { calculateGoalMetrics, selectPrimaryGoal } from '../goals/goalMetrics.js'
 
 const ENGINE_VERSION = 1
 
-const safeNumber = (value, fallback = 0) => {
-  const number = Number(value)
-  return Number.isFinite(number) ? number : fallback
-}
-
 /**
  * Évalue la qualité des données disponibles
  */
-function assessDataQuality(metrics = {}, goals = [], debts = [], history = []) {
+function assessDataQuality(metrics = {}, goals = [], debts = [], history = [], dataAvailability = {}) {
   const issues = []
   
   // Vérification revenus
@@ -47,15 +40,21 @@ function assessDataQuality(metrics = {}, goals = [], debts = [], history = []) {
     issues.push({ code: 'NO_EXPENSES', severity: 'medium' })
   }
   
-  // Vérification objectifs
-  const hasGoal = goals.length > 0 && goals.some(g => (g.target || g.targetAmount) > 0)
-  if (!hasGoal) {
-    issues.push({ code: 'NO_GOAL', severity: 'low' })
+  // Vérification objectifs - distinguer unknown vs known empty
+  const goalsKnown = dataAvailability.goals === 'known'
+  const hasGoal = goalsKnown && goals.length > 0 && goals.some(g => (g.target || g.targetAmount) > 0)
+  if (goalsKnown && !hasGoal) {
+    // Known empty (no goals configured) - not an issue, just information
+  } else if (!goalsKnown) {
+    issues.push({ code: 'NO_GOAL_DATA', severity: 'low' })
   }
   
-  // Vérification dette
-  const hasDebt = debts.length > 0 && debts.some(d => (d.balance || d.amount) > 0)
-  if (!hasDebt) {
+  // Vérification dette - distinguer unknown vs known empty
+  const debtsKnown = dataAvailability.debts === 'known'
+  const hasDebt = debtsKnown && debts.length > 0 && debts.some(d => (d.balance || d.amount) > 0)
+  if (debtsKnown && !hasDebt) {
+    // Known empty (no debts) - not an issue, this is good
+  } else if (!debtsKnown) {
     issues.push({ code: 'NO_DEBT_DATA', severity: 'low' })
   }
   
@@ -78,22 +77,31 @@ function assessDataQuality(metrics = {}, goals = [], debts = [], history = []) {
     hasGoal,
     hasDebt,
     hasHistory,
-    isComplete: issues.length === 0
+    isComplete: issues.length === 0,
+    dataAvailability: {
+      goals: goalsKnown ? 'known' : 'unknown',
+      debts: debtsKnown ? 'known' : 'unknown',
+      history: 'known' // History is always known if provided
+    }
   }
 }
 
 /**
  * Construit l'état de santé financier
  */
-function buildHealthState(metrics = {}, analysisResult = {}) {
-  const { income, projectedBalance, savingsRate, chargesRate } = metrics
+function buildHealthState(metrics = {}, cycleBalances = {}, analysisResult = {}) {
+  const { income, savingsRate } = metrics
+  const { projectedEndOfCycle } = cycleBalances
   const { score, label } = analysisResult
   
+  // Calculer chargesRate à partir des données réelles
+  const chargesRate = income > 0 ? ((metrics.fixedExpenses || 0) / income) * 100 : 0
+
   // Classification basée sur les métriques existantes
   let status = 'unknown'
   if (income <= 0) {
     status = 'no_income'
-  } else if (projectedBalance < 0) {
+  } else if (projectedEndOfCycle < 0) {
     status = 'critical'
   } else if (chargesRate > 70) {
     status = 'fragile'
@@ -109,7 +117,7 @@ function buildHealthState(metrics = {}, analysisResult = {}) {
     status,
     score: score || 0,
     label: label || 'Inconnu',
-    cashflow: projectedBalance >= 0 ? 'positive' : 'negative',
+    cashflow: projectedEndOfCycle >= 0 ? 'positive' : 'negative',
     pressure: chargesRate > 50 ? 'high' : chargesRate > 30 ? 'medium' : 'low'
   }
 }
@@ -146,21 +154,7 @@ function detectRisks(cycleBalances = {}, inputMetrics = {}, dataQuality = {}, fo
     })
   }
   
-  // Risque 3: Charges fixes élevées
-  if (income > 0 && (fixedExpenses / income) > 0.5) {
-    risks.push({
-      id: 'high_fixed_charges',
-      domain: 'expenses',
-      severity: 'medium',
-      evidence: {
-        fixedExpenses,
-        income,
-        ratio: Math.round((fixedExpenses / income) * 100)
-      }
-    })
-  }
-  
-  // Risque 4: Risque de découvert (depuis forecast)
+  // Risque 3: Risque de découvert (depuis forecast)
   if (forecast.overdraftRisk === 'HIGH') {
     risks.push({
       id: 'overdraft_risk',
@@ -202,25 +196,12 @@ function detectFinancialOpportunities(cycleBalances = {}, inputMetrics = {}, dat
     })
   }
   
-  // Opportunité: Taux d'épargne élevé
-  if (savingsRate >= 20) {
-    opportunities.push({
-      id: 'high_savings_rate',
-      domain: 'savings',
-      title: 'Excellente capacité d\'épargne',
-      description: `Ton taux d'épargne de ${Math.round(savingsRate)}%% est excellent.`,
-      estimatedGain: null,
-      difficulty: 'NONE',
-      confidence: 90,
-      priority: 65
-    })
-  }
-  
   return opportunities
 }
 
 /**
  * Analyse les tendances
+ * History contract: [{ income, expenses }]
  */
 function analyzeTrends(metrics = {}, history = []) {
   if (!Array.isArray(history) || history.length < 2) {
@@ -229,10 +210,13 @@ function analyzeTrends(metrics = {}, history = []) {
   
   const current = metrics
   const previous = history[history.length - 1]
-  
+
+  // Utiliser uniquement les champs du contrat history: income, expenses
   const incomeTrend = current.income > previous.income ? 'up' : current.income < previous.income ? 'down' : 'stable'
-  const expenseTrend = current.plannedExpenses > previous.plannedExpenses ? 'up' : current.plannedExpenses < previous.plannedExpenses ? 'down' : 'stable'
-  const savingsTrend = current.projectedBalance > previous.projectedBalance ? 'up' : current.projectedBalance < previous.projectedBalance ? 'down' : 'stable'
+  const expenseTrend = (current.plannedExpenses || current.expenses) > previous.expenses ? 'up' : (current.plannedExpenses || current.expenses) < previous.expenses ? 'down' : 'stable'
+
+  // Savings trend non calculable avec le contrat actuel (pas de projectedBalance dans history)
+  const savingsTrend = 'unavailable'
   
   return {
     available: true,
@@ -241,8 +225,8 @@ function analyzeTrends(metrics = {}, history = []) {
     savings: savingsTrend,
     comparison: {
       income: { current: current.income, previous: previous.income },
-      expenses: { current: current.plannedExpenses, previous: previous.plannedExpenses },
-      savings: { current: current.projectedBalance, previous: previous.projectedBalance }
+      expenses: { current: current.plannedExpenses || current.expenses, previous: previous.expenses },
+      savings: { current: null, previous: null, note: 'savings trend unavailable with current history contract' }
     }
   }
 }
@@ -277,24 +261,12 @@ function prioritize(risks = [], opportunities = {}, dataQuality = {}) {
     })
   }
   
-  // Priorité 3: Réduire les charges fixes
-  const highChargesRisk = risks.find(r => r.id === 'high_fixed_charges')
-  if (highChargesRisk && !deficitRisk) {
-    priorities.push({
-      id: 'reduce_fixed_charges',
-      rank: 3,
-      action: 'Optimiser les abonnements et charges fixes',
-      domain: 'expenses',
-      severity: 'medium'
-    })
-  }
-  
-  // Priorité 4: Opportunités si pas de risque critique
+  // Priorité 3: Opportunités si pas de risque critique
   if (!deficitRisk && !noIncomeRisk && opportunities.length > 0) {
     const topOpportunity = opportunities[0]
     priorities.push({
       id: 'capture_opportunity',
-      rank: 4,
+      rank: 3,
       action: topOpportunity.title || 'Profiter des opportunités disponibles',
       domain: topOpportunity.domain || 'general',
       severity: 'low'
@@ -323,13 +295,14 @@ export function buildIntelligenceSnapshot(input = {}, options = {}) {
     history = [],
     goals = [],
     debts = [],
-    billSchedules = []
+    billSchedules = [],
+    dataAvailability = {}
   } = input
   
   const referenceDate = options.referenceDate ? new Date(options.referenceDate) : new Date()
   
   // 1. Assurer la qualité des données
-  const dataQuality = assessDataQuality(metrics, goals, debts, history)
+  const dataQuality = assessDataQuality(metrics, goals, debts, history, dataAvailability)
   
   // 2. Calculer les soldes de cycle (réutilisation de cycleBalance)
   const cycleBalances = computeCycleBalances({
@@ -352,7 +325,7 @@ export function buildIntelligenceSnapshot(input = {}, options = {}) {
   const scoreResult = analysisEngine.calculateScore(calculatedMetrics)
   
   // 4. État de santé
-  const health = buildHealthState(metrics, scoreResult)
+  const health = buildHealthState(metrics, cycleBalances, scoreResult)
   
   // 5. Prévision (réutilisation de forecastEngine)
   const forecast = calculateForecast(metrics, { referenceDate, billSchedules })
@@ -437,14 +410,13 @@ export function buildIntelligenceSnapshot(input = {}, options = {}) {
     priorities,
     goal: goalAnalysis,
     evidence: {
-      metricsSource: 'monthlyMetrics',
       balanceSource: 'cycleBalance',
       analysisSource: 'AnalysisEngine',
       forecastSource: 'forecastEngine',
       opportunitySource: 'opportunityEngine',
-      insightSource: 'financialInsightEngine',
       debtSource: 'debtPlanner',
-      goalSource: 'goalMetrics'
+      goalSource: 'goalMetrics',
+      goalSelectionSource: 'selectPrimaryGoal'
     }
   }
 }
