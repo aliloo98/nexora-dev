@@ -123,7 +123,7 @@ export async function renderAdvancedApplicationUi({
 
     // Step 25.5: Initialize Jarvis Dashboard integration (J5)
     if (typeof initJarvisDashboardIntegration === 'function') {
-      initJarvisDashboardIntegration(windowRef)
+      initJarvisDashboardIntegration({ windowRef, documentRef })
     }
 
     // Step 26: Render Advisor UI

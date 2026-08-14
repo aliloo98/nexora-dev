@@ -8,15 +8,27 @@ import { test, expect } from '@playwright/test'
 
 test.describe('Jarvis Cockpit - Desktop', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
+    // Use official test server URL from playwright.config.js
+    await page.goto('http://127.0.0.1:5180')
     await page.waitForLoadState('networkidle')
+
+    // Perform real demo login
+    const loginDemoBtn = page.locator('#loginDemoBtn')
+    await expect(loginDemoBtn).toBeVisible()
+    await loginDemoBtn.click()
+
+    // Wait for navigation to dashboard
+    await page.waitForURL('**/#section-dashboard', { timeout: 30000 })
+
+    // Wait for dashboard V2 modular to be visible
+    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000, state: 'visible' })
+
+    // Verify setNexoraUxMode exists in runtime
+    const hasSetNexoraUxMode = await page.evaluate(() => typeof window.setNexoraUxMode === 'function')
+    expect(hasSetNexoraUxMode).toBe(true)
   })
 
   test('1. Complete mode shows Jarvis', async ({ page }) => {
-    // Wait for app to be fully loaded
-    await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(2000) // Wait for initialization
-
     // Set Complete mode
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
@@ -24,69 +36,18 @@ test.describe('Jarvis Cockpit - Desktop', () => {
       }
     })
     
-    // Navigate to Dashboard
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
     await page.waitForTimeout(1000)
+
+    // Verify Complete mode is active
+    await expect(page.locator('body')).toHaveClass(/mode-complete/)
     
-    // DEBUG: Check mode
-    const currentMode = await page.evaluate(() => {
-      return document.body.classList.contains('mode-complete') ? 'complete' : 
-             document.body.classList.contains('mode-simple') ? 'simple' : 'unknown'
-    })
-    
-    console.log('Current mode:', currentMode)
-    
-    // DEBUG: Check cockpit root
-    const cockpitRoot = await page.evaluate(() => {
-      const root = document.getElementById('cockpit-financier-root')
-      return {
-        exists: !!root,
-        innerHTML: root ? root.innerHTML.substring(0, 200) : null
-      }
-    })
-    
-    console.log('Cockpit root:', cockpitRoot)
-    
-    // The cockpit root should exist and contain Jarvis content
-    const cockpitRootEl = page.locator('#cockpit-financier-root')
-    await expect(cockpitRootEl).toHaveCount(1)
-    
-    // Verify Jarvis content is in the cockpit
+    // Verify Jarvis is present
     const jarvisCockpit = page.locator('#cockpit-financier-root .jarvis-cockpit')
     await expect(jarvisCockpit).toHaveCount(1)
     
-    // Verify Jarvis data quality message OR hero exists in DOM
-    const dataQualityMode = page.locator('.jarvis-data-quality-mode')
-    const jarvisHero = page.locator('.jarvis-hero')
-    
-    const hasDataQuality = await dataQualityMode.count() > 0
-    const hasHero = await jarvisHero.count() > 0
-    
-    console.log('Has data quality mode:', hasDataQuality)
-    console.log('Has hero:', hasHero)
-    
-    // At least one should exist in DOM
-    expect(hasDataQuality || hasHero).toBeTruthy()
-    
-    // If data quality mode, verify message exists
-    if (hasDataQuality) {
-      const dataQualityMessage = page.locator('.jarvis-data-quality-message')
-      await expect(dataQualityMessage).toHaveCount(1)
-    }
-    
-    // If hero, verify hero elements exist
-    if (hasHero) {
-      const jarvisStatus = page.locator('.jarvis-status-badge')
-      await expect(jarvisStatus).toHaveCount(1)
-      
-      const jarvisHeadline = page.locator('.jarvis-headline')
-      await expect(jarvisHeadline).toHaveCount(1)
-    }
+    // Verify Hero legacy is NOT in the cockpit
+    const legacyHero = page.locator('#cockpit-financier-root .nx-hero-card')
+    await expect(legacyHero).toHaveCount(0)
   })
 
   test('2. Simplified mode excludes Jarvis', async ({ page }) => {
@@ -97,261 +58,86 @@ test.describe('Jarvis Cockpit - Desktop', () => {
       }
     })
     
-    // Navigate to Dashboard
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
+    await page.waitForTimeout(1000)
+
+    // Verify Simple mode is active
+    await expect(page.locator('body')).toHaveClass(/mode-simple/)
     
-    await page.waitForTimeout(500)
-    
-    // Verify Jarvis cockpit is NOT in DOM in Simplified mode
+    // Jarvis cockpit should not exist in Simplified mode
     const jarvisCockpit = page.locator('.jarvis-cockpit')
     await expect(jarvisCockpit).toHaveCount(0)
     
-    // Verify existing HeroCard is used instead
-    const heroCard = page.locator('.nx-hero-card')
-    await expect(heroCard).toHaveCount(1)
+    // Legacy hero should exist
+    const legacyHero = page.locator('#cockpit-financier-root .nx-hero-card')
+    await expect(legacyHero).toHaveCount(1)
   })
 
-  test('3. healthy state visible', async ({ page }) => {
-    // Set Complete mode
-    await page.evaluate(() => {
-      if (typeof window.setNexoraUxMode === 'function') {
-        window.setNexoraUxMode('complete')
-      }
-    })
-    
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
-    await page.waitForTimeout(500)
-    
-    // Jarvis should exist in DOM
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
-    await expect(jarvisCockpit).toHaveCount(1)
-    
-    // Either hero or data quality mode should exist
-    const jarvisHero = page.locator('.jarvis-hero')
-    const dataQualityMode = page.locator('.jarvis-data-quality-mode')
-    
-    const hasHero = await jarvisHero.count() > 0
-    const hasDataQuality = await dataQualityMode.count() > 0
-    
-    expect(hasHero || hasDataQuality).toBeTruthy()
-  })
-
-  test('4. critical state handling', async ({ page }) => {
-    // Set Complete mode
-    await page.evaluate(() => {
-      if (typeof window.setNexoraUxMode === 'function') {
-        window.setNexoraUxMode('complete')
-      }
-    })
-    
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
-    await page.waitForTimeout(500)
-    
-    // Jarvis should exist in DOM
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
-    await expect(jarvisCockpit).toHaveCount(1)
-    
-    // Either hero or data quality mode should exist
-    const jarvisHero = page.locator('.jarvis-hero')
-    const dataQualityMode = page.locator('.jarvis-data-quality-mode')
-    
-    const hasHero = await jarvisHero.count() > 0
-    const hasDataQuality = await dataQualityMode.count() > 0
-    
-    expect(hasHero || hasDataQuality).toBeTruthy()
-  })
-
-  test('5. no-income state handling', async ({ page }) => {
-    // Set Complete mode
-    await page.evaluate(() => {
-      if (typeof window.setNexoraUxMode === 'function') {
-        window.setNexoraUxMode('complete')
-      }
-    })
-    
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
-    await page.waitForTimeout(500)
-    
-    // Jarvis should exist in DOM
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
-    await expect(jarvisCockpit).toHaveCount(1)
-    
-    // Either hero or data quality mode should exist
-    const jarvisHero = page.locator('.jarvis-hero')
-    const dataQualityMode = page.locator('.jarvis-data-quality-mode')
-    
-    const hasHero = await jarvisHero.count() > 0
-    const hasDataQuality = await dataQualityMode.count() > 0
-    
-    expect(hasHero || hasDataQuality).toBeTruthy()
-  })
-
-  test('6. incomplete-data state handling', async ({ page }) => {
-    // Set Complete mode
-    await page.evaluate(() => {
-      if (typeof window.setNexoraUxMode === 'function') {
-        window.setNexoraUxMode('complete')
-      }
-    })
-    
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
-    await page.waitForTimeout(500)
-    
-    // Jarvis should exist in DOM
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
-    await expect(jarvisCockpit).toHaveCount(1)
-  })
-
-  test('7. priority visible when available', async ({ page }) => {
-    // Set Complete mode
-    await page.evaluate(() => {
-      if (typeof window.setNexoraUxMode === 'function') {
-        window.setNexoraUxMode('complete')
-      }
-    })
-    
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
-    await page.waitForTimeout(500)
-    
-    // Jarvis should exist in DOM
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
-    await expect(jarvisCockpit).toHaveCount(1)
-  })
-
-  test('8. trajectory state visible', async ({ page }) => {
-    // Set Complete mode
-    await page.evaluate(() => {
-      if (typeof window.setNexoraUxMode === 'function') {
-        window.setNexoraUxMode('complete')
-      }
-    })
-    
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
-    await page.waitForTimeout(500)
-    
-    // Jarvis should exist in DOM
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
-    await expect(jarvisCockpit).toHaveCount(1)
-  })
-
-  test('9. insufficient-history handling', async ({ page }) => {
-    // Set Complete mode
-    await page.evaluate(() => {
-      if (typeof window.setNexoraUxMode === 'function') {
-        window.setNexoraUxMode('complete')
-      }
-    })
-    
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
-    await page.waitForTimeout(500)
-    
-    // Jarvis should exist in DOM
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
-    await expect(jarvisCockpit).toHaveCount(1)
-  })
-
-  test('10. mode switch transition', async ({ page }) => {
-    // Start in Simplified mode
+  test('3. Simple → Complete transition', async ({ page }) => {
+    // Start in Simple mode
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
         window.setNexoraUxMode('simple')
       }
     })
     
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
     await page.waitForTimeout(500)
-    
-    // Verify no Jarvis in Simplified
+
+    // Verify Jarvis is not present
     const jarvisCockpit = page.locator('.jarvis-cockpit')
     await expect(jarvisCockpit).toHaveCount(0)
     
-    // Switch to Complete
+    // Verify Hero legacy is present
+    const legacyHero = page.locator('#cockpit-financier-root .nx-hero-card')
+    await expect(legacyHero).toHaveCount(1)
+
+    // Switch to Complete mode
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
         window.setNexoraUxMode('complete')
       }
     })
     
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(1000)
     
-    // Verify Jarvis appears in DOM
+    // Verify Jarvis is now present
     await expect(jarvisCockpit).toHaveCount(1)
+
+    // Verify Hero legacy is removed
+    await expect(legacyHero).toHaveCount(0)
   })
 
-  test('11. refresh persistence', async ({ page }) => {
-    // Set Complete mode
+  test('4. Complete → Simple transition', async ({ page }) => {
+    // Start in Complete mode
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
         window.setNexoraUxMode('complete')
       }
     })
     
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
     await page.waitForTimeout(500)
-    
-    // Verify Jarvis is visible
+
+    // Verify Jarvis is present
     const jarvisCockpit = page.locator('.jarvis-cockpit')
     await expect(jarvisCockpit).toHaveCount(1)
     
-    // Reload page
-    await page.reload()
-    await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(2000)
+    // Switch to Simple mode
+    await page.evaluate(() => {
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('simple')
+      }
+    })
     
-    // Verify Jarvis is still visible after reload
-    await expect(jarvisCockpit).toHaveCount(1)
+    await page.waitForTimeout(1000)
+    
+    // Verify Jarvis is now absent
+    await expect(jarvisCockpit).toHaveCount(0)
+
+    // Verify Hero legacy is restored
+    const legacyHero = page.locator('#cockpit-financier-root .nx-hero-card')
+    await expect(legacyHero).toHaveCount(1)
   })
 
-  test('12. keyboard focus', async ({ page }) => {
+  test('5. no-duplicate Jarvis roots on repeated navigation', async ({ page }) => {
     // Set Complete mode
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
@@ -359,37 +145,299 @@ test.describe('Jarvis Cockpit - Desktop', () => {
       }
     })
     
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
+    await page.waitForTimeout(500)
+    
+    // Navigate away and back multiple times using section navigation
+    for (let i = 0; i < 3; i++) {
+      await page.evaluate(() => {
+        if (typeof window.showSection === 'function') {
+          window.showSection('budget')
+        }
+      })
+      await page.waitForTimeout(300)
+      
+      await page.evaluate(() => {
+        if (typeof window.showSection === 'function') {
+          window.showSection('dashboard')
+        }
+      })
+      await page.waitForTimeout(300)
+    }
+    
+    // Should still have exactly one Jarvis cockpit
+    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    await expect(jarvisCockpit).toHaveCount(1)
+  })
+
+  test('6. console and page errors collection', async ({ page }) => {
+    // Collect console errors
+    const consoleErrors = []
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text())
       }
     })
     
-    await page.waitForTimeout(500)
+    // Collect page errors
+    const pageErrors = []
+    page.on('pageerror', error => {
+      pageErrors.push(error.message)
+    })
     
-    // Test keyboard navigation
-    await page.keyboard.press('Tab')
+    // Set Complete mode
+    await page.evaluate(() => {
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('complete')
+      }
+    })
     
-    // Focus should be on an interactive element
-    const focusedElement = page.locator(':focus')
-    const isVisible = await focusedElement.isVisible()
+    await page.waitForTimeout(2000)
     
-    // If something is focused, it should be visible
-    if (await focusedElement.count() > 0) {
-      expect(isVisible).toBeTruthy()
+    // Verify no console errors
+    console.log('Console errors:', consoleErrors)
+    expect(consoleErrors.length).toBe(0)
+    
+    // Verify no page errors
+    console.log('Page errors:', pageErrors)
+    expect(pageErrors.length).toBe(0)
+  })
+
+  test('7. viewport 1440x900', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    
+    await page.evaluate(() => {
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('complete')
+      }
+    })
+    
+    await page.waitForTimeout(1000)
+    
+    // Jarvis should render
+    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    await expect(jarvisCockpit).toHaveCount(1)
+    
+    // Check for horizontal overflow
+    const hasOverflow = await page.evaluate(() => {
+      return document.body.scrollWidth > document.body.clientWidth
+    })
+    
+    expect(hasOverflow).toBeFalsy()
+  })
+
+  test('8. viewport 1366x768', async ({ page }) => {
+    await page.setViewportSize({ width: 1366, height: 768 })
+    
+    await page.evaluate(() => {
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('complete')
+      }
+    })
+    
+    await page.waitForTimeout(1000)
+    
+    // Jarvis should render
+    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    await expect(jarvisCockpit).toHaveCount(1)
+    
+    // Check for horizontal overflow
+    const hasOverflow = await page.evaluate(() => {
+      return document.body.scrollWidth > document.body.clientWidth
+    })
+    
+    expect(hasOverflow).toBeFalsy()
+  })
+
+  test('9. viewport 1024x768', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 768 })
+    
+    await page.evaluate(() => {
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('complete')
+      }
+    })
+    
+    await page.waitForTimeout(1000)
+    
+    // Jarvis should render
+    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    await expect(jarvisCockpit).toHaveCount(1)
+    
+    // Check for horizontal overflow
+    const hasOverflow = await page.evaluate(() => {
+      return document.body.scrollWidth > document.body.clientWidth
+    })
+    
+    expect(hasOverflow).toBeFalsy()
+  })
+
+  test('10. keyboard CTA Enter activation', async ({ page }) => {
+    await page.evaluate(() => {
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('complete')
+      }
+    })
+    
+    await page.waitForTimeout(1000)
+    
+    // Find CTA button
+    const ctaButton = page.locator('.jarvis-cta')
+    const count = await ctaButton.count()
+    
+    if (count > 0) {
+      // Focus and press Enter
+      await ctaButton.first().focus()
+      await ctaButton.first().press('Enter')
+      await page.waitForTimeout(500)
     }
+  })
+
+  test('11. keyboard CTA Space activation', async ({ page }) => {
+    await page.evaluate(() => {
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('complete')
+      }
+    })
+    
+    await page.waitForTimeout(1000)
+    
+    // Find CTA button
+    const ctaButton = page.locator('.jarvis-cta')
+    const count = await ctaButton.count()
+    
+    if (count > 0) {
+      // Focus and press Space
+      await ctaButton.first().focus()
+      await ctaButton.first().press('Space')
+      await page.waitForTimeout(500)
+    }
+  })
+
+  test('12. normal motion behavior', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: false })
+    
+    await page.evaluate(() => {
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('complete')
+      }
+    })
+    
+    await page.waitForTimeout(1000)
+    
+    // Jarvis should render
+    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    await expect(jarvisCockpit).toHaveCount(1)
+  })
+
+  test('13. reduced motion behavior', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: true })
+    
+    await page.evaluate(() => {
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('complete')
+      }
+    })
+    
+    await page.waitForTimeout(1000)
+    
+    // Jarvis should render
+    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    await expect(jarvisCockpit).toHaveCount(1)
+    
+    // Check that reduced motion is respected
+    const respectsReducedMotion = await page.evaluate(() => {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    })
+    
+    expect(respectsReducedMotion).toBeTruthy()
   })
 })
 
 test.describe('Jarvis Cockpit - Mobile', () => {
-  test.use({ viewport: { width: 390, height: 844 } })
-  
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
+    await page.setViewportSize({ width: 375, height: 812 })
+    await page.goto('http://127.0.0.1:5180')
     await page.waitForLoadState('networkidle')
+
+    // Perform real demo login
+    const loginDemoBtn = page.locator('#loginDemoBtn')
+    await expect(loginDemoBtn).toBeVisible()
+    await loginDemoBtn.click()
+
+    // Wait for navigation to dashboard
+    await page.waitForURL('**/#section-dashboard', { timeout: 30000 })
+
+    // Wait for dashboard V2 modular to be visible
+    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000, state: 'visible' })
+
+    // Verify setNexoraUxMode exists in runtime
+    const hasSetNexoraUxMode = await page.evaluate(() => typeof window.setNexoraUxMode === 'function')
+    expect(hasSetNexoraUxMode).toBe(true)
   })
 
-  test('13. Complete Jarvis visible on mobile', async ({ page }) => {
+  test('14. mobile viewport 375x812', async ({ page }) => {
+    await page.evaluate(() => {
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('complete')
+      }
+    })
+    
+    await page.waitForTimeout(1000)
+    
+    // Jarvis should render
+    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    await expect(jarvisCockpit).toHaveCount(1)
+    
+    // Check for horizontal overflow
+    const hasOverflow = await page.evaluate(() => {
+      return document.body.scrollWidth > document.body.clientWidth
+    })
+    
+    expect(hasOverflow).toBeFalsy()
+  })
+
+  test('15. mobile Simple mode', async ({ page }) => {
+    await page.evaluate(() => {
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('simple')
+      }
+    })
+    
+    await page.waitForTimeout(1000)
+    
+    // Jarvis should not exist in Simple mode
+    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    await expect(jarvisCockpit).toHaveCount(0)
+
+    // Legacy hero should exist
+    const legacyHero = page.locator('#cockpit-financier-root .nx-hero-card')
+    await expect(legacyHero).toHaveCount(1)
+  })
+})
+
+test.describe('Jarvis Cockpit - Refresh Persistence', () => {
+  test.beforeEach(async ({ page }) => {
+    // Use official test server URL from playwright.config.js
+    await page.goto('http://127.0.0.1:5180')
+    await page.waitForLoadState('networkidle')
+
+    // Perform real demo login
+    const loginDemoBtn = page.locator('#loginDemoBtn')
+    await expect(loginDemoBtn).toBeVisible()
+    await loginDemoBtn.click()
+
+    // Wait for navigation to dashboard
+    await page.waitForURL('**/#section-dashboard', { timeout: 30000 })
+
+    // Wait for dashboard V2 modular to be visible
+    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000, state: 'visible' })
+
+    // Verify setNexoraUxMode exists in runtime
+    const hasSetNexoraUxMode = await page.evaluate(() => typeof window.setNexoraUxMode === 'function')
+    expect(hasSetNexoraUxMode).toBe(true)
+  })
+
+  test('16. Complete mode refresh persistence', async ({ page }) => {
     // Set Complete mode
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
@@ -397,20 +445,31 @@ test.describe('Jarvis Cockpit - Mobile', () => {
       }
     })
     
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
-    await page.waitForTimeout(500)
-    
-    // Verify Jarvis cockpit exists in DOM on mobile
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    await page.waitForTimeout(1000)
+
+    // Verify Jarvis is present before refresh
+    const jarvisCockpit = page.locator('#cockpit-financier-root .jarvis-cockpit')
     await expect(jarvisCockpit).toHaveCount(1)
+    
+    // Refresh the page
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+
+    // Wait for dashboard to load
+    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000 })
+    
+    // Verify Jarvis is still present after refresh
+    await expect(jarvisCockpit).toHaveCount(1)
+    
+    // Verify mode is still Complete
+    await expect(page.locator('body')).toHaveClass(/mode-complete/)
+    
+    // Verify Hero legacy is NOT in the cockpit
+    const legacyHero = page.locator('#cockpit-financier-root .nx-hero-card')
+    await expect(legacyHero).toHaveCount(0)
   })
 
-  test('14. Simplified excludes Jarvis on mobile', async ({ page }) => {
+  test('17. Simplified mode refresh persistence', async ({ page }) => {
     // Set Simplified mode
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
@@ -418,244 +477,73 @@ test.describe('Jarvis Cockpit - Mobile', () => {
       }
     })
     
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
-    await page.waitForTimeout(500)
-    
-    // Verify Jarvis cockpit is NOT in DOM in Simplified mode
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
-    await expect(jarvisCockpit).toHaveCount(0)
-  })
+    await page.waitForTimeout(1000)
 
-  test('15. no horizontal overflow on mobile', async ({ page }) => {
-    // Set Complete mode
-    await page.evaluate(() => {
-      if (typeof window.setNexoraUxMode === 'function') {
-        window.setNexoraUxMode('complete')
-      }
-    })
-    
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
-    await page.waitForTimeout(500)
-    
-    // Check for horizontal overflow
-    const bodyWidth = await page.evaluate(() => document.body.scrollWidth)
-    const viewportWidth = await page.evaluate(() => window.innerWidth)
-    
-    // Body should not be wider than viewport (no horizontal scroll)
-    expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 1) // Allow 1px tolerance
-  })
-
-  test('16. correct information order on mobile', async ({ page }) => {
-    // Set Complete mode
-    await page.evaluate(() => {
-      if (typeof window.setNexoraUxMode === 'function') {
-        window.setNexoraUxMode('complete')
-      }
-    })
-    
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
-    await page.waitForTimeout(500)
-    
-    // Verify Jarvis exists in DOM
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
-    await expect(jarvisCockpit).toHaveCount(1)
-  })
-
-  test('17. CTA accessible on mobile', async ({ page }) => {
-    // Set Complete mode
-    await page.evaluate(() => {
-      if (typeof window.setNexoraUxMode === 'function') {
-        window.setNexoraUxMode('complete')
-      }
-    })
-    
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
-    await page.waitForTimeout(500)
-    
-    // Check if CTA exists and is accessible
-    const ctaButton = page.locator('.jarvis-priority-cta')
-    const ctaCount = await ctaButton.count()
-    
-    if (ctaCount > 0) {
-      // CTA should be visible and clickable
-      await expect(ctaButton.first()).toBeVisible()
-      
-      // CTA should have sufficient touch target size (44x44 minimum)
-      const box = await ctaButton.first().boundingBox()
-      expect(box.width).toBeGreaterThanOrEqual(44)
-      expect(box.height).toBeGreaterThanOrEqual(44)
-    }
-  })
-
-  test('18. switch modes on mobile', async ({ page }) => {
-    // Start in Simplified mode
-    await page.evaluate(() => {
-      if (typeof window.setNexoraUxMode === 'function') {
-        window.setNexoraUxMode('simple')
-      }
-    })
-    
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
-    await page.waitForTimeout(500)
-    
-    // Verify no Jarvis in Simplified
+    // Verify Jarvis is not present before refresh
     const jarvisCockpit = page.locator('.jarvis-cockpit')
     await expect(jarvisCockpit).toHaveCount(0)
     
-    // Switch to Complete
-    await page.evaluate(() => {
-      if (typeof window.setNexoraUxMode === 'function') {
-        window.setNexoraUxMode('complete')
-      }
-    })
+    // Refresh the page
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+
+    // Wait for dashboard to load
+    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000 })
     
-    await page.waitForTimeout(500)
+    // Verify Jarvis is still not present after refresh
+    await expect(jarvisCockpit).toHaveCount(0)
     
-    // Verify Jarvis appears in DOM
-    await expect(jarvisCockpit).toHaveCount(1)
+    // Verify mode is still Simple
+    await expect(page.locator('body')).toHaveClass(/mode-simple/)
+    
+    // Verify Hero legacy is present
+    const legacyHero = page.locator('#cockpit-financier-root .nx-hero-card')
+    await expect(legacyHero).toHaveCount(1)
   })
 })
 
-test.describe('Jarvis Cockpit - Mobile Small', () => {
-  test.use({ viewport: { width: 375, height: 812 } })
-  
+test.describe('Jarvis Cockpit - MutationObserver Lifecycle', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
+    // Use official test server URL from playwright.config.js
+    await page.goto('http://127.0.0.1:5180')
     await page.waitForLoadState('networkidle')
+
+    // Perform real demo login
+    const loginDemoBtn = page.locator('#loginDemoBtn')
+    await expect(loginDemoBtn).toBeVisible()
+    await loginDemoBtn.click()
+
+    // Wait for navigation to dashboard
+    await page.waitForURL('**/#section-dashboard', { timeout: 30000 })
+
+    // Wait for dashboard V2 modular to be visible
+    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000, state: 'visible' })
+
+    // Verify setNexoraUxMode exists in runtime
+    const hasSetNexoraUxMode = await page.evaluate(() => typeof window.setNexoraUxMode === 'function')
+    expect(hasSetNexoraUxMode).toBe(true)
   })
 
-  test('29. Jarvis visible on small mobile', async ({ page }) => {
-    // Set Complete mode
-    await page.evaluate(() => {
-      if (typeof window.setNexoraUxMode === 'function') {
-        window.setNexoraUxMode('complete')
-      }
-    })
-    
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
-    await page.waitForTimeout(500)
-    
-    // Verify Jarvis cockpit exists in DOM on small mobile
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
-    await expect(jarvisCockpit).toHaveCount(1)
-  })
-
-  test('30. no horizontal overflow on small mobile', async ({ page }) => {
-    // Set Complete mode
-    await page.evaluate(() => {
-      if (typeof window.setNexoraUxMode === 'function') {
-        window.setNexoraUxMode('complete')
-      }
-    })
-    
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
-    await page.waitForTimeout(500)
-    
-    // Check for horizontal overflow
-    const bodyWidth = await page.evaluate(() => document.body.scrollWidth)
-    const viewportWidth = await page.evaluate(() => window.innerWidth)
-    
-    // Body should not be wider than viewport (no horizontal scroll)
-    expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 1) // Allow 1px tolerance
-  })
-})
-
-test.describe('Jarvis Cockpit - Motion', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForLoadState('networkidle')
-  })
-
-  test('19. normal motion', async ({ page }) => {
-    // Set Complete mode
-    await page.evaluate(() => {
-      if (typeof window.setNexoraUxMode === 'function') {
-        window.setNexoraUxMode('complete')
-      }
-    })
-    
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
-    await page.waitForTimeout(500)
-    
-    // Verify Jarvis exists in DOM
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
-    await expect(jarvisCockpit).toHaveCount(1)
-    
-    // Verify Jarvis has motion data attribute
-    const motionData = await jarvisCockpit.getAttribute('data-motion')
-    
-    // Should have motion attribute for entry animation
-    expect(motionData).toBe('entry')
-  })
-
-  test('20. reduced motion', async ({ page }) => {
-    // Set reduced motion preference
-    await page.addInitScript(() => {
-      Object.defineProperty(window, 'matchMedia', {
-        value: (query) => ({
-          matches: query.includes('prefers-reduced-motion: reduce'),
-          media: query
-        })
+  test('18. no duplicate Jarvis roots on repeated mode switches', async ({ page }) => {
+    // Switch modes multiple times
+    for (let i = 0; i < 5; i++) {
+      await page.evaluate(() => {
+        if (typeof window.setNexoraUxMode === 'function') {
+          window.setNexoraUxMode('complete')
+        }
       })
-    })
-    
-    // Set Complete mode
-    await page.evaluate(() => {
-      if (typeof window.setNexoraUxMode === 'function') {
-        window.setNexoraUxMode('complete')
-      }
-    })
-    
-    await page.evaluate(() => {
-      if (typeof window.showSection === 'function') {
-        window.showSection('dashboard')
-      }
-    })
-    
-    await page.waitForTimeout(500)
-    
-    // Jarvis should still exist in DOM even with reduced motion
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
-    await expect(jarvisCockpit).toHaveCount(1)
+      await page.waitForTimeout(200)
+      
+      await page.evaluate(() => {
+        if (typeof window.setNexoraUxMode === 'function') {
+          window.setNexoraUxMode('simple')
+        }
+      })
+      await page.waitForTimeout(200)
+    }
+
+    // Check for duplicate roots
+    const jarvisCount = await page.locator('.jarvis-cockpit').count()
+    expect(jarvisCount).toBeLessThanOrEqual(1)
   })
 })

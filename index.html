@@ -4648,6 +4648,10 @@ function updateDashboardSynthesisHero(metrics = {}) {
         if (typeof showSection === 'function') showSection(section);
       }
     });
+  } else if (isCompleteMode && typeof window.renderJarvisInDashboard === 'function') {
+    // Mode Complete: Utiliser Jarvis
+    const monthKey = typeof window.getMonth === 'function' ? window.getMonth() : null;
+    window.renderJarvisInDashboard({ monthKey, documentRef: document, windowRef: window });
   }
 
   // Update core panel elements if they exist

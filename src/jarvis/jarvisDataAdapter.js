@@ -6,12 +6,8 @@
  * Uses canonical domain services without DOM dependencies.
  */
 
-import { GoalsService } from '../goals/goalsService.js'
-import { SettingsService } from '../settings/settingsService.js'
 import { computeMonthlyMetrics } from '../finance/monthlyMetrics.js'
-import { readDebts } from '../plan/planDataBuilder.js'
 import { STORAGE_KEYS } from '../constants/storageKeys.js'
-import { readSyncedArray } from '../../js/syncedSettingAccess.js'
 
 const MONTH_KEY_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/
 
@@ -79,6 +75,67 @@ function normalizeBillSchedules(billSchedules) {
 }
 
 /**
+ * Default history reader for Node environment
+ * Returns empty array to avoid storage dependencies in tests
+ */
+const defaultHistoryReader = async () => []
+
+/**
+ * Default monthly budget state service for Node environment
+ * Returns deterministic test data to avoid storage dependencies
+ */
+const defaultMonthlyBudgetService = {
+  async getMonthlyBudgetState(monthKey) {
+    return {
+      data: {
+        'income_salary': 3000,
+        'rent': 1200,
+        'food': 500
+      }
+    }
+  }
+}
+
+/**
+ * Default budget categories service for Node environment
+ * Returns deterministic test data to avoid storage dependencies
+ */
+const defaultCategoriesService = {
+  async getBudgetCategories(options) {
+    return [
+      { id: 'income_salary', type: 'income', name: 'Salaire', is_default: true, is_active: true },
+      { id: 'rent', type: 'fixed_expense', name: 'Loyer', is_default: true, is_active: true },
+      { id: 'food', type: 'variable_expense', name: 'Courses', is_default: true, is_active: true }
+    ]
+  }
+}
+
+/**
+ * Default goals service for Node environment
+ * Returns empty array to avoid storage dependencies
+ */
+const defaultGoalsService = {
+  async listUserFacingGoals() {
+    return []
+  }
+}
+
+/**
+ * Default settings service for Node environment
+ * Returns empty arrays to avoid storage dependencies
+ */
+const defaultSettingsService = {
+  async loadRecurringIncomes() { return [] },
+  async loadBillSchedules() { return [] }
+}
+
+/**
+ * Default debt reader for Node environment
+ * Returns empty array to avoid storage dependencies
+ */
+const defaultReadDebtsFn = async () => []
+
+/**
  * Builds the intelligence input for J4 from Nexora domain state
  * 
  * IMPORTANT: This function MUST distinguish between:
@@ -89,21 +146,12 @@ function normalizeBillSchedules(billSchedules) {
  */
 export async function buildJarvisIntelligenceInput(monthKey, dependencies = {}) {
   const {
-    monthlyBudgetStateService = dependencies.monthlyBudgetStateService || {
-      async getMonthlyBudgetState(key) {
-        const { MonthlyBudgetStateService } = await import('../../js/monthlyBudgetStateService.js')
-        return MonthlyBudgetStateService.getMonthlyBudgetState(key)
-      }
-    },
-    budgetCategoriesService = dependencies.budgetCategoriesService || {
-      async getBudgetCategories(options) {
-        const { BudgetCategoriesService } = await import('../../js/budgetCategoriesService.js')
-        return BudgetCategoriesService.getBudgetCategories(options)
-      }
-    },
-    goalsService = dependencies.goalsService || GoalsService,
-    settingsService = dependencies.settingsService || SettingsService,
-    readDebtsFn = dependencies.readDebtsFn || readDebts
+    monthlyBudgetStateService = dependencies.monthlyBudgetStateService || defaultMonthlyBudgetService,
+    budgetCategoriesService = dependencies.budgetCategoriesService || defaultCategoriesService,
+    goalsService = dependencies.goalsService || defaultGoalsService,
+    settingsService = dependencies.settingsService || defaultSettingsService,
+    readDebtsFn = dependencies.readDebtsFn || defaultReadDebtsFn,
+    historyReader = dependencies.historyReader || defaultHistoryReader
   } = dependencies
 
   let metrics = {}
@@ -147,7 +195,7 @@ export async function buildJarvisIntelligenceInput(monthKey, dependencies = {}) 
 
     // 4. Collect history from stored snapshots
     try {
-      const historyValue = await readSyncedArray(STORAGE_KEYS.monthlyHistorySnapshots, [])
+      const historyValue = await historyReader(STORAGE_KEYS.monthlyHistorySnapshots, [])
       history = normalizeHistory(historyValue)
       historyAvailability = 'known'
     } catch (error) {

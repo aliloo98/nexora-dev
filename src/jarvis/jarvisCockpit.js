@@ -126,10 +126,8 @@ export function initJarvisDashboardIntegration(options = {}) {
 
   // Initial render if already in Complete mode
   if (shouldShowJarvis(documentRef)) {
-    setTimeout(() => {
-      const monthKey = typeof windowRef.getMonth === 'function' ? windowRef.getMonth() : null
-      renderJarvisInDashboard({ monthKey, documentRef, windowRef })
-    }, 1000)
+    const monthKey = typeof windowRef.getMonth === 'function' ? windowRef.getMonth() : null
+    renderJarvisInDashboard({ monthKey, documentRef, windowRef })
   }
 }
 
