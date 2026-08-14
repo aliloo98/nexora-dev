@@ -61,6 +61,7 @@ import { renderDashboardQuickView } from './ui/dashboard/renderDashboardQuickVie
 import { renderDashboardAlerts } from './ui/dashboard/renderDashboardAlerts.js'
 import { renderAssistantInsights } from './ui/dashboard/renderAssistantInsights.js'
 import { renderDashboardCoach } from './ui/dashboard/renderDashboardCoach.js'
+import { renderJarvisInDashboard, initJarvisDashboardIntegration, refreshJarvisData, createJarvisViewModel } from './jarvis/jarvisCockpit.js'
 
 
 import { renderBudgetCoach, buildBudgetCoachState } from './ui/budgetCoach.js'
@@ -119,6 +120,7 @@ installLegacyBridge({
   renderBudgetCoach,
   buildBudgetCoachState,
   buildJudgmentEngine,
+  JarvisDashboard: { renderJarvisInDashboard, initJarvisDashboardIntegration, refreshJarvisData, createJarvisViewModel },
   NexoraBuild: { version: APP_VERSION, label: formatBuildLabel },
   getUserDisplayName: (user) => getUserDisplayName(user || AuthContext.getCurrentUser()),
   NexoraSyncDiagnostics: SyncDiagnostics,
@@ -358,6 +360,7 @@ const initApp = async () => {
       renderDashboardMaster,
       refreshDashboardCoach: window.refreshDashboardCoach,
       refreshDashboardModular: window.refreshDashboardModular,
+      initJarvisDashboardIntegration,
 
       // Event handlers dependencies
       parseFinancialExpression,

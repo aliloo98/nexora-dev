@@ -1,0 +1,585 @@
+/**
+ * Jarvis Financial Cockpit - Mode Complet
+ *
+ * Styles premium et déterministes pour le cockpit Jarvis.
+ * Utilise uniquement les tokens existants du Design System.
+ */
+
+/* Hide Jarvis in Simplified mode */
+body.mode-simple .jarvis-cockpit,
+body.mode-simple .jarvis-data-quality-mode {
+  display: none;
+}
+
+.jarvis-cockpit {
+  --jarvis-accent: var(--nx-color-gold);
+  --jarvis-accent-glow: var(--nx-color-gold-glow);
+  --jarvis-critical: var(--nx-color-danger);
+  --jarvis-stable: var(--nx-color-stable);
+  --jarvis-fragile: var(--nx-color-warning);
+  --jarvis-text-primary: var(--nx-color-text-primary);
+  --jarvis-text-secondary: var(--nx-color-text-secondary);
+  --jarvis-text-tertiary: var(--nx-color-text-tertiary);
+  --jarvis-surface: var(--nx-color-surface-1);
+  --jarvis-surface-2: var(--nx-color-surface-2);
+  --jarvis-border: var(--nx-color-border-subtle);
+  --jarvis-border-strong: var(--nx-color-border-strong);
+  --jarvis-space-2xs: var(--nx-space-2xs);
+  
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-lg);
+  padding: var(--nx-space-lg);
+  box-sizing: border-box;
+}
+
+/* ============================================
+   JARVIS COMMAND HERO
+   ============================================ */
+
+.jarvis-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-md);
+  padding: var(--nx-space-xl);
+  background: var(--jarvis-surface);
+  border: 1px solid var(--jarvis-border);
+  border-radius: var(--nx-radius-hero);
+  overflow: hidden;
+}
+
+.jarvis-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--jarvis-accent);
+  opacity: 0.8;
+}
+
+.jarvis-hero[data-state="critical"]::before {
+  background: var(--jarvis-critical);
+}
+
+.jarvis-hero[data-state="fragile"]::before {
+  background: var(--jarvis-fragile);
+}
+
+.jarvis-hero[data-state="stable"]::before,
+.jarvis-hero[data-state="strong"]::before {
+  background: var(--jarvis-stable);
+}
+
+.jarvis-hero[data-state="unknown"]::before,
+.jarvis-hero[data-state="no_income"]::before {
+  background: var(--jarvis-text-tertiary);
+  opacity: 0.4;
+}
+
+.jarvis-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--jarvis-space-2xs);
+  padding: var(--jarvis-space-2xs) var(--nx-space-sm);
+  background: var(--jarvis-accent-glow);
+  border: 1px solid var(--jarvis-accent);
+  border-radius: var(--nx-radius-sm);
+  font-size: var(--nx-font-size-label);
+  font-weight: var(--nx-font-weight-semibold);
+  color: var(--jarvis-accent);
+  text-transform: uppercase;
+  letter-spacing: var(--nx-letter-spacing-eyebrow);
+  width: fit-content;
+}
+
+.jarvis-hero[data-state="critical"] .jarvis-status-badge {
+  background: var(--nx-color-surface-critical);
+  border-color: var(--jarvis-critical);
+  color: var(--jarvis-critical);
+}
+
+.jarvis-hero[data-state="fragile"] .jarvis-status-badge {
+  border-color: var(--jarvis-fragile);
+  color: var(--jarvis-fragile);
+}
+
+.jarvis-hero[data-state="stable"] .jarvis-status-badge,
+.jarvis-hero[data-state="strong"] .jarvis-status-badge {
+  border-color: var(--jarvis-stable);
+  color: var(--jarvis-stable);
+}
+
+.jarvis-headline {
+  font-size: var(--nx-font-size-section-mobile);
+  font-weight: var(--nx-font-weight-medium);
+  line-height: var(--nx-line-height-section-mobile);
+  color: var(--jarvis-text-primary);
+  margin: 0;
+}
+
+.jarvis-visual-anchor {
+  position: absolute;
+  top: var(--nx-space-lg);
+  right: var(--nx-space-lg);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--jarvis-accent-glow);
+  border: 2px solid var(--jarvis-accent);
+  opacity: 0.8;
+}
+
+.jarvis-hero[data-state="critical"] .jarvis-visual-anchor {
+  background: var(--nx-color-surface-critical);
+  border-color: var(--jarvis-critical);
+}
+
+.jarvis-hero[data-state="fragile"] .jarvis-visual-anchor {
+  border-color: var(--jarvis-fragile);
+}
+
+.jarvis-hero[data-state="stable"] .jarvis-visual-anchor,
+.jarvis-hero[data-state="strong"] .jarvis-visual-anchor {
+  border-color: var(--jarvis-stable);
+}
+
+.jarvis-visual-anchor::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ============================================
+   PRIORITY CARD
+   ============================================ */
+
+.jarvis-priority-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-sm);
+  padding: var(--nx-space-lg);
+  background: var(--jarvis-surface-2);
+  border: 1px solid var(--jarvis-border);
+  border-radius: var(--nx-radius-card);
+}
+
+.jarvis-priority-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nx-space-sm);
+}
+
+.jarvis-priority-label {
+  font-size: var(--nx-font-size-label);
+  font-weight: var(--nx-font-weight-semibold);
+  color: var(--jarvis-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--nx-letter-spacing-eyebrow);
+}
+
+.jarvis-priority-action {
+  font-size: var(--nx-font-size-body);
+  font-weight: var(--nx-font-weight-medium);
+  color: var(--jarvis-text-primary);
+  margin: 0;
+}
+
+.jarvis-priority-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--jarvis-space-2xs);
+  padding: var(--nx-space-sm) var(--nx-space-md);
+  background: var(--jarvis-accent-glow);
+  border: 1px solid var(--jarvis-accent);
+  border-radius: var(--nx-radius-control);
+  font-size: var(--nx-font-size-label);
+  font-weight: var(--nx-font-weight-medium);
+  color: var(--jarvis-accent);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--nx-motion-micro) var(--nx-easing-hover),
+              border-color var(--nx-motion-micro) var(--nx-easing-hover);
+  width: fit-content;
+}
+
+.jarvis-priority-cta:hover {
+  background: var(--nx-color-hover);
+  border-color: var(--nx-color-border-interactive);
+}
+
+.jarvis-priority-cta:focus-visible {
+  outline: 2px solid var(--nx-color-focus);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   TRAJECTORY PANEL
+   ============================================ */
+
+.jarvis-trajectory-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--nx-space-md);
+}
+
+.jarvis-metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-xs);
+  padding: var(--nx-space-md);
+  background: var(--jarvis-surface-2);
+  border: 1px solid var(--jarvis-border);
+  border-radius: var(--nx-radius-control);
+}
+
+.jarvis-metric-label {
+  font-size: var(--nx-font-size-label);
+  color: var(--jarvis-text-secondary);
+}
+
+.jarvis-metric-value {
+  font-size: var(--nx-font-size-section-mobile);
+  font-weight: var(--nx-font-weight-semibold);
+  color: var(--jarvis-text-primary);
+}
+
+.jarvis-metric-value[data-positive="true"] {
+  color: var(--jarvis-stable);
+}
+
+.jarvis-metric-value[data-positive="false"] {
+  color: var(--jarvis-critical);
+}
+
+.jarvis-trend-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--jarvis-space-2xs);
+  font-size: var(--nx-font-size-label);
+  color: var(--jarvis-text-secondary);
+}
+
+.jarvis-trend-indicator[data-trend="up"] {
+  color: var(--jarvis-stable);
+}
+
+.jarvis-trend-indicator[data-trend="down"] {
+  color: var(--jarvis-critical);
+}
+
+/* ============================================
+   SIGNALS (RISKS / OPPORTUNITIES)
+   ============================================ */
+
+.jarvis-signals-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-md);
+}
+
+.jarvis-signals-header {
+  font-size: var(--nx-font-size-label);
+  font-weight: var(--nx-font-weight-semibold);
+  color: var(--jarvis-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--nx-letter-spacing-eyebrow);
+}
+
+.jarvis-signals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--nx-space-sm);
+}
+
+.jarvis-signal-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--nx-space-sm);
+  padding: var(--nx-space-md);
+  background: var(--jarvis-surface-2);
+  border: 1px solid var(--jarvis-border);
+  border-radius: var(--nx-radius-control);
+}
+
+.jarvis-signal-card[data-severity="critical"] {
+  border-color: var(--nx-color-border-danger);
+  background: var(--nx-color-surface-critical);
+}
+
+.jarvis-signal-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--jarvis-text-tertiary);
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.jarvis-signal-card[data-severity="critical"] .jarvis-signal-indicator {
+  background: var(--jarvis-critical);
+}
+
+.jarvis-signal-card[data-severity="high"] .jarvis-signal-indicator {
+  background: var(--jarvis-fragile);
+}
+
+.jarvis-signal-card[data-severity="medium"] .jarvis-signal-indicator {
+  background: var(--nx-color-warning);
+}
+
+.jarvis-signal-card[data-type="opportunity"] .jarvis-signal-indicator {
+  background: var(--jarvis-stable);
+}
+
+.jarvis-signal-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-2xs);
+}
+
+.jarvis-signal-title {
+  font-size: var(--nx-font-size-label);
+  font-weight: var(--nx-font-weight-medium);
+  color: var(--jarvis-text-primary);
+}
+
+.jarvis-signal-description {
+  font-size: var(--nx-font-size-label);
+  color: var(--jarvis-text-secondary);
+  line-height: var(--nx-line-height-label);
+}
+
+/* ============================================
+   GOAL MODULE
+   ============================================ */
+
+.jarvis-goal-module {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-sm);
+  padding: var(--nx-space-lg);
+  background: var(--jarvis-surface-2);
+  border: 1px solid var(--jarvis-border);
+  border-radius: var(--nx-radius-md);
+}
+
+.jarvis-goal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nx-space-sm);
+}
+
+.jarvis-goal-title {
+  font-size: var(--nx-font-size-label);
+  font-weight: var(--nx-font-weight-semibold);
+  color: var(--jarvis-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--nx-letter-spacing-eyebrow);
+}
+
+.jarvis-goal-progress {
+  width: 100%;
+  height: 4px;
+  background: var(--jarvis-border);
+  border-radius: var(--nx-radius-full);
+  overflow: hidden;
+}
+
+.jarvis-goal-progress-bar {
+  height: 100%;
+  background: var(--jarvis-accent);
+  border-radius: var(--nx-radius-full);
+  transition: width var(--nx-motion-standard) var(--nx-easing-standard);
+}
+
+.jarvis-goal-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--nx-space-md);
+}
+
+.jarvis-goal-stat {
+  font-size: var(--nx-font-size-label);
+  color: var(--jarvis-text-secondary);
+}
+
+.jarvis-goal-stat-value {
+  font-weight: var(--nx-font-weight-semibold);
+  color: var(--jarvis-text-primary);
+}
+
+/* ============================================
+   DATA QUALITY MODE
+   ============================================ */
+
+.jarvis-data-quality-mode {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-space-md);
+  padding: var(--nx-space-xl);
+  background: var(--jarvis-surface);
+  border: 1px solid var(--jarvis-border);
+  border-radius: var(--nx-radius-lg);
+  text-align: center;
+}
+
+.jarvis-data-quality-message {
+  font-size: var(--nx-font-size-body);
+  font-weight: var(--nx-font-weight-medium);
+  color: var(--nx-color-text-primary);
+  margin: 0;
+}
+
+.jarvis-data-quality-issues {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--nx-space-sm);
+}
+
+.jarvis-data-quality-issue {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--jarvis-space-2xs);
+  padding: var(--jarvis-space-2xs) var(--nx-space-sm);
+  background: var(--jarvis-surface-2);
+  border: 1px solid var(--jarvis-border);
+  border-radius: var(--nx-radius-control);
+  font-size: var(--nx-font-size-label);
+  color: var(--jarvis-text-secondary);
+}
+
+/* ============================================
+   MOTION & ANIMATION
+   ============================================ */
+
+.jarvis-cockpit[data-motion="entry"] > * {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: jarvis-entry var(--nx-motion-standard) var(--nx-easing-entrance) forwards;
+}
+
+.jarvis-cockpit[data-motion="entry"] .jarvis-hero {
+  animation-delay: 0ms;
+}
+
+.jarvis-cockpit[data-motion="entry"] .jarvis-priority-card {
+  animation-delay: 25ms;
+}
+
+.jarvis-cockpit[data-motion="entry"] .jarvis-trajectory-panel {
+  animation-delay: 50ms;
+}
+
+.jarvis-cockpit[data-motion="entry"] .jarvis-signals-section {
+  animation-delay: 75ms;
+}
+
+.jarvis-cockpit[data-motion="entry"] .jarvis-goal-module {
+  animation-delay: 100ms;
+}
+
+@keyframes jarvis-entry {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.jarvis-visual-anchor {
+  animation: jarvis-pulse 3s ease-in-out infinite;
+}
+
+@keyframes jarvis-pulse {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .jarvis-cockpit[data-motion="entry"] > * {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .jarvis-visual-anchor {
+    animation: none;
+  }
+
+  .jarvis-goal-progress-bar {
+    transition: none;
+  }
+
+  .jarvis-priority-cta {
+    transition: none;
+  }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .jarvis-cockpit {
+    gap: var(--nx-space-md);
+    padding: var(--nx-space-md);
+  }
+
+  .jarvis-hero {
+    padding: var(--nx-space-lg);
+  }
+
+  .jarvis-visual-anchor {
+    width: 40px;
+    height: 40px;
+  }
+
+  .jarvis-trajectory-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .jarvis-signals-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .jarvis-headline {
+    font-size: var(--nx-font-size-base);
+  }
+}
+
+@media (max-width: 480px) {
+  .jarvis-hero {
+    padding: var(--nx-space-md);
+  }
+
+  .jarvis-visual-anchor {
+    display: none;
+  }
+
+  .jarvis-priority-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

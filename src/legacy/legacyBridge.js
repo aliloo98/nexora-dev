@@ -50,6 +50,7 @@ export function installLegacyBridge(dependencies) {
     renderBudgetCoach,
     buildBudgetCoachState,
     buildJudgmentEngine,
+    JarvisDashboard,
     NexoraBuild,
     getUserDisplayName,
     NexoraSyncDiagnostics,
@@ -108,6 +109,7 @@ export function installLegacyBridge(dependencies) {
   window.renderBudgetCoach = renderBudgetCoach
   window.buildBudgetCoachState = buildBudgetCoachState
   window.buildJudgmentEngine = buildJudgmentEngine
+  window.JarvisDashboard = JarvisDashboard
   window.NexoraBuild = NexoraBuild
   window.getUserDisplayName = getUserDisplayName
   window.NexoraSyncDiagnostics = NexoraSyncDiagnostics
