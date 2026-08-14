@@ -4366,7 +4366,8 @@ function updateAll(){
     revReel,
     solde,
     tauxCh,
-    variablesPct
+    variablesPct,
+    savingsRate
   });
   
   // Update Dashboard Coach with V2 renderer
@@ -4671,7 +4672,7 @@ function updateDashboardSynthesisHero(metrics = {}) {
     window.renderDashboardHero('cockpit-financier-root', {
       ...metrics,
       totalDepRestant: metrics.totalDepRestant || 0,
-      savingsRate: metrics.savingsRate || 0
+      savingsRate: metrics.savingsRate ?? 0
     }, {
       documentRef: document,
       windowRef: window,
