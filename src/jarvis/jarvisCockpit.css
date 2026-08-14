@@ -260,11 +260,11 @@ body.mode-simple .jarvis-data-quality-mode {
 }
 
 .jarvis-metric-value[data-positive="true"] {
-  color: var(--jarvis-stable);
+  color: var(--jarvis-text-primary);
 }
 
 .jarvis-metric-value[data-positive="false"] {
-  color: var(--jarvis-critical);
+  color: var(--jarvis-text-primary);
 }
 
 .jarvis-trend-indicator {
@@ -276,11 +276,11 @@ body.mode-simple .jarvis-data-quality-mode {
 }
 
 .jarvis-trend-indicator[data-trend="up"] {
-  color: var(--jarvis-stable);
+  color: var(--jarvis-text-primary);
 }
 
 .jarvis-trend-indicator[data-trend="down"] {
-  color: var(--jarvis-critical);
+  color: var(--jarvis-text-primary);
 }
 
 /* ============================================
