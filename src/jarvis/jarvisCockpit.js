@@ -1,358 +1,31 @@
 /**
  * Jarvis Financial Cockpit - Component
  *
- * Point d'entrée principal pour afficher le cockpit Jarvis dans le mode Complet.
- * Consomme le view model Jarvis et génère le markup UI déterministe.
+ * Renders the Jarvis cockpit in Complete mode.
+ * Consumes view model and generates deterministic markup.
  */
 
 import { buildIntelligenceSnapshot } from '../intelligence/IntelligenceEngine.js'
-import { GoalsService } from '../goals/goalsService.js'
-import { SettingsService } from '../settings/settingsService.js'
-
-// Dictionnaire déterministe Jarvis
-const JARVIS_COPY = {
-  // États de santé
-  status: {
-    unknown: 'Données insuffisantes',
-    no_income: 'Revenus manquants',
-    critical: 'Situation critique',
-    fragile: 'Situation fragile',
-    balanced: 'Situation équilibrée',
-    stable: 'Situation stable',
-    strong: 'Situation solide'
-  },
-
-  // Headlines déterministes basées sur l'état
-  headline: {
-    no_income: 'J\'ai besoin de revenus pour établir une analyse.',
-    critical: 'Un déficit est projeté : la priorité est de sécuriser ton cashflow.',
-    fragile: 'Tes charges fixes limitent ta marge de manœuvre.',
-    balanced: 'Ta situation est équilibrée, mais tu peux optimiser.',
-    stable: 'Ta trajectoire reste saine et ton objectif progresse.',
-    strong: 'Excellente situation financière avec une marge confortable.',
-    insufficient_data: 'J\'ai besoin de davantage de données pour affiner ton analyse.',
-    trends_unavailable: 'Pas assez d\'historique pour analyser les tendances.'
-  },
-
-  // Labels de priorité
-  priority: {
-    fix_deficit: 'Réduire le déficit',
-    secure_income: 'Sécuriser les revenus',
-    capture_opportunity: 'Profiter d\'une marge disponible'
-  },
-
-  // Labels de risque
-  risk: {
-    deficit: 'Déficit mensuel',
-    no_income: 'Absence de revenus',
-    high_fixed_expenses: 'Charges fixes élevées',
-    low_savings_rate: 'Taux d\'épargne faible',
-    debt_payment_burden: 'Mensualités importantes'
-  },
-
-  // Labels d'opportunité
-  opportunity: {
-    debt_payoff: 'Rembourser une dette',
-    goal_funding: 'Financer un objectif',
-    buffer_increase: 'Augmenter la marge de sécurité'
-  },
-
-  // Labels de qualité de données
-  dataQuality: {
-    no_income: 'J\'ai besoin de revenus pour établir une analyse.',
-    incomplete: 'J\'ai besoin de davantage de données pour affiner ton analyse.',
-    unknown_debts: 'Les données de dettes ne sont pas disponibles.',
-    empty_debts: 'Aucune dette connue.'
-  }
-}
+import { buildJarvisIntelligenceInput } from './jarvisDataAdapter.js'
+import { createJarvisViewModel } from './jarvisViewModel.js'
 
 /**
- * Mapping des états de santé J4 vers les états visuels Jarvis
+ * Single observer instance to prevent duplicates
  */
-const HEALTH_STATE_TO_VISUAL = {
-  critical: 'critical',
-  warning: 'fragile',
-  stable: 'balanced',
-  excellent: 'stable',
-  strong: 'strong',
-  no_income: 'no_income',
-  unknown: 'unknown'
-}
+let modeObserver = null
+let observerInitialized = false
 
 /**
- * Crée le view model Jarvis depuis le snapshot J4
+ * Determines if Jarvis should be shown (Complete mode only)
  */
-export function createJarvisViewModel(snapshot) {
-  const { health, priorities, forecast, risks, opportunities, goal, debt, cashflow, dataQuality, evidence } = snapshot
-
-  // Déterminer l'état visuel
-  const visualState = HEALTH_STATE_TO_VISUAL[health.status] || 'unknown'
-
-  // Sélectionner la headline appropriée
-  let headline = JARVIS_COPY.headline.insufficient_data
-  
-  // Priorité: no_income > critical > data quality > other
-  if (health.status === 'no_income') {
-    headline = JARVIS_COPY.headline.no_income
-  } else if (health.status === 'critical' && health.cashflow?.monthly < 0) {
-    headline = JARVIS_COPY.headline.critical
-  } else if (dataQuality.isComplete === false) {
-    if (dataQuality.issues?.some(i => i.id === 'no_income')) {
-      headline = JARVIS_COPY.headline.no_income
-    } else if (dataQuality.issues?.some(i => i.id === 'unknown_debts')) {
-      headline = JARVIS_COPY.dataQuality.unknown_debts
-    } else {
-      headline = JARVIS_COPY.headline.insufficient_data
-    }
-  } else if (visualState === 'fragile') {
-    headline = JARVIS_COPY.headline.fragile
-  } else if (visualState === 'balanced') {
-    headline = JARVIS_COPY.headline.balanced
-  } else if (visualState === 'stable') {
-    headline = JARVIS_COPY.headline.stable
-  } else if (visualState === 'strong') {
-    headline = JARVIS_COPY.headline.strong
-  }
-
-  // Sélectionner la priorité principale
-  const primaryPriority = priorities?.[0] || null
-
-  // Construire le CTA
-  let ctaTarget = 'plan'
-  let ctaLabel = 'Voir le plan'
-  
-  if (primaryPriority) {
-    if (primaryPriority.id === 'fix_deficit') {
-      ctaTarget = 'saisie'
-      ctaLabel = 'Corriger le budget'
-    } else if (primaryPriority.id === 'secure_income') {
-      ctaTarget = 'saisie'
-      ctaLabel = 'Saisir les revenus'
-    } else if (primaryPriority.id === 'capture_opportunity') {
-      ctaTarget = 'plan'
-      ctaLabel = 'Voir le plan'
-    }
-  }
-
-  // Formater les risques
-  const formattedRisks = (risks || []).map(risk => ({
-    id: risk.id,
-    label: JARVIS_COPY.risk[risk.id] || risk.label || risk.id,
-    severity: risk.severity || 'medium'
-  }))
-
-  // Formater les opportunités
-  const formattedOpportunities = (opportunities || []).map(opp => ({
-    id: opp.id,
-    label: JARVIS_COPY.opportunity[opp.id] || opp.label || opp.id,
-    amount: opp.amount
-  }))
-
-  // Formater l'objectif
-  const formattedGoal = goal ? {
-    id: goal.id,
-    target: goal.target,
-    current: goal.current,
-    progress: goal.progress || 0,
-    isPrimary: goal.isPrimary === true,
-    targetDate: goal.targetDate
-  } : null
-
-  // Formater la dette
-  const formattedDebt = debt ? {
-    id: debt.id,
-    balance: debt.balance,
-    monthlyPayment: debt.monthlyPayment,
-    ratePct: debt.ratePct
-  } : null
-
-  // Formater le cashflow
-  const formattedCashflow = cashflow ? {
-    income: cashflow.income,
-    expenses: cashflow.expenses,
-    savings: cashflow.savings,
-    savingsRate: cashflow.savingsRate
-  } : null
-
-  // Formater la qualité de données
-  const formattedDataQuality = {
-    isComplete: dataQuality.isComplete === true,
-    issues: (dataQuality.issues || []).map(issue => ({
-      id: issue.id,
-      label: JARVIS_COPY.dataQuality[issue.id] || issue.label || issue.id
-    }))
-  }
-
-  return {
-    visualState,
-    statusLabel: JARVIS_COPY.status[visualState] || JARVIS_COPY.status.unknown,
-    headline,
-    primaryPriority,
-    ctaTarget,
-    ctaLabel,
-    risks: formattedRisks,
-    opportunities: formattedOpportunities,
-    goal: formattedGoal,
-    debt: formattedDebt,
-    cashflow: formattedCashflow,
-    dataQuality: formattedDataQuality,
-    evidence
-  }
+function shouldShowJarvis(documentRef) {
+  if (!documentRef || !documentRef.body) return false
+  return documentRef.body.classList.contains('mode-complete')
 }
 
 /**
- * Construit l'input pour buildIntelligenceSnapshot depuis l'état Nexora
- */
-async function buildJarvisIntelligenceInput(monthKey) {
-  try {
-    // 1. Collecter les métriques du mois courant
-    // Utiliser window.getMonthMetrics si disponible (fonction globale dans index.html)
-    // AUDIT: window.getMonthMetrics is the canonical application API defined in index.html
-    // It orchestrates budget data reading and cycle balance computation
-    // No direct ES module API exists that replaces this without major refactor
-    let metrics = {}
-    if (typeof window !== 'undefined' && typeof window.getMonthMetrics === 'function') {
-      metrics = window.getMonthMetrics(monthKey, { fromDom: true }) || {}
-    }
-
-    // 2. Collecter l'historique (2 mois minimum pour trends)
-    // Note: L'historique n'est pas encore implémenté comme service séparé
-    // On utilise un tableau vide pour l'instant
-    const history = []
-
-    // 3. Collecter les objectifs
-    const goals = await GoalsService.getGoals().catch(() => [])
-
-    // 4. Collecter les dettes
-    // Note: Utiliser window.readDebts si disponible, sinon tableau vide
-    let debts = []
-    if (typeof window !== 'undefined' && typeof window.readDebts === 'function') {
-      debts = await window.readDebts().catch(() => [])
-    }
-
-    // 5. Collecter les échéanciers de factures
-    const billSchedules = await SettingsService.getBillSchedules().catch(() => [])
-
-    // 6. Déterminer la disponibilité des données
-    const dataAvailability = {
-      goals: 'known',
-      debts: 'known'
-    }
-
-    return {
-      metrics: normalizeMetrics(metrics),
-      history: normalizeHistory(history),
-      goals: normalizeGoals(goals),
-      debts: normalizeDebts(debts),
-      billSchedules: normalizeBillSchedules(billSchedules),
-      dataAvailability
-    }
-  } catch (error) {
-    console.warn('[Jarvis Data Adapter] Error building intelligence input:', error)
-    // Fallback avec données vides pour éviter le crash
-    return {
-      metrics: {},
-      history: [],
-      goals: [],
-      debts: [],
-      billSchedules: [],
-      dataAvailability: {}
-    }
-  }
-}
-
-/**
- * Normalise les métriques pour le contrat J4
- * window.getMonthMetrics returns: { income, fixed, variable, expenses, paidExpenses, savings, savingsRate, ... }
- * J4 expects: { income, fixedExpenses, variableExpenses, plannedExpenses, paidExpenses, savingsRate }
- */
-function normalizeMetrics(metrics) {
-  return {
-    income: metrics.income || 0,
-    fixedExpenses: metrics.fixed || 0,
-    variableExpenses: metrics.variable || 0,
-    plannedExpenses: metrics.expenses || 0,
-    paidExpenses: metrics.paidExpenses || 0,
-    savingsRate: metrics.savingsRate || 0
-  }
-}
-
-/**
- * Normalise l'historique pour le contrat J4
- * Contract: [{ income, expenses }]
- */
-function normalizeHistory(history) {
-  if (!Array.isArray(history)) return []
-
-  return history
-    .slice(0, 6) // Garder max 6 mois
-    .map(month => ({
-      income: month.income || 0,
-      expenses: month.expenses || 0
-    }))
-    .filter(h => h.income > 0 || h.expenses > 0) // Filtrer les mois vides
-}
-
-/**
- * Normalise les objectifs pour le contrat J4
- */
-function normalizeGoals(goals) {
-  if (!Array.isArray(goals)) return []
-
-  return goals
-    .filter(g => g && (g.target || g.targetAmount))
-    .map(g => ({
-      id: g.id,
-      target: g.target || g.targetAmount,
-      current: g.current || g.amount || 0,
-      isPrimary: g.isPrimary === true,
-      targetDate: g.targetDate || null
-    }))
-}
-
-/**
- * Normalise les dettes pour le contrat J4
- */
-function normalizeDebts(debts) {
-  if (!Array.isArray(debts)) return []
-
-  return debts
-    .filter(d => d && (d.balance || d.amount))
-    .map(d => ({
-      id: d.id,
-      balance: d.balance || d.amount,
-      ratePct: d.ratePct || d.rate || 0,
-      minPayment: d.minPayment || 0
-    }))
-}
-
-/**
- * Normalise les échéanciers pour le contrat J4
- */
-function normalizeBillSchedules(billSchedules) {
-  if (!Array.isArray(billSchedules)) return []
-
-  return billSchedules
-    .filter(b => b && b.amount)
-    .map(b => ({
-      id: b.id,
-      amount: b.amount,
-      dayOfMonth: b.dayOfMonth,
-      recurrence: b.recurrence || 'monthly'
-    }))
-}
-
-/**
- * Détermine si Jarvis doit être affiché (mode Complet uniquement)
- */
-function shouldShowJarvis() {
-  if (typeof document === 'undefined') return false
-  return document.body.classList.contains('mode-complete')
-}
-
-/**
- * Point d'entrée principal pour l'intégration Jarvis dans le Dashboard
- * Remplace le contenu de cockpit-financier-root par Jarvis en mode Complet
+ * Renders Jarvis cockpit in the dashboard
+ * Entry point called from bootstrap
  */
 export async function renderJarvisInDashboard(options = {}) {
   const { monthKey, documentRef = document, windowRef = window } = options
@@ -363,139 +36,220 @@ export async function renderJarvisInDashboard(options = {}) {
     return
   }
 
-  // Jarvis ne s'affiche qu'en mode Complet
-  if (!shouldShowJarvis()) {
-    console.log('[Jarvis Integration] Simplified mode - skipping Jarvis')
-    // En mode Simplifié, on laisse le système existant gérer le cockpit
+  // Jarvis only shows in Complete mode
+  if (!shouldShowJarvis(documentRef)) {
+    // Simplified mode - let existing system handle cockpit
     return
   }
 
-  console.log('[Jarvis Integration] Complete mode detected - rendering Jarvis')
-
   try {
-    // Afficher le cockpit Jarvis
     await renderJarvisCockpit(cockpitRoot, {
       monthKey,
       documentRef,
       windowRef
     })
-
-    console.log('[Jarvis Integration] Jarvis cockpit rendered in Complete mode')
   } catch (error) {
     console.error('[Jarvis Integration] Error rendering Jarvis:', error)
-    // En cas d'erreur, ne pas casser le dashboard - laisser le fallback
+    // Render error fallback scoped to Complete mode
+    renderErrorFallback(cockpitRoot, documentRef)
   }
 }
 
 /**
- * Met à jour Jarvis lors du changement de mode
+ * Updates Jarvis on mode change
  */
-export async function updateJarvisOnModeChange() {
-  const cockpitRoot = document.getElementById('cockpit-financier-root')
+export async function updateJarvisOnModeChange(documentRef = document, windowRef = window) {
+  const cockpitRoot = documentRef.getElementById('cockpit-financier-root')
   if (!cockpitRoot) return
 
-  if (shouldShowJarvis()) {
-    // Passage en mode Complet : afficher Jarvis
-    const monthKey = typeof window.getMonth === 'function' ? window.getMonth() : null
-    await renderJarvisCockpit(cockpitRoot, { monthKey })
+  if (shouldShowJarvis(documentRef)) {
+    // Complete mode: render Jarvis
+    const monthKey = typeof windowRef.getMonth === 'function' ? windowRef.getMonth() : null
+    await renderJarvisCockpit(cockpitRoot, { monthKey, documentRef, windowRef })
   } else {
-    // Passage en mode Simplifié : retirer Jarvis
-    // Le système existant reprendra le contrôle
+    // Simplified mode: clear Jarvis and let existing system restore Hero
     cockpitRoot.innerHTML = ''
+    // Trigger the existing dashboard update to restore Simple Hero
+    if (typeof windowRef.updateAll === 'function') {
+      windowRef.updateAll()
+    }
   }
 }
 
 /**
- * Met à jour Jarvis lors du rafraîchissement des données
+ * Refreshes Jarvis data
  */
-export async function refreshJarvisData(monthKey) {
-  if (!shouldShowJarvis()) return
+export async function refreshJarvisData(monthKey, documentRef = document, windowRef = window) {
+  if (!shouldShowJarvis(documentRef)) return
 
-  const cockpitRoot = document.getElementById('cockpit-financier-root')
+  const cockpitRoot = documentRef.getElementById('cockpit-financier-root')
   if (!cockpitRoot) return
 
   try {
-    await updateJarvisCockpit(cockpitRoot, { monthKey })
+    await updateJarvisCockpit(cockpitRoot, { monthKey, documentRef, windowRef })
   } catch (error) {
     console.error('[Jarvis Integration] Error refreshing Jarvis:', error)
+    renderErrorFallback(cockpitRoot, documentRef)
   }
 }
 
 /**
- * Initialise les listeners pour l'intégration Jarvis
+ * Initializes Jarvis dashboard integration with proper lifecycle
  */
-export function initJarvisDashboardIntegration(windowRef = window) {
-  console.log('[Jarvis Integration] Initializing Dashboard integration')
-  
-  // Observer les changements de classe sur body (mode switch)
-  if (typeof MutationObserver !== 'undefined') {
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-          const target = mutation.target
-          if (target.classList.contains('mode-simple') || target.classList.contains('mode-complete')) {
-            // Délai pour laisser le CSS s'appliquer
-            setTimeout(() => updateJarvisOnModeChange(), 50)
-          }
+export function initJarvisDashboardIntegration(options = {}) {
+  const { windowRef = window } = options
+  if (observerInitialized) {
+    // Already initialized - skip
+    return
+  }
+
+  const documentRef = windowRef.document
+  if (!documentRef || !documentRef.body) {
+    return
+  }
+
+  // Create single observer
+  modeObserver = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+        const target = mutation.target
+        if (target.classList.contains('mode-simple') || target.classList.contains('mode-complete')) {
+          // Delay to let CSS apply
+          setTimeout(() => updateJarvisOnModeChange(documentRef, windowRef), 50)
         }
+      }
+    }
+  })
+
+  modeObserver.observe(documentRef.body, { attributes: true, attributeFilter: ['class'] })
+  observerInitialized = true
+
+  // Initial render if already in Complete mode
+  if (shouldShowJarvis(documentRef)) {
+    setTimeout(() => {
+      const monthKey = typeof windowRef.getMonth === 'function' ? windowRef.getMonth() : null
+      renderJarvisInDashboard({ monthKey, documentRef, windowRef })
+    }, 1000)
+  }
+}
+
+/**
+ * Main render function for Jarvis cockpit
+ */
+export async function renderJarvisCockpit(container, options = {}) {
+  const { monthKey, documentRef = document, windowRef = window } = options
+
+  if (!container) {
+    console.warn('[Jarvis Cockpit] No container provided')
+    return
+  }
+
+  try {
+    // 1. Build intelligence input from domain state
+    const intelligenceInput = await buildJarvisIntelligenceInput(monthKey)
+
+    // 2. Generate J4 snapshot
+    const snapshot = buildIntelligenceSnapshot(intelligenceInput, {
+      referenceDate: new Date()
+    })
+
+    // 3. Create Jarvis view model
+    const viewModel = createJarvisViewModel(snapshot)
+
+    // 4. Check if core data is sufficient (Blocker 1 fix)
+    // Separate core data availability from trend/history availability
+    const coreDataAvailable = viewModel.capabilities.core
+    const trendsAvailable = viewModel.capabilities.trends
+
+    // If core data is missing, show data quality mode
+    if (!coreDataAvailable) {
+      container.innerHTML = renderDataQualityMode(viewModel)
+      return
+    }
+
+    // If core data is available but trends are missing, render full cockpit with trend message
+    // This is the critical fix for Blocker 1
+    const cockpitMarkup = `
+      <div class="jarvis-cockpit" data-dashboard-mode="complete" data-motion="entry">
+        ${renderJarvisHero(viewModel)}
+        ${renderPriorityCard(viewModel)}
+        ${renderTrajectoryPanel(viewModel)}
+        ${renderSignalsSection(viewModel)}
+        ${renderGoalModule(viewModel)}
+      </div>
+    `
+
+    container.innerHTML = cockpitMarkup
+
+    // Attach CTA listeners
+    attachCtaListeners(container, windowRef)
+
+    // Trigger entry animation
+    requestAnimationFrame(() => {
+      const cockpit = container.querySelector('.jarvis-cockpit')
+      if (cockpit) {
+        cockpit.dataset.motion = 'entry'
       }
     })
 
-    const body = windowRef.document?.body
-    if (body) {
-      observer.observe(body, { attributes: true, attributeFilter: ['class'] })
-    }
+  } catch (error) {
+    console.error('[Jarvis Cockpit] Error rendering cockpit:', error)
+    renderErrorFallback(container, documentRef)
+  }
+}
+
+/**
+ * Updates existing Jarvis cockpit
+ */
+export async function updateJarvisCockpit(container, options = {}) {
+  await renderJarvisCockpit(container, options)
+}
+
+/**
+ * Renders error fallback scoped to Complete mode
+ */
+function renderErrorFallback(container, documentRef) {
+  if (!shouldShowJarvis(documentRef)) {
+    // Not in Complete mode - don't render anything
+    container.innerHTML = ''
+    return
   }
 
-  // Initial render if already in Complete mode
-  if (shouldShowJarvis()) {
-    console.log('[Jarvis Integration] Already in Complete mode - triggering initial render')
-    // Use a longer delay to ensure the app is fully initialized
-    setTimeout(() => {
-      const monthKey = typeof windowRef.getMonth === 'function' ? windowRef.getMonth() : null
-      renderJarvisInDashboard({ monthKey, documentRef: windowRef.document, windowRef })
-    }, 1000)
-  }
-
-  console.log('[Jarvis Integration] Dashboard integration initialized')
+  container.innerHTML = `
+    <div class="jarvis-cockpit" data-dashboard-mode="complete">
+      <div class="jarvis-data-quality-mode">
+        <p class="jarvis-data-quality-message">Impossible d'afficher l'analyse pour le moment.</p>
+      </div>
+    </div>
+  `
 }
 
 /**
- * Formate un montant monétaire
+ * Renders data quality mode
  */
-function formatCurrency(amount) {
-  if (typeof amount !== 'number' || isNaN(amount)) return '0 €'
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount)
+function renderDataQualityMode(viewModel) {
+  const { dataQuality, headline } = viewModel
+
+  const issuesMarkup = dataQuality.issues.map(issue => `
+    <div class="jarvis-data-quality-issue">
+      ${escapeHtml(issue.label)}
+    </div>
+  `).join('')
+
+  return `
+    <div class="jarvis-cockpit" data-dashboard-mode="complete" data-motion="entry">
+      <div class="jarvis-data-quality-mode">
+        <p class="jarvis-data-quality-message">${escapeHtml(headline)}</p>
+        <div class="jarvis-data-quality-issues">
+          ${issuesMarkup}
+        </div>
+      </div>
+    </div>
+  `
 }
 
 /**
- * Formate un pourcentage
- */
-function formatPercent(value) {
-  if (typeof value !== 'number' || isNaN(value)) return '0%'
-  return `${Math.round(value)}%`
-}
-
-/**
- * Échappe le HTML pour la sécurité
- */
-function escapeHtml(text) {
-  if (typeof text !== 'string') return ''
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;')
-}
-
-/**
- * Génère le markup du Hero Jarvis
+ * Renders Jarvis hero
  */
 function renderJarvisHero(viewModel) {
   const { visualState, statusLabel, headline } = viewModel
@@ -510,7 +264,7 @@ function renderJarvisHero(viewModel) {
 }
 
 /**
- * Génère le markup de la carte Priorité
+ * Renders priority card
  */
 function renderPriorityCard(viewModel) {
   const { priority, priorityCta } = viewModel
@@ -543,14 +297,30 @@ function renderPriorityCard(viewModel) {
 }
 
 /**
- * Génère le markup du panel Trajectoire
+ * Renders trajectory panel
  */
 function renderTrajectoryPanel(viewModel) {
-  const { trajectory, cashflow } = viewModel
+  const { trajectory } = viewModel
 
   const finalBalance = trajectory.finalBalance || 0
   const lowestBalance = trajectory.lowestBalance || 0
   const isPositive = trajectory.cashflowPositive
+
+  // If trends are unavailable, show message instead of hiding entire panel
+  const trendsMarkup = trajectory.trendsAvailable ? `
+    <div class="jarvis-metric-card">
+      <span class="jarvis-metric-label">Tendance revenus</span>
+      <div class="jarvis-trend-indicator" data-trend="${trajectory.incomeTrend}">
+        ${trajectory.incomeTrend === 'up' ? '↗' : trajectory.incomeTrend === 'down' ? '↘' : '→'}
+        <span>${getTrendLabel(trajectory.incomeTrend)}</span>
+      </div>
+    </div>
+  ` : `
+    <div class="jarvis-metric-card">
+      <span class="jarvis-metric-label">Tendance revenus</span>
+      <span class="jarvis-metric-value">Pas assez d'historique</span>
+    </div>
+  `
 
   return `
     <div class="jarvis-trajectory-panel">
@@ -562,21 +332,13 @@ function renderTrajectoryPanel(viewModel) {
         <span class="jarvis-metric-label">Point le plus bas</span>
         <span class="jarvis-metric-value" data-positive="${lowestBalance >= 0}">${formatCurrency(lowestBalance)}</span>
       </div>
-      ${trajectory.trendsAvailable ? `
-        <div class="jarvis-metric-card">
-          <span class="jarvis-metric-label">Tendance revenus</span>
-          <div class="jarvis-trend-indicator" data-trend="${trajectory.incomeTrend}">
-            ${trajectory.incomeTrend === 'up' ? '↗' : trajectory.incomeTrend === 'down' ? '↘' : '→'}
-            <span>${trajectory.incomeTrend === 'up' ? 'Hausse' : trajectory.incomeTrend === 'down' ? 'Baisse' : 'Stable'}</span>
-          </div>
-        </div>
-      ` : ''}
+      ${trendsMarkup}
     </div>
   `
 }
 
 /**
- * Génère le markup des Signaux (Risques/Opportunités)
+ * Renders signals section (risks and opportunities)
  */
 function renderSignalsSection(viewModel) {
   const { risks, opportunities } = viewModel
@@ -617,7 +379,7 @@ function renderSignalsSection(viewModel) {
 }
 
 /**
- * Génère le markup du module Objectif
+ * Renders goal module
  */
 function renderGoalModule(viewModel) {
   const { goal } = viewModel
@@ -637,120 +399,14 @@ function renderGoalModule(viewModel) {
       </div>
       <div class="jarvis-goal-stats">
         <span class="jarvis-goal-stat">Restant: <span class="jarvis-goal-stat-value">${formatCurrency(goal.remaining)}</span></span>
-        <span class="jarvis-goal-stat">Rythme: <span class="jarvis-goal-stat-value">${escapeHtml(goal.pace || 'Normal')}</span></span>
+        <span class="jarvis-goal-stat">Rythme: <span class="jarvis-goal-stat-value">${escapeHtml(goal.pace)}</span></span>
       </div>
     </div>
   `
 }
 
 /**
- * Génère le markup du mode Qualité de Données
- */
-function renderDataQualityMode(viewModel) {
-  const { dataQuality } = viewModel
-
-  if (dataQuality.isComplete) {
-    return ''
-  }
-
-  const issuesMarkup = dataQuality.issues.map(issue => `
-    <div class="jarvis-data-quality-issue">
-      ${escapeHtml(issue.label)}
-    </div>
-  `).join('')
-
-  return `
-    <div class="jarvis-data-quality-mode" data-dashboard-mode="complete">
-      <p class="jarvis-data-quality-message">${escapeHtml(viewModel.headline)}</p>
-      <div class="jarvis-data-quality-issues">
-        ${issuesMarkup}
-      </div>
-    </div>
-  `
-}
-
-/**
- * Point d'entrée principal - Génère le cockpit Jarvis complet
- */
-export async function renderJarvisCockpit(container, options = {}) {
-  const { monthKey, documentRef = document, windowRef = window } = options
-
-  if (!container) {
-    console.warn('[Jarvis Cockpit] No container provided')
-    return
-  }
-
-  try {
-    console.log('[Jarvis Cockpit] Starting render with monthKey:', monthKey)
-
-    // 1. Construire l'input J4 depuis l'état Nexora
-    const intelligenceInput = await buildJarvisIntelligenceInput(monthKey)
-    console.log('[Jarvis Cockpit] Intelligence input built:', intelligenceInput)
-
-    // 2. Générer le snapshot J4
-    const snapshot = buildIntelligenceSnapshot(intelligenceInput, {
-      referenceDate: new Date()
-    })
-    console.log('[Jarvis Cockpit] Snapshot generated:', snapshot)
-
-    // 3. Créer le view model Jarvis
-    const viewModel = createJarvisViewModel(snapshot)
-    console.log('[Jarvis Cockpit] View model created:', viewModel)
-    console.log('[Jarvis Cockpit] Data quality complete:', viewModel.dataQuality.isComplete)
-
-    // 4. Si données insuffisantes, afficher le mode qualité de données
-    if (!viewModel.dataQuality.isComplete) {
-      console.log('[Jarvis Cockpit] Rendering data quality mode')
-      const dataQualityMarkup = `
-        <div class="jarvis-cockpit" data-dashboard-mode="complete" data-motion="entry">
-          ${renderDataQualityMode(viewModel)}
-        </div>
-      `
-      container.innerHTML = dataQualityMarkup
-      console.log('[Jarvis Cockpit] Data quality mode rendered')
-      return
-    }
-
-    // 5. Générer le markup complet du cockpit
-    const cockpitMarkup = `
-      <div class="jarvis-cockpit" data-dashboard-mode="complete" data-motion="entry">
-        ${renderJarvisHero(viewModel)}
-        ${renderPriorityCard(viewModel)}
-        ${renderTrajectoryPanel(viewModel)}
-        ${renderSignalsSection(viewModel)}
-        ${renderGoalModule(viewModel)}
-      </div>
-    `
-
-    console.log('[Jarvis Cockpit] Cockpit markup length:', cockpitMarkup.length)
-    container.innerHTML = cockpitMarkup
-    console.log('[Jarvis Cockpit] Container innerHTML set, has jarvis-cockpit:', container.querySelector('.jarvis-cockpit') !== null)
-
-    // 6. Attacher les événements CTA
-    attachCtaListeners(container, windowRef)
-
-    // 7. Déclencher l'animation d'entrée
-    requestAnimationFrame(() => {
-      const cockpit = container.querySelector('.jarvis-cockpit')
-      if (cockpit) {
-        cockpit.dataset.motion = 'entry'
-      }
-    })
-
-  } catch (error) {
-    console.error('[Jarvis Cockpit] Error rendering cockpit:', error)
-    container.innerHTML = `
-      <div class="jarvis-cockpit">
-        <div class="jarvis-data-quality-mode">
-          <p class="jarvis-data-quality-message">Impossible d'afficher l'analyse pour le moment.</p>
-        </div>
-      </div>
-    `
-  }
-}
-
-/**
- * Attache les listeners pour les CTA
+ * Attaches CTA listeners
  */
 function attachCtaListeners(container, windowRef) {
   const ctaButtons = container.querySelectorAll('.jarvis-priority-cta')
@@ -768,21 +424,65 @@ function attachCtaListeners(container, windowRef) {
 }
 
 /**
- * Met à jour le cockpit Jarvis existant
+ * Formats currency
  */
-export async function updateJarvisCockpit(container, options = {}) {
-  if (!container) return
-  
-  // Réutiliser la logique de render principal
-  await renderJarvisCockpit(container, options)
+function formatCurrency(amount) {
+  if (typeof amount !== 'number' || isNaN(amount)) return '0 €'
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount)
+}
+
+/**
+ * Formats percentage
+ */
+function formatPercent(value) {
+  if (typeof value !== 'number' || isNaN(value)) return '0%'
+  return `${Math.round(value)}%`
+}
+
+/**
+ * Gets trend label
+ */
+function getTrendLabel(trend) {
+  if (trend === 'up') return 'Hausse'
+  if (trend === 'down') return 'Baisse'
+  if (trend === 'stable') return 'Stable'
+  return 'Indisponible'
+}
+
+/**
+ * Escapes HTML for security
+ */
+function escapeHtml(text) {
+  if (typeof text !== 'string') return ''
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
+/**
+ * Cleanup function for testing
+ */
+export function cleanupJarvisIntegration() {
+  if (modeObserver) {
+    modeObserver.disconnect()
+    modeObserver = null
+    observerInitialized = false
+  }
 }
 
 export default {
-  renderJarvisCockpit,
-  updateJarvisCockpit,
   renderJarvisInDashboard,
   updateJarvisOnModeChange,
   refreshJarvisData,
   initJarvisDashboardIntegration,
-  createJarvisViewModel
+  createJarvisViewModel,
+  cleanupJarvisIntegration
 }

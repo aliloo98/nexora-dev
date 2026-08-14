@@ -106,7 +106,10 @@ export async function renderAdvancedApplicationUi({
   renderDashboardMaster,
   refreshDashboardCoach,
   initJarvisDashboardIntegration,
-  documentRef = document
+  renderJarvisInDashboard,
+  refreshJarvisData,
+  documentRef = document,
+  windowRef = window
 }) {
   try {
     // Step 25: Render Dashboard Master component if present
@@ -120,7 +123,7 @@ export async function renderAdvancedApplicationUi({
 
     // Step 25.5: Initialize Jarvis Dashboard integration (J5)
     if (typeof initJarvisDashboardIntegration === 'function') {
-      initJarvisDashboardIntegration(window)
+      initJarvisDashboardIntegration(windowRef)
     }
 
     // Step 26: Render Advisor UI
