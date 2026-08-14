@@ -14,6 +14,23 @@ import { createJarvisViewModel } from './jarvisViewModel.js'
  */
 let modeObserver = null
 let observerInitialized = false
+let modeEventListener = null
+let modeEventDocumentRef = null
+let modeRenderVersion = 0
+let modeSyncScheduled = false
+
+const UX_MODE_APPLIED_EVENT = 'nexora:ux-mode-applied'
+
+function scheduleJarvisModeSync(documentRef, windowRef) {
+  if (modeSyncScheduled) return
+  modeSyncScheduled = true
+  Promise.resolve().then(() => {
+    modeSyncScheduled = false
+    return updateJarvisOnModeChange(documentRef, windowRef)
+  }).catch((error) => {
+    console.warn('[Jarvis Integration] mode sync failed:', error)
+  })
+}
 
 /**
  * Determines if Jarvis should be shown (Complete mode only)
@@ -62,10 +79,16 @@ export async function updateJarvisOnModeChange(documentRef = document, windowRef
   const cockpitRoot = documentRef.getElementById('cockpit-financier-root')
   if (!cockpitRoot) return
 
+  const renderVersion = ++modeRenderVersion
+
   if (shouldShowJarvis(documentRef)) {
     // Complete mode: render Jarvis
+    cockpitRoot.innerHTML = ''
     const monthKey = typeof windowRef.getMonth === 'function' ? windowRef.getMonth() : null
     await renderJarvisCockpit(cockpitRoot, { monthKey, documentRef, windowRef })
+    if (renderVersion !== modeRenderVersion && !shouldShowJarvis(documentRef)) {
+      cockpitRoot.innerHTML = ''
+    }
   } else {
     // Simplified mode: clear Jarvis and let existing system restore Hero
     cockpitRoot.innerHTML = ''
@@ -97,31 +120,38 @@ export async function refreshJarvisData(monthKey, documentRef = document, window
  * Initializes Jarvis dashboard integration with proper lifecycle
  */
 export function initJarvisDashboardIntegration(options = {}) {
-  const { windowRef = window } = options
+  const { windowRef = window, documentRef = windowRef.document } = options
   if (observerInitialized) {
     // Already initialized - skip
     return
   }
 
-  const documentRef = windowRef.document
   if (!documentRef || !documentRef.body) {
     return
   }
 
-  // Create single observer
-  modeObserver = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-      if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-        const target = mutation.target
-        if (target.classList.contains('mode-simple') || target.classList.contains('mode-complete')) {
-          // Delay to let CSS apply
-          setTimeout(() => updateJarvisOnModeChange(documentRef, windowRef), 50)
+  const observerCtor = windowRef.MutationObserver || globalThis.MutationObserver
+  if (typeof observerCtor === 'function') {
+    // Create single observer as a safety net for class changes outside setNexoraUxMode.
+    modeObserver = new observerCtor((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const target = mutation.target
+          if (target.classList.contains('mode-simple') || target.classList.contains('mode-complete')) {
+            scheduleJarvisModeSync(documentRef, windowRef)
+          }
         }
       }
-    }
-  })
+    })
 
-  modeObserver.observe(documentRef.body, { attributes: true, attributeFilter: ['class'] })
+    modeObserver.observe(documentRef.body, { attributes: true, attributeFilter: ['class'] })
+  }
+
+  modeEventListener = () => {
+    scheduleJarvisModeSync(documentRef, windowRef)
+  }
+  modeEventDocumentRef = documentRef
+  documentRef.addEventListener?.(UX_MODE_APPLIED_EVENT, modeEventListener)
   observerInitialized = true
 
   // Initial render if already in Complete mode
@@ -474,8 +504,13 @@ export function cleanupJarvisIntegration() {
   if (modeObserver) {
     modeObserver.disconnect()
     modeObserver = null
-    observerInitialized = false
   }
+  if (modeEventListener && modeEventDocumentRef?.removeEventListener) {
+    modeEventDocumentRef.removeEventListener(UX_MODE_APPLIED_EVENT, modeEventListener)
+  }
+  modeEventListener = null
+  modeEventDocumentRef = null
+  observerInitialized = false
 }
 
 export default {

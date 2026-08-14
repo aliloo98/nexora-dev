@@ -106,8 +106,6 @@ export async function renderAdvancedApplicationUi({
   renderDashboardMaster,
   refreshDashboardCoach,
   initJarvisDashboardIntegration,
-  renderJarvisInDashboard,
-  refreshJarvisData,
   documentRef = document,
   windowRef = window
 }) {

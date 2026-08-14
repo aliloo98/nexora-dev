@@ -50,9 +50,6 @@ export function installLegacyBridge(dependencies) {
     renderBudgetCoach,
     buildBudgetCoachState,
     buildJudgmentEngine,
-    renderJarvisInDashboard,
-    initJarvisDashboardIntegration,
-    refreshJarvisData,
     NexoraBuild,
     getUserDisplayName,
     NexoraSyncDiagnostics,
@@ -111,9 +108,6 @@ export function installLegacyBridge(dependencies) {
   window.renderBudgetCoach = renderBudgetCoach
   window.buildBudgetCoachState = buildBudgetCoachState
   window.buildJudgmentEngine = buildJudgmentEngine
-  window.renderJarvisInDashboard = renderJarvisInDashboard
-  window.initJarvisDashboardIntegration = initJarvisDashboardIntegration
-  window.refreshJarvisData = refreshJarvisData
   window.NexoraBuild = NexoraBuild
   window.getUserDisplayName = getUserDisplayName
   window.NexoraSyncDiagnostics = NexoraSyncDiagnostics

@@ -1504,6 +1504,13 @@ function applyNexoraUxMode(mode = getNexoraUxMode()) {
   if (typeof updateAll === 'function') {
     updateAll();
   }
+  try {
+    document.dispatchEvent(new CustomEvent('nexora:ux-mode-applied', {
+      detail: { mode: isSimple ? 'simple' : 'complete' }
+    }));
+  } catch (err) {
+    console.warn('[Nexora UX mode] Jarvis dispatch failed', err);
+  }
   window.NexoraMotion?.animateModeSwitch?.(document.getElementById('section-dashboard'));
 }
 
@@ -4648,10 +4655,6 @@ function updateDashboardSynthesisHero(metrics = {}) {
         if (typeof showSection === 'function') showSection(section);
       }
     });
-  } else if (isCompleteMode && typeof window.renderJarvisInDashboard === 'function') {
-    // Mode Complete: Utiliser Jarvis
-    const monthKey = typeof window.getMonth === 'function' ? window.getMonth() : null;
-    window.renderJarvisInDashboard({ monthKey, documentRef: document, windowRef: window });
   }
 
   // Update core panel elements if they exist

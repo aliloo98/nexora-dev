@@ -75,65 +75,65 @@ function normalizeBillSchedules(billSchedules) {
 }
 
 /**
- * Default history reader for Node environment
- * Returns empty array to avoid storage dependencies in tests
+ * Lazy default services. These mirror the coach context pattern so Node can
+ * import this adapter without pulling browser storage modules at top level.
  */
-const defaultHistoryReader = async () => []
-
-/**
- * Default monthly budget state service for Node environment
- * Returns deterministic test data to avoid storage dependencies
- */
-const defaultMonthlyBudgetService = {
+const defaultMonthlyBudgetStateService = {
   async getMonthlyBudgetState(monthKey) {
-    return {
-      data: {
-        'income_salary': 3000,
-        'rent': 1200,
-        'food': 500
-      }
-    }
+    const { MonthlyBudgetStateService } = await import('../../js/monthlyBudgetStateService.js')
+    return MonthlyBudgetStateService.getMonthlyBudgetState(monthKey)
   }
 }
 
-/**
- * Default budget categories service for Node environment
- * Returns deterministic test data to avoid storage dependencies
- */
 const defaultCategoriesService = {
   async getBudgetCategories(options) {
-    return [
-      { id: 'income_salary', type: 'income', name: 'Salaire', is_default: true, is_active: true },
-      { id: 'rent', type: 'fixed_expense', name: 'Loyer', is_default: true, is_active: true },
-      { id: 'food', type: 'variable_expense', name: 'Courses', is_default: true, is_active: true }
-    ]
+    const { BudgetCategoriesService } = await import('../../js/budgetCategoriesService.js')
+    return BudgetCategoriesService.getBudgetCategories(options)
   }
 }
 
-/**
- * Default goals service for Node environment
- * Returns empty array to avoid storage dependencies
- */
 const defaultGoalsService = {
   async listUserFacingGoals() {
-    return []
+    const { GoalsService } = await import('../goals/goalsService.js')
+    return GoalsService.listUserFacingGoals()
   }
 }
 
-/**
- * Default settings service for Node environment
- * Returns empty arrays to avoid storage dependencies
- */
 const defaultSettingsService = {
-  async loadRecurringIncomes() { return [] },
-  async loadBillSchedules() { return [] }
+  async loadRecurringIncomes() {
+    const { SettingsService } = await import('../settings/settingsService.js')
+    return SettingsService.loadRecurringIncomes()
+  },
+  async loadBillSchedules() {
+    const { SettingsService } = await import('../settings/settingsService.js')
+    return SettingsService.loadBillSchedules()
+  }
+}
+
+const defaultUserAppSettingsService = {
+  async getSetting(key) {
+    const { UserAppSettingsService } = await import('../../js/userAppSettingsService.js')
+    return UserAppSettingsService.getSetting(key)
+  }
+}
+
+const readSettingValue = async (service, key, defaultValue) => {
+  const result = await service.getSetting(key)
+  return result?.value ?? defaultValue
 }
 
 /**
- * Default debt reader for Node environment
- * Returns empty array to avoid storage dependencies
+ * Default debt reader.
+ * Node gets an empty fallback; browser production imports the real debt reader.
  */
-const defaultReadDebtsFn = async () => []
+const defaultReadDebtsFn = async () => {
+  if (typeof window === 'undefined') return []
+  const { readDebts } = await import('../plan/planDataBuilder.js')
+  if (typeof readDebts !== 'function') {
+    throw new TypeError('Jarvis adapter debt reader is unavailable')
+  }
+  return readDebts()
+}
 
 /**
  * Builds the intelligence input for J4 from Nexora domain state
@@ -145,14 +145,15 @@ const defaultReadDebtsFn = async () => []
  * This is critical for J4 to properly assess data quality.
  */
 export async function buildJarvisIntelligenceInput(monthKey, dependencies = {}) {
-  const {
-    monthlyBudgetStateService = dependencies.monthlyBudgetStateService || defaultMonthlyBudgetService,
-    budgetCategoriesService = dependencies.budgetCategoriesService || defaultCategoriesService,
-    goalsService = dependencies.goalsService || defaultGoalsService,
-    settingsService = dependencies.settingsService || defaultSettingsService,
-    readDebtsFn = dependencies.readDebtsFn || defaultReadDebtsFn,
-    historyReader = dependencies.historyReader || defaultHistoryReader
-  } = dependencies
+  const monthlyBudgetStateService = dependencies.monthlyBudgetStateService || defaultMonthlyBudgetStateService
+  const budgetCategoriesService = dependencies.budgetCategoriesService || defaultCategoriesService
+  const goalsService = dependencies.goalsService || defaultGoalsService
+  const settingsService = dependencies.settingsService || defaultSettingsService
+  const userAppSettingsService = dependencies.userAppSettingsService || defaultUserAppSettingsService
+  const readDebtsFn = dependencies.readDebtsFn || defaultReadDebtsFn
+  const historyReader = dependencies.historyReader || ((key, defaultValue) => (
+    readSettingValue(userAppSettingsService, key, defaultValue)
+  ))
 
   let metrics = {}
   let history = []
