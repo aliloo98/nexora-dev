@@ -103,7 +103,7 @@ export function renderJarvisCopilot(snapshot = {}) {
             rows="1"
             placeholder="Demande à Jarvis…"
           ></textarea>
-          <button type="submit" class="jarvis-copilot-send">Envoyer</button>
+          <button type="submit" class="jarvis-copilot-send" aria-label="Envoyer">➜</button>
         </form>
       </div>
       <div class="jarvis-copilot-prompts" aria-label="Questions rapides Jarvis">

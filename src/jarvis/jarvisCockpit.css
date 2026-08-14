@@ -29,8 +29,8 @@ body.mode-simple .jarvis-data-quality-mode {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--nx-space-lg);
-  padding: var(--nx-space-lg);
+  gap: var(--nx-space-md);
+  padding: var(--nx-space-md);
   box-sizing: border-box;
 }
 
@@ -42,8 +42,8 @@ body.mode-simple .jarvis-data-quality-mode {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--nx-space-md);
-  padding: var(--nx-space-xl);
+  gap: var(--nx-space-sm);
+  padding: var(--nx-space-lg);
   background: var(--jarvis-surface);
   border: 1px solid var(--jarvis-border);
   border-radius: var(--nx-radius-hero);
@@ -168,7 +168,7 @@ body.mode-simple .jarvis-data-quality-mode {
   display: flex;
   flex-direction: column;
   gap: var(--nx-space-sm);
-  padding: var(--nx-space-lg);
+  padding: var(--nx-space-md);
   background: var(--jarvis-surface-2);
   border: 1px solid var(--jarvis-border);
   border-radius: var(--nx-radius-card);
@@ -373,8 +373,8 @@ body.mode-simple .jarvis-data-quality-mode {
 .jarvis-goal-module {
   display: flex;
   flex-direction: column;
-  gap: var(--nx-space-sm);
-  padding: var(--nx-space-lg);
+  gap: var(--nx-space-xs);
+  padding: var(--nx-space-md);
   background: var(--jarvis-surface-2);
   border: 1px solid var(--jarvis-border);
   border-radius: var(--nx-radius-md);

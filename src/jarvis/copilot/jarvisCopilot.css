@@ -26,10 +26,10 @@ body.mode-simple .jarvis-copilot {
 
 .jarvis-copilot-command {
   display: grid;
-  grid-template-columns: minmax(180px, 240px) minmax(120px, 160px) minmax(260px, 1fr);
+  grid-template-columns: minmax(160px, 200px) minmax(100px, 140px) minmax(200px, 1fr);
   align-items: center;
-  gap: var(--nx-space-md);
-  padding: var(--nx-space-md) var(--nx-space-lg);
+  gap: var(--nx-space-sm);
+  padding: var(--nx-space-sm) var(--nx-space-md);
   background: var(--jarvis-copilot-surface);
   border: 1px solid var(--jarvis-copilot-border);
   border-radius: var(--nx-radius-card);
@@ -124,21 +124,21 @@ body.mode-simple .jarvis-copilot {
 .jarvis-copilot-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: var(--nx-space-sm);
+  align-items: stretch;
+  gap: 0;
 }
 
 .jarvis-copilot-input {
   width: 100%;
-  min-height: var(--nx-control-min-size);
-  max-height: 132px;
+  min-height: 36px;
+  max-height: 100px;
   resize: none;
   overflow-y: auto;
   box-sizing: border-box;
-  padding: var(--nx-space-sm) var(--nx-space-md);
+  padding: var(--nx-space-xs) var(--nx-space-sm);
   background: var(--jarvis-copilot-surface-soft);
   border: 1px solid var(--jarvis-copilot-border);
-  border-radius: var(--nx-radius-control);
+  border-radius: var(--nx-radius-control) 0 0 var(--nx-radius-control);
   color: var(--jarvis-copilot-text);
   font: inherit;
   line-height: var(--nx-line-height-body);
@@ -174,10 +174,18 @@ body.mode-simple .jarvis-copilot {
 }
 
 .jarvis-copilot-send {
-  padding: var(--nx-space-sm) var(--nx-space-md);
+  padding: var(--nx-space-xs) var(--nx-space-sm);
   background: var(--jarvis-copilot-accent-soft);
   border-color: var(--jarvis-copilot-accent);
   color: var(--jarvis-copilot-accent);
+  min-width: 40px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 var(--nx-radius-control) var(--nx-radius-control) 0;
+  border: 1px solid var(--jarvis-copilot-accent);
+  border-left: none;
 }
 
 .jarvis-copilot-send:hover,
@@ -200,16 +208,17 @@ body.mode-simple .jarvis-copilot {
 .jarvis-copilot-prompts {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--nx-space-sm);
+  gap: var(--nx-space-xs);
 }
 
 .jarvis-copilot-prompt {
-  padding: var(--nx-space-xs) var(--nx-space-md);
+  padding: var(--nx-space-2xs) var(--nx-space-sm);
   color: var(--jarvis-copilot-muted);
-  font-size: var(--nx-font-size-label);
+  font-size: var(--nx-font-size-caption);
   background: var(--jarvis-copilot-surface-soft);
   border: 1px solid var(--jarvis-copilot-border);
   transition: all var(--nx-motion-micro) var(--nx-easing-hover);
+  white-space: nowrap;
 }
 
 .jarvis-copilot-prompt:hover {
@@ -607,5 +616,17 @@ body.mode-simple .jarvis-copilot {
 
   .jarvis-copilot-signal::after {
     inset: 10px;
+  }
+
+  .jarvis-copilot-prompts {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: var(--nx-space-2xs);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .jarvis-copilot-prompts::-webkit-scrollbar {
+    display: none;
   }
 }
