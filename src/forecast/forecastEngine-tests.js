@@ -18,4 +18,14 @@ assert.equal(forecastRisk.overdraftRisk, 'HIGH')
 assert.ok(forecastRisk.lowestBalance < 0)
 console.log('✓ [Forecast] Risque de découvert élevé détecté (overdraftRisk = HIGH)')
 
-console.log('📊 Forecast Engine Tests: 2 passed, 0 failed\n')
+// 3. Les échéances partielles ne doivent pas masquer les autres charges fixes
+const metricsPartialBills = { revReel: 2000, fixReel: 1800, varReel: 800 }
+const forecastPartialBills = calculateForecast(metricsPartialBills, {
+  referenceDate: '2026-08-15',
+  billSchedules: [{ amount: 95, dayOfMonth: 15, recurrence: 'monthly' }]
+})
+assert.equal(forecastPartialBills.finalBalance, -600)
+assert.equal(forecastPartialBills.overdraftRisk, 'HIGH')
+console.log('✓ [Forecast] Échéances partielles complétées par les charges fixes restantes')
+
+console.log('📊 Forecast Engine Tests: 3 passed, 0 failed\n')

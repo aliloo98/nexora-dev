@@ -74,6 +74,44 @@ function normalizeBillSchedules(billSchedules) {
     }))
 }
 
+function isBrowserDemoMode() {
+  if (typeof window === 'undefined') return false
+  try {
+    return window.SafeStorage?.getItem?.('nexora_demo_mode_v1') === 'on'
+      || window.localStorage?.getItem?.('nexora_demo_mode_v1') === 'on'
+  } catch {
+    return false
+  }
+}
+
+function isObjectRecord(value) {
+  return value && typeof value === 'object' && !Array.isArray(value)
+}
+
+function getBrowserDemoBudgetData() {
+  if (!isBrowserDemoMode() || typeof window.getNexoraDemoMonthData !== 'function') return null
+  const demoData = window.getNexoraDemoMonthData()
+  return isObjectRecord(demoData) ? demoData : null
+}
+
+function removeEmptyBudgetValues(budgetData) {
+  if (!isObjectRecord(budgetData)) return {}
+  return Object.fromEntries(
+    Object.entries(budgetData).filter(([, value]) => value !== '' && value !== null && value !== undefined)
+  )
+}
+
+function resolveBudgetDataForRuntime(budgetData) {
+  const storedData = isObjectRecord(budgetData) ? budgetData : {}
+  const demoData = getBrowserDemoBudgetData()
+  if (!demoData) return storedData
+
+  return {
+    ...demoData,
+    ...removeEmptyBudgetValues(storedData)
+  }
+}
+
 /**
  * Lazy default services. These mirror the coach context pattern so Node can
  * import this adapter without pulling browser storage modules at top level.
@@ -186,9 +224,11 @@ export async function buildJarvisIntelligenceInput(monthKey, dependencies = {}) 
     billSchedules = billSchedulesData || []
 
     // 3. Compute metrics using canonical domain function
+    const budgetData = resolveBudgetDataForRuntime(monthlyState?.data || {})
+
     metrics = computeMonthlyMetrics({
       monthKey,
-      budgetData: monthlyState?.data || {},
+      budgetData,
       categories: categories || [],
       recurringIncomes,
       billSchedules

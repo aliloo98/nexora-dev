@@ -25,9 +25,12 @@ export function calculateForecast(metrics = {}, options = {}) {
   const dailyBills = new Array(daysInMonth + 1).fill(0)
   if (Array.isArray(billSchedules) && billSchedules.length > 0) {
     billSchedules.forEach(bill => {
-      const day = Math.min(daysInMonth, Math.max(1, Number(bill.day || bill.date) || 1))
+      const day = Math.min(daysInMonth, Math.max(1, Number(bill.dayOfMonth || bill.day || bill.date) || 1))
       dailyBills[day] += Number(bill.amount || 0)
     })
+    const scheduledFixedTotal = dailyBills.reduce((sum, amount) => sum + amount, 0)
+    const unscheduledFixed = Math.max(0, fixReel - scheduledFixedTotal)
+    dailyBills[1] += unscheduledFixed
   } else {
     dailyBills[1] = fixReel * 0.7
     dailyBills[15] = fixReel * 0.3

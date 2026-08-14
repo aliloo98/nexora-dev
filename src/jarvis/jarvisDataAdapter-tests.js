@@ -153,6 +153,62 @@ async function testNoFromDomTrue() {
   assert.ok(result.metrics, 'Adapter should work without fromDom:true')
 }
 
+async function testDemoModeFallbackMergesSavedBudgetData() {
+  const originalWindow = globalThis.window
+  globalThis.window = {
+    SafeStorage: {
+      getItem(key) {
+        return key === 'nexora_demo_mode_v1' ? 'on' : null
+      }
+    },
+    localStorage: {
+      getItem() {
+        return null
+      }
+    },
+    getNexoraDemoMonthData() {
+      return {
+        rev_ali: 1700,
+        rev_megane: 1300,
+        loyer: 650,
+        courses: 420
+      }
+    }
+  }
+
+  try {
+    const result = await buildJarvisIntelligenceInput('2026-06', {
+      ...mockDependencies,
+      monthlyBudgetStateService: {
+        async getMonthlyBudgetState() {
+          return {
+            data: {
+              courses: '777'
+            }
+          }
+        }
+      },
+      budgetCategoriesService: {
+        async getBudgetCategories() {
+          return [
+            { id: 'rev_ali', type: 'income', name: 'Revenu utilisateur', is_default: true, is_active: true },
+            { id: 'rev_megane', type: 'income', name: 'Revenu foyer', is_default: true, is_active: true },
+            { id: 'loyer', type: 'fixed_expense', name: 'Loyer', is_default: true, is_active: true },
+            { id: 'courses', type: 'variable_expense', name: 'Courses', is_default: true, is_active: true }
+          ]
+        }
+      }
+    })
+
+    assert.strictEqual(result.metrics.income, 3000, 'Demo fallback should provide income before first save')
+    assert.strictEqual(result.metrics.fixedExpenses, 650, 'Demo fallback should provide fixed expenses')
+    assert.strictEqual(result.metrics.variableExpenses, 777, 'Saved demo values should override seed data')
+  } finally {
+    if (originalWindow === undefined) delete globalThis.window
+    else globalThis.window = originalWindow
+  }
+}
+
 async function testNoInputMutation() {
   const inputMonthKey = '2026-06'
   const originalData = JSON.stringify(mockDependencies.monthlyBudgetStateService)
@@ -267,6 +323,7 @@ async function runTest(fn, name) {
   await runTest(testNoDOMDependency, 'No DOM dependency')
   await runTest(testNoWindowGetMonthMetricsDependency, 'No window.getMonthMetrics dependency')
   await runTest(testNoFromDomTrue, 'No fromDom:true')
+  await runTest(testDemoModeFallbackMergesSavedBudgetData, 'Demo mode fallback merges saved budget data')
   await runTest(testNoInputMutation, 'No input mutation')
   await runTest(testDeterministicOutput, 'Deterministic output')
   await runTest(testJ4InputShape, 'J4 input shape')

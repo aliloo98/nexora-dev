@@ -112,6 +112,21 @@ export const createLoginForm = ({ demoModeEnabled = shouldUsePlaceholderAuth() }
   `
 }
 
+async function requestDemoModeActivation() {
+  let activation = null
+  document.dispatchEvent(new CustomEvent('nexora:demo-mode-request', {
+    detail: {
+      enabled: true,
+      respondWith(promise) {
+        activation = Promise.resolve(promise)
+      }
+    }
+  }))
+  if (!activation) return false
+  await activation
+  return true
+}
+
 /**
  * Attach Login Form Event Listeners
  * Sets up form submission and validation
@@ -218,8 +233,11 @@ export const attachLoginFormListeners = () => {
       }
       showToast('✅ Mode test activé!')
 
-      // Activate demo mode to populate dashboard with demo data
-      localStorage.setItem('nexora_demo_mode_v1', 'on')
+      // Activate demo mode through the legacy loader so dashboard and Jarvis use the same data.
+      const demoActivated = await requestDemoModeActivation()
+      if (!demoActivated) {
+        localStorage.setItem('nexora_demo_mode_v1', 'on')
+      }
 
       const _expectedHashDemo = window.location.hash
       setTimeout(() => {

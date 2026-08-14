@@ -40,6 +40,30 @@ function testHealthyScenario() {
   assert.strictEqual(snapshot.dataQuality.level, 'high', 'Data quality should be high')
 }
 
+function testForecastUsesCanonicalMetrics() {
+  const input = {
+    metrics: {
+      income: 3000,
+      fixedExpenses: 1200,
+      variableExpenses: 800,
+      plannedExpenses: 2000,
+      paidExpenses: 1500,
+      savingsRate: 33
+    },
+    history: [],
+    goals: [],
+    debts: [],
+    billSchedules: [],
+    dataAvailability: { goals: 'known', debts: 'known' }
+  }
+
+  const snapshot = buildIntelligenceSnapshot(input, { referenceDate: '2026-08-14' })
+
+  assert.strictEqual(snapshot.cashflow.projected, 1000, 'Cashflow projected balance should use canonical metrics')
+  assert.strictEqual(snapshot.forecast.finalBalance, 1000, 'Forecast should translate canonical metrics to legacy forecast aliases')
+  assert.ok(snapshot.forecast.lowestBalance > 0, 'Forecast lowest balance should not collapse to zero')
+}
+
 // SCÉNARIO B — Déficit
 function testDeficitScenario() {
   const input = {
@@ -634,6 +658,7 @@ function runTest(fn, name) {
 }
 
 runTest(testHealthyScenario, 'SCÉNARIO A — Situation saine')
+runTest(testForecastUsesCanonicalMetrics, 'Forecast canonical metric aliases')
 runTest(testDeficitScenario, 'SCÉNARIO B — Déficit')
 runTest(testNoIncomeScenario, 'SCÉNARIO C — Revenu absent')
 runTest(testLowBufferScenario, 'SCÉNARIO D — Charges fixes élevées (fragile)')

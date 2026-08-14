@@ -1468,9 +1468,19 @@ async function setNexoraDemoMode(enabled) {
   applyNexoraDemoMode();
   setSaveBarDirty(false);
   await loadMonth();
+  if (typeof applyNexoraUxMode === 'function') {
+    applyNexoraUxMode(getNexoraUxMode());
+  }
   if (typeof window.refreshPlanHub === 'function') window.refreshPlanHub().catch(() => {});
   showToast(enabled ? 'Mode démo activé — données fictives affichées' : 'Mode démo désactivé — données réelles affichées');
 }
+
+document.addEventListener('nexora:demo-mode-request', (event) => {
+  const activation = setNexoraDemoMode(event?.detail?.enabled === true);
+  if (typeof event?.detail?.respondWith === 'function') {
+    event.detail.respondWith(activation);
+  }
+});
 
 function getNexoraUxMode() {
   try {
@@ -2194,6 +2204,15 @@ async function loadMonth(){
   });
 
   updateAll();
+  if (document.body.classList.contains('mode-complete')) {
+    try {
+      document.dispatchEvent(new CustomEvent('nexora:ux-mode-applied', {
+        detail: { mode: 'complete' }
+      }));
+    } catch (err) {
+      console.warn('[Nexora UX mode] Jarvis dispatch failed', err);
+    }
+  }
 }
 
 async function saveData(){

@@ -314,7 +314,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
   })
 
   test('12. normal motion behavior', async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: false })
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
     
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
@@ -330,7 +330,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
   })
 
   test('13. reduced motion behavior', async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: true })
+    await page.emulateMedia({ reducedMotion: 'reduce' })
     
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {

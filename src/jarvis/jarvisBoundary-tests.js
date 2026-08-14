@@ -185,6 +185,7 @@ function testInsufficientHistoryBoundary() {
   assert.ok(!isNaN(vm.trajectory.finalBalance), 'Final balance should not be NaN')
   assert.ok(vm.trajectory.finalBalance !== Infinity, 'Final balance should not be Infinity')
   assert.ok(vm.trajectory.finalBalance !== -Infinity, 'Final balance should not be -Infinity')
+  assert.strictEqual(vm.trajectory.finalBalance, 1300, 'Canonical J4 metrics should produce a non-zero Jarvis trajectory')
   
   // Insufficient history should disable trends capability
   assert.strictEqual(vm.capabilities.trends, false, 'Trends capability should be unavailable with insufficient history')

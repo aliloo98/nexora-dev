@@ -1,5 +1,81 @@
 import { test, expect } from '@playwright/test';
 
+async function readCockpitState(page) {
+  return page.evaluate(() => {
+    const normalizeText = value => String(value || '').replace(/\s+/g, ' ').trim();
+    const parseEuro = value => {
+      const normalized = normalizeText(value)
+        .replace(/\s/g, '')
+        .replace('€', '')
+        .replace(',', '.');
+      const parsed = Number(normalized);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+
+    const root = document.getElementById('cockpit-financier-root');
+    const isSimple = document.body.classList.contains('mode-simple');
+    const isComplete = document.body.classList.contains('mode-complete');
+    const month = typeof window.getMonth === 'function' ? window.getMonth() : null;
+    const metrics = typeof window.getMonthMetrics === 'function' && month
+      ? window.getMonthMetrics(month, { fromDom: true })
+      : null;
+    const formatCurrency = typeof window.fmt === 'function'
+      ? window.fmt
+      : value => `${Math.round(Number(value) || 0).toLocaleString('fr-FR')} €`;
+
+    return {
+      bodyClass: document.body.className,
+      mode: isSimple ? 'simple' : isComplete ? 'complete' : 'unknown',
+      heroCount: root?.querySelectorAll('.nx-hero-card').length || 0,
+      jarvisCount: root?.querySelectorAll('.jarvis-cockpit').length || 0,
+      rootText: normalizeText(root?.textContent),
+      jarvisMetricValues: Array.from(root?.querySelectorAll('.jarvis-metric-value') || [])
+        .map(element => normalizeText(element.textContent)),
+      jarvisNumericValues: Array.from(root?.querySelectorAll('.jarvis-metric-value') || [])
+        .map(element => parseEuro(element.textContent))
+        .filter(value => value !== null),
+      metrics,
+      formattedProjected: metrics ? normalizeText(formatCurrency(metrics.projectedEndOfCycle)) : null
+    };
+  });
+}
+
+async function waitForCockpitContract(page) {
+  await page.waitForFunction(() => {
+    const root = document.getElementById('cockpit-financier-root');
+    if (!root) return false;
+
+    const heroCount = root.querySelectorAll('.nx-hero-card').length;
+    const jarvisCount = root.querySelectorAll('.jarvis-cockpit').length;
+    if (document.body.classList.contains('mode-simple')) {
+      return heroCount === 1 && jarvisCount === 0;
+    }
+    if (document.body.classList.contains('mode-complete')) {
+      return jarvisCount === 1 && heroCount === 0;
+    }
+    return false;
+  });
+}
+
+function expectCockpitContract(state) {
+  expect(['simple', 'complete']).toContain(state.mode);
+  expect(state.metrics).toBeTruthy();
+  expect(Math.abs(state.metrics.projectedEndOfCycle)).toBeGreaterThan(0);
+
+  if (state.mode === 'simple') {
+    expect(state.heroCount).toBe(1);
+    expect(state.jarvisCount).toBe(0);
+    expect(state.rootText.length).toBeGreaterThan(0);
+    return;
+  }
+
+  expect(state.jarvisCount).toBe(1);
+  expect(state.heroCount).toBe(0);
+  expect(state.rootText).toContain('Solde projeté fin de mois');
+  expect(state.rootText).toContain(state.formattedProjected);
+  expect(state.jarvisNumericValues.some(value => Math.abs(value) > 0)).toBe(true);
+}
+
 test.describe('Production-like Demo Validation - Demo Build', () => {
   test('demo mode works on localhost with demo build', async ({ page }) => {
     const consoleErrors = [];
@@ -36,13 +112,11 @@ test.describe('Production-like Demo Validation - Demo Build', () => {
 
     // 4. Verify navigation to dashboard
     await expect(page).toHaveURL(/#section-dashboard/, { timeout: 5000 });
+    await waitForCockpitContract(page);
 
-    // 5. Read the KPI before modification (look for financial KPI in Hero Card)
-    const heroCard = page.locator('.nx-hero-card');
-    await expect(heroCard).toBeVisible({ timeout: 5000 });
-    const kpiBefore = await heroCard.textContent();
-    expect(kpiBefore).toBeTruthy();
-    expect(kpiBefore.length).toBeGreaterThan(0);
+    // 5. Read the cockpit contract before modification
+    const cockpitBefore = await readCockpitState(page);
+    expectCockpitContract(cockpitBefore);
 
     // 6. Navigate to Saisie via UI (use navigation link)
     await page.click('a[href="#section-saisie"]');
@@ -64,6 +138,7 @@ test.describe('Production-like Demo Validation - Demo Build', () => {
     await page.reload();
     await page.waitForLoadState('networkidle');
     await page.waitForFunction(() => typeof window.updateAll === 'function', { timeout: 10000 });
+    await waitForCockpitContract(page);
 
     // 11. Verify application is still authenticated without new click
     await expect(page.locator('body')).not.toHaveClass(/auth-locked/);
@@ -79,16 +154,14 @@ test.describe('Production-like Demo Validation - Demo Build', () => {
     await page.waitForTimeout(500);
     const dashboardVisible = await page.locator('#section-dashboard').isVisible();
     expect(dashboardVisible).toBe(true);
+    await waitForCockpitContract(page);
 
-    // 14. Verify Hero component is still rendered and KPI is present
-    const heroCardAfter = page.locator('.nx-hero-card');
-    await expect(heroCardAfter).toBeVisible();
-    const kpiAfter = await heroCardAfter.textContent();
-    expect(kpiAfter).toBeTruthy();
-    expect(kpiAfter.length).toBeGreaterThan(0);
+    // 14. Verify the current cockpit owner follows the UX mode contract
+    const cockpitAfter = await readCockpitState(page);
+    expectCockpitContract(cockpitAfter);
 
-    // 15. Verify KPI changed (courses modification should affect financial calculation)
-    expect(kpiAfter).not.toBe(kpiBefore);
+    // 15. Verify the saved courses modification affects financial calculation
+    expect(cockpitAfter.metrics.projectedEndOfCycle).not.toBe(cockpitBefore.metrics.projectedEndOfCycle);
 
     // 16. Final error checks - no Supabase requests
     expect(consoleErrors).toEqual([]);

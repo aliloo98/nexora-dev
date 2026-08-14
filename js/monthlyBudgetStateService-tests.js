@@ -115,6 +115,16 @@ try {
     'anonymous monthly data should keep the legacy key'
   )
   await MonthlyBudgetStateService.saveMonthlyBudgetState('2026-09', { rev_ali: 1800 })
+  assert.equal(
+    MonthlyBudgetStateService.getBudgetSummary({
+      rev_ali: '3 000 €',
+      loyer: '650 €',
+      courses: '777 €',
+      courses_paye: '180 €'
+    }).projectedBalance,
+    1573,
+    'monthly summaries should parse formatted currency values saved from inputs'
+  )
 
   const anonymousMeta = JSON.parse(storage.getItem(META_KEY))
   assert.deepEqual(anonymousMeta['2026-01'], legacyMeta['2026-01'], 'anonymous writes should preserve existing global metadata')
