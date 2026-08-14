@@ -4631,24 +4631,12 @@ function updateDashboardSynthesisHero(metrics = {}) {
 
   hero.dataset.state = state;
 
-  // JARVIS INTEGRATION: Use Jarvis in Complete mode, fallback to V2 HeroCard in Simple mode
+  // Render HeroCard in Simplified mode only
+  // Complete mode uses Jarvis through bootstrap integration
   const isCompleteMode = document.body.classList.contains('mode-complete');
   
-  console.log('[updateDashboardSynthesisHero] Mode:', isCompleteMode ? 'complete' : 'simple');
-  console.log('[updateDashboardSynthesisHero] JarvisDashboard available:', typeof window.JarvisDashboard?.renderJarvisInDashboard === 'function');
-  
-  if (isCompleteMode && typeof window.JarvisDashboard?.renderJarvisInDashboard === 'function') {
-    // Mode Complet: Utiliser Jarvis Cockpit
-    const monthKey = typeof window.getMonth === 'function' ? window.getMonth() : null;
-    console.log('[updateDashboardSynthesisHero] Rendering Jarvis with monthKey:', monthKey);
-    window.JarvisDashboard.renderJarvisInDashboard({
-      monthKey,
-      documentRef: document,
-      windowRef: window
-    });
-  } else if (typeof window.renderDashboardHero === 'function') {
-    // Mode Simplifié ou fallback: Utiliser le HeroCard existant
-    console.log('[updateDashboardSynthesisHero] Using fallback HeroCard');
+  if (!isCompleteMode && typeof window.renderDashboardHero === 'function') {
+    // Mode Simplifié: Utiliser le HeroCard existant
     window.renderDashboardHero('cockpit-financier-root', {
       ...metrics,
       totalDepRestant: metrics.totalDepRestant || 0,

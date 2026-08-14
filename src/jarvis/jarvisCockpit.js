@@ -281,14 +281,14 @@ function renderPriorityCard(viewModel) {
   }
 
   const ctaMarkup = priorityCta 
-    ? `<a href="#" class="jarvis-priority-cta" data-target="${priorityCta.target}" role="button">${escapeHtml(priorityCta.label)}</a>`
+    ? `<button type="button" class="jarvis-priority-cta" data-target="${priorityCta.target}">${escapeHtml(priorityCta.label)}</button>`
     : ''
 
   return `
     <div class="jarvis-priority-card">
       <div class="jarvis-priority-header">
         <span class="jarvis-priority-label">Priorité</span>
-        <span class="jarvis-priority-label" style="color: var(--jarvis-accent);">#${priority.rank}</span>
+        <span class="jarvis-priority-label jarvis-priority-rank">#${priority.rank}</span>
       </div>
       <p class="jarvis-priority-action">${escapeHtml(priority.label)}</p>
       ${ctaMarkup}
@@ -388,18 +388,20 @@ function renderGoalModule(viewModel) {
     return ''
   }
 
+  const progressClamped = Math.max(0, Math.min(100, goal.progress || 0))
+
   return `
     <div class="jarvis-goal-module">
       <div class="jarvis-goal-header">
         <span class="jarvis-goal-title">Objectif principal</span>
-        <span class="jarvis-goal-stat-value">${formatPercent(goal.progress)}</span>
+        <span class="jarvis-goal-stat-value">${formatPercent(progressClamped)}</span>
       </div>
       <div class="jarvis-goal-progress">
-        <div class="jarvis-goal-progress-bar" style="width: ${goal.progress}%"></div>
+        <div class="jarvis-goal-progress-bar" style="width: ${progressClamped}%"></div>
       </div>
       <div class="jarvis-goal-stats">
         <span class="jarvis-goal-stat">Restant: <span class="jarvis-goal-stat-value">${formatCurrency(goal.remaining)}</span></span>
-        <span class="jarvis-goal-stat">Rythme: <span class="jarvis-goal-stat-value">${escapeHtml(goal.pace)}</span></span>
+        ${goal.monthlyEffort ? `<span class="jarvis-goal-stat">Effort mensuel: <span class="jarvis-goal-stat-value">${formatCurrency(goal.monthlyEffort)}</span></span>` : ''}
       </div>
     </div>
   `

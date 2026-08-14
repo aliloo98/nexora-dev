@@ -187,6 +187,10 @@ body.mode-simple .jarvis-data-quality-mode {
   letter-spacing: var(--nx-letter-spacing-eyebrow);
 }
 
+.jarvis-priority-rank {
+  color: var(--jarvis-accent);
+}
+
 .jarvis-priority-action {
   font-size: var(--nx-font-size-body);
   font-weight: var(--nx-font-weight-medium);

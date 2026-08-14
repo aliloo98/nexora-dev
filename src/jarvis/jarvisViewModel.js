@@ -24,7 +24,7 @@ const JARVIS_COPY = {
     critical: 'Un déficit est projeté : la priorité est de sécuriser ton cashflow.',
     fragile: 'Tes charges fixes limitent ta marge de manœuvre.',
     balanced: 'Ta situation est équilibrée, mais tu peux optimiser.',
-    stable: 'Ta trajectoire reste saine et ton objectif progresse.',
+    stable: 'Ta trajectoire reste saine.',
     strong: 'Excellente situation financière avec une marge confortable.',
     insufficient_data: 'J\'ai besoin de davantage de données pour affiner ton analyse.',
     trends_unavailable: 'Pas assez d\'historique pour analyser les tendances.'
@@ -106,7 +106,7 @@ const HEALTH_STATUS_TO_VISUAL = {
  * All renderers must consume this exact shape.
  */
 export function createJarvisViewModel(snapshot) {
-  const { health, priorities, forecast, risks, opportunities, goal, debt, cashflow, dataQuality, trends } = snapshot
+  const { health, priorities, forecast, risks, opportunities, goal, debt, dataQuality, trends } = snapshot
 
   // Map health status to visual state
   const visualState = HEALTH_STATUS_TO_VISUAL[health.status] || 'unknown'
@@ -118,7 +118,7 @@ export function createJarvisViewModel(snapshot) {
   const { priority, priorityCta } = mapPriorityAndCta(priorities?.[0] || null)
 
   // Map trajectory from forecast and trends
-  const trajectory = mapTrajectory(forecast, trends, cashflow)
+  const trajectory = mapTrajectory(forecast, trends, snapshot.cashflow)
 
   // Map risks with all required fields
   const formattedRisks = mapRisks(risks)
@@ -133,7 +133,10 @@ export function createJarvisViewModel(snapshot) {
   const formattedDebt = mapDebt(debt)
 
   // Map cashflow
-  const formattedCashflow = mapCashflow(cashflow)
+  const formattedCashflow = mapCashflow(snapshot.cashflow)
+
+  // Map savings
+  const formattedSavings = mapSavings(snapshot.savings)
 
   // Map data quality issues with proper code-to-message mapping
   const formattedDataQuality = mapDataQuality(dataQuality)
@@ -175,6 +178,9 @@ export function createJarvisViewModel(snapshot) {
 
     // Cashflow
     cashflow: formattedCashflow,
+
+    // Savings
+    savings: formattedSavings,
 
     // Data quality
     dataQuality: formattedDataQuality,
@@ -262,14 +268,16 @@ function mapPriorityAndCta(priority) {
 
 /**
  * Maps trajectory from forecast and trends
+ * J4 forecast: { lowestBalance, lowestBalanceDay, overdraftRisk, finalBalance }
  */
 function mapTrajectory(forecast, trends, cashflow) {
-  const isPositive = cashflow?.projected >= 0
+  const isPositive = (cashflow?.projected || 0) >= 0
 
   return {
     available: !!forecast && forecast.finalBalance !== undefined,
     finalBalance: forecast?.finalBalance || 0,
     lowestBalance: forecast?.lowestBalance || 0,
+    lowestBalanceDay: forecast?.lowestBalanceDay || null,
     overdraftRisk: forecast?.overdraftRisk || 'NONE',
     cashflowPositive: isPositive,
     trendsAvailable: trends?.available === true,
@@ -308,20 +316,28 @@ function mapOpportunities(opportunities) {
 }
 
 /**
- * Maps goal with all required fields
+ * Maps goal with real J4 fields only
+ * J4 goal from calculateGoalMetrics: { target, current, remaining, targetDate, daysRemaining, monthsRemaining, requiredDaily, requiredMonthly, monthlyEffort, projectedMonths, progress, isTargetValid, isReached, isDeadlineValid, status }
  */
 function mapGoal(goal) {
   if (!goal) return null
 
   return {
-    id: goal.id,
     target: goal.target,
     current: goal.current,
-    progress: goal.progress || 0,
-    remaining: goal.remaining || (goal.target - goal.current),
-    isPrimary: goal.isPrimary === true,
+    remaining: goal.remaining,
     targetDate: goal.targetDate,
-    pace: goal.pace || 'Normal' // Default fallback if not provided by J4
+    daysRemaining: goal.daysRemaining,
+    monthsRemaining: goal.monthsRemaining,
+    requiredDaily: goal.requiredDaily,
+    requiredMonthly: goal.requiredMonthly,
+    monthlyEffort: goal.monthlyEffort,
+    projectedMonths: goal.projectedMonths,
+    progress: goal.progress,
+    isTargetValid: goal.isTargetValid,
+    isReached: goal.isReached,
+    isDeadlineValid: goal.isDeadlineValid,
+    status: goal.status
   }
 }
 
@@ -340,7 +356,8 @@ function mapDebt(debt) {
 }
 
 /**
- * Maps cashflow
+ * Maps cashflow using real J4 contract
+ * J4 cashflow: { income, expenses, paidExpenses, projected, current, remaining }
  */
 function mapCashflow(cashflow) {
   if (!cashflow) return null
@@ -348,8 +365,23 @@ function mapCashflow(cashflow) {
   return {
     income: cashflow.income,
     expenses: cashflow.expenses,
-    savings: cashflow.savings,
-    savingsRate: cashflow.savingsRate
+    paidExpenses: cashflow.paidExpenses,
+    projected: cashflow.projected,
+    current: cashflow.current,
+    remaining: cashflow.remaining
+  }
+}
+
+/**
+ * Maps savings from J4 snapshot
+ * J4 savings: { rate, amount }
+ */
+function mapSavings(savings) {
+  if (!savings) return null
+
+  return {
+    rate: savings.rate,
+    amount: savings.amount
   }
 }
 

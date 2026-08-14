@@ -8,7 +8,7 @@ import { test, expect } from '@playwright/test'
 
 test.describe('Jarvis Cockpit - Desktop', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173')
+    await page.goto('/')
     await page.waitForLoadState('networkidle')
   })
 
@@ -322,10 +322,33 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await expect(jarvisCockpit).toHaveCount(1)
   })
 
-  test.skip('11. refresh persistence', async ({ page }) => {
-    // SKIPPED: Refresh persistence requires careful initialization timing
-    // Jarvis renders correctly on initial load and mode switch
-    // Page refresh behavior will be validated in future iteration
+  test('11. refresh persistence', async ({ page }) => {
+    // Set Complete mode
+    await page.evaluate(() => {
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('complete')
+      }
+    })
+    
+    await page.evaluate(() => {
+      if (typeof window.showSection === 'function') {
+        window.showSection('dashboard')
+      }
+    })
+    
+    await page.waitForTimeout(500)
+    
+    // Verify Jarvis is visible
+    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    await expect(jarvisCockpit).toHaveCount(1)
+    
+    // Reload page
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(2000)
+    
+    // Verify Jarvis is still visible after reload
+    await expect(jarvisCockpit).toHaveCount(1)
   })
 
   test('12. keyboard focus', async ({ page }) => {
@@ -362,7 +385,7 @@ test.describe('Jarvis Cockpit - Mobile', () => {
   test.use({ viewport: { width: 390, height: 844 } })
   
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173')
+    await page.goto('/')
     await page.waitForLoadState('networkidle')
   })
 
@@ -518,9 +541,63 @@ test.describe('Jarvis Cockpit - Mobile', () => {
   })
 })
 
+test.describe('Jarvis Cockpit - Mobile Small', () => {
+  test.use({ viewport: { width: 375, height: 812 } })
+  
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+  })
+
+  test('29. Jarvis visible on small mobile', async ({ page }) => {
+    // Set Complete mode
+    await page.evaluate(() => {
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('complete')
+      }
+    })
+    
+    await page.evaluate(() => {
+      if (typeof window.showSection === 'function') {
+        window.showSection('dashboard')
+      }
+    })
+    
+    await page.waitForTimeout(500)
+    
+    // Verify Jarvis cockpit exists in DOM on small mobile
+    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    await expect(jarvisCockpit).toHaveCount(1)
+  })
+
+  test('30. no horizontal overflow on small mobile', async ({ page }) => {
+    // Set Complete mode
+    await page.evaluate(() => {
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('complete')
+      }
+    })
+    
+    await page.evaluate(() => {
+      if (typeof window.showSection === 'function') {
+        window.showSection('dashboard')
+      }
+    })
+    
+    await page.waitForTimeout(500)
+    
+    // Check for horizontal overflow
+    const bodyWidth = await page.evaluate(() => document.body.scrollWidth)
+    const viewportWidth = await page.evaluate(() => window.innerWidth)
+    
+    // Body should not be wider than viewport (no horizontal scroll)
+    expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 1) // Allow 1px tolerance
+  })
+})
+
 test.describe('Jarvis Cockpit - Motion', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173')
+    await page.goto('/')
     await page.waitForLoadState('networkidle')
   })
 
