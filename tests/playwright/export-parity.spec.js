@@ -68,7 +68,7 @@ test.describe('Budget source parity and premium exports', () => {
       ]));
     }, { user, session });
 
-    await page.goto('http://127.0.0.1:5180/', { waitUntil: 'domcontentloaded' });
+    await page.goto('http://localhost:5180/', { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => typeof window.initLegacyBudgetUi === 'function');
     await page.evaluate(() => window.initLegacyBudgetUi());
     await page.waitForFunction(() => document.querySelector('[data-key="rev_ali"]')?.value === '1800');

@@ -57,7 +57,7 @@ test.describe('Current budget month initialization', () => {
   });
 
   test('opens August, preserves history, supports July navigation, and resets to August after restart', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5180/', { waitUntil: 'domcontentloaded' });
+    await page.goto('http://localhost:5180/', { waitUntil: 'domcontentloaded' });
     
     // Wait for budget month initialization to complete
     await page.waitForFunction(() => {
@@ -92,7 +92,7 @@ test.describe('Current budget month initialization', () => {
       // Ensure date override is set for this test too
       window.__testDateOverride = new Date('2026-08-03T10:00:00+02:00');
     });
-    await page.goto('http://127.0.0.1:5180/', { waitUntil: 'domcontentloaded' });
+    await page.goto('http://localhost:5180/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#monthSelect')).toHaveValue('2026-08');
 
     await page.locator('#json-import-input').setInputFiles({
@@ -127,7 +127,7 @@ test.describe('Current budget month initialization', () => {
       window.__testDateOverride = new Date('2026-08-03T10:00:00+02:00');
     }, { userId: user.id });
 
-    await page.goto('http://127.0.0.1:5180/', { waitUntil: 'domcontentloaded' });
+    await page.goto('http://localhost:5180/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#monthSelect')).toHaveValue('2026-08');
     await expect(page.locator('#budget-cycle-caption')).toContainText('28 juillet');
     await expect(page.locator('[data-key="rev_ali"]')).toHaveValue('1808');

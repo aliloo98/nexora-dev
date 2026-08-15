@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Dashboard Mode Superset', () => {
   test.beforeEach(async ({ page }) => {
     // Use official test server URL from playwright.config.js
-    await page.goto('http://127.0.0.1:5180');
+    await page.goto('http://localhost:5180');
 
     // Wait for page to load
     await page.waitForLoadState('networkidle');

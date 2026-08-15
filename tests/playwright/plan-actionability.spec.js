@@ -5,7 +5,7 @@ test.describe('Plan Actionability J2 Desktop', () => {
 
   test('Plan CTA navigates to Budget when judgment recommends budget action', async ({ page }) => {
     // Use official test server URL from playwright.config.js
-    await page.goto('http://127.0.0.1:5180')
+    await page.goto('http://localhost:5180')
 
     // Wait for page to load
     await page.waitForLoadState('networkidle')
@@ -74,7 +74,7 @@ test.describe('Plan Actionability J2 Mobile', () => {
 
   test('Plan CTA works on mobile viewport when present', async ({ page }) => {
     // Use official test server URL
-    await page.goto('http://127.0.0.1:5180')
+    await page.goto('http://localhost:5180')
     await page.waitForLoadState('networkidle')
 
     // Perform real demo login

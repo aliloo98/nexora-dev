@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Test bug réel - Barre de sauvegarde', () => {
   test('une saisie réelle affiche la barre, la sauvegarde fonctionne et la valeur persiste après reload', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5180');
+    await page.goto('http://localhost:5180');
     await page.waitForLoadState('networkidle');
     await page.waitForFunction(() => typeof window.updateAll === 'function', { timeout: 10000 });
 
