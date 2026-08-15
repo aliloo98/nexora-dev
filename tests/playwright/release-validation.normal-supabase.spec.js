@@ -8,7 +8,16 @@ test.describe('Production-like Demo Validation - Normal Build (Synthetic Supabas
 
     page.on('console', message => {
       if (message.type() === 'error') {
-        consoleErrors.push(message.text());
+        const text = message.text();
+        const locationUrl = message.location()?.url || '';
+        // Filter out Google Fonts 404 errors - known external service flake
+        const isKnownGoogleFonts404 =
+          text.includes('Failed to load resource') &&
+          text.includes('404') &&
+          locationUrl.includes('fonts.gstatic.com');
+        if (!isKnownGoogleFonts404) {
+          consoleErrors.push(text);
+        }
       }
     });
     page.on('pageerror', error => {
@@ -53,7 +62,16 @@ test.describe('Production-like Demo Validation - Normal Build (Synthetic Supabas
 
     page.on('console', message => {
       if (message.type() === 'error') {
-        consoleErrors.push(message.text());
+        const text = message.text();
+        const locationUrl = message.location()?.url || '';
+        // Filter out Google Fonts 404 errors - known external service flake
+        const isKnownGoogleFonts404 =
+          text.includes('Failed to load resource') &&
+          text.includes('404') &&
+          locationUrl.includes('fonts.gstatic.com');
+        if (!isKnownGoogleFonts404) {
+          consoleErrors.push(text);
+        }
       }
     });
     page.on('pageerror', error => {

@@ -31,6 +31,7 @@ function normalizeHistory(snapshots) {
 /**
  * Normalizes goals for J4 contract
  * Uses only fields present in actual J4 output
+ * Preserves isPrimary flag for correct primary goal selection
  */
 function normalizeGoals(goals) {
   if (!Array.isArray(goals)) return []
@@ -40,7 +41,8 @@ function normalizeGoals(goals) {
     .map(g => ({
       target: g.target || g.targetAmount,
       current: g.current || g.amount || 0,
-      targetDate: g.targetDate || null
+      targetDate: g.targetDate || null,
+      isPrimary: g.isPrimary === true
     }))
 }
 

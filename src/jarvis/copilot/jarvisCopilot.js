@@ -103,7 +103,7 @@ export function renderJarvisCopilot(snapshot = {}) {
             rows="1"
             placeholder="Demande à Jarvis…"
           ></textarea>
-          <button type="submit" class="jarvis-copilot-send">Envoyer</button>
+          <button type="submit" class="jarvis-copilot-send" aria-label="Envoyer">➜</button>
         </form>
       </div>
       <div class="jarvis-copilot-prompts" aria-label="Questions rapides Jarvis">
@@ -118,7 +118,11 @@ export function renderJarvisCopilot(snapshot = {}) {
           <button type="button" class="jarvis-copilot-close" data-jarvis-copilot-close>Fermer</button>
         </div>
         ${contextRail}
-        <div class="jarvis-copilot-thread" data-jarvis-copilot-thread aria-live="polite"></div>
+        <div class="jarvis-copilot-thread" data-jarvis-copilot-thread aria-live="polite">
+          <div class="jarvis-copilot-empty-state" data-jarvis-empty-state>
+            <p>Jarvis est prêt. Posez une question sur votre situation financière.</p>
+          </div>
+        </div>
       </div>
     </section>
   `
@@ -143,6 +147,8 @@ function appendUserMessage(thread, text) {
   item.className = 'jarvis-copilot-user-message'
   item.textContent = text
   thread.appendChild(item)
+  const emptyState = thread.querySelector('[data-jarvis-empty-state]')
+  if (emptyState) emptyState.remove()
   scrollThreadToEnd(thread)
 }
 
@@ -228,6 +234,8 @@ function appendJarvisResponse(thread, response) {
     ${renderActions(response)}
   `
   thread.appendChild(item)
+  const emptyState = thread.querySelector('[data-jarvis-empty-state]')
+  if (emptyState) emptyState.remove()
   scrollThreadToEnd(thread)
   return item
 }
@@ -314,6 +322,8 @@ export function attachJarvisCopilot(container, options = {}) {
         <p>Tes données n’ont pas été modifiées.</p>
       `
       thread.appendChild(fallback)
+      const emptyState = thread.querySelector('[data-jarvis-empty-state]')
+      if (emptyState) emptyState.remove()
       if (windowRef.location?.hostname === 'localhost') {
         console.warn('[Jarvis Copilot] response failed:', error)
       }

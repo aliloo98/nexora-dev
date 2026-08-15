@@ -299,6 +299,30 @@ async function testInvalidHistoryIgnored() {
   assert.strictEqual(result.history.length, 2, 'Invalid entries should be filtered out')
 }
 
+async function testPrimaryGoalFlagPreserved() {
+  // Regression test: ensure isPrimary flag is preserved through normalization
+  // This prevents the bug where Jarvis would show the wrong goal's data
+  const testDependencies = {
+    ...mockDependencies,
+    goalsService: {
+      async listUserFacingGoals() {
+        return [
+          { name: 'Secondary Goal', target: 2000, current: 500, targetDate: '2026-12-31', isPrimary: false },
+          { name: 'Primary Goal', target: 4500, current: 0, targetDate: '2027-01-01', isPrimary: true }
+        ]
+      }
+    }
+  }
+  
+  const result = await buildJarvisIntelligenceInput('2026-08', testDependencies)
+  
+  assert.strictEqual(result.goals.length, 2, 'Should normalize both goals')
+  assert.strictEqual(result.goals[1].isPrimary, true, 'Primary goal flag should be preserved')
+  assert.strictEqual(result.goals[0].isPrimary, false, 'Non-primary goal flag should be preserved')
+  assert.strictEqual(result.goals[1].target, 4500, 'Primary goal target should be correct')
+  assert.strictEqual(result.goals[1].current, 0, 'Primary goal current should be correct')
+}
+
 // Run tests
 let passed = 0
 let total = 0
@@ -337,6 +361,7 @@ async function runTest(fn, name) {
   await runTest(testNoInputMutation, 'No input mutation')
   await runTest(testDeterministicOutput, 'Deterministic output')
   await runTest(testJ4InputShape, 'J4 input shape')
+  await runTest(testPrimaryGoalFlagPreserved, 'Primary goal flag preserved (regression)')
 
   console.log(`\nJarvis Data Adapter Tests: ${passed}/${total} passed (${skipped} skipped)`)
 })()

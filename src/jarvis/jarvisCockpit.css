@@ -29,8 +29,8 @@ body.mode-simple .jarvis-data-quality-mode {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--nx-space-lg);
-  padding: var(--nx-space-lg);
+  gap: var(--nx-space-md);
+  padding: var(--nx-space-md);
   box-sizing: border-box;
 }
 
@@ -42,12 +42,13 @@ body.mode-simple .jarvis-data-quality-mode {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--nx-space-md);
-  padding: var(--nx-space-xl);
+  gap: var(--nx-space-sm);
+  padding: var(--nx-space-lg);
   background: var(--jarvis-surface);
   border: 1px solid var(--jarvis-border);
   border-radius: var(--nx-radius-hero);
   overflow: hidden;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .jarvis-hero::before {
@@ -125,15 +126,16 @@ body.mode-simple .jarvis-data-quality-mode {
   position: absolute;
   top: var(--nx-space-lg);
   right: var(--nx-space-lg);
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--jarvis-accent-glow);
   border: 2px solid var(--jarvis-accent);
-  opacity: 0.8;
+  opacity: 0.9;
+  box-shadow: 0 0 0 1px rgba(215, 169, 74, 0.1), inset 0 0 12px rgba(215, 169, 74, 0.08);
 }
 
 .jarvis-hero[data-state="critical"] .jarvis-visual-anchor {
@@ -166,7 +168,7 @@ body.mode-simple .jarvis-data-quality-mode {
   display: flex;
   flex-direction: column;
   gap: var(--nx-space-sm);
-  padding: var(--nx-space-lg);
+  padding: var(--nx-space-md);
   background: var(--jarvis-surface-2);
   border: 1px solid var(--jarvis-border);
   border-radius: var(--nx-radius-card);
@@ -258,11 +260,11 @@ body.mode-simple .jarvis-data-quality-mode {
 }
 
 .jarvis-metric-value[data-positive="true"] {
-  color: var(--jarvis-stable);
+  color: var(--jarvis-text-primary);
 }
 
 .jarvis-metric-value[data-positive="false"] {
-  color: var(--jarvis-critical);
+  color: var(--jarvis-text-primary);
 }
 
 .jarvis-trend-indicator {
@@ -274,11 +276,11 @@ body.mode-simple .jarvis-data-quality-mode {
 }
 
 .jarvis-trend-indicator[data-trend="up"] {
-  color: var(--jarvis-stable);
+  color: var(--jarvis-text-primary);
 }
 
 .jarvis-trend-indicator[data-trend="down"] {
-  color: var(--jarvis-critical);
+  color: var(--jarvis-text-primary);
 }
 
 /* ============================================
@@ -371,8 +373,8 @@ body.mode-simple .jarvis-data-quality-mode {
 .jarvis-goal-module {
   display: flex;
   flex-direction: column;
-  gap: var(--nx-space-sm);
-  padding: var(--nx-space-lg);
+  gap: var(--nx-space-xs);
+  padding: var(--nx-space-md);
   background: var(--jarvis-surface-2);
   border: 1px solid var(--jarvis-border);
   border-radius: var(--nx-radius-md);
@@ -431,19 +433,21 @@ body.mode-simple .jarvis-data-quality-mode {
 .jarvis-data-quality-mode {
   display: flex;
   flex-direction: column;
-  gap: var(--nx-space-md);
+  gap: var(--nx-space-lg);
   padding: var(--nx-space-xl);
   background: var(--jarvis-surface);
   border: 1px solid var(--jarvis-border);
   border-radius: var(--nx-radius-lg);
   text-align: center;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .jarvis-data-quality-message {
-  font-size: var(--nx-font-size-body);
+  font-size: var(--nx-font-size-section-mobile);
   font-weight: var(--nx-font-weight-medium);
   color: var(--nx-color-text-primary);
   margin: 0;
+  line-height: var(--nx-line-height-section-mobile);
 }
 
 .jarvis-data-quality-issues {
@@ -457,12 +461,13 @@ body.mode-simple .jarvis-data-quality-mode {
   display: inline-flex;
   align-items: center;
   gap: var(--jarvis-space-2xs);
-  padding: var(--jarvis-space-2xs) var(--nx-space-sm);
+  padding: var(--jarvis-space-2xs) var(--nx-space-md);
   background: var(--jarvis-surface-2);
   border: 1px solid var(--jarvis-border);
   border-radius: var(--nx-radius-control);
   font-size: var(--nx-font-size-label);
   color: var(--jarvis-text-secondary);
+  font-weight: var(--nx-font-weight-medium);
 }
 
 /* ============================================
@@ -503,17 +508,17 @@ body.mode-simple .jarvis-data-quality-mode {
 }
 
 .jarvis-visual-anchor {
-  animation: jarvis-pulse 3s ease-in-out infinite;
+  animation: jarvis-pulse 5s ease-in-out infinite;
 }
 
 @keyframes jarvis-pulse {
   0%, 100% {
-    opacity: 0.8;
+    opacity: 0.9;
     transform: scale(1);
   }
   50% {
     opacity: 1;
-    transform: scale(1.05);
+    transform: scale(1.02);
   }
 }
 
@@ -556,8 +561,8 @@ body.mode-simple .jarvis-data-quality-mode {
   }
 
   .jarvis-visual-anchor {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
   }
 
   .jarvis-trajectory-panel {

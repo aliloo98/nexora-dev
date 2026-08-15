@@ -62,8 +62,7 @@ export function renderDashboardHero(rootId, metrics = {}, options = {}) {
     trend = `Charges ${tauxCh}% · Variables ${variablesPct}%`
     
     subMetrics = [
-      { label: 'Taux d\'épargne', value: fmtPct(savingsRate) },
-      { label: 'Reste à dépenser', value: fmt(totalDepRestant) }
+      { label: 'Taux d\'épargne', value: fmtPct(savingsRate) }
     ]
   }
 

@@ -1346,6 +1346,10 @@ function applyBudgetCycleLabels() {
 
   const summary = document.getElementById('budget-cycle-summary');
   if (summary) summary.textContent = range.mode === 'custom' ? range.fullLabel : `${range.fullLabel} (${range.rangeLabel})`;
+
+  // Update dashboard header to use canonical month label
+  const dashboardHeader = document.querySelector('.dashboard-topbar__copy h2');
+  if (dashboardHeader) dashboardHeader.textContent = range.fullLabel;
 }
 
 function refreshBudgetCycleSettingsUI() {
@@ -4066,7 +4070,8 @@ function updateAll(){
   const tauxCh = revReel > 0 ? Math.round((totalDepReel / revReel) * 100) : 0;
 
   // Additional calculations for Analytics (Mode Complet)
-  const savingsRate = revReel > 0 ? ((solde / revReel) * 100) : 0;
+  // Use canonical savingsRate calculation matching computeCycleBalances
+  const savingsRate = revReel > 0 ? Math.round((solde / revReel) * 100) : 0;
   const annualProjection = solde * 12;
   const safetyMargin = revReel - fixReel;
   // Goal progress: Multiplier of 3 is a business rule to scale savings rate for visual progress bar
@@ -4361,7 +4366,8 @@ function updateAll(){
     revReel,
     solde,
     tauxCh,
-    variablesPct
+    variablesPct,
+    savingsRate
   });
   
   // Update Dashboard Coach with V2 renderer
@@ -4666,7 +4672,7 @@ function updateDashboardSynthesisHero(metrics = {}) {
     window.renderDashboardHero('cockpit-financier-root', {
       ...metrics,
       totalDepRestant: metrics.totalDepRestant || 0,
-      savingsRate: metrics.savingsRate || 0
+      savingsRate: metrics.savingsRate ?? 0
     }, {
       documentRef: document,
       windowRef: window,

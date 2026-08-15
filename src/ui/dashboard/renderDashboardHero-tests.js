@@ -148,4 +148,30 @@ renderDashboardHero('test-root-double', { revReel: 2000, solde: 600, tauxCh: 65,
 const heroCards = rootDouble.querySelectorAll('.nx-hero-card')
 assert.ok(heroCards.length >= 1, 'Should have at least one Hero Card after multiple calls')
 
+// Test 14: Semantic regression - "Reste à dépenser" should NOT be rendered
+const rootSemantic = documentRef.createElement('div')
+rootSemantic.id = 'test-root-semantic'
+documentRef.body.appendChild(rootSemantic)
+
+renderDashboardHero('test-root-semantic', { 
+  revReel: 2500, 
+  solde: 600.63, 
+  tauxCh: 75, 
+  variablesPct: 25, 
+  totalDepRestant: 0,
+  savingsRate: 12 
+}, { documentRef })
+
+const heroText = rootSemantic.textContent
+assert.ok(!heroText.includes('Reste à dépenser'), 'Should NOT contain "Reste à dépenser" text')
+assert.ok(!heroText.includes('reste à dépenser'), 'Should NOT contain "reste à dépenser" text (case insensitive)')
+
+// Verify that the only sub-metric is "Taux d'épargne"
+const subMetrics = rootSemantic.querySelectorAll('.nx-hero-card__sub-metric')
+assert.ok(subMetrics.length <= 1, 'Should have at most one sub-metric (Taux d\'épargne)')
+if (subMetrics.length > 0) {
+  const subMetricText = subMetrics[0].textContent
+  assert.ok(subMetricText.includes('Taux d\'épargne') || subMetricText.includes('Taux'), 'Sub-metric should be Taux d\'épargne')
+}
+
 console.info('renderDashboardHero tests: OK')
