@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test'
 test.describe('Jarvis Cockpit - Desktop', () => {
   test.beforeEach(async ({ page }) => {
     // Use official test server URL from playwright.config.js
-    await page.goto('http://127.0.0.1:5180')
+    await page.goto('http://localhost:5180')
     await page.waitForLoadState('networkidle')
 
     // Perform real demo login
@@ -356,7 +356,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
 test.describe('Jarvis Cockpit - Mobile', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 })
-    await page.goto('http://127.0.0.1:5180')
+    await page.goto('http://localhost:5180')
     await page.waitForLoadState('networkidle')
 
     // Perform real demo login
@@ -418,7 +418,7 @@ test.describe('Jarvis Cockpit - Mobile', () => {
 test.describe('Jarvis Cockpit - Refresh Persistence', () => {
   test.beforeEach(async ({ page }) => {
     // Use official test server URL from playwright.config.js
-    await page.goto('http://127.0.0.1:5180')
+    await page.goto('http://localhost:5180')
     await page.waitForLoadState('networkidle')
 
     // Perform real demo login
@@ -505,7 +505,7 @@ test.describe('Jarvis Cockpit - Refresh Persistence', () => {
 test.describe('Jarvis Cockpit - MutationObserver Lifecycle', () => {
   test.beforeEach(async ({ page }) => {
     // Use official test server URL from playwright.config.js
-    await page.goto('http://127.0.0.1:5180')
+    await page.goto('http://localhost:5180')
     await page.waitForLoadState('networkidle')
 
     // Perform real demo login

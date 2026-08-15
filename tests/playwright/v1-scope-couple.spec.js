@@ -10,7 +10,7 @@ import { test, expect } from '@playwright/test'
 test.describe('V1 Scope - Couple Exclusion', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the application using the dev server URL
-    await page.goto('http://127.0.0.1:5180/')
+    await page.goto('http://localhost:5180/')
     await page.waitForLoadState('networkidle')
 
     // Login with demo to access authenticated state
@@ -52,7 +52,7 @@ test.describe('V1 Scope - Couple Exclusion', () => {
 
   test('Desktop: Legacy Couple deep-link safely falls back to Dashboard', async ({ page }) => {
     // Navigate to legacy Couple deep-link
-    await page.goto('http://127.0.0.1:5180/#section-couple')
+    await page.goto('http://localhost:5180/#section-couple')
 
     // Wait for navigation to complete
     await page.waitForLoadState('networkidle')
@@ -80,7 +80,7 @@ test.describe('V1 Scope - Couple Exclusion', () => {
     })
 
     // Navigate to legacy Couple deep-link
-    await page.goto('http://127.0.0.1:5180/#section-couple')
+    await page.goto('http://localhost:5180/#section-couple')
     await page.waitForLoadState('networkidle')
 
     // Wait for route guard to process
@@ -116,7 +116,7 @@ test.describe('V1 Scope - Couple Exclusion', () => {
     await page.setViewportSize({ width: 390, height: 844 })
 
     // Navigate to legacy Couple deep-link
-    await page.goto('http://127.0.0.1:5180/#section-couple')
+    await page.goto('http://localhost:5180/#section-couple')
     await page.waitForLoadState('networkidle')
 
     // Wait for route guard to redirect
@@ -132,7 +132,7 @@ test.describe('V1 Scope - Couple Exclusion', () => {
   })
 
   test('Desktop: Couple controls remain hidden and unavailable in V1', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5180/')
+    await page.goto('http://localhost:5180/')
     await page.waitForLoadState('networkidle')
 
     // Verify Couple nav button is hidden and not in viewport
@@ -154,7 +154,7 @@ test.describe('V1 Scope - Couple Exclusion', () => {
 
   test('Desktop: Couple settings panel is empty/hidden', async ({ page }) => {
     // Navigate to settings (assuming user can access settings)
-    await page.goto('http://127.0.0.1:5180/#section-parametres')
+    await page.goto('http://localhost:5180/#section-parametres')
     await page.waitForLoadState('networkidle')
 
     // Check for Couple settings root
@@ -180,7 +180,7 @@ test.describe('V1 Scope - Couple Runtime Bootstrap', () => {
     })
 
     // Normal app startup
-    await page.goto('http://127.0.0.1:5180/')
+    await page.goto('http://localhost:5180/')
     await page.waitForLoadState('networkidle')
 
     // Verify no Couple-specific network requests during normal startup
@@ -195,7 +195,7 @@ test.describe('V1 Scope - Couple Runtime Bootstrap', () => {
 test.describe('V1 Scope - Restoration Contract', () => {
   test('Couple DOM shell exists for future restoration', async ({ page }) => {
     // Wait for page to load
-    await page.goto('http://127.0.0.1:5180/')
+    await page.goto('http://localhost:5180/')
     await page.waitForLoadState('networkidle')
 
     // Verify Couple navigation button exists in DOM (required for restoration)
@@ -213,7 +213,7 @@ test.describe('V1 Scope - Restoration Contract', () => {
 
   test('V1 disabled state: Couple controls are hidden by flag', async ({ page }) => {
     // Wait for page to load
-    await page.goto('http://127.0.0.1:5180/')
+    await page.goto('http://localhost:5180/')
     await page.waitForLoadState('networkidle')
 
     // Verify Couple controls are hidden (indicates V1_SCOPE.COUPLE_MODE_ENABLED = false)

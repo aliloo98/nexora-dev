@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-const catalogueUrl = 'http://127.0.0.1:5180/nexora-ui-v2.html'
+const catalogueUrl = 'http://localhost:5180/nexora-ui-v2.html'
 
 test.describe('Nexora UI V2 catalogue', () => {
   test('remains stable at 390, 768 and 1440 pixels', async ({ page }, testInfo) => {

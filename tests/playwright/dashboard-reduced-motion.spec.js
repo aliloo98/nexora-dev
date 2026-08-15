@@ -5,7 +5,7 @@ test.describe('Dashboard Motion V1 reduced motion', () => {
 
   test.beforeEach(async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
-    await page.goto('http://127.0.0.1:5180/')
+    await page.goto('http://localhost:5180/')
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 })
     await page.click('#loginDemoBtn')
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 })

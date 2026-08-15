@@ -7,8 +7,8 @@ export default {
   workers: process.env.CI ? 4 : 2,
   testIgnore: releaseValidationSpecs,
   webServer: {
-    command: "VITE_SUPABASE_URL='' VITE_SUPABASE_ANON_KEY='' npm run dev -- --host 127.0.0.1 --strictPort --port 5180",
-    url: 'http://127.0.0.1:5180',
+    command: "VITE_SUPABASE_URL='' VITE_SUPABASE_ANON_KEY='' npm run dev -- --host localhost --strictPort --port 5180",
+    url: 'http://localhost:5180',
     reuseExistingServer: true,
     timeout: 60000
   },

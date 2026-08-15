@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test.describe('Onboarding V1', () => {
   test.beforeEach(async ({ page }) => {
     // Clear all onboarding-related storage before each test
-    await page.goto('http://127.0.0.1:5180')
+    await page.goto('http://localhost:5180')
     await page.waitForLoadState('networkidle')
     
     // Initialize UserAppSettingsService if not already initialized
@@ -30,7 +30,7 @@ test.describe('Onboarding V1', () => {
   })
 
   test('displays onboarding on first visit', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5180')
+    await page.goto('http://localhost:5180')
     await page.waitForLoadState('networkidle')
 
     // Trigger real onboarding render
@@ -57,7 +57,7 @@ test.describe('Onboarding V1', () => {
   })
 
   test('starts onboarding when clicking Commencer', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5180')
+    await page.goto('http://localhost:5180')
     await page.waitForLoadState('networkidle')
 
     // Trigger real onboarding render
@@ -89,7 +89,7 @@ test.describe('Onboarding V1', () => {
   })
 
   test('displays correct initial progress', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5180')
+    await page.goto('http://localhost:5180')
     await page.waitForLoadState('networkidle')
 
     // Trigger real onboarding render
@@ -120,7 +120,7 @@ test.describe('Onboarding V1', () => {
   })
 
   test('dismisses onboarding when clicking close button', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5180')
+    await page.goto('http://localhost:5180')
     await page.waitForLoadState('networkidle')
 
     // Trigger real onboarding render
@@ -144,7 +144,7 @@ test.describe('Onboarding V1', () => {
   })
 
   test('does not show onboarding after completion', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5180')
+    await page.goto('http://localhost:5180')
     await page.waitForLoadState('networkidle')
 
     // Manually set completed state in localStorage
@@ -184,7 +184,7 @@ test.describe('Onboarding V1', () => {
   })
 
   test('persists onboarding state in localStorage', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5180')
+    await page.goto('http://localhost:5180')
     await page.waitForLoadState('networkidle')
 
     // Trigger real onboarding render
@@ -217,7 +217,7 @@ test.describe('Onboarding V1', () => {
   })
 
   test('resets onboarding from localStorage', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5180', { timeout: 30000 })
+    await page.goto('http://localhost:5180', { timeout: 30000 })
     await page.waitForLoadState('networkidle', { timeout: 30000 })
 
     // Manually set completed state in localStorage
@@ -265,7 +265,7 @@ test.describe('Onboarding V1', () => {
 test.describe('Onboarding V1 Responsive', () => {
   test('displays correctly on mobile', async ({ page, viewport }) => {
     await page.setViewportSize({ width: 390, height: 844 })
-    await page.goto('http://127.0.0.1:5180')
+    await page.goto('http://localhost:5180')
     await page.waitForLoadState('networkidle')
 
     // Trigger real onboarding render
@@ -289,7 +289,7 @@ test.describe('Onboarding V1 Responsive', () => {
 
   test('displays correctly on tablet', async ({ page, viewport }) => {
     await page.setViewportSize({ width: 768, height: 1024 })
-    await page.goto('http://127.0.0.1:5180')
+    await page.goto('http://localhost:5180')
     await page.waitForLoadState('networkidle')
 
     // Trigger real onboarding render
@@ -309,7 +309,7 @@ test.describe('Onboarding V1 Responsive', () => {
 
   test('displays correctly on desktop', async ({ page, viewport }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
-    await page.goto('http://127.0.0.1:5180')
+    await page.goto('http://localhost:5180')
     await page.waitForLoadState('networkidle')
 
     // Trigger real onboarding render
@@ -332,7 +332,7 @@ test.describe('Onboarding V1 Reduced Motion', () => {
   test('respects prefers-reduced-motion', async ({ page }) => {
     // Enable reduced motion
     await page.emulateMedia({ reducedMotion: 'reduce' })
-    await page.goto('http://127.0.0.1:5180')
+    await page.goto('http://localhost:5180')
     await page.waitForLoadState('networkidle')
 
     // Trigger real onboarding render

@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 
-const appUrl = 'http://127.0.0.1:5180/#section-dashboard'
+const appUrl = 'http://localhost:5180/#section-dashboard'
 
 const formatViolations = (violations) => violations.map(({ id, impact, nodes }) => ({
   id,

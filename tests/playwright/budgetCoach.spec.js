@@ -108,7 +108,7 @@ const waitForSectionReady = async (page, sectionId) => {
 };
 
 const openBudgetSection = async (page) => {
-  await page.goto('http://127.0.0.1:5180/#section-saisie', { waitUntil: 'domcontentloaded' });
+  await page.goto('http://localhost:5180/#section-saisie', { waitUntil: 'domcontentloaded' });
   await waitForSectionReady(page, 'saisie');
 };
 
@@ -138,13 +138,13 @@ const applyScenarioValues = async (page, values) => {
     await expect(field).toBeVisible({ timeout: 30000 });
     await expect(field).toBeEditable({ timeout: 30000 });
     await field.fill(String(value));
-    await expect.poll(async () => field.inputValue()).toBe(String(value));
+    await expect.poll(async () => field.inputValue()).toBe(String(value), { timeout: 10000 });
   }
 };
 
 test.describe('Budget coach E2E', () => {
   test('validates non-regression: initLegacyBudgetUi does not overwrite active section-saisie navigation', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5180/', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:5180/', { waitUntil: 'networkidle' });
 
     await expect(page.locator('#auth-container')).toBeVisible({ timeout: 20000 });
     await expect(page.locator('#loginDemoBtn')).toBeVisible({ timeout: 20000 });
@@ -178,7 +178,7 @@ test.describe('Budget coach E2E', () => {
   test('validates the official placeholder demo path and the six Budget Coach states', async ({ page }) => {
     mkdirSync('test-results', { recursive: true });
 
-    await page.goto('http://127.0.0.1:5180/', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:5180/', { waitUntil: 'networkidle' });
 
     const runtimeMode = await page.evaluate(async () => {
       const module = await import('/src/auth/authService.js');

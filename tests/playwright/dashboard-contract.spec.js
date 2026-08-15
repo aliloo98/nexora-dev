@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-const appUrl = 'http://127.0.0.1:5180/'
+const appUrl = 'http://localhost:5180/'
 
 const openDashboard = async (page) => {
   await page.goto(appUrl)
