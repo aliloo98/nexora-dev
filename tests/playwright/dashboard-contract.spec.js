@@ -43,7 +43,15 @@ test.describe('Dashboard Contract Tests', () => {
     
     // Navigate to next month
     await page.click('.month-nav-btn[title="Mois suivant"]')
-    await page.waitForTimeout(500)
+    
+    // Wait for dashboard header to update to new month
+    await page.waitForFunction(() => {
+      const currentHeader = document.querySelector('.dashboard-topbar__copy h2')
+      const currentMonth = document.querySelector('#monthSelect')
+      if (!currentHeader || !currentMonth) return false
+      const monthLabel = currentMonth.options[currentMonth.selectedIndex]?.textContent
+      return currentHeader.textContent === monthLabel
+    })
     
     // Get new month
     const newMonth = await page.locator('#monthSelect').evaluate(el => el.value)
@@ -62,7 +70,9 @@ test.describe('Dashboard Contract Tests', () => {
     await page.evaluate(() => {
       window.setNexoraUxMode('simple')
     })
-    await page.waitForTimeout(500)
+    
+    // Wait for body class to change to mode-simple
+    await page.waitForFunction(() => document.body.classList.contains('mode-simple'))
     
     // Get savings rate from Hero card in Simplified mode
     const simplifiedRate = await page.locator('.nx-hero-card').evaluate(el => {
@@ -88,7 +98,9 @@ test.describe('Dashboard Contract Tests', () => {
     await page.evaluate(() => {
       window.setNexoraUxMode('complete')
     })
-    await page.waitForTimeout(500)
+    
+    // Wait for body class to change to mode-complete
+    await page.waitForFunction(() => document.body.classList.contains('mode-complete'))
     
     // Verify Complete mode elements are present
     const dashboardPresent = await page.locator('.dashboard-v2-modular').count()
@@ -100,7 +112,9 @@ test.describe('Dashboard Contract Tests', () => {
     await page.evaluate(() => {
       window.setNexoraUxMode('simple')
     })
-    await page.waitForTimeout(500)
+    
+    // Wait for body class to change to mode-simple
+    await page.waitForFunction(() => document.body.classList.contains('mode-simple'))
     
     // Verify Hero card is present and uses canonical metrics
     const heroPresent = await page.locator('.nx-hero-card').count()
@@ -110,7 +124,9 @@ test.describe('Dashboard Contract Tests', () => {
     await page.evaluate(() => {
       window.setNexoraUxMode('complete')
     })
-    await page.waitForTimeout(500)
+    
+    // Wait for body class to change to mode-complete
+    await page.waitForFunction(() => document.body.classList.contains('mode-complete'))
     
     // Verify Complete mode elements are present
     const dashboardPresent = await page.locator('.dashboard-v2-modular').count()
