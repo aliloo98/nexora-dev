@@ -55,8 +55,8 @@ test.describe('Auth Production Regression V3', () => {
     // Submit
     await page.click('#registerSubmitBtn')
     
-    // Wait for response
-    await page.waitForTimeout(3000)
+    // Wait for auth container to remain visible (observable state)
+    await page.waitForSelector('#auth-container', { state: 'visible', timeout: 5000 })
     
     // Restore original
     await page.evaluate(() => {

@@ -498,7 +498,96 @@ function runTests() {
     } else {
       delete global.sessionStorage
     }
-    
+
+    // Reset state
+    AuthContext._state.user = null
+    AuthContext._state.session = null
+    AuthContext._state.isAuthenticated = false
+  })
+
+  // Test 8: AuthContext.init requires session for authentication (P1-A regression)
+  test('AuthContext.init requires session for authentication', async () => {
+    // Mock localStorage and sessionStorage
+    const originalLocalStorage = global.localStorage
+    const originalSessionStorage = global.sessionStorage
+    global.localStorage = {
+      removeItem: () => {},
+      getItem: () => null,
+      setItem: () => {}
+    }
+    global.sessionStorage = {
+      removeItem: () => {},
+      getItem: () => null,
+      setItem: () => {}
+    }
+
+    // Reset state
+    AuthContext._state.user = null
+    AuthContext._state.session = null
+    AuthContext._state.isAuthenticated = false
+    AuthContext._state.isLoading = false
+
+    // Mock AuthService methods - ensure they return expected structure
+    const originalGetCurrentUser = AuthService.getCurrentUser
+    const originalGetSession = AuthService.getSession
+
+    // Mock _syncSupabaseToLocalAfterLogin to spy on calls
+    let syncCallCount = 0
+    const originalSync = AuthContext._syncSupabaseToLocalAfterLogin
+    AuthContext._syncSupabaseToLocalAfterLogin = () => {
+      syncCallCount++
+    }
+
+    // Test 1: user without session should NOT authenticate (P1-A fix: init clears both user and session when session is null)
+    let getCurrentUserCalled = false
+    AuthService.getCurrentUser = async () => {
+      getCurrentUserCalled = true
+      return { user: { id: 'pending-user', email: 'pending@example.test' }, error: null }
+    }
+    AuthService.getSession = async () => ({ session: null, error: null })
+
+    await AuthContext.init()
+
+    // Verify getCurrentUser was actually called
+    assert(getCurrentUserCalled, 'getCurrentUser should be called during init')
+
+    // P1-A fix: when session is null, init should clear both user and session
+    assert(AuthContext._state.user === null, 'User should be null when session is null (P1-A fix)')
+    assert(AuthContext._state.session === null, 'Session should be null')
+    assert(AuthContext._state.isAuthenticated === false, 'Should NOT be authenticated without session')
+    assertEqual(syncCallCount, 0, '_syncSupabaseToLocalAfterLogin should not be called without session')
+
+    // Test 2: user with session should authenticate
+    syncCallCount = 0
+    getCurrentUserCalled = false
+    const mockSession = { access_token: 'test-token' }
+    AuthService.getSession = async () => ({ session: mockSession, error: null })
+
+    await AuthContext.init()
+
+    assert(getCurrentUserCalled, 'getCurrentUser should be called during init')
+    assertEqual(AuthContext._state.user?.id, 'pending-user', 'User should be set when session is present')
+    assertEqual(AuthContext._state.session?.access_token, 'test-token', 'Session should be set')
+    assert(AuthContext._state.isAuthenticated === true, 'Should be authenticated with session')
+    assertEqual(syncCallCount, 1, '_syncSupabaseToLocalAfterLogin should be called with session')
+
+    // Restore original methods
+    AuthService.getCurrentUser = originalGetCurrentUser
+    AuthService.getSession = originalGetSession
+    AuthContext._syncSupabaseToLocalAfterLogin = originalSync
+
+    // Restore localStorage and sessionStorage
+    if (originalLocalStorage) {
+      global.localStorage = originalLocalStorage
+    } else {
+      delete global.localStorage
+    }
+    if (originalSessionStorage) {
+      global.sessionStorage = originalSessionStorage
+    } else {
+      delete global.sessionStorage
+    }
+
     // Reset state
     AuthContext._state.user = null
     AuthContext._state.session = null
