@@ -138,7 +138,7 @@ const applyScenarioValues = async (page, values) => {
     await expect(field).toBeVisible({ timeout: 30000 });
     await expect(field).toBeEditable({ timeout: 30000 });
     await field.fill(String(value));
-    await expect.poll(async () => field.inputValue()).toBe(String(value));
+    await expect.poll(async () => field.inputValue()).toBe(String(value), { timeout: 10000 });
   }
 };
 

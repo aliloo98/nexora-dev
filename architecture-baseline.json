@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "cycles": [],
-    "internalDependencies": 379,
+    "internalDependencies": 346,
     "modulesWithMostIncomingDependencies": [
       {
         "count": 25,
@@ -16,12 +16,12 @@
         "name": "src/auth/authContext.js"
       },
       {
-        "count": 12,
-        "name": "src/constants/storageKeys.js"
+        "count": 11,
+        "name": "js/utils.js"
       },
       {
         "count": 11,
-        "name": "js/utils.js"
+        "name": "src/constants/storageKeys.js"
       },
       {
         "count": 9,
@@ -46,7 +46,7 @@
     ],
     "modulesWithMostOutgoingDependencies": [
       {
-        "count": 60,
+        "count": 57,
         "name": "src/main.js"
       },
       {
@@ -70,20 +70,20 @@
         "name": "src/coach/rules/index.js"
       },
       {
-        "count": 7,
-        "name": "src/settings/SettingsUI.js"
-      },
-      {
         "count": 6,
         "name": "js/userAppSettingsService.js"
       },
       {
         "count": 6,
-        "name": "src/intelligence/IntelligenceEngine.js"
+        "name": "src/settings/SettingsUI.js"
       },
       {
         "count": 6,
         "name": "src/ui/primitives/index.js"
+      },
+      {
+        "count": 5,
+        "name": "src/assistant/AssistantService.js"
       }
     ],
     "modulesWithoutIncomingImports": [
@@ -106,8 +106,11 @@
       "src/couple/coupleNotificationService.js",
       "src/couple/coupleShareService.js",
       "src/dashboard/dashboardService.js",
+      "src/debt/debtPlanner.js",
+      "src/forecast/forecastEngine.js",
       "src/habits/habitEngine.js",
       "src/main.js",
+      "src/opportunity/opportunityEngine.js",
       "src/plan/PlanHubUI.js",
       "src/simulation/simulationEngine.js",
       "src/ui/catalog/catalog.js"
@@ -119,9 +122,7 @@
       "tests/playwright/assistant.spec.js",
       "tests/playwright/budgetCoach.spec.js",
       "tests/playwright/coach.spec.js",
-      "tests/playwright/console-404-filter.spec.js",
       "tests/playwright/current-month-initialization.spec.js",
-      "tests/playwright/dashboard-contract.spec.js",
       "tests/playwright/dashboard-empty-elements.spec.js",
       "tests/playwright/dashboard-hero.spec.js",
       "tests/playwright/dashboard-mode-superset.spec.js",
@@ -129,28 +130,20 @@
       "tests/playwright/dashboard-reduced-motion.spec.js",
       "tests/playwright/dashboard-renderers-availability.spec.js",
       "tests/playwright/export-parity.spec.js",
-      "tests/playwright/jarvis-cockpit.spec.js",
-      "tests/playwright/jarvis-copilot.spec.js",
       "tests/playwright/onboarding.spec.js",
-      "tests/playwright/plan-actionability.spec.js",
-      "tests/playwright/release-validation.demo.spec.js",
-      "tests/playwright/release-validation.normal-supabase.spec.js",
-      "tests/playwright/release-validation.normal.spec.js",
-      "tests/playwright/save-flow.spec.js",
       "tests/playwright/ui-v2.spec.js",
-      "tests/playwright/ux-foundations.spec.js",
-      "tests/playwright/v1-scope-couple.spec.js"
+      "tests/playwright/ux-foundations.spec.js"
     ],
-    "playwrightCaseCount": 131
+    "playwrightCaseCount": 53
   },
   "production": {
-    "averageLinesPerFile": 167.28,
+    "averageLinesPerFile": 157.3,
     "consoleDebug": 0,
-    "consoleError": 86,
+    "consoleError": 84,
     "consoleInfo": 11,
-    "consoleLog": 26,
-    "consoleWarn": 87,
-    "documentRefs": 363,
+    "consoleLog": 27,
+    "consoleWarn": 78,
+    "documentRefs": 360,
     "files": [
       "js/budgetCategoriesService.js",
       "js/excel-export.js",
@@ -228,7 +221,6 @@
       "src/components/TreasuryTimeline.js",
       "src/components/UserProfile.js",
       "src/constants/storageKeys.js",
-      "src/constants/v1Scope.js",
       "src/couple/coupleAssistantService.js",
       "src/couple/coupleBudgetService.js",
       "src/couple/coupleController.js",
@@ -254,16 +246,6 @@
       "src/goals/goalMetrics.js",
       "src/goals/goalsService.js",
       "src/habits/habitEngine.js",
-      "src/intelligence/IntelligenceEngine.js",
-      "src/jarvis/copilot/jarvisConversationState.js",
-      "src/jarvis/copilot/jarvisCopilot.js",
-      "src/jarvis/copilot/jarvisCopilotEngine.js",
-      "src/jarvis/copilot/jarvisIntentParser.js",
-      "src/jarvis/copilot/jarvisResponseComposer.js",
-      "src/jarvis/copilot/jarvisScenarioEngine.js",
-      "src/jarvis/jarvisCockpit.js",
-      "src/jarvis/jarvisDataAdapter.js",
-      "src/jarvis/jarvisViewModel.js",
       "src/legacy/legacyBridge.js",
       "src/main.js",
       "src/onboarding/onboardingIntegration.js",
@@ -310,7 +292,6 @@
       "src/ui/dashboard/dashboardMotion.js",
       "src/ui/dashboard/renderAssistantInsights.js",
       "src/ui/dashboard/renderDashboardAlerts.js",
-      "src/ui/dashboard/renderDashboardCoach.js",
       "src/ui/dashboard/renderDashboardGoalCard.js",
       "src/ui/dashboard/renderDashboardHero.js",
       "src/ui/dashboard/renderDashboardKpiStrip.js",
@@ -345,7 +326,7 @@
     "largestFiles": [
       {
         "file": "src/components/AssistantCard.js",
-        "lines": 966
+        "lines": 958
       },
       {
         "file": "js/transactionsService.js",
@@ -364,16 +345,8 @@
         "lines": 682
       },
       {
-        "file": "src/jarvis/copilot/jarvisResponseComposer.js",
-        "lines": 625
-      },
-      {
-        "file": "src/auth/authService.js",
-        "lines": 618
-      },
-      {
         "file": "src/ui/nexoraCore.js",
-        "lines": 607
+        "lines": 629
       },
       {
         "file": "js/userAppSettingsService.js",
@@ -384,24 +357,16 @@
         "lines": 557
       },
       {
-        "file": "src/jarvis/jarvisCockpit.js",
-        "lines": 554
-      },
-      {
-        "file": "src/couple/coupleService.js",
+        "file": "src/auth/authService.js",
         "lines": 499
       },
       {
-        "file": "src/intelligence/IntelligenceEngine.js",
-        "lines": 461
+        "file": "src/couple/coupleService.js",
+        "lines": 493
       },
       {
         "file": "js/excel-export.js",
         "lines": 429
-      },
-      {
-        "file": "src/main.js",
-        "lines": 424
       },
       {
         "file": "js/budgetCategoriesService.js",
@@ -409,29 +374,45 @@
       },
       {
         "file": "src/auth/authContext.js",
-        "lines": 422
-      },
-      {
-        "file": "src/jarvis/jarvisViewModel.js",
-        "lines": 410
+        "lines": 419
       },
       {
         "file": "src/ui/dashboard/renderDashboardQuickView.js",
         "lines": 408
       },
       {
-        "file": "src/jarvis/copilot/jarvisCopilot.js",
-        "lines": 386
+        "file": "src/main.js",
+        "lines": 393
+      },
+      {
+        "file": "src/advisor/proactiveCoachService.js",
+        "lines": 371
+      },
+      {
+        "file": "src/couple/coupleInvitationService.js",
+        "lines": 359
+      },
+      {
+        "file": "src/ui/gsapMotion.js",
+        "lines": 358
+      },
+      {
+        "file": "src/styles/authStyles.js",
+        "lines": 351
+      },
+      {
+        "file": "src/advisor/AdvisorUI.js",
+        "lines": 349
       }
     ],
-    "lineCount": 30779,
-    "localStorageRefs": 28,
-    "medianLinesPerFile": 104,
-    "staticExports": 498,
-    "staticImports": 389,
+    "lineCount": 27055,
+    "localStorageRefs": 27,
+    "medianLinesPerFile": 100.5,
+    "staticExports": 474,
+    "staticImports": 350,
     "todoFixmeCount": 0,
     "windowAssignments": 120,
-    "windowRefs": 327
+    "windowRefs": 317
   },
   "tests": {
     "describeCount": 0,
@@ -492,7 +473,6 @@
       "src/debt/debt-tests.js",
       "src/finance/budgetCycle-tests.js",
       "src/finance/cycleBalance-tests.js",
-      "src/finance/financialCard-tests.js",
       "src/finance/financialExpression-tests.js",
       "src/finance/monthlyHistoryStorage-tests.js",
       "src/finance/monthlyMetrics-tests.js",
@@ -501,15 +481,8 @@
       "src/goals/cagnottesStorage-tests.js",
       "src/goals/goalMetrics-tests.js",
       "src/habits/habitEngine-tests.js",
-      "src/intelligence/IntelligenceEngine-tests.js",
-      "src/jarvis/copilot/jarvisCopilotEngine-tests.js",
-      "src/jarvis/jarvisBoundary-tests.js",
-      "src/jarvis/jarvisCockpit-tests.js",
-      "src/jarvis/jarvisDataAdapter-tests.js",
-      "src/jarvis/jarvisViewModel-tests.js",
       "src/onboarding/onboardingIntegration-tests.js",
       "src/opportunity/opportunityEngine-tests.js",
-      "src/plan/planMarkupBuilder-tests.js",
       "src/settings/budgetCycleStorage-tests.js",
       "src/settings/recurringIncome-sync-tests.js",
       "src/settings/settingsStorage-tests.js",
@@ -532,13 +505,11 @@
       "src/utils/financialMarkupSecurity-tests.js",
       "src/utils/parseBudgetNumber-tests.js",
       "tests/architecture-baseline.test.mjs",
-      "tests/helpers/uiTestDom.mjs",
-      "tests/js/v1-scope-restoration-contract-tests.js",
-      "tests/scripts/check-ui-v2-tests.mjs"
+      "tests/helpers/uiTestDom.mjs"
     ],
     "itCaseCount": 0,
     "playwrightFiles": [],
-    "testCaseCount": 60
+    "testCaseCount": 45
   },
   "tooling": {
     "files": [
