@@ -85,8 +85,13 @@ test.describe('Production-like Demo Validation - Demo Build', () => {
     page.on('console', message => {
       if (message.type() === 'error') {
         const text = message.text();
+        const locationUrl = message.location()?.url || '';
         // Filter out Google Fonts 404 errors - known external service flake
-        if (!text.includes('Failed to load resource') || !text.includes('404') || !text.includes('fonts.gstatic.com')) {
+        const isKnownGoogleFonts404 =
+          text.includes('Failed to load resource') &&
+          text.includes('404') &&
+          locationUrl.includes('fonts.gstatic.com');
+        if (!isKnownGoogleFonts404) {
           consoleErrors.push(text);
         }
       }
@@ -181,8 +186,13 @@ test.describe('Production-like Demo Validation - Demo Build', () => {
     page.on('console', message => {
       if (message.type() === 'error') {
         const text = message.text();
+        const locationUrl = message.location()?.url || '';
         // Filter out Google Fonts 404 errors - known external service flake
-        if (!text.includes('Failed to load resource') || !text.includes('404') || !text.includes('fonts.gstatic.com')) {
+        const isKnownGoogleFonts404 =
+          text.includes('Failed to load resource') &&
+          text.includes('404') &&
+          locationUrl.includes('fonts.gstatic.com');
+        if (!isKnownGoogleFonts404) {
           consoleErrors.push(text);
         }
       }
@@ -227,8 +237,13 @@ test.describe('Production-like Demo Validation - Demo Build', () => {
     page.on('console', message => {
       if (message.type() === 'error') {
         const text = message.text();
+        const locationUrl = message.location()?.url || '';
         // Filter out Google Fonts 404 errors - known external service flake
-        if (!text.includes('Failed to load resource') || !text.includes('404') || !text.includes('fonts.gstatic.com')) {
+        const isKnownGoogleFonts404 =
+          text.includes('Failed to load resource') &&
+          text.includes('404') &&
+          locationUrl.includes('fonts.gstatic.com');
+        if (!isKnownGoogleFonts404) {
           consoleErrors.push(text);
         }
       }
