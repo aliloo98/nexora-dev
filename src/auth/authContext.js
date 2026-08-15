@@ -72,7 +72,7 @@ export const AuthContext = {
   async _setUser(user, session = null) {
     this._state.user = user
     this._state.session = session
-    this._state.isAuthenticated = !!user
+    this._state.isAuthenticated = !!(user && session)
 
     // Also store in placeholder session storage
     if (user && session) {
@@ -187,7 +187,7 @@ export const AuthContext = {
       const previousUserId = this._state.user?.id || null
       this._state.user = user
       this._state.session = session || null
-      this._state.isAuthenticated = true
+      this._state.isAuthenticated = !!(user && session)
       this._state.error = null
       this._notifyListeners()
 
@@ -222,9 +222,9 @@ export const AuthContext = {
       const { user } = await AuthService.getCurrentUser()
       const { session } = await AuthService.getSession()
 
-      if (user) {
+      if (user && session) {
         this._state.user = user
-        this._state.session = session || null
+        this._state.session = session
         this._state.isAuthenticated = true
         this._state.error = null
         this._syncSupabaseToLocalAfterLogin()
