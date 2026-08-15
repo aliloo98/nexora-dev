@@ -1213,8 +1213,8 @@ body,
   }
 
   .nav-btn {
-    flex-basis: 38px;
-    width: 38px;
+    flex-basis: 44px;
+    width: 44px;
   }
 }
 
@@ -5864,9 +5864,9 @@ body.mode-demo .settings-page-header::after {
   }
 
   .nav-btn {
-    flex: 0 0 42px;
-    height: 42px;
-    width: 42px;
+    flex: 0 0 44px;
+    height: 44px;
+    width: 44px;
   }
 
   .header {
