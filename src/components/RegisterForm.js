@@ -203,7 +203,7 @@ export const attachRegisterFormListeners = () => {
     try {
 
       // Call auth context
-      const { user, error } = await AuthContext.signUp(email, password, username)
+      const { user, session, error } = await AuthContext.signUp(email, password, username)
 
       if (error) {
         errorMessage.textContent = error.message || 'Erreur d\'inscription. Réessayez.'
@@ -212,7 +212,15 @@ export const attachRegisterFormListeners = () => {
         return
       }
 
-      // Success
+      // Success - check if email confirmation is required
+      if (user && !session) {
+        // Email confirmation required
+        showToast('✅ Compte créé! Vérifiez votre e-mail pour confirmer votre compte avant de vous connecter.')
+        // Do not navigate to dashboard - user is not authenticated yet
+        return
+      }
+
+      // Full signup with immediate session
       showToast('✅ Inscription réussie! Bienvenue ' + username + '!')
 
       // Simulate page transition to dashboard, but only if the user didn't

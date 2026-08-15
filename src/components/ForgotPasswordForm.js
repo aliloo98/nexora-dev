@@ -138,8 +138,8 @@ export const attachForgotPasswordFormListeners = () => {
     loadingBox.style.display = 'flex'
 
     try {
-      const { resetPassword } = await import('../auth/authService.js')
-      const { error } = await resetPassword(email)
+      const { AuthService } = await import('../auth/authService.js')
+      const { error } = await AuthService.resetPassword(email)
 
       if (error) {
         errorMessage.textContent = error.message || 'Erreur lors de l\'envoi. Réessayez.'
