@@ -1,0 +1,109 @@
+import { test, expect } from '@playwright/test'
+import { pollForEmail, clearMailbox } from './helpers/mailbox.js'
+
+const RUN_ID = Date.now().toString(36)
+const ACCOUNT_A_EMAIL = `nexora-ci-mobile-${RUN_ID}@example.test`
+const ACCOUNT_A_PASSWORD = `TestPass789${RUN_ID}`
+
+test.describe('Mobile Smoke - Real Supabase Auth', () => {
+  test.use({ serviceWorkers: 'allow' })
+
+  test.beforeEach(async () => {
+    await clearMailbox()
+  })
+
+  test('Mobile viewport - auth and isolation smoke', async ({ page, context, browser }) => {
+    // TEST: Unauthenticated route protection
+    console.log('Mobile smoke: Unauthenticated route protection')
+    
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+
+    const dashboardHidden = await page.locator('#dashboard').isVisible().catch(() => false)
+    expect(dashboardHidden).toBe(false)
+
+    const loginVisible = await page.locator('#loginForm').isVisible().catch(() => false)
+    expect(loginVisible).toBe(true)
+
+    // TEST: Signup flow
+    console.log('Mobile smoke: Signup flow')
+
+    await page.click('text=Créer un compte')
+    await page.waitForSelector('#registerForm', { state: 'visible', timeout: 10000 })
+
+    await page.fill('#registerEmail', ACCOUNT_A_EMAIL)
+    await page.fill('#registerPassword', ACCOUNT_A_PASSWORD)
+    await page.fill('#registerPasswordConfirm', ACCOUNT_A_PASSWORD)
+    
+    const termsCheckbox = page.locator('#registerTerms')
+    if (await termsCheckbox.isVisible()) {
+      await termsCheckbox.check()
+    }
+
+    await page.click('#registerForm button[type="submit"]')
+    await page.waitForTimeout(2000)
+
+    // TEST: Confirmation
+    console.log('Mobile smoke: Email confirmation')
+
+    const confirmation = await pollForEmail(ACCOUNT_A_EMAIL, 'confirmation')
+    expect(confirmation.found).toBe(true)
+
+    const confirmContext = await browser.newContext()
+    const confirmPage = await confirmContext.newPage()
+    await confirmPage.goto(confirmation.link)
+    await confirmPage.waitForLoadState('networkidle')
+    await confirmPage.waitForTimeout(3000)
+    await confirmContext.close()
+
+    // TEST: Login
+    console.log('Mobile smoke: Confirmed login')
+
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+
+    await page.fill('#loginEmail', ACCOUNT_A_EMAIL)
+    await page.fill('#loginPassword', ACCOUNT_A_PASSWORD)
+    await page.click('#loginForm button[type="submit"]')
+
+    await page.waitForSelector('#dashboard', { state: 'visible', timeout: 15000 })
+
+    const authenticatedDashboard = await page.locator('#dashboard').isVisible()
+    expect(authenticatedDashboard).toBe(true)
+
+    // TEST: Session persistence
+    console.log('Mobile smoke: Session persistence')
+
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+
+    const reloadDashboard = await page.locator('#dashboard').isVisible()
+    expect(reloadDashboard).toBe(true)
+
+    // TEST: Logout
+    console.log('Mobile smoke: Logout')
+
+    await page.click('button:has-text("Déconnexion"), button:has-text("Logout"), [aria-label="logout"]').first()
+    await page.waitForTimeout(2000)
+
+    const afterLogoutLogin = await page.locator('#loginForm').isVisible().catch(() => false)
+    const afterLogoutDashboard = await page.locator('#dashboard').isVisible().catch(() => false)
+    
+    expect(afterLogoutLogin).toBe(true)
+    expect(afterLogoutDashboard).toBe(false)
+
+    // TEST: Reset password route
+    console.log('Mobile smoke: Reset password route')
+
+    await page.click('text=Mot de passe oublié, text=Forgot password')
+    await page.waitForSelector('#forgotPasswordForm', { state: 'visible', timeout: 10000 })
+
+    const forgotFormVisible = await page.locator('#forgotPasswordForm').isVisible()
+    expect(forgotFormVisible).toBe(true)
+
+    const dashboardDuringForgot = await page.locator('#dashboard').isVisible().catch(() => false)
+    expect(dashboardDuringForgot).toBe(false)
+
+    console.log('Mobile smoke tests PASSED')
+  })
+})
