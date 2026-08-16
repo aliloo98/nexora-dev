@@ -78,11 +78,13 @@ jobs:
         run: |
           echo "Discovering local mail service contract..."
           echo "Testing root endpoint..."
-          curl -i http://127.0.0.1:54324/ || echo "Root endpoint failed"
+          curl -i http://127.0.0.1:54324/ || true
           echo "Testing common mailpit API..."
-          curl -i http://127.0.0.1:54324/api/v1/ || echo "api/v1 failed"
+          curl -i http://127.0.0.1:54324/api/v1/ || true
+          echo "Testing mailpit messages endpoint..."
+          curl -i http://127.0.0.1:54324/api/v1/messages || true
           echo "Testing inbucket API..."
-          curl -i http://127.0.0.1:54324/api/ || echo "api/ failed"
+          curl -i http://127.0.0.1:54324/api/ || true
           echo "Mail service discovery completed."
         timeout-minutes: 1
 
