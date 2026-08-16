@@ -1,11 +1,12 @@
 /** Basic Playwright config; tests are optional and will only run if playwright is installed */
 /** To run: npx playwright test tests/playwright */
 const releaseValidationSpecs = /release-validation\.(demo|normal|normal-supabase)\.spec\.js/
+const supabaseE2ESpecs = /supabase-e2e\/.*\.spec\.js/
 
 export default {
   timeout: 60000,
   workers: process.env.CI ? 4 : 2,
-  testIgnore: releaseValidationSpecs,
+  testIgnore: [releaseValidationSpecs, supabaseE2ESpecs],
   webServer: {
     command: "VITE_SUPABASE_URL='' VITE_SUPABASE_ANON_KEY='' npm run dev -- --host localhost --strictPort --port 5180",
     url: 'http://localhost:5180',
@@ -24,7 +25,8 @@ export default {
       name: 'desktop',
       testIgnore: [
         /ui-v2\.spec\.js/,
-        releaseValidationSpecs
+        releaseValidationSpecs,
+        supabaseE2ESpecs
       ],
       use: { viewport: { width: 1440, height: 1000 } }
     }
