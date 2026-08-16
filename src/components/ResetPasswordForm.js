@@ -310,6 +310,3 @@ export const attachResetPasswordFormListeners = () => {
 }
 
 export default { createResetPasswordForm, attachResetPasswordFormListeners }
-
-// Export cleanup function for route changes
-export { attachResetPasswordFormListeners as attachResetPasswordFormListenersWithCleanup }

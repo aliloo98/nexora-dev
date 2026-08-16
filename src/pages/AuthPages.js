@@ -10,7 +10,7 @@
 import { createLoginForm, attachLoginFormListeners } from '../components/LoginForm.js'
 import { createRegisterForm, attachRegisterFormListeners } from '../components/RegisterForm.js'
 import { createForgotPasswordForm, attachForgotPasswordFormListeners } from '../components/ForgotPasswordForm.js'
-import { createResetPasswordForm, attachResetPasswordFormListenersWithCleanup } from '../components/ResetPasswordForm.js'
+import { createResetPasswordForm, attachResetPasswordFormListeners } from '../components/ResetPasswordForm.js'
 import AuthContext from '../auth/authContext.js'
 
 /**
@@ -157,7 +157,7 @@ export const AuthPages = {
     }
 
     authContainer.innerHTML = createResetPasswordForm({ loading })
-    resetPasswordCleanup = attachResetPasswordFormListenersWithCleanup()
+    resetPasswordCleanup = attachResetPasswordFormListeners()
     currentAuthPage = 'reset-password'
   },
 
