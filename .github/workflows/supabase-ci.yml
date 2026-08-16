@@ -80,13 +80,10 @@ jobs:
           status_output="$RUNNER_TEMP/supabase-status.json"
           supabase status -o json > "$status_output"
 
-          echo "Raw supabase status JSON:"
-          cat "$status_output"
-
-          # Extract API URL and anon key
-          SUPABASE_URL=$(jq -r '.api.url // empty' "$status_output")
-          SUPABASE_ANON_KEY=$(jq -r '.api.anon_key // empty' "$status_output")
-          SUPABASE_SERVICE_ROLE_KEY=$(jq -r '.api.service_role_key // empty' "$status_output")
+          # Extract API URL and anon key (keys are uppercase in supabase status JSON)
+          SUPABASE_URL=$(jq -r '.API_URL // empty' "$status_output")
+          SUPABASE_ANON_KEY=$(jq -r '.ANON_KEY // empty' "$status_output")
+          SUPABASE_SERVICE_ROLE_KEY=$(jq -r '.SERVICE_ROLE_KEY // empty' "$status_output")
 
           echo "VITE_SUPABASE_URL=$SUPABASE_URL" >> $GITHUB_ENV
           echo "VITE_SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" >> $GITHUB_ENV
