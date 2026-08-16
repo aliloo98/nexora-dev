@@ -20,6 +20,17 @@ let currentAuthPage = 'login' // 'login' or 'register'
 let resetPasswordCleanup = null // Cleanup function for reset password listeners
 
 /**
+ * Cleanup reset password state
+ * @private
+ */
+const _cleanupResetPassword = () => {
+  if (resetPasswordCleanup) {
+    resetPasswordCleanup()
+    resetPasswordCleanup = null
+  }
+}
+
+/**
  * Authentication Pages Module
  */
 export const AuthPages = {
@@ -100,6 +111,7 @@ export const AuthPages = {
     const authContainer = document.getElementById('auth-container')
     if (!authContainer) return
 
+    _cleanupResetPassword()
     authContainer.innerHTML = createLoginForm()
     attachLoginFormListeners()
     currentAuthPage = 'login'
@@ -112,6 +124,7 @@ export const AuthPages = {
     const authContainer = document.getElementById('auth-container')
     if (!authContainer) return
 
+    _cleanupResetPassword()
     authContainer.innerHTML = createRegisterForm()
     attachRegisterFormListeners()
     currentAuthPage = 'register'
@@ -124,6 +137,7 @@ export const AuthPages = {
     const authContainer = document.getElementById('auth-container')
     if (!authContainer) return
 
+    _cleanupResetPassword()
     authContainer.innerHTML = createForgotPasswordForm()
     attachForgotPasswordFormListeners()
     currentAuthPage = 'forgot-password'
