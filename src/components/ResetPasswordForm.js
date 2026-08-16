@@ -63,7 +63,7 @@ export const createResetPasswordForm = ({ loading = false } = {}) => {
               id="resetPassword"
               name="password"
               class="form-input"
-              placeholder="•••••••••"
+              placeholder="••••••••"
               required
               autocomplete="new-password"
             />
@@ -79,7 +79,7 @@ export const createResetPasswordForm = ({ loading = false } = {}) => {
               id="resetPasswordConfirm"
               name="passwordConfirm"
               class="form-input"
-              placeholder="•••••••••"
+              placeholder="••••••••"
               required
               autocomplete="new-password"
             />
