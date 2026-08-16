@@ -81,15 +81,17 @@ jobs:
           supabase status -o json > "$status_output"
 
           # Extract API URL and anon key
-          SUPABASE_URL=$(jq -r '.api.url' "$status_output")
-          SUPABASE_ANON_KEY=$(jq -r '.api.anon_key' "$status_output")
-          SUPABASE_SERVICE_ROLE_KEY=$(jq -r '.api.service_role_key' "$status_output")
+          SUPABASE_URL=$(jq -r '.api.url // empty' "$status_output")
+          SUPABASE_ANON_KEY=$(jq -r '.api.anon_key // empty' "$status_output")
+          SUPABASE_SERVICE_ROLE_KEY=$(jq -r '.api.service_role_key // empty' "$status_output")
 
           echo "VITE_SUPABASE_URL=$SUPABASE_URL" >> $GITHUB_ENV
           echo "VITE_SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" >> $GITHUB_ENV
           echo "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY" >> $GITHUB_ENV
 
           echo "Supabase environment variables exported."
+          echo "URL: $SUPABASE_URL"
+          echo "Anon key present: $([ -n "$SUPABASE_ANON_KEY" ] && echo yes || echo no)"
         timeout-minutes: 2
 
       - name: Rebuild database from versioned migrations
