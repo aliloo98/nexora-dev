@@ -74,6 +74,18 @@ jobs:
           echo "Supabase stack started successfully."
         timeout-minutes: 12
 
+      - name: Discover local mail service
+        run: |
+          echo "Discovering local mail service contract..."
+          echo "Testing root endpoint..."
+          curl -i http://127.0.0.1:54324/ || echo "Root endpoint failed"
+          echo "Testing common mailpit API..."
+          curl -i http://127.0.0.1:54324/api/v1/ || echo "api/v1 failed"
+          echo "Testing inbucket API..."
+          curl -i http://127.0.0.1:54324/api/ || echo "api/ failed"
+          echo "Mail service discovery completed."
+        timeout-minutes: 1
+
       - name: Rebuild database from versioned migrations
         run: |
           echo "Resetting the local database and applying every migration..."

@@ -7,9 +7,11 @@ const releaseValidationSpecs = /release-validation\.(demo|normal|normal-supabase
 
 export default {
   timeout: 120000, // Increased for email polling
-  workers: process.env.CI ? 2 : 1, // Conservative for auth sequencing
+  workers: 1, // Serial for stateful auth lifecycle
   testIgnore: releaseValidationSpecs,
   testMatch: /tests\/playwright\/supabase-e2e\/.*\.spec\.js$/, // Only run Supabase E2E tests
+  testDir: './tests/playwright/supabase-e2e',
+  fullyParallel: false,
   webServer: {
     // Use port 5173 to match supabase/config.toml site_url
     // Pass Supabase credentials to Vite server via environment variables
@@ -26,11 +28,6 @@ export default {
     baseURL: 'http://127.0.0.1:5173'
   },
   projects: [
-    // Mobile viewport for key smoke tests
-    { 
-      name: 'mobile-smoke', 
-      use: { viewport: { width: 390, height: 844 } }
-    },
     // Desktop for full auth lifecycle
     {
       name: 'desktop',

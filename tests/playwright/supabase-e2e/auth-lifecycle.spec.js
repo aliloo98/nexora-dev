@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { pollForEmail, clearMailbox } from './helpers/mailbox.js'
+import { pollForEmail } from './helpers/mailbox.js'
 
 // Generate unique test identifiers per run
 const RUN_ID = Date.now().toString(36)
@@ -9,11 +9,6 @@ const ACCOUNT_A_NEW_PASSWORD = `NewPass456${RUN_ID}`
 
 test.describe('Real Supabase Auth Lifecycle', () => {
   test.use({ serviceWorkers: 'allow' })
-
-  test.beforeEach(async () => {
-    // Clear mailbox before each test
-    await clearMailbox()
-  })
 
   test('Account A - complete auth lifecycle with real Supabase', async ({ page, context }) => {
     // Fresh context
@@ -83,7 +78,12 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     // TEST 3: CONFIRMATION EMAIL
     console.log('TEST 3: Confirmation email capture')
 
-    const confirmationResult = await pollForEmail(ACCOUNT_A_EMAIL, 'confirmation')
+    const signupTimestamp = Date.now()
+    const confirmationResult = await pollForEmail({
+      recipient: ACCOUNT_A_EMAIL,
+      type: 'confirmation',
+      afterTimestamp: signupTimestamp
+    })
     expect(confirmationResult.found).toBe(true)
     expect(confirmationResult.link).toBeDefined()
 
@@ -204,7 +204,12 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     // TEST 11: RECOVERY EMAIL
     console.log('TEST 11: Recovery email capture')
 
-    const recoveryResult = await pollForEmail(ACCOUNT_A_EMAIL, 'recovery')
+    const forgotTimestamp = Date.now()
+    const recoveryResult = await pollForEmail({
+      recipient: ACCOUNT_A_EMAIL,
+      type: 'recovery',
+      afterTimestamp: forgotTimestamp
+    })
     expect(recoveryResult.found).toBe(true)
     expect(recoveryResult.link).toBeDefined()
 
