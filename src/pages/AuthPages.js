@@ -10,13 +10,14 @@
 import { createLoginForm, attachLoginFormListeners } from '../components/LoginForm.js'
 import { createRegisterForm, attachRegisterFormListeners } from '../components/RegisterForm.js'
 import { createForgotPasswordForm, attachForgotPasswordFormListeners } from '../components/ForgotPasswordForm.js'
-import { createResetPasswordForm, attachResetPasswordFormListeners } from '../components/ResetPasswordForm.js'
+import { createResetPasswordForm, attachResetPasswordFormListenersWithCleanup } from '../components/ResetPasswordForm.js'
 import AuthContext from '../auth/authContext.js'
 
 /**
  * Global page state
  */
 let currentAuthPage = 'login' // 'login' or 'register'
+let resetPasswordCleanup = null // Cleanup function for reset password listeners
 
 /**
  * Authentication Pages Module
@@ -34,7 +35,7 @@ export const AuthPages = {
     this._ensureAuthContainer()
 
     if (isResetPasswordRoute) {
-      // Show loading state for reset password
+      // Show reset password page (component handles loading state)
       this.showAuthPages()
       this.showResetPasswordPage({ loading: true })
       return
@@ -135,8 +136,14 @@ export const AuthPages = {
     const authContainer = document.getElementById('auth-container')
     if (!authContainer) return
 
+    // Cleanup previous reset password listeners if any
+    if (resetPasswordCleanup) {
+      resetPasswordCleanup()
+      resetPasswordCleanup = null
+    }
+
     authContainer.innerHTML = createResetPasswordForm({ loading })
-    attachResetPasswordFormListeners()
+    resetPasswordCleanup = attachResetPasswordFormListenersWithCleanup()
     currentAuthPage = 'reset-password'
   },
 

@@ -38,25 +38,8 @@ export const createResetPasswordForm = ({ loading = false } = {}) => {
     `
   }
 
-  if (loading) {
-    return `
-    <div class="auth-form-container">
-      <div class="auth-form-card">
-        <div class="auth-form-header">
-          <img src="/icon-192.png" alt="NEXORA logo" class="auth-form-logo-img" />
-          <h1 class="auth-form-title">NEXORA</h1>
-          <p class="auth-form-subtitle">Définir un nouveau mot de passe</p>
-        </div>
-
-        <div class="form-loading" style="display: flex;">
-          <span class="spinner"></span>
-          <span>Vérification du lien de récupération...</span>
-        </div>
-      </div>
-    </div>
-    `
-  }
-
+  // Always render the form with loading state control
+  // This ensures attachResetPasswordFormListeners can find the form DOM
   return `
     <div class="auth-form-container">
       <div class="auth-form-card">
@@ -66,7 +49,12 @@ export const createResetPasswordForm = ({ loading = false } = {}) => {
           <p class="auth-form-subtitle">Définir un nouveau mot de passe</p>
         </div>
 
-        <form id="resetPasswordForm" class="auth-form">
+        <div class="form-loading" id="resetPasswordLoading" style="display: ${loading ? 'flex' : 'none'};">
+          <span class="spinner"></span>
+          <span>Vérification du lien de récupération...</span>
+        </div>
+
+        <form id="resetPasswordForm" class="auth-form" style="display: ${loading ? 'none' : 'block'};">
           <!-- Password Input -->
           <div class="form-group">
             <label for="resetPassword" class="form-label">Nouveau mot de passe</label>
@@ -75,7 +63,7 @@ export const createResetPasswordForm = ({ loading = false } = {}) => {
               id="resetPassword"
               name="password"
               class="form-input"
-              placeholder="••••••••"
+              placeholder="•••••••••"
               required
               autocomplete="new-password"
             />
@@ -91,7 +79,7 @@ export const createResetPasswordForm = ({ loading = false } = {}) => {
               id="resetPasswordConfirm"
               name="passwordConfirm"
               class="form-input"
-              placeholder="••••••••"
+              placeholder="•••••••••"
               required
               autocomplete="new-password"
             />
@@ -121,13 +109,13 @@ export const createResetPasswordForm = ({ loading = false } = {}) => {
         </form>
 
         <!-- Link to Request New Email -->
-        <div class="auth-form-footer">
+        <div class="auth-form-footer" id="resetPasswordFooter" style="display: ${loading ? 'none' : 'block'};">
           <p><a href="#" onclick="switchToForgotPassword(event); return false;" class="auth-link">Demander un nouvel email</a></p>
           <p><a href="#" onclick="switchToLogin(event); return false;" class="auth-link">Retour à la connexion</a></p>
         </div>
       </div>
     </div>
-  `
+    `
 }
 
 /**
@@ -154,9 +142,11 @@ export const attachResetPasswordFormListeners = () => {
   const errorBox = document.getElementById('resetErrorBox')
   const errorMessage = document.getElementById('resetErrorMessage')
   const loadingBox = document.getElementById('resetLoading')
+  const initialLoadingBox = document.getElementById('resetPasswordLoading')
+  const footer = document.getElementById('resetPasswordFooter')
 
   let formShown = false
-  let recoveryModeListener = null
+  let unsubscribeRecovery = null
 
   // Listen for password recovery mode activation via AuthContext
   const checkRecoveryMode = () => {
@@ -167,25 +157,27 @@ export const attachResetPasswordFormListeners = () => {
     }
 
     // Subscribe to AuthContext changes to detect PASSWORD_RECOVERY event
-    recoveryModeListener = () => {
+    unsubscribeRecovery = AuthContext.subscribe(() => {
       if (AuthContext.isPasswordRecoveryMode() && !formShown) {
         showForm()
         // Unsubscribe after detection
-        AuthContext.unsubscribe(recoveryModeListener)
+        if (unsubscribeRecovery) {
+          unsubscribeRecovery()
+          unsubscribeRecovery = null
+        }
       }
-    }
-
-    AuthContext.subscribe(recoveryModeListener)
+    })
   }
 
   const showError = (message) => {
     errorMessage.textContent = message
     errorBox.style.display = 'flex'
     form.style.display = 'none'
+    if (initialLoadingBox) initialLoadingBox.style.display = 'none'
+    if (footer) footer.style.display = 'block'
   }
 
   const showNewEmailButton = () => {
-    const footer = document.querySelector('.auth-form-footer')
     if (footer) {
       footer.innerHTML = '<p><a href="#" onclick="switchToForgotPassword(event); return false;" class="auth-link">Demander un nouvel email de récupération</a></p>'
     }
@@ -193,7 +185,9 @@ export const attachResetPasswordFormListeners = () => {
 
   const showForm = () => {
     formShown = true
+    if (initialLoadingBox) initialLoadingBox.style.display = 'none'
     form.style.display = 'block'
+    if (footer) footer.style.display = 'block'
   }
 
   const isFormShown = () => formShown
@@ -202,16 +196,26 @@ export const attachResetPasswordFormListeners = () => {
   checkRecoveryMode()
 
   // Safety timeout - if no PASSWORD_RECOVERY event received
-  setTimeout(() => {
+  const safetyTimeout = setTimeout(() => {
     if (!isFormShown()) {
       // Unsubscribe listener
-      if (recoveryModeListener) {
-        AuthContext.unsubscribe(recoveryModeListener)
+      if (unsubscribeRecovery) {
+        unsubscribeRecovery()
+        unsubscribeRecovery = null
       }
       showError('Ce lien de récupération est invalide ou a expiré')
       showNewEmailButton()
     }
   }, 5000)
+
+  // Return cleanup function for route changes
+  const cleanup = () => {
+    clearTimeout(safetyTimeout)
+    if (unsubscribeRecovery) {
+      unsubscribeRecovery()
+      unsubscribeRecovery = null
+    }
+  }
 
   // Form submission
   form.addEventListener('submit', async (e) => {
@@ -301,6 +305,11 @@ export const attachResetPasswordFormListeners = () => {
       document.getElementById('resetPasswordConfirmError').textContent = ''
     }
   })
+
+  return cleanup
 }
 
 export default { createResetPasswordForm, attachResetPasswordFormListeners }
+
+// Export cleanup function for route changes
+export { attachResetPasswordFormListeners as attachResetPasswordFormListenersWithCleanup }
