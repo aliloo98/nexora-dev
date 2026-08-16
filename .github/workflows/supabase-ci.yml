@@ -74,26 +74,6 @@ jobs:
           echo "Supabase stack started successfully."
         timeout-minutes: 12
 
-      - name: Export Supabase environment variables
-        run: |
-          echo "Exporting Supabase connection details..."
-          status_output="$RUNNER_TEMP/supabase-status.json"
-          supabase status -o json > "$status_output"
-
-          # Extract API URL and anon key (keys are uppercase in supabase status JSON)
-          SUPABASE_URL=$(jq -r '.API_URL // empty' "$status_output")
-          SUPABASE_ANON_KEY=$(jq -r '.ANON_KEY // empty' "$status_output")
-          SUPABASE_SERVICE_ROLE_KEY=$(jq -r '.SERVICE_ROLE_KEY // empty' "$status_output")
-
-          echo "VITE_SUPABASE_URL=$SUPABASE_URL" >> $GITHUB_ENV
-          echo "VITE_SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" >> $GITHUB_ENV
-          echo "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY" >> $GITHUB_ENV
-
-          echo "Supabase environment variables exported."
-          echo "URL: $SUPABASE_URL"
-          echo "Anon key present: $([ -n "$SUPABASE_ANON_KEY" ] && echo yes || echo no)"
-        timeout-minutes: 2
-
       - name: Rebuild database from versioned migrations
         run: |
           echo "Resetting the local database and applying every migration..."
@@ -128,11 +108,25 @@ jobs:
         timeout-minutes: 10
 
       - name: Run real Supabase E2E certification
-        env:
-          VITE_SUPABASE_URL: ${{ env.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ env.VITE_SUPABASE_ANON_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ env.SUPABASE_SERVICE_ROLE_KEY }}
-        run: npm run test:e2e:supabase
+        run: |
+          echo "Extracting Supabase connection details for E2E certification..."
+          status_output="$RUNNER_TEMP/supabase-status.json"
+          supabase status -o json > "$status_output"
+
+          # Extract API URL and anon key (keys are uppercase in supabase status JSON)
+          SUPABASE_URL=$(jq -r '.API_URL // empty' "$status_output")
+          SUPABASE_ANON_KEY=$(jq -r '.ANON_KEY // empty' "$status_output")
+          SUPABASE_SERVICE_ROLE_KEY=$(jq -r '.SERVICE_ROLE_KEY // empty' "$status_output")
+
+          echo "Supabase connection details extracted."
+          echo "URL: $SUPABASE_URL"
+          echo "Anon key present: $([ -n "$SUPABASE_ANON_KEY" ] && echo yes || echo no)"
+
+          echo "Running real Supabase E2E certification..."
+          VITE_SUPABASE_URL="$SUPABASE_URL" \
+          VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+          SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
+          npm run test:e2e:supabase
         timeout-minutes: 15
 
       - name: Upload Playwright diagnostics
