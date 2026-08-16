@@ -17,6 +17,18 @@ import AuthContext from '../auth/authContext.js'
  * Global page state
  */
 let currentAuthPage = 'login' // 'login' or 'register'
+let resetPasswordCleanup = null // Cleanup function for reset password listeners
+
+/**
+ * Cleanup reset password state
+ * @private
+ */
+const _cleanupResetPassword = () => {
+  if (resetPasswordCleanup) {
+    resetPasswordCleanup()
+    resetPasswordCleanup = null
+  }
+}
 
 /**
  * Authentication Pages Module
@@ -34,7 +46,7 @@ export const AuthPages = {
     this._ensureAuthContainer()
 
     if (isResetPasswordRoute) {
-      // Show loading state for reset password
+      // Show reset password page (component handles loading state)
       this.showAuthPages()
       this.showResetPasswordPage({ loading: true })
       return
@@ -99,6 +111,7 @@ export const AuthPages = {
     const authContainer = document.getElementById('auth-container')
     if (!authContainer) return
 
+    _cleanupResetPassword()
     authContainer.innerHTML = createLoginForm()
     attachLoginFormListeners()
     currentAuthPage = 'login'
@@ -111,6 +124,7 @@ export const AuthPages = {
     const authContainer = document.getElementById('auth-container')
     if (!authContainer) return
 
+    _cleanupResetPassword()
     authContainer.innerHTML = createRegisterForm()
     attachRegisterFormListeners()
     currentAuthPage = 'register'
@@ -123,6 +137,7 @@ export const AuthPages = {
     const authContainer = document.getElementById('auth-container')
     if (!authContainer) return
 
+    _cleanupResetPassword()
     authContainer.innerHTML = createForgotPasswordForm()
     attachForgotPasswordFormListeners()
     currentAuthPage = 'forgot-password'
@@ -135,8 +150,14 @@ export const AuthPages = {
     const authContainer = document.getElementById('auth-container')
     if (!authContainer) return
 
+    // Cleanup previous reset password listeners if any
+    if (resetPasswordCleanup) {
+      resetPasswordCleanup()
+      resetPasswordCleanup = null
+    }
+
     authContainer.innerHTML = createResetPasswordForm({ loading })
-    attachResetPasswordFormListeners()
+    resetPasswordCleanup = attachResetPasswordFormListeners()
     currentAuthPage = 'reset-password'
   },
 
