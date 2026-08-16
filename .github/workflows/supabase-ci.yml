@@ -80,6 +80,9 @@ jobs:
           status_output="$RUNNER_TEMP/supabase-status.json"
           supabase status -o json > "$status_output"
 
+          echo "Raw supabase status JSON:"
+          cat "$status_output"
+
           # Extract API URL and anon key
           SUPABASE_URL=$(jq -r '.api.url // empty' "$status_output")
           SUPABASE_ANON_KEY=$(jq -r '.api.anon_key // empty' "$status_output")
