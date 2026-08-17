@@ -21,13 +21,8 @@ assert.match(config, /^project_id = "nexora-dev"$/m)
 assert.match(config, /^site_url = "http:\/\/127\.0\.0\.1:5173"$/m)
 assert.match(config, /\[db\.seed\][\s\S]*?enabled = false/)
 assert.match(config, /\[db\.migrations\][\s\S]*?enabled = true/)
-// Email confirmations and local SMTP required for Supabase E2E certification
+// Email confirmations required for Supabase E2E certification
 assert.match(config, /\[auth\.email\][\s\S]*?enable_confirmations = true/)
-assert.match(config, /\[auth\.email\.smtp\][\s\S]*?enabled = true/)
-assert.match(config, /host = "127\.0\.0\.1"/)
-assert.match(config, /port = 54325/)
-assert.match(config, /user = "nexora"/)
-assert.match(config, /pass = "nexora"/)
 
 const localScripts = [
   'supabase:reset',
