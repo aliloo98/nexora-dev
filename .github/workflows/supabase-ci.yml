@@ -134,6 +134,23 @@ jobs:
         run: npx --no-install playwright install --with-deps chromium
         timeout-minutes: 20
 
+      - name: Auth/Mailpit preflight check
+        run: |
+          echo "Running Auth/Mailpit preflight diagnostic..."
+          status_output="$RUNNER_TEMP/supabase-status.json"
+          supabase status -o json > "$status_output"
+
+          SUPABASE_URL=$(jq -r '.API_URL // empty' "$status_output")
+          SUPABASE_ANON_KEY=$(jq -r '.ANON_KEY // empty' "$status_output")
+
+          echo "Preflight: Supabase URL present: $([ -n "$SUPABASE_URL" ] && echo yes || echo no)"
+          echo "Preflight: Anon key present: $([ -n "$SUPABASE_ANON_KEY" ] && echo yes || echo no)"
+
+          VITE_SUPABASE_URL="$SUPABASE_URL" \
+          VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+          node tests/playwright/supabase-e2e/helpers/preflight.js
+        timeout-minutes: 2
+
       - name: Run Playwright application tests
         run: npm run test:e2e
         timeout-minutes: 15

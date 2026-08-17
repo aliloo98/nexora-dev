@@ -5,6 +5,7 @@
 
 const MAIL_API_BASE = 'http://127.0.0.1:54324';
 const MESSAGES_ENDPOINT = '/api/v1/messages';
+const MESSAGE_ENDPOINT = '/api/v1/message';
 
 /**
  * Poll for email to a specific recipient
@@ -48,10 +49,10 @@ async function pollForEmail({
 
       // Filter messages by recipient and timestamp
       const matchingMessages = messages.filter(msg => {
-        // Mailpit API uses lowercase field names: to, subject, created
-        const msgRecipient = msg.to?.[0]?.Address || msg.To?.[0]?.Address || msg.recipient || '';
-        const msgTimestamp = new Date(msg.created || msg.Created || msg.timestamp).getTime();
-        const subject = String(msg.subject || msg.Subject || '').toLowerCase();
+        // Mailpit API uses both uppercase and lowercase field names depending on version
+        const msgRecipient = msg.To?.[0]?.Address || msg.to?.[0]?.Address || msg.recipient || '';
+        const msgTimestamp = new Date(msg.Created || msg.created || msg.timestamp).getTime();
+        const subject = String(msg.Subject || msg.subject || '').toLowerCase();
 
         if (msgRecipient === recipient) {
           recipientMatched = true;
@@ -77,19 +78,19 @@ async function pollForEmail({
         console.log(`Mailbox: Found ${type} email for ${recipient} (ID: ${msgId})`);
 
         // Fetch complete message by ID to get full body
-        const fullMsgResponse = await fetch(`${MAIL_API_BASE}${MESSAGES_ENDPOINT}/${msgId}`);
+        const fullMsgResponse = await fetch(`${MAIL_API_BASE}${MESSAGE_ENDPOINT}/${encodeURIComponent(msgId)}`);
         if (!fullMsgResponse.ok) {
           throw new Error(`Mailbox: Failed to fetch full message ${msgId}: HTTP ${fullMsgResponse.status}`);
         }
         const fullMsg = await fullMsgResponse.json();
 
-        // Extract body from Mailpit API schema (Text.Body and HTML.Body are the correct fields)
-        const body = fullMsg.Text?.Body || fullMsg.HTML?.Body || fullMsg.text || fullMsg.html || fullMsg.Content?.Body || '';
+        // Extract body from Mailpit API schema (supports both uppercase and lowercase field names)
+        const body = fullMsg.Text?.Body || fullMsg.text?.Body || fullMsg.HTML?.Body || fullMsg.html?.Body || fullMsg.Text?.body || fullMsg.text?.body || fullMsg.HTML?.body || fullMsg.html?.body || fullMsg.Content?.Body || fullMsg.content?.Body || fullMsg.body || fullMsg.text || '';
         const link = extractActionLink(body, type);
 
         return {
           found: true,
-          subject: msg.subject || msg.Subject || '',
+          subject: msg.Subject || msg.subject || '',
           link
         };
       }

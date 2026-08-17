@@ -45,7 +45,18 @@ test.describe('Mobile Smoke - Real Supabase Auth', () => {
     // Capture timestamp BEFORE signup (email may be emitted during submission)
     const signupTimestamp = Date.now()
 
+    // Track signup HTTP response
+    const signupResponsePromise = page.waitForResponse(response =>
+      response.url().includes('/auth/v1/signup') && response.request().method() === 'POST'
+    )
+
     await page.click('#registerForm button[type="submit"]')
+
+    // Wait for signup response
+    const signupResponse = await signupResponsePromise
+    console.log(`Mobile smoke: Signup HTTP status=${signupResponse.status()}`)
+    expect(signupResponse.status()).toBe(200)
+
     await page.waitForTimeout(2000)
 
     // TEST: Confirmation

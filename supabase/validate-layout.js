@@ -96,6 +96,7 @@ const requiredWorkflowPatterns = [
   /supabase db lint --local --level warning --fail-on warning/,
   /supabase test db --local/,
   /run: npm run test:js/,
+  /Auth\/Mailpit preflight check/,
   /run: npm run test:e2e/,
   /run: npm run build/,
   /if: always\(\)/,
