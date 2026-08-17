@@ -42,14 +42,16 @@ async function pollForEmail({
 
       mailboxReachable = true;
       const data = await response.json();
-      const messages = data.items || data.messages || [];
+      // Mailpit API schema: { count, messages: [...], messages_count, messages_unread, start, tags, total, unread }
+      const messages = data.messages || data.items || [];
       messageCount = messages.length;
 
       // Filter messages by recipient and timestamp
       const matchingMessages = messages.filter(msg => {
-        const msgRecipient = msg.To?.[0]?.Address || msg.to?.[0]?.Address || msg.recipient || '';
-        const msgTimestamp = new Date(msg.Created || msg.created || msg.timestamp).getTime();
-        const subject = String(msg.Subject || msg.subject || '').toLowerCase();
+        // Mailpit API uses lowercase field names: to, subject, created
+        const msgRecipient = msg.to?.[0]?.Address || msg.To?.[0]?.Address || msg.recipient || '';
+        const msgTimestamp = new Date(msg.created || msg.Created || msg.timestamp).getTime();
+        const subject = String(msg.subject || msg.Subject || '').toLowerCase();
 
         if (msgRecipient === recipient) {
           recipientMatched = true;
@@ -81,13 +83,13 @@ async function pollForEmail({
         }
         const fullMsg = await fullMsgResponse.json();
 
-        // Extract body from the actual schema
+        // Extract body from Mailpit API schema (Text.Body and HTML.Body are the correct fields)
         const body = fullMsg.Text?.Body || fullMsg.HTML?.Body || fullMsg.text || fullMsg.html || fullMsg.Content?.Body || '';
         const link = extractActionLink(body, type);
 
         return {
           found: true,
-          subject: msg.Subject || msg.subject || '',
+          subject: msg.subject || msg.Subject || '',
           link
         };
       }
