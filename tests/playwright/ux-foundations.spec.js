@@ -131,8 +131,6 @@ test.describe('UX foundations', () => {
     // Wait for Settings to render fully
     await page.waitForSelector('#section-parametres', { state: 'visible' })
     const settings = await new AxeBuilder({ page }).include('#section-parametres').analyze()
-    // Filter out moderate violations for robustness
-    const criticalSettingsViolations = settings.violations.filter(v => v.impact !== 'moderate')
-    expect(formatViolations(criticalSettingsViolations)).toEqual([])
+    expect(formatViolations(settings.violations)).toEqual([])
   })
 })

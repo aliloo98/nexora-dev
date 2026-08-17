@@ -25,6 +25,10 @@ async function pollForEmail({
 }) {
   const startTime = Date.now();
   const deadline = startTime + timeoutMs;
+  let mailboxReachable = false;
+  let messageCount = 0;
+  let recipientMatched = false;
+  let subjectMatched = false;
 
   console.log(`Mailbox: Polling for ${type} email to ${recipient} after ${afterTimestamp}`);
 
@@ -36,30 +40,49 @@ async function pollForEmail({
         throw new Error(`Mailbox: HTTP ${response.status} ${response.statusText}`);
       }
 
+      mailboxReachable = true;
       const data = await response.json();
       const messages = data.items || data.messages || [];
+      messageCount = messages.length;
 
       // Filter messages by recipient and timestamp
       const matchingMessages = messages.filter(msg => {
         const msgRecipient = msg.To?.[0]?.Address || msg.to?.[0]?.Address || msg.recipient || '';
         const msgTimestamp = new Date(msg.Created || msg.created || msg.timestamp).getTime();
+        const subject = String(msg.Subject || msg.subject || '').toLowerCase();
+
+        if (msgRecipient === recipient) {
+          recipientMatched = true;
+        }
+        const timestampMatch = msgTimestamp >= afterTimestamp;
         
-        return (
-          msgRecipient === recipient &&
-          msgTimestamp >= afterTimestamp &&
-          (type === 'confirmation' 
-            ? (msg.Subject?.includes('confirm') || msg.subject?.includes('Confirm') || msg.Content?.Body?.includes('confirm'))
-            : (msg.Subject?.includes('reset') || msg.subject?.includes('Reset') || msg.Content?.Body?.includes('reset') || msg.Content?.Body?.includes('password'))
-          )
-        );
+        let subjectMatch = false;
+        if (type === 'confirmation') {
+          subjectMatch = subject.includes('confirm') || subject.includes('verify');
+        } else if (type === 'recovery') {
+          subjectMatch = subject.includes('reset') || subject.includes('recover') || subject.includes('password');
+        }
+        if (subjectMatch) {
+          subjectMatched = true;
+        }
+
+        return msgRecipient === recipient && timestampMatch && subjectMatch;
       });
 
       if (matchingMessages.length > 0) {
         const msg = matchingMessages[0];
-        console.log(`Mailbox: Found ${type} email for ${recipient}`);
+        const msgId = msg.ID || msg.id;
+        console.log(`Mailbox: Found ${type} email for ${recipient} (ID: ${msgId})`);
 
-        // Extract action link from email body
-        const body = msg.Content?.Body || msg.body || msg.text || '';
+        // Fetch complete message by ID to get full body
+        const fullMsgResponse = await fetch(`${MAIL_API_BASE}${MESSAGES_ENDPOINT}/${msgId}`);
+        if (!fullMsgResponse.ok) {
+          throw new Error(`Mailbox: Failed to fetch full message ${msgId}: HTTP ${fullMsgResponse.status}`);
+        }
+        const fullMsg = await fullMsgResponse.json();
+
+        // Extract body from the actual schema
+        const body = fullMsg.Text?.Body || fullMsg.HTML?.Body || fullMsg.text || fullMsg.html || fullMsg.Content?.Body || '';
         const link = extractActionLink(body, type);
 
         return {
@@ -82,12 +105,23 @@ async function pollForEmail({
     }
   }
 
-  console.log(`Mailbox: Timeout waiting for ${type} email to ${recipient}`);
-  return {
-    found: false,
-    subject: '',
-    link: ''
-  };
+  // Provide specific diagnostic based on polling observations
+  if (!mailboxReachable) {
+    console.log(`Mailbox: Timeout - mailbox API not reachable at ${MAIL_API_BASE}${MESSAGES_ENDPOINT}`);
+    throw new Error(`Mailbox: Timeout - mailbox API not reachable (no successful HTTP response in ${timeoutMs}ms)`);
+  } else if (messageCount === 0) {
+    console.log(`Mailbox: Timeout - mailbox had 0 messages (possible SMTP/Auth infrastructure issue)`);
+    throw new Error(`Mailbox: Timeout - mailbox had 0 messages (SMTP delivery may have failed)`);
+  } else if (!recipientMatched) {
+    console.log(`Mailbox: Timeout - ${messageCount} messages existed but no recipient matched ${recipient}`);
+    throw new Error(`Mailbox: Timeout - messages existed but no recipient matched`);
+  } else if (!subjectMatched) {
+    console.log(`Mailbox: Timeout - recipient matched but subject classification failed for type=${type}`);
+    throw new Error(`Mailbox: Timeout - recipient matched but subject classification failed`);
+  } else {
+    console.log(`Mailbox: Timeout - message matched but full message body/link extraction failed`);
+    throw new Error(`Mailbox: Timeout - message matched but full message body/link extraction failed`);
+  }
 }
 
 /**
