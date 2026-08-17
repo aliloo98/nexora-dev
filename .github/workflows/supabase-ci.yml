@@ -76,16 +76,33 @@ jobs:
 
       - name: Discover local mail service
         run: |
-          echo "Discovering local mail service contract..."
-          echo "Testing root endpoint..."
-          curl -i http://127.0.0.1:54324/ || true
-          echo "Testing common mailpit API..."
-          curl -i http://127.0.0.1:54324/api/v1/ || true
-          echo "Testing mailpit messages endpoint..."
-          curl -i http://127.0.0.1:54324/api/v1/messages || true
-          echo "Testing inbucket API..."
-          curl -i http://127.0.0.1:54324/api/ || true
-          echo "Mail service discovery completed."
+          echo "MAIL_DISCOVERY: Discovering local mail service contract..."
+          
+          echo "MAIL_DISCOVERY: Testing root endpoint..."
+          ROOT_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:54324/ || echo "000")
+          ROOT_TYPE=$(curl -s -I http://127.0.0.1:54324/ 2>/dev/null | grep -i content-type | cut -d' ' -f2 | tr -d '\r' || echo "unknown")
+          echo "MAIL_DISCOVERY root status=$ROOT_STATUS type=$ROOT_TYPE"
+          
+          echo "MAIL_DISCOVERY: Testing /api/v1/ endpoint..."
+          API_V1_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:54324/api/v1/ || echo "000")
+          API_V1_TYPE=$(curl -s -I http://127.0.0.1:54324/api/v1/ 2>/dev/null | grep -i content-type | cut -d' ' -f2 | tr -d '\r' || echo "unknown")
+          echo "MAIL_DISCOVERY api_v1 status=$API_V1_STATUS type=$API_V1_TYPE"
+          
+          echo "MAIL_DISCOVERY: Testing /api/v1/messages endpoint..."
+          MESSAGES_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:54324/api/v1/messages || echo "000")
+          MESSAGES_TYPE=$(curl -s -I http://127.0.0.1:54324/api/v1/messages 2>/dev/null | grep -i content-type | cut -d' ' -f2 | tr -d '\r' || echo "unknown")
+          echo "MAIL_DISCOVERY messages status=$MESSAGES_STATUS type=$MESSAGES_TYPE"
+          
+          if [ "$MESSAGES_STATUS" = "200" ] && [ "$MESSAGES_TYPE" = "application/json" ]; then
+            echo "MAIL_DISCOVERY messages_json_keys=$(curl -s http://127.0.0.1:54324/api/v1/messages 2>/dev/null | head -c 500)"
+          fi
+          
+          echo "MAIL_DISCOVERY: Testing /api/ endpoint..."
+          API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:54324/api/ || echo "000")
+          API_TYPE=$(curl -s -I http://127.0.0.1:54324/api/ 2>/dev/null | grep -i content-type | cut -d' ' -f2 | tr -d '\r' || echo "unknown")
+          echo "MAIL_DISCOVERY api status=$API_STATUS type=$API_TYPE"
+          
+          echo "MAIL_DISCOVERY: Discovery completed."
         timeout-minutes: 1
 
       - name: Rebuild database from versioned migrations
@@ -135,6 +152,16 @@ jobs:
           echo "Supabase connection details extracted."
           echo "URL: $SUPABASE_URL"
           echo "Anon key present: $([ -n "$SUPABASE_ANON_KEY" ] && echo yes || echo no)"
+          echo "Service role present: $([ -n "$SUPABASE_SERVICE_ROLE_KEY" ] && echo yes || echo no)"
+
+          echo "E2E_DISCOVERY: Listing tests from dedicated Supabase config..."
+          VITE_SUPABASE_URL="$SUPABASE_URL" \
+          VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+          SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
+          npx playwright test --list --config=./playwright.config.supabase.js || echo "E2E_DISCOVERY: Test list failed"
+
+          echo "E2E_DISCOVERY: Checking Vite port before execution..."
+          curl --fail --silent --show-error http://127.0.0.1:5173/ >/dev/null 2>&1 && echo "E2E_DISCOVERY: Port 5173 reachable" || echo "E2E_DISCOVERY: Port 5173 not reachable (expected before webServer starts)"
 
           echo "Running real Supabase E2E certification..."
           VITE_SUPABASE_URL="$SUPABASE_URL" \
@@ -149,11 +176,8 @@ jobs:
         with:
           name: playwright-diagnostics
           path: |
-            playwright-report
-            test-results
-            **/trace.zip
-            **/*.webm
-            **/*.png
+            playwright-report/
+            test-results/
           retention-days: 7
 
       - name: Build Vite production bundle

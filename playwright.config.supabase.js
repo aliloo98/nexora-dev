@@ -9,7 +9,6 @@ export default {
   timeout: 120000, // Increased for email polling
   workers: 1, // Serial for stateful auth lifecycle
   testIgnore: releaseValidationSpecs,
-  testMatch: /tests\/playwright\/supabase-e2e\/.*\.spec\.js$/, // Only run Supabase E2E tests
   testDir: './tests/playwright/supabase-e2e',
   fullyParallel: false,
   webServer: {
