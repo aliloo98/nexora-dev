@@ -47,6 +47,14 @@ async function pollForEmail({
       const messages = data.messages || data.items || [];
       messageCount = messages.length;
 
+      // Log all recipients found in mailbox for diagnostics
+      const allRecipients = messages.map(msg =>
+        msg.To?.[0]?.Address || msg.to?.[0]?.Address || msg.recipient || 'unknown'
+      );
+      if (messageCount > 0) {
+        console.log(`Mailbox: Found ${messageCount} message(s) with recipients:`, allRecipients);
+      }
+
       // Filter messages by recipient and timestamp
       const matchingMessages = messages.filter(msg => {
         // Mailpit API uses both uppercase and lowercase field names depending on version
@@ -54,7 +62,8 @@ async function pollForEmail({
         const msgTimestamp = new Date(msg.Created || msg.created || msg.timestamp).getTime();
         const subject = String(msg.Subject || msg.subject || '').toLowerCase();
 
-        if (msgRecipient === recipient) {
+        // Case-insensitive recipient matching with flexible comparison
+        if (msgRecipient.toLowerCase() === recipient.toLowerCase()) {
           recipientMatched = true;
         }
         const timestampMatch = msgTimestamp >= afterTimestamp;
