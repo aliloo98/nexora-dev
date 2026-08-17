@@ -78,7 +78,7 @@ const requiredWorkflowPatterns = [
   /^  workflow_dispatch:\s*$/m,
   /^permissions:\s*\n  contents: read\s*$/m,
   /runs-on: ubuntu-latest/,
-  /timeout-minutes: 35/,
+  /timeout-minutes: 40/,
   /VITE_SUPABASE_ANON_KEY: ""/,
   /VITE_SUPABASE_URL: ""/,
   /uses: actions\/checkout@v7/,
