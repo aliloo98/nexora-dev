@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { pollForEmail, clearMailbox } from './helpers/mailbox.js'
+import { pollForEmail } from './helpers/mailbox.js'
 import { 
   createAdminClient, 
   createUserClient,
@@ -50,10 +50,6 @@ test.describe('Real Supabase Data Isolation', () => {
     adminClient = createAdminClient(supabaseUrl, serviceRoleKey)
   })
 
-  test.beforeEach(async () => {
-    await clearMailbox()
-  })
-
   test('Account A and B - complete data isolation with real Supabase', async ({ page, context, browser }) => {
     // ========================================================================
     // ACCOUNT A SETUP
@@ -83,7 +79,11 @@ test.describe('Real Supabase Data Isolation', () => {
     await pageA.waitForTimeout(2000)
 
     // Confirm Account A
-    const confirmationA = await pollForEmail(ACCOUNT_A_EMAIL, 'confirmation')
+    const confirmationA = await pollForEmail({
+      recipient: ACCOUNT_A_EMAIL,
+      type: 'confirmation',
+      afterTimestamp: Date.now()
+    })
     expect(confirmationA.found).toBe(true)
 
     const confirmContextA = await browser.newContext()
@@ -209,7 +209,11 @@ test.describe('Real Supabase Data Isolation', () => {
     await pageB.waitForTimeout(2000)
 
     // Confirm Account B
-    const confirmationB = await pollForEmail(ACCOUNT_B_EMAIL, 'confirmation')
+    const confirmationB = await pollForEmail({
+      recipient: ACCOUNT_B_EMAIL,
+      type: 'confirmation',
+      afterTimestamp: Date.now()
+    })
     expect(confirmationB.found).toBe(true)
 
     const confirmContextB = await browser.newContext()

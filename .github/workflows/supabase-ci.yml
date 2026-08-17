@@ -94,7 +94,7 @@ jobs:
           echo "MAIL_DISCOVERY messages status=$MESSAGES_STATUS type=$MESSAGES_TYPE"
           
           if [ "$MESSAGES_STATUS" = "200" ] && [ "$MESSAGES_TYPE" = "application/json" ]; then
-            echo "MAIL_DISCOVERY messages_json_keys=$(curl -s http://127.0.0.1:54324/api/v1/messages 2>/dev/null | head -c 500)"
+            echo "MAIL_DISCOVERY messages_schema=$(curl -s http://127.0.0.1:54324/api/v1/messages 2>/dev/null | jq -r 'if type == "array" then "array length=\(length)" else "keys=\(keys | join(","))" end' || echo "unknown")"
           fi
           
           echo "MAIL_DISCOVERY: Testing /api/ endpoint..."
@@ -154,20 +154,34 @@ jobs:
           echo "Anon key present: $([ -n "$SUPABASE_ANON_KEY" ] && echo yes || echo no)"
           echo "Service role present: $([ -n "$SUPABASE_SERVICE_ROLE_KEY" ] && echo yes || echo no)"
 
-          echo "E2E_DISCOVERY: Listing tests from dedicated Supabase config..."
+          # Initialize diagnostics file
+          DIAG="$RUNNER_TEMP/supabase-e2e-diagnostics.txt"
+          echo "=== SUPABASE E2E DIAGNOSTICS ===" > "$DIAG"
+          echo "Git SHA: $(git rev-parse HEAD)" >> "$DIAG"
+          echo "Supabase URL present: $([ -n "$SUPABASE_URL" ] && echo yes || echo no)" >> "$DIAG"
+          echo "Anon key present: $([ -n "$SUPABASE_ANON_KEY" ] && echo yes || echo no)" >> "$DIAG"
+          echo "Service role present: $([ -n "$SUPABASE_SERVICE_ROLE_KEY" ] && echo yes || echo no)" >> "$DIAG"
+
+          echo "E2E_DISCOVERY: Listing tests from dedicated Supabase config..." | tee -a "$DIAG"
           VITE_SUPABASE_URL="$SUPABASE_URL" \
           VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
           SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
-          npx playwright test --list --config=./playwright.config.supabase.js || echo "E2E_DISCOVERY: Test list failed"
+          npx playwright test --list --config=./playwright.config.supabase.js 2>&1 | tee -a "$DIAG" || echo "E2E_DISCOVERY: Test list failed" | tee -a "$DIAG"
+          LIST_EXIT=${PIPESTATUS[0]}
+          echo "Playwright --list exit code: $LIST_EXIT" >> "$DIAG"
 
-          echo "E2E_DISCOVERY: Checking Vite port before execution..."
-          curl --fail --silent --show-error http://127.0.0.1:5173/ >/dev/null 2>&1 && echo "E2E_DISCOVERY: Port 5173 reachable" || echo "E2E_DISCOVERY: Port 5173 not reachable (expected before webServer starts)"
+          echo "E2E_DISCOVERY: Checking Vite port before execution..." | tee -a "$DIAG"
+          curl --fail --silent --show-error http://127.0.0.1:5173/ >/dev/null 2>&1 && echo "E2E_DISCOVERY: Port 5173 reachable" | tee -a "$DIAG" || echo "E2E_DISCOVERY: Port 5173 not reachable (expected before webServer starts)" | tee -a "$DIAG"
 
-          echo "Running real Supabase E2E certification..."
+          echo "Running real Supabase E2E certification..." | tee -a "$DIAG"
+          set -o pipefail
           VITE_SUPABASE_URL="$SUPABASE_URL" \
           VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
           SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
-          npm run test:e2e:supabase
+          npm run test:e2e:supabase 2>&1 | tee -a "$DIAG"
+          E2E_EXIT=${PIPESTATUS[0]}
+          echo "Playwright E2E exit code: $E2E_EXIT" >> "$DIAG"
+          exit "$E2E_EXIT"
         timeout-minutes: 15
 
       - name: Upload Playwright diagnostics
@@ -176,6 +190,7 @@ jobs:
         with:
           name: playwright-diagnostics
           path: |
+            ${{ runner.temp }}/supabase-e2e-diagnostics.txt
             playwright-report/
             test-results/
           retention-days: 7

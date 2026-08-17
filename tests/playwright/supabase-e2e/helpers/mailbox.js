@@ -125,6 +125,4 @@ function extractActionLink(body, type) {
   throw new Error(`Mailbox: No action link found in ${type} email`);
 }
 
-module.exports = {
-  pollForEmail
-};
+export { pollForEmail };

@@ -37,6 +37,9 @@ test.describe('Real Supabase Auth Lifecycle', () => {
       await termsCheckbox.check()
     }
 
+    // Capture timestamp BEFORE signup (email may be emitted during submission)
+    const signupTimestamp = Date.now()
+
     // Submit registration
     await page.click('#registerForm button[type="submit"]')
 
@@ -78,7 +81,6 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     // TEST 3: CONFIRMATION EMAIL
     console.log('TEST 3: Confirmation email capture')
 
-    const signupTimestamp = Date.now()
     const confirmationResult = await pollForEmail({
       recipient: ACCOUNT_A_EMAIL,
       type: 'confirmation',
@@ -191,8 +193,13 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     await page.click('text=Mot de passe oublié, text=Forgot password')
     await page.waitForSelector('#forgotPasswordForm', { state: 'visible', timeout: 10000 })
 
-    // Submit recovery request
+    // Fill recovery email
     await page.fill('#forgotEmail', ACCOUNT_A_EMAIL)
+
+    // Capture timestamp BEFORE submitting forgot password (email may be emitted during submission)
+    const forgotTimestamp = Date.now()
+
+    // Submit recovery request
     await page.click('#forgotPasswordForm button[type="submit"]')
 
     await page.waitForTimeout(2000)
@@ -204,7 +211,6 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     // TEST 11: RECOVERY EMAIL
     console.log('TEST 11: Recovery email capture')
 
-    const forgotTimestamp = Date.now()
     const recoveryResult = await pollForEmail({
       recipient: ACCOUNT_A_EMAIL,
       type: 'recovery',
