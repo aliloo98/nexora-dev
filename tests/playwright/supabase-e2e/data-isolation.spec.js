@@ -161,15 +161,22 @@ test.describe('Real Supabase Data Isolation', () => {
     aRecordId = budgetA.id
     console.log('Created A budget state:', aRecordId)
 
-    // Verify A's record exists with admin client
-    const aRecords = await getUserRecords(adminClient, 'monthly_budget_states', accountAUUID)
-    expect(aRecords.length).toBeGreaterThan(0)
-    console.log('Account A records count:', aRecords.length)
+    // Verify A insert details
+    expect(budgetA.user_id).toBe(accountAUUID)
+    expect(budgetA.month_key).toBe(SHARED_MONTH_KEY)
+    expect(budgetA.data).toEqual(A_BUDGET_DATA)
+    console.log('A insert verified: user_id, month_key, data match expected ✓')
 
-    // Verify ownership with admin client
-    const aOwnership = await verifyRowOwnership(adminClient, 'monthly_budget_states', aRecordId, accountAUUID)
-    expect(aOwnership).toBe(true)
-    console.log('A record owned by A UUID ✓')
+    // Verify ownership with admin client using exact record retrieval
+    const aRecordAdmin = await adminClient
+      .from('monthly_budget_states')
+      .select('*')
+      .eq('id', aRecordId)
+      .single()
+    expect(aRecordAdmin.data.user_id).toBe(accountAUUID)
+    expect(aRecordAdmin.data.month_key).toBe(SHARED_MONTH_KEY)
+    expect(aRecordAdmin.data.data).toEqual(A_BUDGET_DATA)
+    console.log('A record verified via admin: user_id, month_key, data match expected ✓')
 
     // Logout A using semantic locator
     await pageA.getByRole('button', { name: /déconnexion|logout/i }).first().click()
@@ -290,15 +297,22 @@ test.describe('Real Supabase Data Isolation', () => {
     bRecordId = budgetB.id
     console.log('Created B budget state:', bRecordId)
 
-    // Verify B's record exists with admin client
-    const bRecords = await getUserRecords(adminClient, 'monthly_budget_states', accountBUUID)
-    expect(bRecords.length).toBeGreaterThan(0)
-    console.log('Account B records count:', bRecords.length)
+    // Verify B insert details
+    expect(budgetB.user_id).toBe(accountBUUID)
+    expect(budgetB.month_key).toBe(SHARED_MONTH_KEY)
+    expect(budgetB.data).toEqual(B_BUDGET_DATA)
+    console.log('B insert verified: user_id, month_key, data match expected ✓')
 
-    // Verify ownership with admin client
-    const bOwnership = await verifyRowOwnership(adminClient, 'monthly_budget_states', bRecordId, accountBUUID)
-    expect(bOwnership).toBe(true)
-    console.log('B record owned by B UUID ✓')
+    // Verify ownership with admin client using exact record retrieval
+    const bRecordAdmin = await adminClient
+      .from('monthly_budget_states')
+      .select('*')
+      .eq('id', bRecordId)
+      .single()
+    expect(bRecordAdmin.data.user_id).toBe(accountBUUID)
+    expect(bRecordAdmin.data.month_key).toBe(SHARED_MONTH_KEY)
+    expect(bRecordAdmin.data.data).toEqual(B_BUDGET_DATA)
+    console.log('B record verified via admin: user_id, month_key, data match expected ✓')
 
     // ========================================================================
     // DIRECT RLS TESTS - SELECT
@@ -307,13 +321,13 @@ test.describe('Real Supabase Data Isolation', () => {
 
     // B attempts to SELECT A's record (MUST return zero rows via RLS)
     const bSelectA = await attemptCrossUserSelect(userClientB, 'monthly_budget_states', aRecordId)
-    expect(bSelectA.accessible).toBe(true)
+    expect(bSelectA.error).toBe(null)
     expect(bSelectA.rowCount).toBe(0)
     console.log('B cannot SELECT A: 0 rows returned ✓')
 
     // A attempts to SELECT B's record (MUST return zero rows via RLS)
     const aSelectB = await attemptCrossUserSelect(userClientA, 'monthly_budget_states', bRecordId)
-    expect(aSelectB.accessible).toBe(true)
+    expect(aSelectB.error).toBe(null)
     expect(aSelectB.rowCount).toBe(0)
     console.log('A cannot SELECT B: 0 rows returned ✓')
 
@@ -324,13 +338,13 @@ test.describe('Real Supabase Data Isolation', () => {
 
     // B attempts to UPDATE A's record (MUST affect zero rows via RLS)
     const bUpdateA = await attemptCrossUserUpdate(userClientB, 'monthly_budget_states', aRecordId, { data: { hacked: true } })
-    expect(bUpdateA.updated).toBe(true)
+    expect(bUpdateA.error).toBe(null)
     expect(bUpdateA.affectedCount).toBe(0)
     console.log('B cannot UPDATE A: 0 rows affected ✓')
 
     // A attempts to UPDATE B's record (MUST affect zero rows via RLS)
     const aUpdateB = await attemptCrossUserUpdate(userClientA, 'monthly_budget_states', bRecordId, { data: { hacked: true } })
-    expect(aUpdateB.updated).toBe(true)
+    expect(aUpdateB.error).toBe(null)
     expect(aUpdateB.affectedCount).toBe(0)
     console.log('A cannot UPDATE B: 0 rows affected ✓')
 
@@ -341,13 +355,13 @@ test.describe('Real Supabase Data Isolation', () => {
 
     // B attempts to DELETE A's record (MUST affect zero rows via RLS)
     const bDeleteA = await attemptCrossUserDelete(userClientB, 'monthly_budget_states', aRecordId)
-    expect(bDeleteA.deleted).toBe(true)
+    expect(bDeleteA.error).toBe(null)
     expect(bDeleteA.affectedCount).toBe(0)
     console.log('B cannot DELETE A: 0 rows affected ✓')
 
     // A attempts to DELETE B's record (MUST affect zero rows via RLS)
     const aDeleteB = await attemptCrossUserDelete(userClientA, 'monthly_budget_states', bRecordId)
-    expect(aDeleteB.deleted).toBe(true)
+    expect(aDeleteB.error).toBe(null)
     expect(aDeleteB.affectedCount).toBe(0)
     console.log('A cannot DELETE B: 0 rows affected ✓')
 
@@ -356,22 +370,25 @@ test.describe('Real Supabase Data Isolation', () => {
     // ========================================================================
     console.log('Verifying records unchanged after cross-user attempts...')
 
-    const aRecordsFinal = await getUserRecords(adminClient, 'monthly_budget_states', accountAUUID)
-    const bRecordsFinal = await getUserRecords(adminClient, 'monthly_budget_states', accountBUUID)
+    const aRecordFinal = await adminClient
+      .from('monthly_budget_states')
+      .select('*')
+      .eq('id', aRecordId)
+      .single()
+    expect(aRecordFinal.data.user_id).toBe(accountAUUID)
+    expect(aRecordFinal.data.month_key).toBe(SHARED_MONTH_KEY)
+    expect(aRecordFinal.data.data).toEqual(A_BUDGET_DATA)
+    console.log('A record unchanged after cross-user attempts ✓')
 
-    expect(aRecordsFinal.length).toBe(aRecords.length)
-    expect(bRecordsFinal.length).toBe(bRecords.length)
-    console.log('Records unchanged after cross-user attempts ✓')
-
-    // Verify data integrity
-    const aRecordFinal = aRecordsFinal.find(r => r.id === aRecordId)
-    const bRecordFinal = bRecordsFinal.find(r => r.id === bRecordId)
-
-    expect(aRecordFinal).toBeTruthy()
-    expect(bRecordFinal).toBeTruthy()
-    expect(aRecordFinal.data).toEqual(A_BUDGET_DATA)
-    expect(bRecordFinal.data).toEqual(B_BUDGET_DATA)
-    console.log('Data integrity verified ✓')
+    const bRecordFinal = await adminClient
+      .from('monthly_budget_states')
+      .select('*')
+      .eq('id', bRecordId)
+      .single()
+    expect(bRecordFinal.data.user_id).toBe(accountBUUID)
+    expect(bRecordFinal.data.month_key).toBe(SHARED_MONTH_KEY)
+    expect(bRecordFinal.data.data).toEqual(B_BUDGET_DATA)
+    console.log('B record unchanged after cross-user attempts ✓')
 
     // Cleanup
     await contextA.close()

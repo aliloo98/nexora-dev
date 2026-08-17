@@ -6,6 +6,14 @@
  * NEVER expose service-role to browser
  */
 
+const baseUrl = process.env.VITE_SUPABASE_URL
+const adminHeaders = {
+  'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY,
+  'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+  'Content-Type': 'application/json',
+  'Prefer': 'return=representation'
+}
+
 /**
  * Create an admin client with service-role privileges using PostgREST
  * Used ONLY for post-condition verification in tests
@@ -17,30 +25,33 @@ export function createAdminClient(url, serviceRoleKey) {
   if (!serviceRoleKey) {
     throw new Error('Service role key required for admin client')
   }
+  const headers = {
+    'apikey': serviceRoleKey,
+    'Authorization': `Bearer ${serviceRoleKey}`,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation'
+  }
   return {
     url,
-    apiKey: serviceRoleKey,
-    headers: {
-      'apikey': serviceRoleKey,
-      'Authorization': `Bearer ${serviceRoleKey}`,
-      'Content-Type': 'application/json'
-    },
+    headers,
     from(table) {
       return {
         select(columns = '*') {
           return {
             eq(column, value) {
               return {
-                single() {
-                  return fetch(`${this.url}/rest/v1/${table}?${column}=eq.${encodeURIComponent(value)}&select=${columns}`, {
-                    headers: this.headers
-                  }).then(async res => {
-                    const data = await res.json()
-                    if (!res.ok) {
-                      return { data: null, error: { message: res.statusText } }
-                    }
-                    return { data, error: null }
+                async single() {
+                  const response = await fetch(`${url}/rest/v1/${table}?${column}=eq.${encodeURIComponent(value)}&select=${columns}`, {
+                    headers
                   })
+                  if (!response.ok) {
+                    throw new Error(`Admin SELECT failed: ${response.status} ${response.statusText}`)
+                  }
+                  const data = await response.json()
+                  if (!Array.isArray(data) || data.length !== 1) {
+                    throw new Error(`Admin SELECT expected exactly 1 record, got ${data.length}`)
+                  }
+                  return { data: data[0], error: null }
                 }
               }
             }
@@ -60,33 +71,35 @@ export function createAdminClient(url, serviceRoleKey) {
  * @returns {object} - Simple client with from() method
  */
 export function createUserClient(url, anonKey, accessToken) {
+  const headers = {
+    'apikey': anonKey,
+    'Authorization': `Bearer ${accessToken}`,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation'
+  }
   return {
     url,
-    apiKey: anonKey,
-    accessToken,
-    headers: {
-      'apikey': anonKey,
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json'
-    },
+    headers,
     from(table) {
       return {
         insert(payload) {
           return {
             select(columns = '*') {
               return {
-                single() {
-                  return fetch(`${this.url}/rest/v1/${table}?select=${columns}`, {
+                async single() {
+                  const response = await fetch(`${url}/rest/v1/${table}?select=${columns}`, {
                     method: 'POST',
-                    headers: this.headers,
+                    headers,
                     body: JSON.stringify(payload)
-                  }).then(async res => {
-                    const data = await res.json()
-                    if (!res.ok) {
-                      return { data: null, error: { message: res.statusText } }
-                    }
-                    return { data, error: null }
                   })
+                  if (!response.ok) {
+                    throw new Error(`User INSERT failed: ${response.status} ${response.statusText}`)
+                  }
+                  const data = await response.json()
+                  if (!Array.isArray(data) || data.length !== 1) {
+                    throw new Error(`User INSERT expected exactly 1 record, got ${data.length}`)
+                  }
+                  return { data: data[0], error: null }
                 }
               }
             }
@@ -97,12 +110,15 @@ export function createUserClient(url, anonKey, accessToken) {
             eq(column, value) {
               return {
                 async execute() {
-                  const response = await fetch(`${this.url}/rest/v1/${table}?${column}=eq.${encodeURIComponent(value)}&select=${columns}`, {
-                    headers: this.headers
+                  const response = await fetch(`${url}/rest/v1/${table}?${column}=eq.${encodeURIComponent(value)}&select=${columns}`, {
+                    headers
                   })
-                  const data = await response.json()
                   if (!response.ok) {
-                    return { data: null, error: { message: response.statusText } }
+                    throw new Error(`User SELECT failed: ${response.status} ${response.statusText}`)
+                  }
+                  const data = await response.json()
+                  if (!Array.isArray(data)) {
+                    throw new Error('User SELECT expected array response')
                   }
                   return { data, error: null }
                 }
@@ -117,14 +133,17 @@ export function createUserClient(url, anonKey, accessToken) {
                 select(columns = '*') {
                   return {
                     async execute() {
-                      const response = await fetch(`${this.url}/rest/v1/${table}?${column}=eq.${encodeURIComponent(value)}&select=${columns}`, {
+                      const response = await fetch(`${url}/rest/v1/${table}?${column}=eq.${encodeURIComponent(value)}&select=${columns}`, {
                         method: 'PATCH',
-                        headers: this.headers,
+                        headers,
                         body: JSON.stringify(payload)
                       })
-                      const data = await response.json()
                       if (!response.ok) {
-                        return { data: null, error: { message: response.statusText } }
+                        throw new Error(`User UPDATE failed: ${response.status} ${response.statusText}`)
+                      }
+                      const data = await response.json()
+                      if (!Array.isArray(data)) {
+                        throw new Error('User UPDATE expected array response')
                       }
                       return { data, error: null }
                     }
@@ -141,13 +160,16 @@ export function createUserClient(url, anonKey, accessToken) {
                 select(columns = '*') {
                   return {
                     async execute() {
-                      const response = await fetch(`${this.url}/rest/v1/${table}?${column}=eq.${encodeURIComponent(value)}&select=${columns}`, {
+                      const response = await fetch(`${url}/rest/v1/${table}?${column}=eq.${encodeURIComponent(value)}&select=${columns}`, {
                         method: 'DELETE',
-                        headers: this.headers
+                        headers
                       })
-                      const data = await response.json()
                       if (!response.ok) {
-                        return { data: null, error: { message: response.statusText } }
+                        throw new Error(`User DELETE failed: ${response.status} ${response.statusText}`)
+                      }
+                      const data = await response.json()
+                      if (!Array.isArray(data)) {
+                        throw new Error('User DELETE expected array response')
                       }
                       return { data, error: null }
                     }
@@ -195,9 +217,12 @@ export async function getUserRecords(adminClient, table, userId) {
   const response = await fetch(`${adminClient.url}/rest/v1/${table}?user_id=eq.${encodeURIComponent(userId)}&select=*`, {
     headers: adminClient.headers
   })
-  const data = await response.json()
   if (!response.ok) {
-    throw new Error(`Failed to get user records: ${response.statusText}`)
+    throw new Error(`Failed to get user records: ${response.status} ${response.statusText}`)
+  }
+  const data = await response.json()
+  if (!Array.isArray(data)) {
+    throw new Error('getUserRecords expected array response')
   }
   return data || []
 }
@@ -207,7 +232,7 @@ export async function getUserRecords(adminClient, table, userId) {
  * @param {object} userClient - User client with JWT
  * @param {string} table - Table name
  * @param {string} recordId - Target record ID
- * @returns {Promise<{accessible: boolean, rowCount: number, error?: string}>}
+ * @returns {Promise<{error: null, rowCount: number}>}
  */
 export async function attemptCrossUserSelect(userClient, table, recordId) {
   const { data, error } = await userClient
@@ -223,7 +248,7 @@ export async function attemptCrossUserSelect(userClient, table, recordId) {
 
   // RLS behavior: should return empty array when blocked
   const rowCount = data ? data.length : 0
-  return { accessible: rowCount === 0, rowCount }
+  return { error: null, rowCount }
 }
 
 /**
@@ -232,7 +257,7 @@ export async function attemptCrossUserSelect(userClient, table, recordId) {
  * @param {string} table - Table name
  * @param {string} recordId - Target record ID
  * @param {object} updates - Update payload
- * @returns {Promise<{updated: boolean, affectedCount: number, error?: string}>}
+ * @returns {Promise<{error: null, affectedCount: number}>}
  */
 export async function attemptCrossUserUpdate(userClient, table, recordId, updates) {
   const { data, error } = await userClient
@@ -249,7 +274,7 @@ export async function attemptCrossUserUpdate(userClient, table, recordId, update
 
   // RLS behavior: should return empty array when blocked
   const affectedCount = data ? data.length : 0
-  return { updated: affectedCount === 0, affectedCount }
+  return { error: null, affectedCount }
 }
 
 /**
@@ -257,7 +282,7 @@ export async function attemptCrossUserUpdate(userClient, table, recordId, update
  * @param {object} userClient - User client with JWT
  * @param {string} table - Table name
  * @param {string} recordId - Target record ID
- * @returns {Promise<{deleted: boolean, affectedCount: number, error?: string}>}
+ * @returns {Promise<{error: null, affectedCount: number}>}
  */
 export async function attemptCrossUserDelete(userClient, table, recordId) {
   const { data, error } = await userClient
@@ -274,5 +299,5 @@ export async function attemptCrossUserDelete(userClient, table, recordId) {
 
   // RLS behavior: should return empty array when blocked
   const affectedCount = data ? data.length : 0
-  return { deleted: affectedCount === 0, affectedCount }
+  return { error: null, affectedCount }
 }
