@@ -149,6 +149,9 @@ jobs:
           VITE_SUPABASE_URL="$SUPABASE_URL" \
           VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
           node tests/playwright/supabase-e2e/helpers/preflight.js
+
+          echo "Clearing Mailpit after preflight to avoid email interference..."
+          curl -X DELETE http://127.0.0.1:54324/api/v1/messages
         timeout-minutes: 2
 
       - name: Run Playwright application tests
