@@ -22,8 +22,8 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     // TEST 1: SIGNUP VIA REAL UI
     console.log('TEST 1: Real signup via UI')
     
-    // Click register link
-    await page.click('text=Créer un compte')
+    // Click register link (actual UI text: S'inscrire)
+    await page.click('text=S\'inscrire, text=Créer un compte')
     await page.waitForSelector('#registerForm', { state: 'visible', timeout: 10000 })
 
     // Fill registration form

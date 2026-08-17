@@ -8,7 +8,13 @@ const ACCOUNT_A_PASSWORD = `TestPass789${RUN_ID}`
 test.describe('Mobile Smoke - Real Supabase Auth', () => {
   test.use({ serviceWorkers: 'allow' })
 
-  test('Mobile viewport - auth and isolation smoke', async ({ page, context, browser }) => {
+  test('Mobile viewport - auth and recovery smoke', async ({ page, context, browser }) => {
+    // Verify actual viewport (must be 390×844 for real mobile certification)
+    const viewport = page.viewportSize()
+    console.log('Mobile smoke: Actual viewport observed:', viewport)
+    expect(viewport.width).toBe(390)
+    expect(viewport.height).toBe(844)
+
     // TEST: Unauthenticated route protection
     console.log('Mobile smoke: Unauthenticated route protection')
     
@@ -24,7 +30,7 @@ test.describe('Mobile Smoke - Real Supabase Auth', () => {
     // TEST: Signup flow
     console.log('Mobile smoke: Signup flow')
 
-    await page.click('text=Créer un compte')
+    await page.click('text=S\'inscrire, text=Créer un compte')
     await page.waitForSelector('#registerForm', { state: 'visible', timeout: 10000 })
 
     await page.fill('#registerEmail', ACCOUNT_A_EMAIL)
@@ -36,6 +42,9 @@ test.describe('Mobile Smoke - Real Supabase Auth', () => {
       await termsCheckbox.check()
     }
 
+    // Capture timestamp BEFORE signup (email may be emitted during submission)
+    const signupTimestamp = Date.now()
+
     await page.click('#registerForm button[type="submit"]')
     await page.waitForTimeout(2000)
 
@@ -45,7 +54,7 @@ test.describe('Mobile Smoke - Real Supabase Auth', () => {
     const confirmation = await pollForEmail({
       recipient: ACCOUNT_A_EMAIL,
       type: 'confirmation',
-      afterTimestamp: Date.now()
+      afterTimestamp: signupTimestamp
     })
     expect(confirmation.found).toBe(true)
 

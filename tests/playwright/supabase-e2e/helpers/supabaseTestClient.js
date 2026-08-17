@@ -22,6 +22,15 @@ export function createAdminClient(url, serviceRoleKey) {
     auth: {
       autoRefreshToken: false,
       persistSession: false
+    },
+    // Disable Realtime for Node 20 compatibility (test-only, no WebSocket needed)
+    realtime: {
+      params: {
+        eventsPerSecond: 0
+      }
+    },
+    db: {
+      schema: 'public'
     }
   })
 }
@@ -44,6 +53,15 @@ export function createUserClient(url, anonKey, accessToken) {
       headers: {
         Authorization: `Bearer ${accessToken}`
       }
+    },
+    // Disable Realtime for Node 20 compatibility (test-only, no WebSocket needed)
+    realtime: {
+      params: {
+        eventsPerSecond: 0
+      }
+    },
+    db: {
+      schema: 'public'
     }
   })
   return client

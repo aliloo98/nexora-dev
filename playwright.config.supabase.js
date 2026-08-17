@@ -30,7 +30,14 @@ export default {
     // Desktop for full auth lifecycle
     {
       name: 'desktop',
+      testMatch: /auth-lifecycle\.spec\.js|data-isolation\.spec\.js/,
       use: { viewport: { width: 1440, height: 1000 } }
+    },
+    // Mobile for viewport-specific tests (390×844 = iPhone 12/13 Pro)
+    {
+      name: 'mobile',
+      testMatch: /mobile-smoke\.spec\.js/,
+      use: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true }
     }
   ]
 }

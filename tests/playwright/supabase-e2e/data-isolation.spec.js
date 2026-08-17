@@ -17,17 +17,13 @@ const ACCOUNT_A_PASSWORD = `TestPass123${RUN_ID}`
 const ACCOUNT_B_EMAIL = `nexora-ci-b-${RUN_ID}@example.test`
 const ACCOUNT_B_PASSWORD = `TestPass456${RUN_ID}`
 
-// Unique financial labels
-const A_INCOME_LABEL = `NEXORA_CI_A_INCOME_${RUN_ID}`
-const A_EXPENSE_LABEL = `NEXORA_CI_A_EXPENSE_${RUN_ID}`
-const B_INCOME_LABEL = `NEXORA_CI_B_INCOME_${RUN_ID}`
-const B_EXPENSE_LABEL = `NEXORA_CI_B_EXPENSE_${RUN_ID}`
+// Unique month keys for budget states (source-of-truth table: monthly_budget_states)
+const A_MONTH_KEY = `2026-08-ci-a-${RUN_ID}`
+const B_MONTH_KEY = `2026-08-ci-b-${RUN_ID}`
 
-// Financial amounts
-const A_INCOME_AMOUNT = 11.11
-const A_EXPENSE_AMOUNT = 3.03
-const B_INCOME_AMOUNT = 22.22
-const B_EXPENSE_AMOUNT = 4.04
+// Unique budget data
+const A_BUDGET_DATA = { test_label: `NEXORA_CI_A_${RUN_ID}`, amount: 111.11 }
+const B_BUDGET_DATA = { test_label: `NEXORA_CI_B_${RUN_ID}`, amount: 222.22 }
 
 test.describe('Real Supabase Data Isolation', () => {
   test.use({ serviceWorkers: 'allow' })
@@ -37,6 +33,8 @@ test.describe('Real Supabase Data Isolation', () => {
   let accountAToken = null
   let accountBToken = null
   let adminClient = null
+  let aRecordId = null
+  let bRecordId = null
 
   test.beforeAll(async () => {
     // Initialize admin client
@@ -63,7 +61,7 @@ test.describe('Real Supabase Data Isolation', () => {
     await pageA.waitForLoadState('networkidle')
 
     // Register Account A
-    await pageA.click('text=Créer un compte')
+    await pageA.click('text=S\'inscrire, text=Créer un compte')
     await pageA.waitForSelector('#registerForm', { state: 'visible' })
 
     await pageA.fill('#registerEmail', ACCOUNT_A_EMAIL)
@@ -75,6 +73,9 @@ test.describe('Real Supabase Data Isolation', () => {
       await termsCheckbox.check()
     }
 
+    // Capture timestamp BEFORE signup A (email may be emitted during submission)
+    const signupTimestampA = Date.now()
+
     await pageA.click('#registerForm button[type="submit"]')
     await pageA.waitForTimeout(2000)
 
@@ -82,7 +83,7 @@ test.describe('Real Supabase Data Isolation', () => {
     const confirmationA = await pollForEmail({
       recipient: ACCOUNT_A_EMAIL,
       type: 'confirmation',
-      afterTimestamp: Date.now()
+      afterTimestamp: signupTimestampA
     })
     expect(confirmationA.found).toBe(true)
 
@@ -129,53 +130,45 @@ test.describe('Real Supabase Data Isolation', () => {
     expect(accountAToken).toBeTruthy()
 
     // ========================================================================
-    // ACCOUNT A FINANCIAL DATA CREATION
+    // ACCOUNT A FINANCIAL DATA CREATION (monthly_budget_states)
     // ========================================================================
-    console.log('Creating Account A financial data...')
+    console.log('Creating Account A monthly budget state...')
 
-    // Create income
-    await pageA.click('text=Ajouter, text=Add, button:has-text("+")')
-    await pageA.waitForTimeout(500)
-    
-    // This is a simplified approach - actual UI may differ
-    // The test should be adapted to the real transaction creation flow
-    // For now, we'll create data via the Supabase client if UI is unstable
-    
-    // Create A's financial records via direct Supabase client (test-side)
     const userClientA = createUserClient(
       process.env.VITE_SUPABASE_URL,
       process.env.VITE_SUPABASE_ANON_KEY,
       accountAToken
     )
 
-    // Check if transactions table exists and create records
-    try {
-      // Try to create a transaction for A
-      const { data: incomeA, error: incomeError } = await userClientA
-        .from('transactions')
-        .insert({
-          user_id: accountAUUID,
-          label: A_INCOME_LABEL,
-          amount: A_INCOME_AMOUNT,
-          type: 'income',
-          month_key: '2026-08'
-        })
-        .select()
-        .single()
+    // Create A's budget state record (MUST succeed)
+    const { data: budgetA, error: budgetAError } = await userClientA
+      .from('monthly_budget_states')
+      .insert({
+        user_id: accountAUUID,
+        month_key: A_MONTH_KEY,
+        data: A_BUDGET_DATA,
+        data_version: 1
+      })
+      .select()
+      .single()
 
-      if (incomeError) {
-        console.log('Transaction insert may have different schema:', incomeError.message)
-        // Continue with verification even if direct insert fails
-      } else {
-        console.log('Created A income:', incomeA)
-      }
-    } catch (e) {
-      console.log('Transaction creation skipped (schema may differ):', e.message)
+    if (budgetAError) {
+      throw new Error(`Failed to create A budget state: ${budgetAError.message}`)
     }
 
-    // Verify A's data exists
-    const aRecords = await getUserRecords(adminClient, 'transactions', accountAUUID)
+    expect(budgetA).toBeTruthy()
+    aRecordId = budgetA.id
+    console.log('Created A budget state:', aRecordId)
+
+    // Verify A's record exists with admin client
+    const aRecords = await getUserRecords(adminClient, 'monthly_budget_states', accountAUUID)
+    expect(aRecords.length).toBeGreaterThan(0)
     console.log('Account A records count:', aRecords.length)
+
+    // Verify ownership with admin client
+    const aOwnership = await verifyRowOwnership(adminClient, 'monthly_budget_states', aRecordId, accountAUUID)
+    expect(aOwnership).toBe(true)
+    console.log('A record owned by A UUID ✓')
 
     // Logout A
     await pageA.click('button:has-text("Déconnexion"), button:has-text("Logout"), [aria-label="logout"]').first()
@@ -193,7 +186,7 @@ test.describe('Real Supabase Data Isolation', () => {
     await pageB.waitForLoadState('networkidle')
 
     // Register Account B
-    await pageB.click('text=Créer un compte')
+    await pageB.click('text=S\'inscrire, text=Créer un compte')
     await pageB.waitForSelector('#registerForm', { state: 'visible' })
 
     await pageB.fill('#registerEmail', ACCOUNT_B_EMAIL)
@@ -205,6 +198,9 @@ test.describe('Real Supabase Data Isolation', () => {
       await termsCheckboxB.check()
     }
 
+    // Capture timestamp BEFORE signup B (email may be emitted during submission)
+    const signupTimestampB = Date.now()
+
     await pageB.click('#registerForm button[type="submit"]')
     await pageB.waitForTimeout(2000)
 
@@ -212,7 +208,7 @@ test.describe('Real Supabase Data Isolation', () => {
     const confirmationB = await pollForEmail({
       recipient: ACCOUNT_B_EMAIL,
       type: 'confirmation',
-      afterTimestamp: Date.now()
+      afterTimestamp: signupTimestampB
     })
     expect(confirmationB.found).toBe(true)
 
@@ -263,21 +259,9 @@ test.describe('Real Supabase Data Isolation', () => {
     expect(accountBToken).toBeTruthy()
 
     // ========================================================================
-    // ACCOUNT B CANNOT SEE ACCOUNT A DATA
+    // ACCOUNT B FINANCIAL DATA CREATION (monthly_budget_states)
     // ========================================================================
-    console.log('Testing B cannot see A data...')
-
-    const bRecords = await getUserRecords(adminClient, 'transactions', accountBUUID)
-    console.log('Account B records count:', bRecords.length)
-
-    // In UI, B should not see A's labels
-    const aLabelVisibleB = await pageB.locator(`text=${A_INCOME_LABEL}`).isVisible().catch(() => false)
-    expect(aLabelVisibleB).toBe(false)
-
-    // ========================================================================
-    // ACCOUNT B FINANCIAL DATA CREATION
-    // ========================================================================
-    console.log('Creating Account B financial data...')
+    console.log('Creating Account B monthly budget state...')
 
     const userClientB = createUserClient(
       process.env.VITE_SUPABASE_URL,
@@ -285,125 +269,102 @@ test.describe('Real Supabase Data Isolation', () => {
       accountBToken
     )
 
-    try {
-      const { data: incomeB, error: incomeErrorB } = await userClientB
-        .from('transactions')
-        .insert({
-          user_id: accountBUUID,
-          label: B_INCOME_LABEL,
-          amount: B_INCOME_AMOUNT,
-          type: 'income',
-          month_key: '2026-08'
-        })
-        .select()
-        .single()
+    // Create B's budget state record (MUST succeed)
+    const { data: budgetB, error: budgetBError } = await userClientB
+      .from('monthly_budget_states')
+      .insert({
+        user_id: accountBUUID,
+        month_key: B_MONTH_KEY,
+        data: B_BUDGET_DATA,
+        data_version: 1
+      })
+      .select()
+      .single()
 
-      if (incomeErrorB) {
-        console.log('Transaction insert may have different schema:', incomeErrorB.message)
-      } else {
-        console.log('Created B income:', incomeB)
-      }
-    } catch (e) {
-      console.log('Transaction creation skipped (schema may differ):', e.message)
+    if (budgetBError) {
+      throw new Error(`Failed to create B budget state: ${budgetBError.message}`)
     }
 
-    // Verify B's data exists
-    const bRecordsAfter = await getUserRecords(adminClient, 'transactions', accountBUUID)
-    console.log('Account B records after creation:', bRecordsAfter.length)
+    expect(budgetB).toBeTruthy()
+    bRecordId = budgetB.id
+    console.log('Created B budget state:', bRecordId)
+
+    // Verify B's record exists with admin client
+    const bRecords = await getUserRecords(adminClient, 'monthly_budget_states', accountBUUID)
+    expect(bRecords.length).toBeGreaterThan(0)
+    console.log('Account B records count:', bRecords.length)
+
+    // Verify ownership with admin client
+    const bOwnership = await verifyRowOwnership(adminClient, 'monthly_budget_states', bRecordId, accountBUUID)
+    expect(bOwnership).toBe(true)
+    console.log('B record owned by B UUID ✓')
 
     // ========================================================================
-    // ACCOUNT A CANNOT SEE ACCOUNT B DATA
+    // DIRECT RLS TESTS - SELECT
     // ========================================================================
-    console.log('Testing A cannot see B data...')
+    console.log('Testing cross-user SELECT RLS...')
 
-    // Logout B
-    await pageB.click('button:has-text("Déconnexion"), button:has-text("Logout"), [aria-label="logout"]').first()
-    await pageB.waitForTimeout(2000)
+    // B attempts to SELECT A's record (MUST fail with RLS error)
+    const bSelectA = await attemptCrossUserSelect(userClientB, 'monthly_budget_states', aRecordId)
+    expect(bSelectA.accessible).toBe(false)
+    console.log('B cannot SELECT A: BLOCKED ✓')
 
-    // Login A again
-    await pageA.goto('/')
-    await pageA.waitForLoadState('networkidle')
-
-    await pageA.fill('#loginEmail', ACCOUNT_A_EMAIL)
-    await pageA.fill('#loginPassword', ACCOUNT_A_PASSWORD)
-    await pageA.click('#loginForm button[type="submit"]')
-
-    await pageA.waitForSelector('#dashboard', { state: 'visible', timeout: 15000 })
-
-    // A should not see B's labels
-    const bLabelVisibleA = await pageA.locator(`text=${B_INCOME_LABEL}`).isVisible().catch(() => false)
-    expect(bLabelVisibleA).toBe(false)
+    // A attempts to SELECT B's record (MUST fail with RLS error)
+    const aSelectB = await attemptCrossUserSelect(userClientA, 'monthly_budget_states', bRecordId)
+    expect(aSelectB.accessible).toBe(false)
+    console.log('A cannot SELECT B: BLOCKED ✓')
 
     // ========================================================================
-    // DIRECT RLS TESTS
+    // DIRECT RLS TESTS - UPDATE
     // ========================================================================
-    console.log('Testing direct RLS with JWT clients...')
+    console.log('Testing cross-user UPDATE RLS...')
 
-    // Get a record ID from A for testing
-    const aRecordsFinal = await getUserRecords(adminClient, 'transactions', accountAUUID)
-    const bRecordsFinal = await getUserRecords(adminClient, 'transactions', accountBUUID)
+    // B attempts to UPDATE A's record (MUST fail with RLS error)
+    const bUpdateA = await attemptCrossUserUpdate(userClientB, 'monthly_budget_states', aRecordId, { data: { hacked: true } })
+    expect(bUpdateA.updated).toBe(false)
+    console.log('B cannot UPDATE A: BLOCKED ✓')
 
-    if (aRecordsFinal.length > 0 && bRecordsFinal.length > 0) {
-      const aRecordId = aRecordsFinal[0].id
-      const bRecordId = bRecordsFinal[0].id
-
-      console.log('Testing A SELECT B...')
-      const aSelectB = await attemptCrossUserSelect(userClientA, 'transactions', bRecordId)
-      expect(aSelectB.accessible).toBe(false)
-      console.log('A cannot SELECT B: BLOCKED ✓')
-
-      console.log('Testing B SELECT A...')
-      const bSelectA = await attemptCrossUserSelect(userClientB, 'transactions', aRecordId)
-      expect(bSelectA.accessible).toBe(false)
-      console.log('B cannot SELECT A: BLOCKED ✓')
-
-      console.log('Testing A UPDATE B...')
-      const aUpdateB = await attemptCrossUserUpdate(userClientA, 'transactions', bRecordId, { amount: 999.99 })
-      expect(aUpdateB.updated).toBe(false)
-      console.log('A cannot UPDATE B: BLOCKED ✓')
-
-      console.log('Testing B UPDATE A...')
-      const bUpdateA = await attemptCrossUserUpdate(userClientB, 'transactions', aRecordId, { amount: 888.88 })
-      expect(bUpdateA.updated).toBe(false)
-      console.log('B cannot UPDATE A: BLOCKED ✓')
-
-      console.log('Testing A DELETE B...')
-      const aDeleteB = await attemptCrossUserDelete(userClientA, 'transactions', bRecordId)
-      expect(aDeleteB.deleted).toBe(false)
-      console.log('A cannot DELETE B: BLOCKED ✓')
-
-      console.log('Testing B DELETE A...')
-      const bDeleteA = await attemptCrossUserDelete(userClientB, 'transactions', aRecordId)
-      expect(bDeleteA.deleted).toBe(false)
-      console.log('B cannot DELETE A: BLOCKED ✓')
-
-      // Verify records still exist unchanged
-      const aRecordsVerify = await getUserRecords(adminClient, 'transactions', accountAUUID)
-      const bRecordsVerify = await getUserRecords(adminClient, 'transactions', accountBUUID)
-      
-      expect(aRecordsVerify.length).toBe(aRecordsFinal.length)
-      expect(bRecordsVerify.length).toBe(bRecordsFinal.length)
-      console.log('Records unchanged after cross-user attempts ✓')
-    } else {
-      console.log('Skipping RLS tests (no records created - schema may differ)')
-    }
+    // A attempts to UPDATE B's record (MUST fail with RLS error)
+    const aUpdateB = await attemptCrossUserUpdate(userClientA, 'monthly_budget_states', bRecordId, { data: { hacked: true } })
+    expect(aUpdateB.updated).toBe(false)
+    console.log('A cannot UPDATE B: BLOCKED ✓')
 
     // ========================================================================
-    // DATABASE OWNERSHIP VERIFICATION
+    // DIRECT RLS TESTS - DELETE
     // ========================================================================
-    console.log('Verifying database ownership...')
+    console.log('Testing cross-user DELETE RLS...')
 
-    if (aRecordsFinal.length > 0) {
-      const aOwnership = await verifyRowOwnership(adminClient, 'transactions', aRecordsFinal[0].id, accountAUUID)
-      expect(aOwnership).toBe(true)
-      console.log('A record owned by A UUID ✓')
-    }
+    // B attempts to DELETE A's record (MUST fail with RLS error)
+    const bDeleteA = await attemptCrossUserDelete(userClientB, 'monthly_budget_states', aRecordId)
+    expect(bDeleteA.deleted).toBe(false)
+    console.log('B cannot DELETE A: BLOCKED ✓')
 
-    if (bRecordsFinal.length > 0) {
-      const bOwnership = await verifyRowOwnership(adminClient, 'transactions', bRecordsFinal[0].id, accountBUUID)
-      expect(bOwnership).toBe(true)
-      console.log('B record owned by B UUID ✓')
-    }
+    // A attempts to DELETE B's record (MUST fail with RLS error)
+    const aDeleteB = await attemptCrossUserDelete(userClientA, 'monthly_budget_states', bRecordId)
+    expect(aDeleteB.deleted).toBe(false)
+    console.log('A cannot DELETE B: BLOCKED ✓')
+
+    // ========================================================================
+    // FINAL VERIFICATION - RECORDS UNCHANGED
+    // ========================================================================
+    console.log('Verifying records unchanged after cross-user attempts...')
+
+    const aRecordsFinal = await getUserRecords(adminClient, 'monthly_budget_states', accountAUUID)
+    const bRecordsFinal = await getUserRecords(adminClient, 'monthly_budget_states', accountBUUID)
+
+    expect(aRecordsFinal.length).toBe(aRecords.length)
+    expect(bRecordsFinal.length).toBe(bRecords.length)
+    console.log('Records unchanged after cross-user attempts ✓')
+
+    // Verify data integrity
+    const aRecordFinal = aRecordsFinal.find(r => r.id === aRecordId)
+    const bRecordFinal = bRecordsFinal.find(r => r.id === bRecordId)
+
+    expect(aRecordFinal).toBeTruthy()
+    expect(bRecordFinal).toBeTruthy()
+    expect(aRecordFinal.data).toEqual(A_BUDGET_DATA)
+    expect(bRecordFinal.data).toEqual(B_BUDGET_DATA)
+    console.log('Data integrity verified ✓')
 
     // Cleanup
     await contextA.close()
