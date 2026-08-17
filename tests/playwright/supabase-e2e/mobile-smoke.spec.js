@@ -30,7 +30,7 @@ test.describe('Mobile Smoke - Real Supabase Auth', () => {
     // TEST: Signup flow
     console.log('Mobile smoke: Signup flow')
 
-    await page.click('text=S\'inscrire, text=Créer un compte')
+    await page.getByRole('link', { name: 'S\'inscrire' }).click()
     await page.waitForSelector('#registerForm', { state: 'visible', timeout: 10000 })
 
     await page.fill('#registerEmail', ACCOUNT_A_EMAIL)
@@ -92,7 +92,7 @@ test.describe('Mobile Smoke - Real Supabase Auth', () => {
     // TEST: Logout
     console.log('Mobile smoke: Logout')
 
-    await page.click('button:has-text("Déconnexion"), button:has-text("Logout"), [aria-label="logout"]').first()
+    await page.getByRole('button', { name: /déconnexion|logout/i }).first().click()
     await page.waitForTimeout(2000)
 
     const afterLogoutLogin = await page.locator('#loginForm').isVisible().catch(() => false)
@@ -104,7 +104,7 @@ test.describe('Mobile Smoke - Real Supabase Auth', () => {
     // TEST: Reset password route
     console.log('Mobile smoke: Reset password route')
 
-    await page.click('text=Mot de passe oublié, text=Forgot password')
+    await page.getByRole('link', { name: /mot de passe oublié/i }).click()
     await page.waitForSelector('#forgotPasswordForm', { state: 'visible', timeout: 10000 })
 
     const forgotFormVisible = await page.locator('#forgotPasswordForm').isVisible()

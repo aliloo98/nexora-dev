@@ -17,9 +17,10 @@ const ACCOUNT_A_PASSWORD = `TestPass123${RUN_ID}`
 const ACCOUNT_B_EMAIL = `nexora-ci-b-${RUN_ID}@example.test`
 const ACCOUNT_B_PASSWORD = `TestPass456${RUN_ID}`
 
-// Unique month keys for budget states (source-of-truth table: monthly_budget_states)
-const A_MONTH_KEY = `2026-08-ci-a-${RUN_ID}`
-const B_MONTH_KEY = `2026-08-ci-b-${RUN_ID}`
+// Valid month keys for budget states (source-of-truth table: monthly_budget_states)
+// Migration constraint: month_key ~ '^[0-9]{4}-(0[1-9]|1[0-2])$'
+// Uniqueness is on (user_id, month_key), so both A and B can use the same month_key
+const SHARED_MONTH_KEY = '2026-08'
 
 // Unique budget data
 const A_BUDGET_DATA = { test_label: `NEXORA_CI_A_${RUN_ID}`, amount: 111.11 }
@@ -61,7 +62,7 @@ test.describe('Real Supabase Data Isolation', () => {
     await pageA.waitForLoadState('networkidle')
 
     // Register Account A
-    await pageA.click('text=S\'inscrire, text=Créer un compte')
+    await pageA.getByRole('link', { name: 'S\'inscrire' }).click()
     await pageA.waitForSelector('#registerForm', { state: 'visible' })
 
     await pageA.fill('#registerEmail', ACCOUNT_A_EMAIL)
@@ -145,7 +146,7 @@ test.describe('Real Supabase Data Isolation', () => {
       .from('monthly_budget_states')
       .insert({
         user_id: accountAUUID,
-        month_key: A_MONTH_KEY,
+        month_key: SHARED_MONTH_KEY,
         data: A_BUDGET_DATA,
         data_version: 1
       })
@@ -170,8 +171,8 @@ test.describe('Real Supabase Data Isolation', () => {
     expect(aOwnership).toBe(true)
     console.log('A record owned by A UUID ✓')
 
-    // Logout A
-    await pageA.click('button:has-text("Déconnexion"), button:has-text("Logout"), [aria-label="logout"]').first()
+    // Logout A using semantic locator
+    await pageA.getByRole('button', { name: /déconnexion|logout/i }).first().click()
     await pageA.waitForTimeout(2000)
 
     // ========================================================================
@@ -186,7 +187,7 @@ test.describe('Real Supabase Data Isolation', () => {
     await pageB.waitForLoadState('networkidle')
 
     // Register Account B
-    await pageB.click('text=S\'inscrire, text=Créer un compte')
+    await pageB.getByRole('link', { name: 'S\'inscrire' }).click()
     await pageB.waitForSelector('#registerForm', { state: 'visible' })
 
     await pageB.fill('#registerEmail', ACCOUNT_B_EMAIL)
@@ -274,7 +275,7 @@ test.describe('Real Supabase Data Isolation', () => {
       .from('monthly_budget_states')
       .insert({
         user_id: accountBUUID,
-        month_key: B_MONTH_KEY,
+        month_key: SHARED_MONTH_KEY,
         data: B_BUDGET_DATA,
         data_version: 1
       })
@@ -304,45 +305,51 @@ test.describe('Real Supabase Data Isolation', () => {
     // ========================================================================
     console.log('Testing cross-user SELECT RLS...')
 
-    // B attempts to SELECT A's record (MUST fail with RLS error)
+    // B attempts to SELECT A's record (MUST return zero rows via RLS)
     const bSelectA = await attemptCrossUserSelect(userClientB, 'monthly_budget_states', aRecordId)
-    expect(bSelectA.accessible).toBe(false)
-    console.log('B cannot SELECT A: BLOCKED ✓')
+    expect(bSelectA.accessible).toBe(true)
+    expect(bSelectA.rowCount).toBe(0)
+    console.log('B cannot SELECT A: 0 rows returned ✓')
 
-    // A attempts to SELECT B's record (MUST fail with RLS error)
+    // A attempts to SELECT B's record (MUST return zero rows via RLS)
     const aSelectB = await attemptCrossUserSelect(userClientA, 'monthly_budget_states', bRecordId)
-    expect(aSelectB.accessible).toBe(false)
-    console.log('A cannot SELECT B: BLOCKED ✓')
+    expect(aSelectB.accessible).toBe(true)
+    expect(aSelectB.rowCount).toBe(0)
+    console.log('A cannot SELECT B: 0 rows returned ✓')
 
     // ========================================================================
     // DIRECT RLS TESTS - UPDATE
     // ========================================================================
     console.log('Testing cross-user UPDATE RLS...')
 
-    // B attempts to UPDATE A's record (MUST fail with RLS error)
+    // B attempts to UPDATE A's record (MUST affect zero rows via RLS)
     const bUpdateA = await attemptCrossUserUpdate(userClientB, 'monthly_budget_states', aRecordId, { data: { hacked: true } })
-    expect(bUpdateA.updated).toBe(false)
-    console.log('B cannot UPDATE A: BLOCKED ✓')
+    expect(bUpdateA.updated).toBe(true)
+    expect(bUpdateA.affectedCount).toBe(0)
+    console.log('B cannot UPDATE A: 0 rows affected ✓')
 
-    // A attempts to UPDATE B's record (MUST fail with RLS error)
+    // A attempts to UPDATE B's record (MUST affect zero rows via RLS)
     const aUpdateB = await attemptCrossUserUpdate(userClientA, 'monthly_budget_states', bRecordId, { data: { hacked: true } })
-    expect(aUpdateB.updated).toBe(false)
-    console.log('A cannot UPDATE B: BLOCKED ✓')
+    expect(aUpdateB.updated).toBe(true)
+    expect(aUpdateB.affectedCount).toBe(0)
+    console.log('A cannot UPDATE B: 0 rows affected ✓')
 
     // ========================================================================
     // DIRECT RLS TESTS - DELETE
     // ========================================================================
     console.log('Testing cross-user DELETE RLS...')
 
-    // B attempts to DELETE A's record (MUST fail with RLS error)
+    // B attempts to DELETE A's record (MUST affect zero rows via RLS)
     const bDeleteA = await attemptCrossUserDelete(userClientB, 'monthly_budget_states', aRecordId)
-    expect(bDeleteA.deleted).toBe(false)
-    console.log('B cannot DELETE A: BLOCKED ✓')
+    expect(bDeleteA.deleted).toBe(true)
+    expect(bDeleteA.affectedCount).toBe(0)
+    console.log('B cannot DELETE A: 0 rows affected ✓')
 
-    // A attempts to DELETE B's record (MUST fail with RLS error)
+    // A attempts to DELETE B's record (MUST affect zero rows via RLS)
     const aDeleteB = await attemptCrossUserDelete(userClientA, 'monthly_budget_states', bRecordId)
-    expect(aDeleteB.deleted).toBe(false)
-    console.log('A cannot DELETE B: BLOCKED ✓')
+    expect(aDeleteB.deleted).toBe(true)
+    expect(aDeleteB.affectedCount).toBe(0)
+    console.log('A cannot DELETE B: 0 rows affected ✓')
 
     // ========================================================================
     // FINAL VERIFICATION - RECORDS UNCHANGED

@@ -22,8 +22,8 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     // TEST 1: SIGNUP VIA REAL UI
     console.log('TEST 1: Real signup via UI')
     
-    // Click register link (actual UI text: S'inscrire)
-    await page.click('text=S\'inscrire, text=Créer un compte')
+    // Click register link using semantic locator
+    await page.getByRole('link', { name: 'S\'inscrire' }).click()
     await page.waitForSelector('#registerForm', { state: 'visible', timeout: 10000 })
 
     // Fill registration form
@@ -139,14 +139,14 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     // TEST 7: LOGOUT
     console.log('TEST 7: Logout')
 
-    // Find and click logout
-    const logoutButton = page.locator('button:has-text("Déconnexion"), button:has-text("Logout"), [aria-label="logout"]').first()
+    // Find and click logout using semantic locator
+    const logoutButton = page.getByRole('button', { name: /déconnexion|logout/i })
     if (await logoutButton.isVisible()) {
       await logoutButton.click()
     } else {
       // Try alternative logout path
-      await page.click('[aria-label="menu"], button:has-text("≡")')
-      await page.click('text=Déconnexion, text=Logout')
+      await page.getByRole('button', { name: 'menu' }).click()
+      await page.getByRole('menuitem', { name: /déconnexion|logout/i }).click()
     }
 
     await page.waitForTimeout(2000)
@@ -185,12 +185,12 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     // TEST 10: PASSWORD RECOVERY REQUEST
     console.log('TEST 10: Password recovery request')
 
-    // Logout first
-    await page.click('button:has-text("Déconnexion"), button:has-text("Logout"), [aria-label="logout"]').first()
+    // Logout first using semantic locator
+    await page.getByRole('button', { name: /déconnexion|logout/i }).first().click()
     await page.waitForTimeout(2000)
 
-    // Click forgot password
-    await page.click('text=Mot de passe oublié, text=Forgot password')
+    // Click forgot password using semantic locator
+    await page.getByRole('link', { name: /mot de passe oublié/i }).click()
     await page.waitForSelector('#forgotPasswordForm', { state: 'visible', timeout: 10000 })
 
     // Fill recovery email
