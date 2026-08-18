@@ -46,8 +46,23 @@ test.describe('Mobile Smoke - Real Supabase Auth', () => {
     // Capture timestamp BEFORE signup (email may be emitted during submission)
     const signupTimestamp = Date.now()
 
+    // Capture all network requests around signup for diagnostics
+    const networkRequests = []
+    page.on('request', request => {
+      const url = request.url()
+      if (url.includes('auth') || url.includes('signup') || url.includes('register')) {
+        networkRequests.push({ method: request.method(), url, timestamp: Date.now() })
+      }
+    })
+
     await page.click('#registerForm button[type="submit"]')
     await page.waitForTimeout(2000)
+
+    // Log captured network requests
+    console.log('Mobile smoke: Network requests captured:', networkRequests.length)
+    networkRequests.forEach(req => {
+      console.log(`  ${req.method} ${req.url}`)
+    })
 
     // TEST: Confirmation
     console.log('Mobile smoke: Email confirmation')

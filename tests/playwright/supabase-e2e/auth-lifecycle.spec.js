@@ -41,11 +41,26 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     // Capture timestamp BEFORE signup (email may be emitted during submission)
     const signupTimestamp = Date.now()
 
+    // Capture all network requests around signup for diagnostics
+    const networkRequests = []
+    page.on('request', request => {
+      const url = request.url()
+      if (url.includes('auth') || url.includes('signup') || url.includes('register')) {
+        networkRequests.push({ method: request.method(), url, timestamp: Date.now() })
+      }
+    })
+
     // Submit registration
     await page.click('#registerForm button[type="submit"]')
 
     // Wait for UI to process
     await page.waitForTimeout(2000)
+
+    // Log captured network requests
+    console.log('TEST 1: Network requests captured:', networkRequests.length)
+    networkRequests.forEach(req => {
+      console.log(`  ${req.method} ${req.url}`)
+    })
 
     // ASSERT: Dashboard should NOT be unlocked (session should be null due to confirmation requirement)
     const dashboardVisible = await page.locator('#dashboard').isVisible().catch(() => false)
