@@ -17,6 +17,47 @@ const env = typeof import.meta !== 'undefined' ? import.meta.env || {} : {}
 const supabaseUrl = env.VITE_SUPABASE_URL
 const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY
 
+// Capture the auth callback synchronously BEFORE createClient() can consume
+// or normalize the URL payload.
+const captureInitialAuthRedirect = () => {
+  if (
+    typeof window === 'undefined' ||
+    !window.location ||
+    typeof window.location.pathname !== 'string'
+  ) {
+    return Object.freeze({ isPasswordRecovery: false })
+  }
+
+  if (window.location.pathname !== '/reset-password') {
+    return Object.freeze({ isPasswordRecovery: false })
+  }
+
+  const hashParams = new URLSearchParams(
+    String(window.location.hash || '').replace(/^#/, '')
+  )
+  const queryParams = new URLSearchParams(
+    String(window.location.search || '')
+  )
+
+  const implicitRecovery =
+    hashParams.get('type') === 'recovery' &&
+    (
+      hashParams.has('access_token') ||
+      hashParams.has('refresh_token')
+    )
+
+  const pkceRecovery =
+    queryParams.get('type') === 'recovery' ||
+    queryParams.has('code') ||
+    queryParams.has('token_hash')
+
+  return Object.freeze({
+    isPasswordRecovery: implicitRecovery || pkceRecovery
+  })
+}
+
+export const initialAuthRedirect = captureInitialAuthRedirect()
+
 const noOpQuery = () => {
   const chain = {
     select: async () => ({ data: [], error: null }),

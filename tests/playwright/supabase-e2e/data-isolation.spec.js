@@ -28,6 +28,18 @@ const SHARED_MONTH_KEY = '2026-08'
 const A_BUDGET_DATA = { test_label: `NEXORA_CI_A_${RUN_ID}`, amount: 111.11 }
 const B_BUDGET_DATA = { test_label: `NEXORA_CI_B_${RUN_ID}`, amount: 222.22 }
 
+const readBrowserSupabaseSession = async (page) =>
+  page.evaluate(async () => {
+    const { supabase } = await import('/src/supabase.js')
+    const { data, error } = await supabase.auth.getSession()
+
+    return {
+      userId: data?.session?.user?.id || null,
+      accessToken: data?.session?.access_token || null,
+      error: error?.message || null
+    }
+  })
+
 test.describe('Real Supabase Data Isolation', () => {
   test.use({ serviceWorkers: 'allow' })
 
@@ -106,32 +118,18 @@ test.describe('Real Supabase Data Isolation', () => {
     await pageA.fill('#loginPassword', ACCOUNT_A_PASSWORD)
     await pageA.click('#loginForm button[type="submit"]')
 
-    await pageA.waitForSelector('#dashboard', { state: 'visible', timeout: 15000 })
+    await pageA.waitForSelector('#section-dashboard', { state: 'visible', timeout: 15000 })
 
-    // Get Account A UUID from localStorage or auth state
-    accountAUUID = await pageA.evaluate(() => {
-      const userStr = localStorage.getItem('nexora_auth_user')
-      if (userStr) {
-        const user = JSON.parse(userStr)
-        return user.id
-      }
-      return null
-    })
+    // Read the real authenticated Supabase session from the browser client.
+    const accountASession = await readBrowserSupabaseSession(pageA)
+
+    expect(accountASession.error).toBeNull()
+    accountAUUID = accountASession.userId
+    accountAToken = accountASession.accessToken
 
     expect(accountAUUID).toBeTruthy()
-    console.log('Account A UUID:', accountAUUID)
-
-    // Get Account A session token
-    accountAToken = await pageA.evaluate(() => {
-      const sessionStr = localStorage.getItem('nexora_auth_session')
-      if (sessionStr) {
-        const session = JSON.parse(sessionStr)
-        return session.access_token
-      }
-      return null
-    })
-
     expect(accountAToken).toBeTruthy()
+    console.log('Account A UUID:', accountAUUID)
 
     // ========================================================================
     // ACCOUNT A FINANCIAL DATA CREATION (monthly_budget_states)
@@ -181,9 +179,11 @@ test.describe('Real Supabase Data Isolation', () => {
     expect(aRecordAdmin.data.data).toEqual(A_BUDGET_DATA)
     console.log('A record verified via admin: user_id, month_key, data match expected ✓')
 
-    // Logout A using semantic locator
-    await pageA.getByRole('button', { name: /déconnexion|logout/i }).first().click()
-    await pageA.waitForTimeout(2000)
+    // Logout A through the real user menu
+    await pageA.locator('#userMenuBtn').click()
+    await pageA.locator('#logoutBtn').click()
+    await pageA.getByRole('button', { name: 'Confirmer' }).click()
+    await pageA.waitForSelector('#loginForm', { state: 'visible', timeout: 10000 })
 
     // ========================================================================
     // ACCOUNT B SETUP
@@ -239,36 +239,22 @@ test.describe('Real Supabase Data Isolation', () => {
     await pageB.fill('#loginPassword', ACCOUNT_B_PASSWORD)
     await pageB.click('#loginForm button[type="submit"]')
 
-    await pageB.waitForSelector('#dashboard', { state: 'visible', timeout: 15000 })
+    await pageB.waitForSelector('#section-dashboard', { state: 'visible', timeout: 15000 })
 
-    // Get Account B UUID
-    accountBUUID = await pageB.evaluate(() => {
-      const userStr = localStorage.getItem('nexora_auth_user')
-      if (userStr) {
-        const user = JSON.parse(userStr)
-        return user.id
-      }
-      return null
-    })
+    // Read the real authenticated Supabase session from the browser client.
+    const accountBSession = await readBrowserSupabaseSession(pageB)
+
+    expect(accountBSession.error).toBeNull()
+    accountBUUID = accountBSession.userId
+    accountBToken = accountBSession.accessToken
 
     expect(accountBUUID).toBeTruthy()
+    expect(accountBToken).toBeTruthy()
     console.log('Account B UUID:', accountBUUID)
 
     // Verify A and B have different UUIDs
     expect(accountAUUID).not.toBe(accountBUUID)
     console.log('UUIDs are different:', accountAUUID !== accountBUUID)
-
-    // Get Account B session token
-    accountBToken = await pageB.evaluate(() => {
-      const sessionStr = localStorage.getItem('nexora_auth_session')
-      if (sessionStr) {
-        const session = JSON.parse(sessionStr)
-        return session.access_token
-      }
-      return null
-    })
-
-    expect(accountBToken).toBeTruthy()
 
     // ========================================================================
     // ACCOUNT B FINANCIAL DATA CREATION (monthly_budget_states)

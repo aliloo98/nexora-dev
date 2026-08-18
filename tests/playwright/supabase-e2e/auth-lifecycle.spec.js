@@ -62,7 +62,7 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     console.log('TEST 1: Total console messages:', consoleMessages.length)
 
     // ASSERT: Dashboard should NOT be unlocked (session should be null due to confirmation requirement)
-    const dashboardVisible = await page.locator('#dashboard').isVisible().catch(() => false)
+    const dashboardVisible = await page.locator('#section-dashboard').isVisible().catch(() => false)
     expect(dashboardVisible).toBe(false)
 
     // Should see login/register still visible
@@ -85,7 +85,7 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     await page.waitForTimeout(2000)
 
     // ASSERT: Login should be rejected
-    const afterLoginDashboard = await page.locator('#dashboard').isVisible().catch(() => false)
+    const afterLoginDashboard = await page.locator('#section-dashboard').isVisible().catch(() => false)
     expect(afterLoginDashboard).toBe(false)
 
     // Should see error message or instruction about confirmation
@@ -116,7 +116,7 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     await confirmationPage.waitForTimeout(3000)
 
     // After confirmation, should either be logged in or redirected to login with success
-    const confirmDashboard = await confirmationPage.locator('#dashboard').isVisible().catch(() => false)
+    const confirmDashboard = await confirmationPage.locator('#section-dashboard').isVisible().catch(() => false)
     const confirmLogin = await confirmationPage.locator('#loginForm').isVisible().catch(() => false)
     
     // Either we're authenticated (dashboard visible) or we need to login (login visible)
@@ -136,10 +136,10 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     await page.click('#loginForm button[type="submit"]')
 
     // Wait for dashboard to appear
-    await page.waitForSelector('#dashboard', { state: 'visible', timeout: 15000 })
+    await page.waitForSelector('#section-dashboard', { state: 'visible', timeout: 15000 })
 
     // ASSERT: Dashboard should now be visible
-    const confirmedDashboard = await page.locator('#dashboard').isVisible()
+    const confirmedDashboard = await page.locator('#section-dashboard').isVisible()
     expect(confirmedDashboard).toBe(true)
 
     // TEST 6: SESSION PERSISTENCE
@@ -148,27 +148,21 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     await page.reload()
     await page.waitForLoadState('networkidle')
 
-    const reloadDashboard = await page.locator('#dashboard').isVisible()
+    const reloadDashboard = await page.locator('#section-dashboard').isVisible()
     expect(reloadDashboard).toBe(true)
 
     // TEST 7: LOGOUT
     console.log('TEST 7: Logout')
 
-    // Find and click logout using semantic locator
-    const logoutButton = page.getByRole('button', { name: /déconnexion|logout/i })
-    if (await logoutButton.isVisible()) {
-      await logoutButton.click()
-    } else {
-      // Try alternative logout path
-      await page.getByRole('button', { name: 'menu' }).click()
-      await page.getByRole('menuitem', { name: /déconnexion|logout/i }).click()
-    }
-
-    await page.waitForTimeout(2000)
+    // Logout through the real user menu
+    await page.locator('#userMenuBtn').click()
+    await page.locator('#logoutBtn').click()
+    await page.getByRole('button', { name: 'Confirmer' }).click()
+    await page.waitForSelector('#loginForm', { state: 'visible', timeout: 10000 })
 
     // ASSERT: Should be back to login
     const afterLogoutLogin = await page.locator('#loginForm').isVisible().catch(() => false)
-    const afterLogoutDashboard = await page.locator('#dashboard').isVisible().catch(() => false)
+    const afterLogoutDashboard = await page.locator('#section-dashboard').isVisible().catch(() => false)
     
     expect(afterLogoutLogin).toBe(true)
     expect(afterLogoutDashboard).toBe(false)
@@ -180,7 +174,7 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     await page.waitForLoadState('networkidle')
 
     const reloadAfterLogoutLogin = await page.locator('#loginForm').isVisible().catch(() => false)
-    const reloadAfterLogoutDashboard = await page.locator('#dashboard').isVisible().catch(() => false)
+    const reloadAfterLogoutDashboard = await page.locator('#section-dashboard').isVisible().catch(() => false)
     
     expect(reloadAfterLogoutLogin).toBe(true)
     expect(reloadAfterLogoutDashboard).toBe(false)
@@ -192,17 +186,19 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     await page.fill('#loginPassword', ACCOUNT_A_PASSWORD)
     await page.click('#loginForm button[type="submit"]')
 
-    await page.waitForSelector('#dashboard', { state: 'visible', timeout: 15000 })
+    await page.waitForSelector('#section-dashboard', { state: 'visible', timeout: 15000 })
 
-    const reloginDashboard = await page.locator('#dashboard').isVisible()
+    const reloginDashboard = await page.locator('#section-dashboard').isVisible()
     expect(reloginDashboard).toBe(true)
 
     // TEST 10: PASSWORD RECOVERY REQUEST
     console.log('TEST 10: Password recovery request')
 
-    // Logout first using semantic locator
-    await page.getByRole('button', { name: /déconnexion|logout/i }).first().click()
-    await page.waitForTimeout(2000)
+    // Logout through the real user menu
+    await page.locator('#userMenuBtn').click()
+    await page.locator('#logoutBtn').click()
+    await page.getByRole('button', { name: 'Confirmer' }).click()
+    await page.waitForSelector('#loginForm', { state: 'visible', timeout: 10000 })
 
     // Click forgot password using semantic locator
     await page.getByRole('link', { name: /mot de passe oublié/i }).click()
@@ -248,7 +244,7 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     await recoveryPage.waitForSelector('#resetPasswordForm', { state: 'visible', timeout: 15000 })
 
     // ASSERT: Dashboard should be hidden during recovery
-    const recoveryDashboard = await recoveryPage.locator('#dashboard').isVisible().catch(() => false)
+    const recoveryDashboard = await recoveryPage.locator('#section-dashboard').isVisible().catch(() => false)
     expect(recoveryDashboard).toBe(false)
 
     // TEST 13: PASSWORD UPDATE
@@ -263,7 +259,7 @@ test.describe('Real Supabase Auth Lifecycle', () => {
 
     // ASSERT: Should be signed out and redirected to login
     const afterResetLogin = await recoveryPage.locator('#loginForm').isVisible().catch(() => false)
-    const afterResetDashboard = await recoveryPage.locator('#dashboard').isVisible().catch(() => false)
+    const afterResetDashboard = await recoveryPage.locator('#section-dashboard').isVisible().catch(() => false)
     
     expect(afterResetLogin).toBe(true)
     expect(afterResetDashboard).toBe(false)
@@ -280,7 +276,7 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     await page.waitForTimeout(2000)
 
     // ASSERT: Login should fail
-    const oldPassDashboard = await page.locator('#dashboard').isVisible().catch(() => false)
+    const oldPassDashboard = await page.locator('#section-dashboard').isVisible().catch(() => false)
     expect(oldPassDashboard).toBe(false)
 
     // TEST 15: NEW PASSWORD ACCEPTANCE
@@ -289,9 +285,9 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     await page.fill('#loginPassword', ACCOUNT_A_NEW_PASSWORD) // NEW password
     await page.click('#loginForm button[type="submit"]')
 
-    await page.waitForSelector('#dashboard', { state: 'visible', timeout: 15000 })
+    await page.waitForSelector('#section-dashboard', { state: 'visible', timeout: 15000 })
 
-    const newPassDashboard = await page.locator('#dashboard').isVisible()
+    const newPassDashboard = await page.locator('#section-dashboard').isVisible()
     expect(newPassDashboard).toBe(true)
 
     console.log('All auth lifecycle tests PASSED')

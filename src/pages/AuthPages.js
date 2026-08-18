@@ -84,6 +84,10 @@ export const AuthPages = {
     const main = document.querySelector('main')
     const sidebar = document.querySelector('.sidebar')
 
+    // Authentication UI must never remain blocked by an authenticated-only
+    // onboarding modal. Remove only its DOM instance; do not persist dismissal.
+    document.getElementById('onboarding-root')?.remove()
+
     document.body.classList.add('auth-locked')
     if (authContainer) authContainer.style.display = 'flex'
     if (main) main.style.display = 'none'

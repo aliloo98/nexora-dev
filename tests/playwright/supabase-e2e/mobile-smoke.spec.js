@@ -22,7 +22,7 @@ test.describe('Mobile Smoke - Real Supabase Auth', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    const dashboardHidden = await page.locator('#dashboard').isVisible().catch(() => false)
+    const dashboardHidden = await page.locator('#section-dashboard').isVisible().catch(() => false)
     expect(dashboardHidden).toBe(false)
 
     const loginVisible = await page.locator('#loginForm').isVisible().catch(() => false)
@@ -89,9 +89,9 @@ test.describe('Mobile Smoke - Real Supabase Auth', () => {
     await page.fill('#loginPassword', ACCOUNT_A_PASSWORD)
     await page.click('#loginForm button[type="submit"]')
 
-    await page.waitForSelector('#dashboard', { state: 'visible', timeout: 15000 })
+    await page.waitForSelector('#section-dashboard', { state: 'visible', timeout: 15000 })
 
-    const authenticatedDashboard = await page.locator('#dashboard').isVisible()
+    const authenticatedDashboard = await page.locator('#section-dashboard').isVisible()
     expect(authenticatedDashboard).toBe(true)
 
     // TEST: Session persistence
@@ -100,17 +100,19 @@ test.describe('Mobile Smoke - Real Supabase Auth', () => {
     await page.reload()
     await page.waitForLoadState('networkidle')
 
-    const reloadDashboard = await page.locator('#dashboard').isVisible()
+    const reloadDashboard = await page.locator('#section-dashboard').isVisible()
     expect(reloadDashboard).toBe(true)
 
     // TEST: Logout
     console.log('Mobile smoke: Logout')
 
-    await page.getByRole('button', { name: /déconnexion|logout/i }).first().click()
-    await page.waitForTimeout(2000)
+    await page.locator('#userMenuBtn').click()
+    await page.locator('#logoutBtn').click()
+    await page.getByRole('button', { name: 'Confirmer' }).click()
+    await page.waitForSelector('#loginForm', { state: 'visible', timeout: 10000 })
 
     const afterLogoutLogin = await page.locator('#loginForm').isVisible().catch(() => false)
-    const afterLogoutDashboard = await page.locator('#dashboard').isVisible().catch(() => false)
+    const afterLogoutDashboard = await page.locator('#section-dashboard').isVisible().catch(() => false)
     
     expect(afterLogoutLogin).toBe(true)
     expect(afterLogoutDashboard).toBe(false)
@@ -124,7 +126,7 @@ test.describe('Mobile Smoke - Real Supabase Auth', () => {
     const forgotFormVisible = await page.locator('#forgotPasswordForm').isVisible()
     expect(forgotFormVisible).toBe(true)
 
-    const dashboardDuringForgot = await page.locator('#dashboard').isVisible().catch(() => false)
+    const dashboardDuringForgot = await page.locator('#section-dashboard').isVisible().catch(() => false)
     expect(dashboardDuringForgot).toBe(false)
 
     console.log('Mobile smoke tests PASSED')

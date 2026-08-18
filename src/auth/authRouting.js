@@ -216,6 +216,15 @@ export const AuthStateSync = {
    */
   _onAuthStateChange(state) {
 
+    // Password recovery is an authenticated Supabase session, but it must
+    // remain inside the dedicated recovery UI instead of entering the app.
+    if (state.isPasswordRecovery) {
+      updateUserHeader()
+      renderUserMenu()
+      AuthPages.showAuthPages()
+      return
+    }
+
     if (state.isAuthenticated && state.user) {
       // User just logged in
 

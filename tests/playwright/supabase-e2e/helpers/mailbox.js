@@ -94,7 +94,15 @@ async function pollForEmail({
         const fullMsg = await fullMsgResponse.json();
 
         // Extract body from Mailpit API schema (supports both uppercase and lowercase field names)
-        const body = fullMsg.Text?.Body || fullMsg.text?.Body || fullMsg.HTML?.Body || fullMsg.html?.Body || fullMsg.Text?.body || fullMsg.text?.body || fullMsg.HTML?.body || fullMsg.html?.body || fullMsg.Content?.Body || fullMsg.content?.Body || fullMsg.body || fullMsg.text || '';
+        const body =
+          (typeof fullMsg.Text === 'string' ? fullMsg.Text : fullMsg.Text?.Body || fullMsg.Text?.body) ||
+          (typeof fullMsg.HTML === 'string' ? fullMsg.HTML : fullMsg.HTML?.Body || fullMsg.HTML?.body) ||
+          (typeof fullMsg.text === 'string' ? fullMsg.text : fullMsg.text?.Body || fullMsg.text?.body) ||
+          (typeof fullMsg.html === 'string' ? fullMsg.html : fullMsg.html?.Body || fullMsg.html?.body) ||
+          fullMsg.Content?.Body ||
+          fullMsg.content?.Body ||
+          fullMsg.body ||
+          '';
         const link = extractActionLink(body, type);
 
         return {
