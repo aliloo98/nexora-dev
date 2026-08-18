@@ -12,8 +12,10 @@ import {
 
 // Generate unique test identifiers per run
 const RUN_ID = Date.now().toString(36)
+const ACCOUNT_A_USERNAME = `NexoraA${RUN_ID}`
 const ACCOUNT_A_EMAIL = `nexora-ci-a-${RUN_ID}@example.test`
 const ACCOUNT_A_PASSWORD = `TestPass123${RUN_ID}`
+const ACCOUNT_B_USERNAME = `NexoraB${RUN_ID}`
 const ACCOUNT_B_EMAIL = `nexora-ci-b-${RUN_ID}@example.test`
 const ACCOUNT_B_PASSWORD = `TestPass456${RUN_ID}`
 
@@ -65,6 +67,7 @@ test.describe('Real Supabase Data Isolation', () => {
     await pageA.getByRole('link', { name: 'S\'inscrire' }).click()
     await pageA.waitForSelector('#registerForm', { state: 'visible' })
 
+    await pageA.fill('#registerUsername', ACCOUNT_A_USERNAME)
     await pageA.fill('#registerEmail', ACCOUNT_A_EMAIL)
     await pageA.fill('#registerPassword', ACCOUNT_A_PASSWORD)
     await pageA.fill('#registerPasswordConfirm', ACCOUNT_A_PASSWORD)
@@ -197,6 +200,7 @@ test.describe('Real Supabase Data Isolation', () => {
     await pageB.getByRole('link', { name: 'S\'inscrire' }).click()
     await pageB.waitForSelector('#registerForm', { state: 'visible' })
 
+    await pageB.fill('#registerUsername', ACCOUNT_B_USERNAME)
     await pageB.fill('#registerEmail', ACCOUNT_B_EMAIL)
     await pageB.fill('#registerPassword', ACCOUNT_B_PASSWORD)
     await pageB.fill('#registerPasswordConfirm', ACCOUNT_B_PASSWORD)

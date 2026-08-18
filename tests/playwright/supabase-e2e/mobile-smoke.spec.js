@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 import { pollForEmail } from './helpers/mailbox.js'
 
 const RUN_ID = Date.now().toString(36)
+const ACCOUNT_A_USERNAME = `NexoraMobile${RUN_ID}`
 const ACCOUNT_A_EMAIL = `nexora-ci-mobile-${RUN_ID}@example.test`
 const ACCOUNT_A_PASSWORD = `TestPass789${RUN_ID}`
 
@@ -34,6 +35,7 @@ test.describe('Mobile Smoke - Real Supabase Auth', () => {
     await page.waitForSelector('#registerForm', { state: 'visible', timeout: 10000 })
 
     console.log(`Mobile smoke: Using email ${ACCOUNT_A_EMAIL}`)
+    await page.fill('#registerUsername', ACCOUNT_A_USERNAME)
     await page.fill('#registerEmail', ACCOUNT_A_EMAIL)
     await page.fill('#registerPassword', ACCOUNT_A_PASSWORD)
     await page.fill('#registerPasswordConfirm', ACCOUNT_A_PASSWORD)

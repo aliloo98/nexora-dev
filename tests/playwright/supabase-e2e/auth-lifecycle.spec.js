@@ -3,6 +3,7 @@ import { pollForEmail } from './helpers/mailbox.js'
 
 // Generate unique test identifiers per run
 const RUN_ID = Date.now().toString(36)
+const ACCOUNT_A_USERNAME = `NexoraA${RUN_ID}`
 const ACCOUNT_A_EMAIL = `nexora-ci-a-${RUN_ID}@example.test`
 const ACCOUNT_A_PASSWORD = `TestPass123${RUN_ID}`
 const ACCOUNT_A_NEW_PASSWORD = `NewPass456${RUN_ID}`
@@ -28,6 +29,7 @@ test.describe('Real Supabase Auth Lifecycle', () => {
 
     // Fill registration form
     console.log(`TEST 1: Using email ${ACCOUNT_A_EMAIL}`)
+    await page.fill('#registerUsername', ACCOUNT_A_USERNAME)
     await page.fill('#registerEmail', ACCOUNT_A_EMAIL)
     await page.fill('#registerPassword', ACCOUNT_A_PASSWORD)
     await page.fill('#registerPasswordConfirm', ACCOUNT_A_PASSWORD)
