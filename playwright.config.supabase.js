@@ -17,7 +17,11 @@ export default {
     command: `VITE_SUPABASE_URL="${process.env.VITE_SUPABASE_URL}" VITE_SUPABASE_ANON_KEY="${process.env.VITE_SUPABASE_ANON_KEY}" npm run dev -- --host 127.0.0.1 --strictPort --port 5173`,
     url: 'http://127.0.0.1:5173',
     reuseExistingServer: !process.env.CI, // CI should start fresh
-    timeout: 60000
+    timeout: 60000,
+    env: {
+      VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL,
+      VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY
+    }
   },
   use: {
     headless: true,
