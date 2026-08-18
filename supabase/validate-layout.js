@@ -84,6 +84,7 @@ const requiredWorkflowPatterns = [
   /VITE_SUPABASE_ANON_KEY: ""/,
   /VITE_SUPABASE_URL: ""/,
   /curl -X DELETE http:\/\/127\.0\.0\.1:54324\/api\/v1\/messages/,
+  /\.env\.local/,
   /uses: actions\/checkout@v7/,
   /uses: actions\/setup-node@v7/,
   /node-version: "20"/,
