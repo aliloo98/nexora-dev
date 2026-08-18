@@ -41,14 +41,13 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     // Capture timestamp BEFORE signup (email may be emitted during submission)
     const signupTimestamp = Date.now()
 
-    // Capture console logs for auth service diagnostics
+    // Capture all console logs for comprehensive diagnostics
     const consoleMessages = []
     page.on('console', msg => {
       const text = msg.text()
-      if (text.includes('AuthService') || text.includes('Supabase') || text.includes('isSupabaseConfigured')) {
-        consoleMessages.push(text)
-        console.log(`TEST 1: Console: ${text}`)
-      }
+      const type = msg.type()
+      consoleMessages.push({ type, text })
+      console.log(`TEST 1: Console [${type}]: ${text}`)
     })
 
     // Submit registration
@@ -58,7 +57,7 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     await page.waitForTimeout(2000)
 
     // Log captured console messages
-    console.log('TEST 1: AuthService diagnostic messages:', consoleMessages.length)
+    console.log('TEST 1: Total console messages:', consoleMessages.length)
 
     // ASSERT: Dashboard should NOT be unlocked (session should be null due to confirmation requirement)
     const dashboardVisible = await page.locator('#dashboard').isVisible().catch(() => false)

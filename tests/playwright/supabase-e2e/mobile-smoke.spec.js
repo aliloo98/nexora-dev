@@ -46,8 +46,19 @@ test.describe('Mobile Smoke - Real Supabase Auth', () => {
     // Capture timestamp BEFORE signup (email may be emitted during submission)
     const signupTimestamp = Date.now()
 
+    // Capture all console logs for comprehensive diagnostics
+    const consoleMessages = []
+    page.on('console', msg => {
+      const text = msg.text()
+      const type = msg.type()
+      consoleMessages.push({ type, text })
+      console.log(`Mobile smoke: Console [${type}]: ${text}`)
+    })
+
     await page.click('#registerForm button[type="submit"]')
     await page.waitForTimeout(2000)
+
+    console.log('Mobile smoke: Total console messages:', consoleMessages.length)
 
     // TEST: Confirmation
     console.log('Mobile smoke: Email confirmation')
