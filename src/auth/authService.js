@@ -15,6 +15,14 @@ const isSupabaseConfigured = Boolean(
   env.VITE_SUPABASE_ANON_KEY
 )
 
+// Log configuration detection for debugging
+if (typeof window !== 'undefined') {
+  console.log('AuthService: Supabase URL present:', !!env.VITE_SUPABASE_URL)
+  console.log('AuthService: Supabase ANON key present:', !!env.VITE_SUPABASE_ANON_KEY)
+  console.log('AuthService: isSupabaseConfigured:', isSupabaseConfigured)
+  console.log('AuthService: isDemoModeAllowed:', isDemoModeAllowed())
+}
+
 // In demo mode, always use placeholder auth regardless of Supabase configuration
 const isDemoModeBuild = typeof __ALLOW_DEMO_MODE__ !== 'undefined' ? __ALLOW_DEMO_MODE__ : false
 
