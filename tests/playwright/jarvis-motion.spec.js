@@ -6,6 +6,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
       localStorage.setItem('nexora_active_mode', 'complete')
       document.body.classList.remove('mode-simple')
       document.body.classList.add('mode-complete')
+      document.dispatchEvent(new CustomEvent('nexora:ux-mode-applied', { detail: { mode: 'complete' } }))
       if (typeof window.updateAll === 'function') {
         window.updateAll()
       }
@@ -172,6 +173,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
       localStorage.setItem('nexora_active_mode', 'simple')
       document.body.classList.remove('mode-complete')
       document.body.classList.add('mode-simple')
+      document.dispatchEvent(new CustomEvent('nexora:ux-mode-applied', { detail: { mode: 'simple' } }))
       if (typeof window.updateAll === 'function') window.updateAll()
     })
 
