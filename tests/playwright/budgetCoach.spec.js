@@ -77,7 +77,7 @@ const waitForCoachState = async (page, expectedTitle) => {
       window.updateAll();
     }
   });
-  
+
   await page.waitForFunction((title) => {
     const card = document.querySelector('#budget-entry-guide-root .budget-coach-card');
     return !!card && card.textContent?.includes(title);
@@ -113,22 +113,22 @@ const openBudgetSection = async (page) => {
 };
 
 const clearBudgetInputs = async (page) => {
-  // Clear all fields that could have values from previous scenarios
-  const keysToClear = [
-    'rev_ali', 'rev_megane', 'rev_excep',
-    'loyer', 'credit', 'assauto', 'gasoil', 'elec', 'eau', 'psy', 'diete', 'itou', 'sante', 'impots', 'box', 'tel_ali', 'tel_meg', 'stream', 'ps', 'cb', 'impfix',
-    'courses', 'tabac', 'sport', 'ongles', 'cadeaux', 'impvar'
-  ];
-  for (const key of keysToClear) {
-    const field = page.locator(`#section-saisie input[data-key="${key}"]`);
-    const count = await field.count();
-    if (count === 0) continue;
-    try {
-      await field.fill('');
-    } catch {
-      // Skip fields that are not editable
+  await page.evaluate(() => {
+    const keysToClear = [
+      'rev_ali', 'rev_megane', 'rev_excep',
+      'loyer', 'credit', 'assauto', 'gasoil', 'elec', 'eau', 'psy', 'diete', 'itou', 'sante', 'impots', 'box', 'tel_ali', 'tel_meg', 'stream', 'ps', 'cb', 'impfix',
+      'courses', 'tabac', 'sport', 'ongles', 'cadeaux', 'impvar'
+    ];
+    for (const key of keysToClear) {
+      const field = document.querySelector(`#section-saisie input[data-key="${key}"]`);
+      if (field) {
+        field.value = '';
+      }
     }
-  }
+    if (typeof window.updateAll === 'function') {
+      window.updateAll();
+    }
+  });
 };
 
 const applyScenarioValues = async (page, values) => {
