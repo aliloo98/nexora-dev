@@ -10,6 +10,7 @@
 import { AuthService, clearPlaceholderAuthStorageIfForbidden } from './authService.js'
 import { STORAGE_KEYS } from '../constants/storageKeys.js'
 import { getUserDisplayName as resolveUserDisplayName } from './userDisplayName.js'
+import { initialAuthRedirect } from '../supabase.js'
 
 /**
  * AuthContext - Simple event-based state management
@@ -35,6 +36,7 @@ export const AuthContext = {
   // Array of listeners to notify on state changes
   _listeners: [],
   _authUnsubscribe: null,
+  _passwordRecoveryRedirectPending: false,
 
   /**
    * Subscribe to auth state changes
@@ -166,6 +168,7 @@ export const AuthContext = {
         this._state.isAuthenticated = false
         this._state.error = null
         this._state.isPasswordRecovery = false
+        this._passwordRecoveryRedirectPending = false
         AuthService.clearSessionPlaceholder()
         this._notifyListeners()
         return
@@ -174,6 +177,7 @@ export const AuthContext = {
       // PASSWORD_RECOVERY - session de récupération validée par le SDK
       // C'est le SEUL signal fiable d'une récupération de mot de passe valide
       if (event === 'PASSWORD_RECOVERY') {
+        this._passwordRecoveryRedirectPending = false
         this._state.isPasswordRecovery = true
         this._state.user = user
         this._state.session = session
@@ -189,6 +193,12 @@ export const AuthContext = {
       this._state.session = session || null
       this._state.isAuthenticated = !!(user && session)
       this._state.error = null
+
+      if (this._passwordRecoveryRedirectPending && user && session) {
+        this._state.isPasswordRecovery = true
+        this._passwordRecoveryRedirectPending = false
+      }
+
       this._notifyListeners()
 
       // BLOQUAGE: Si mode récupération activé, ne jamais synchroniser ni naviguer
@@ -218,7 +228,17 @@ export const AuthContext = {
       // Clear placeholder storage if not allowed before any restoration
       clearPlaceholderAuthStorageIfForbidden()
 
-      // Try to restore session from placeholder storage
+      // Recovery intent was captured synchronously before Supabase client
+      // initialization. Keep it pending until a real session proves the link.
+      this._passwordRecoveryRedirectPending =
+        initialAuthRedirect.isPasswordRecovery
+
+      // Subscribe before explicit session restoration. If Supabase already
+      // consumed PASSWORD_RECOVERY, INITIAL_SESSION/SIGNED_IN can still
+      // complete the pending recovery transition.
+      this._setupAuthListener()
+
+      // Restore the real Supabase session.
       const { user } = await AuthService.getCurrentUser()
       const { session } = await AuthService.getSession()
 
@@ -227,7 +247,18 @@ export const AuthContext = {
         this._state.session = session
         this._state.isAuthenticated = true
         this._state.error = null
-        this._syncSupabaseToLocalAfterLogin()
+
+        // Fallback when session restoration wins the race before the auth
+        // listener emits its first event.
+        if (this._passwordRecoveryRedirectPending) {
+          this._state.isPasswordRecovery = true
+          this._passwordRecoveryRedirectPending = false
+        }
+
+        // A recovery session must never bootstrap the normal dashboard data.
+        if (!this._state.isPasswordRecovery) {
+          this._syncSupabaseToLocalAfterLogin()
+        }
       } else {
         this._state.user = null
         this._state.session = null
@@ -237,7 +268,6 @@ export const AuthContext = {
       console.error('❌ AuthContext init error:', error)
       this._state.error = error
     } finally {
-      this._setupAuthListener()
       this._setLoading(false)
     }
   },

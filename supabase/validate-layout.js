@@ -21,6 +21,8 @@ assert.match(config, /^project_id = "nexora-dev"$/m)
 assert.match(config, /^site_url = "http:\/\/127\.0\.0\.1:5173"$/m)
 assert.match(config, /\[db\.seed\][\s\S]*?enabled = false/)
 assert.match(config, /\[db\.migrations\][\s\S]*?enabled = true/)
+// Email confirmations required for Supabase E2E certification
+assert.match(config, /\[auth\.email\][\s\S]*?enable_confirmations = true/)
 
 const localScripts = [
   'supabase:reset',
@@ -78,9 +80,12 @@ const requiredWorkflowPatterns = [
   /^  workflow_dispatch:\s*$/m,
   /^permissions:\s*\n  contents: read\s*$/m,
   /runs-on: ubuntu-latest/,
-  /timeout-minutes: 35/,
+  /timeout-minutes: 40/,
   /VITE_SUPABASE_ANON_KEY: ""/,
   /VITE_SUPABASE_URL: ""/,
+  /curl -X DELETE http:\/\/127\.0\.0\.1:54324\/api\/v1\/messages/,
+  /export VITE_SUPABASE_URL="\$SUPABASE_URL"/,
+  /export VITE_SUPABASE_ANON_KEY="\$SUPABASE_ANON_KEY"/,
   /uses: actions\/checkout@v7/,
   /uses: actions\/setup-node@v7/,
   /node-version: "20"/,
@@ -94,6 +99,7 @@ const requiredWorkflowPatterns = [
   /supabase db lint --local --level warning --fail-on warning/,
   /supabase test db --local/,
   /run: npm run test:js/,
+  /Auth\/Mailpit preflight check/,
   /run: npm run test:e2e/,
   /run: npm run build/,
   /if: always\(\)/,

@@ -28,7 +28,11 @@ const createQuery = () => ({
 
 globalThis.localStorage = storage
 globalThis.SafeStorage = storage
-globalThis.navigator = { onLine: true }
+Object.defineProperty(globalThis, 'navigator', {
+  value: { onLine: true },
+  configurable: true,
+  writable: true
+})
 globalThis.window = {
   localStorage: storage,
   SafeStorage: storage,

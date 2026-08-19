@@ -197,6 +197,14 @@ export const AuthService = {
    * @returns {Promise<{user, error}>}
    */
   async signUp(email, password, username) {
+    // Log configuration detection for debugging (browser only)
+    if (typeof window !== 'undefined') {
+      console.log('AuthService.signUp: Supabase URL present:', !!env.VITE_SUPABASE_URL)
+      console.log('AuthService.signUp: Supabase ANON key present:', !!env.VITE_SUPABASE_ANON_KEY)
+      console.log('AuthService.signUp: isSupabaseConfigured:', isSupabaseConfigured)
+      console.log('AuthService.signUp: isDemoModeAllowed:', isDemoModeAllowed())
+    }
+
     try {
       if (isSupabaseConfigured && !isDemoModeAllowed()) {
         const { data, error } = await supabase.auth.signUp({

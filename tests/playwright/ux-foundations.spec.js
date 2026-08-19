@@ -128,6 +128,8 @@ test.describe('UX foundations', () => {
     expect(formatViolations(criticalViolations)).toEqual([])
 
     await page.locator('.nav-btn[data-section="parametres"]').click()
+    // Wait for Settings to render fully
+    await page.waitForSelector('#section-parametres', { state: 'visible' })
     const settings = await new AxeBuilder({ page }).include('#section-parametres').analyze()
     expect(formatViolations(settings.violations)).toEqual([])
   })

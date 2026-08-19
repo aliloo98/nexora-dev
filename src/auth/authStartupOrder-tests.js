@@ -138,3 +138,53 @@ assert.match(
 )
 
 console.log('authStartupOrder-tests: authentication precedes financial initialization — OK')
+
+// Password recovery startup regression contract.
+// The recovery callback must be captured before Supabase can consume its URL payload,
+// then preserved until a real restored session confirms recovery mode.
+const supabaseSource = fs.readFileSync(new URL('../supabase.js', import.meta.url), 'utf8')
+const authRoutingSource = fs.readFileSync(new URL('./authRouting.js', import.meta.url), 'utf8')
+
+const initialRedirectCaptureIndex =
+  supabaseSource.indexOf('export const initialAuthRedirect = captureInitialAuthRedirect()')
+const supabaseClientCreationIndex =
+  supabaseSource.indexOf('createClient(supabaseUrl, supabaseAnonKey)')
+
+assert.notEqual(
+  initialRedirectCaptureIndex,
+  -1,
+  'password recovery intent must be captured during Supabase module initialization'
+)
+assert.notEqual(
+  supabaseClientCreationIndex,
+  -1,
+  'real Supabase client creation must remain present'
+)
+assert.equal(
+  initialRedirectCaptureIndex < supabaseClientCreationIndex,
+  true,
+  'recovery intent must be captured before Supabase client creation can consume the callback URL'
+)
+
+assert.match(
+  authContextSource,
+  /initialAuthRedirect\.isPasswordRecovery/,
+  'AuthContext must consume the early recovery redirect snapshot'
+)
+assert.match(
+  authContextSource,
+  /_passwordRecoveryRedirectPending/,
+  'AuthContext must preserve recovery intent until a real session is restored'
+)
+assert.match(
+  authContextSource,
+  /event === 'PASSWORD_RECOVERY'/,
+  'native Supabase PASSWORD_RECOVERY must remain the authoritative runtime signal'
+)
+assert.match(
+  authRoutingSource,
+  /if \(state\.isPasswordRecovery\)[\s\S]*AuthPages\.showAuthPages\(\)[\s\S]*return/,
+  'recovery sessions must remain in auth UI instead of entering the dashboard'
+)
+
+console.log('authStartupOrder-tests: password recovery startup contract — OK')

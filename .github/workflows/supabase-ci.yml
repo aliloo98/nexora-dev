@@ -18,7 +18,7 @@ jobs:
   database-and-app:
     name: Ephemeral database and application checks
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     env:
       CI: "true"
       DO_NOT_TRACK: "1"
@@ -74,6 +74,37 @@ jobs:
           echo "Supabase stack started successfully."
         timeout-minutes: 12
 
+      - name: Discover local mail service
+        run: |
+          echo "MAIL_DISCOVERY: Discovering local mail service contract..."
+          
+          echo "MAIL_DISCOVERY: Testing root endpoint..."
+          ROOT_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:54324/ || echo "000")
+          ROOT_TYPE=$(curl -s -I http://127.0.0.1:54324/ 2>/dev/null | grep -i content-type | cut -d' ' -f2 | tr -d '\r' || echo "unknown")
+          echo "MAIL_DISCOVERY root status=$ROOT_STATUS type=$ROOT_TYPE"
+          
+          echo "MAIL_DISCOVERY: Testing /api/v1/ endpoint..."
+          API_V1_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:54324/api/v1/ || echo "000")
+          API_V1_TYPE=$(curl -s -I http://127.0.0.1:54324/api/v1/ 2>/dev/null | grep -i content-type | cut -d' ' -f2 | tr -d '\r' || echo "unknown")
+          echo "MAIL_DISCOVERY api_v1 status=$API_V1_STATUS type=$API_V1_TYPE"
+          
+          echo "MAIL_DISCOVERY: Testing /api/v1/messages endpoint..."
+          MESSAGES_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:54324/api/v1/messages || echo "000")
+          MESSAGES_TYPE=$(curl -s -I http://127.0.0.1:54324/api/v1/messages 2>/dev/null | grep -i content-type | cut -d' ' -f2 | tr -d '\r' || echo "unknown")
+          echo "MAIL_DISCOVERY messages status=$MESSAGES_STATUS type=$MESSAGES_TYPE"
+          
+          if [ "$MESSAGES_STATUS" = "200" ] && [ "$MESSAGES_TYPE" = "application/json" ]; then
+            echo "MAIL_DISCOVERY messages_schema=$(curl -s http://127.0.0.1:54324/api/v1/messages 2>/dev/null | jq -r 'if type == "array" then "array length=\(length)" else "keys=\(keys | join(","))" end' || echo "unknown")"
+          fi
+          
+          echo "MAIL_DISCOVERY: Testing /api/ endpoint..."
+          API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:54324/api/ || echo "000")
+          API_TYPE=$(curl -s -I http://127.0.0.1:54324/api/ 2>/dev/null | grep -i content-type | cut -d' ' -f2 | tr -d '\r' || echo "unknown")
+          echo "MAIL_DISCOVERY api status=$API_STATUS type=$API_TYPE"
+          
+          echo "MAIL_DISCOVERY: Discovery completed."
+        timeout-minutes: 1
+
       - name: Rebuild database from versioned migrations
         run: |
           echo "Resetting the local database and applying every migration..."
@@ -103,9 +134,80 @@ jobs:
         run: npx --no-install playwright install --with-deps chromium
         timeout-minutes: 20
 
+      - name: Auth/Mailpit preflight check
+        run: |
+          echo "Running Auth/Mailpit preflight diagnostic..."
+          status_output="$RUNNER_TEMP/supabase-status.json"
+          supabase status -o json > "$status_output"
+
+          SUPABASE_URL=$(jq -r '.API_URL // empty' "$status_output")
+          SUPABASE_ANON_KEY=$(jq -r '.ANON_KEY // empty' "$status_output")
+
+          echo "Preflight: Supabase URL present: $([ -n "$SUPABASE_URL" ] && echo yes || echo no)"
+          echo "Preflight: Anon key present: $([ -n "$SUPABASE_ANON_KEY" ] && echo yes || echo no)"
+
+          VITE_SUPABASE_URL="$SUPABASE_URL" \
+          VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+          node tests/playwright/supabase-e2e/helpers/preflight.js
+
+          echo "Clearing Mailpit after preflight to avoid email interference..."
+          curl -X DELETE http://127.0.0.1:54324/api/v1/messages
+        timeout-minutes: 2
+
       - name: Run Playwright application tests
         run: npm run test:e2e
-        timeout-minutes: 10
+        timeout-minutes: 15
+
+      - name: Run real Supabase E2E certification
+        run: |
+          echo "Extracting Supabase connection details for E2E certification..."
+          status_output="$RUNNER_TEMP/supabase-status.json"
+          supabase status -o json > "$status_output"
+
+          # Extract API URL and anon key (keys are uppercase in supabase status JSON)
+          SUPABASE_URL=$(jq -r '.API_URL // empty' "$status_output")
+          SUPABASE_ANON_KEY=$(jq -r '.ANON_KEY // empty' "$status_output")
+          SUPABASE_SERVICE_ROLE_KEY=$(jq -r '.SERVICE_ROLE_KEY // empty' "$status_output")
+
+          echo "Supabase connection details extracted."
+          echo "URL: $SUPABASE_URL"
+          echo "Anon key present: $([ -n "$SUPABASE_ANON_KEY" ] && echo yes || echo no)"
+          echo "Service role present: $([ -n "$SUPABASE_SERVICE_ROLE_KEY" ] && echo yes || echo no)"
+
+          # Export environment variables for Playwright and Vite
+          export VITE_SUPABASE_URL="$SUPABASE_URL"
+          export VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+          export SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY"
+
+          # Initialize diagnostics file
+          DIAG="$RUNNER_TEMP/supabase-e2e-diagnostics.txt"
+          echo "=== SUPABASE E2E DIAGNOSTICS ===" > "$DIAG"
+          echo "Git SHA: $(git rev-parse HEAD)" >> "$DIAG"
+          echo "Supabase URL present: $([ -n "$SUPABASE_URL" ] && echo yes || echo no)" >> "$DIAG"
+          echo "Anon key present: $([ -n "$SUPABASE_ANON_KEY" ] && echo yes || echo no)" >> "$DIAG"
+          echo "Service role present: $([ -n "$SUPABASE_SERVICE_ROLE_KEY" ] && echo yes || echo no)" >> "$DIAG"
+
+          echo "E2E_DISCOVERY: Listing tests from dedicated Supabase config..." | tee -a "$DIAG"
+          VITE_SUPABASE_URL="$SUPABASE_URL" \
+          VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+          SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
+          npx playwright test --list --config=./playwright.config.supabase.js 2>&1 | tee -a "$DIAG" || echo "E2E_DISCOVERY: Test list failed" | tee -a "$DIAG"
+          LIST_EXIT=${PIPESTATUS[0]}
+          echo "Playwright --list exit code: $LIST_EXIT" >> "$DIAG"
+
+          echo "E2E_DISCOVERY: Checking Vite port before execution..." | tee -a "$DIAG"
+          curl --fail --silent --show-error http://127.0.0.1:5173/ >/dev/null 2>&1 && echo "E2E_DISCOVERY: Port 5173 reachable" | tee -a "$DIAG" || echo "E2E_DISCOVERY: Port 5173 not reachable (expected before webServer starts)" | tee -a "$DIAG"
+
+          echo "Running real Supabase E2E certification..." | tee -a "$DIAG"
+          set -o pipefail
+          VITE_SUPABASE_URL="$SUPABASE_URL" \
+          VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+          SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
+          npm run test:e2e:supabase 2>&1 | tee -a "$DIAG"
+          E2E_EXIT=${PIPESTATUS[0]}
+          echo "Playwright E2E exit code: $E2E_EXIT" >> "$DIAG"
+          exit "$E2E_EXIT"
+        timeout-minutes: 15
 
       - name: Upload Playwright diagnostics
         if: always()
@@ -113,11 +215,9 @@ jobs:
         with:
           name: playwright-diagnostics
           path: |
-            playwright-report
-            test-results
-            **/trace.zip
-            **/*.webm
-            **/*.png
+            ${{ runner.temp }}/supabase-e2e-diagnostics.txt
+            playwright-report/
+            test-results/
           retention-days: 7
 
       - name: Build Vite production bundle
