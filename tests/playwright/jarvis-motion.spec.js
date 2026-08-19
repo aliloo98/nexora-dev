@@ -3,12 +3,13 @@ import { test, expect } from '@playwright/test'
 test.describe('Jarvis Premium Motion System V1', () => {
   const setupCompleteMode = async (page) => {
     await page.evaluate(async () => {
-      localStorage.setItem('nexora_active_mode', 'complete')
-      document.body.classList.remove('mode-simple')
-      document.body.classList.add('mode-complete')
-      document.dispatchEvent(new CustomEvent('nexora:ux-mode-applied', { detail: { mode: 'complete' } }))
-      if (typeof window.updateAll === 'function') {
-        window.updateAll()
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('complete')
+      } else {
+        localStorage.setItem('nexora_ux_mode', 'complete')
+        document.body.classList.remove('mode-simple')
+        document.body.classList.add('mode-complete')
+        if (typeof window.updateAll === 'function') window.updateAll()
       }
     })
     await page.waitForSelector('.jarvis-copilot-identity .jarvis-core-signal', { state: 'attached', timeout: 10000 })
@@ -170,11 +171,14 @@ test.describe('Jarvis Premium Motion System V1', () => {
     await page.waitForLoadState('domcontentloaded')
 
     await page.evaluate(() => {
-      localStorage.setItem('nexora_active_mode', 'simple')
-      document.body.classList.remove('mode-complete')
-      document.body.classList.add('mode-simple')
-      document.dispatchEvent(new CustomEvent('nexora:ux-mode-applied', { detail: { mode: 'simple' } }))
-      if (typeof window.updateAll === 'function') window.updateAll()
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('simple')
+      } else {
+        localStorage.setItem('nexora_ux_mode', 'simple')
+        document.body.classList.remove('mode-complete')
+        document.body.classList.add('mode-simple')
+        if (typeof window.updateAll === 'function') window.updateAll()
+      }
     })
 
     const cockpit = page.locator('.jarvis-cockpit')
