@@ -77,7 +77,7 @@ const waitForCoachState = async (page, expectedTitle) => {
       window.updateAll();
     }
   });
-  
+
   await page.waitForFunction((title) => {
     const card = document.querySelector('#budget-entry-guide-root .budget-coach-card');
     return !!card && card.textContent?.includes(title);
@@ -86,12 +86,6 @@ const waitForCoachState = async (page, expectedTitle) => {
 
 const waitForSectionReady = async (page, sectionId) => {
   const section = page.locator(`#section-${sectionId}`);
-
-  // First ensure page is still connected
-  if (page.isClosed()) {
-    throw new Error(`Page is closed, cannot wait for section ${sectionId}`);
-  }
-
   await page.waitForFunction((id) => {
     const sectionNode = document.getElementById(`section-${id}`);
     const activeSections = Array.from(document.querySelectorAll('.section.active'));
@@ -107,7 +101,6 @@ const waitForSectionReady = async (page, sectionId) => {
       activeSections[0] === sectionNode
     );
   }, sectionId, { timeout: 30000 });
-
   await expect(section).toHaveClass(/active/);
   await expect.poll(async () => {
     return section.evaluate((element) => getComputedStyle(element).opacity);
@@ -120,10 +113,6 @@ const openBudgetSection = async (page) => {
 };
 
 const clearBudgetInputs = async (page) => {
-  if (page.isClosed()) {
-    throw new Error('Page is closed, cannot clear budget inputs');
-  }
-
   await page.evaluate(() => {
     const keysToClear = [
       'rev_ali', 'rev_megane', 'rev_excep',
@@ -149,6 +138,7 @@ const applyScenarioValues = async (page, values) => {
     await expect(field).toBeVisible({ timeout: 30000 });
     await expect(field).toBeEditable({ timeout: 30000 });
     await field.fill(String(value));
+    await expect.poll(async () => field.inputValue()).toBe(String(value), { timeout: 10000 });
   }
 };
 
@@ -223,11 +213,7 @@ test.describe('Budget coach E2E', () => {
       const actionButton = coachCard.locator('.budget-coach-action');
       await expect(actionButton).toContainText(scenario.expectedAction);
       await expect(actionButton).toHaveAttribute('data-target', scenario.expectedActionTarget);
-
-      // Re-locate button after potential DOM updates from updateAll()
-      const stableButton = page.locator('#budget-entry-guide-root .budget-coach-action');
-      await expect(stableButton).toBeEnabled({ timeout: 5000 });
-      await stableButton.click({ timeout: 10000 });
+      await actionButton.click();
 
       await waitForSectionReady(page, scenario.expectedSection.replace('section-', ''));
 
