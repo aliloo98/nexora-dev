@@ -91,7 +91,7 @@ export function startGraphAmbientMotion(linePath, hoverDot) {
       { transform: 'translateX(500%)', opacity: 0.55 },
       { transform: 'translateX(500%)', opacity: 0 },
       { transform: 'translateX(500%)', opacity: 0 }
-    ], { duration: 11000, iterations: Infinity, easing: 'ease-in-out' })
+    ], { duration: 6500, iterations: Infinity, easing: 'ease-in-out' })
     cardSheenAnim.pause()
     animations.push(cardSheenAnim)
   }
@@ -103,7 +103,7 @@ export function startGraphAmbientMotion(linePath, hoverDot) {
       { strokeDashoffset: '0', opacity: 0.72 },
       { strokeDashoffset: '-26', opacity: 0 },
       { strokeDashoffset: '-26', opacity: 0 }
-    ], { duration: 9000, iterations: Infinity, easing: 'ease-in-out' })
+    ], { duration: 5600, iterations: Infinity, easing: 'ease-in-out' })
     highlightAnim.pause()
     animations.push(highlightAnim)
   }
@@ -114,7 +114,7 @@ export function startGraphAmbientMotion(linePath, hoverDot) {
       { transform: 'scale(1)' },
       { transform: 'scale(1.05)' },
       { transform: 'scale(1)' }
-    ], { duration: 8000, iterations: Infinity, easing: 'ease-in-out' })
+    ], { duration: 5000, iterations: Infinity, easing: 'ease-in-out' })
     hoverAnim.pause()
     animations.push(hoverAnim)
   }
@@ -142,7 +142,7 @@ export function startDonutAmbientMotion(segCharges, segEpargne) {
       { strokeDashoffset: '0', opacity: 0.78 },
       { strokeDashoffset: '-7', opacity: 0 },
       { strokeDashoffset: '-7', opacity: 0 }
-    ], { duration: 8200, iterations: Infinity, easing: 'ease-in-out' })
+    ], { duration: 4800, iterations: Infinity, easing: 'ease-in-out' })
     glintAnim.pause()
     animations.push(glintAnim)
   }
@@ -153,7 +153,7 @@ export function startDonutAmbientMotion(segCharges, segEpargne) {
     { opacity: 0.84 },
     { opacity: 1 },
     { opacity: 1 }
-  ], { duration: 7600, iterations: Infinity, easing: 'ease-in-out' })
+  ], { duration: 5000, iterations: Infinity, easing: 'ease-in-out' })
   pulse.pause()
   animations.push(pulse)
 
@@ -164,7 +164,7 @@ export function startDonutAmbientMotion(segCharges, segEpargne) {
       { opacity: 0.86 },
       { opacity: 1 },
       { opacity: 1 }
-    ], { duration: 7600, delay: 2400, iterations: Infinity, easing: 'ease-in-out' })
+    ], { duration: 5300, delay: 1600, iterations: Infinity, easing: 'ease-in-out' })
     ep.pause()
     animations.push(ep)
   }
@@ -191,7 +191,7 @@ export function startProgressAmbientSweep(element, duration = 1500) {
     { transform: 'translateX(300%)', opacity: 0.9 },
     { transform: 'translateX(300%)', opacity: 0 },
     { transform: 'translateX(300%)', opacity: 0 }
-  ], { duration: 7000, iterations: Infinity, easing: 'ease-in-out' })
+  ], { duration: 4000, iterations: Infinity, easing: 'ease-in-out' })
   anim.pause()
 
   const visHandler = () => { if (document.hidden) anim.pause() }
