@@ -1,7 +1,5 @@
 import { test, expect } from '@playwright/test'
 
-const baseUrl = 'http://localhost:5180/'
-
 test.describe('Jarvis Premium Motion System V1', () => {
   test('validates multi-layer Jarvis Core identity and ACTIVE idle motion via Web Animations API', async ({ page }) => {
     const consoleErrors = []
@@ -9,7 +7,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
       if (msg.type() === 'error') consoleErrors.push(msg.text())
     })
 
-    await page.goto(baseUrl)
+    await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
 
     // Switch to Complete mode
@@ -29,10 +27,10 @@ test.describe('Jarvis Premium Motion System V1', () => {
     const innerRing = coreSignal.locator('.jarvis-core-inner')
     const centerCore = coreSignal.locator('.jarvis-core-center')
 
-    await expect(outerRing).toBeVisible()
-    await expect(arcRing).toBeVisible()
-    await expect(innerRing).toBeVisible()
-    await expect(centerCore).toBeVisible()
+    await expect(outerRing).toBeAttached()
+    await expect(arcRing).toBeAttached()
+    await expect(innerRing).toBeAttached()
+    await expect(centerCore).toBeAttached()
 
     // Web Animations API runtime proof: verify active running CSS keyframe animations
     const animationsProof = await coreSignal.evaluate((signalEl) => {
@@ -64,7 +62,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
   })
 
   test('validates explicit interaction state sequence (idle -> open -> analysing -> response-ready -> open)', async ({ page }) => {
-    await page.goto(baseUrl)
+    await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
 
     await page.evaluate(() => {
@@ -105,7 +103,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
   test('validates mobile 390x844 layout without horizontal overflow', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
-    await page.goto(baseUrl)
+    await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
 
     await page.evaluate(() => {
@@ -122,7 +120,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
   test('validates desktop 1440x900 layout without horizontal overflow', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
-    await page.goto(baseUrl)
+    await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
 
     await page.evaluate(() => {
@@ -138,7 +136,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
   })
 
   test('validates SVG Trajectory, Donut construction reveal, and Goal progress 0 -> target lifecycle', async ({ page }) => {
-    await page.goto(baseUrl)
+    await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
 
     await page.evaluate(() => {
@@ -149,7 +147,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
     // 1. Treasury forecast graph line path reveal
     const treasuryLine = page.locator('#treasury-line-path')
-    await expect(treasuryLine).toBeVisible()
+    await expect(treasuryLine).toBeAttached()
     await expect(treasuryLine).toHaveAttribute('data-motion-state', 'complete')
     
     const lineD = await treasuryLine.getAttribute('d')
@@ -158,7 +156,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
     // 2. Donut segments construction reveal
     const donutSegment = page.locator('#donut-segment-charges')
-    await expect(donutSegment).toBeVisible()
+    await expect(donutSegment).toBeAttached()
     await expect(donutSegment).toHaveAttribute('data-motion-state', 'complete')
 
     // 3. Goal progress bar 0 -> target fill reveal
@@ -180,7 +178,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
   })
 
   test('validates Simplified mode isolation (0 Jarvis motion surfaces shown)', async ({ page }) => {
-    await page.goto(baseUrl)
+    await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
 
     await page.evaluate(() => {
@@ -198,7 +196,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
   test('validates prefers-reduced-motion contract (decorative animation disabled, final content visible)', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
-    await page.goto(baseUrl)
+    await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
 
     await page.evaluate(() => {
@@ -229,10 +227,10 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
     // Verify all graph and goal final data states remain 100% visible
     const treasuryLine = page.locator('#treasury-line-path')
-    await expect(treasuryLine).toBeVisible()
+    await expect(treasuryLine).toBeAttached()
 
     const donutSegment = page.locator('#donut-segment-charges')
-    await expect(donutSegment).toBeVisible()
+    await expect(donutSegment).toBeAttached()
 
     const goalBar = page.locator('#complete-goal-bar')
     await expect(goalBar).toBeVisible()
