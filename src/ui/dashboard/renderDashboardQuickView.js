@@ -2,6 +2,7 @@ import { createMetricCard } from '../components/MetricCard.js'
 import { evaluateCopilotState } from '../../coach/copilotEngine.js'
 import { getTimeContext } from '../../time/timeEngine.js'
 import { setupAmbientMotion, startGraphAmbientMotion, startDonutAmbientMotion, startProgressAmbientSweep } from '../../jarvis/motion/jarvisAmbientMotion.js'
+import { setupViewportReveal, attachAmbientController } from './ambientHelpers.js'
 
 const fmt = (value) => {
   const amount = Number(value) || 0
@@ -18,58 +19,7 @@ const fmtPct = (value) => {
  * One-shot viewport observer for motion reveal
  * Triggers animation when element enters viewport and never replays
  */
-function setupViewportReveal(element, animationCallback, threshold = 0.25) {
-  if (!element || !window.IntersectionObserver) {
-    animationCallback()
-    return
-  }
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        observer.unobserve(entry.target)
-        animationCallback()
-      }
-    })
-  }, { threshold, rootMargin: '0px 0px -100px 0px' })
-
-  observer.observe(element)
-  return observer
-}
-
-function attachAmbientController(element, starter) {
-  if (!element) return null
-  // cleanup any previous controller/observer
-  if (element.__ambientController) {
-    try { element.__ambientController.cleanup() } catch (e) {}
-    element.__ambientController = null
-  }
-  if (element.__ambientObserver) {
-    try { element.__ambientObserver.disconnect() } catch (e) {}
-    element.__ambientObserver = null
-  }
-
-  const controller = starter(element)
-  element.__ambientController = controller
-  const observer = setupAmbientMotion(element, (isVisible) => {
-    if (!element.__ambientController) return
-    if (isVisible && element.dataset.motionState === 'ambient') {
-      element.__ambientController.resume()
-    } else {
-      element.__ambientController.pause()
-    }
-  })
-  element.__ambientObserver = observer
-
-  // If element is currently visible, resume immediately
-  const rect = element.getBoundingClientRect()
-  const inViewport = rect.top < (window.innerHeight || document.documentElement.clientHeight) && rect.bottom > 0
-  if (inViewport && element.dataset.motionState === 'ambient') {
-    controller.resume()
-  }
-
-  return controller
-}
+// helpers extracted to ./ambientHelpers.js
 
 /**
  * Ambient motion observer for visibility-aware continuous animation
@@ -407,13 +357,23 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
               hoverDot.style.opacity = '0.85'
               hoverDot.style.transform = 'scale(1)'
             }
-            // Mark complete after animation finishes
-            setTimeout(() => {
+            // Mark complete after animation finishes. Use transitionend for robustness with a fallback timeout.
+            const onLineTransitionEnd = (ev) => {
+              if (ev.propertyName && ev.propertyName.indexOf('dashoffset') === -1 && ev.propertyName.indexOf('dasharray') === -1) return
+              linePath.removeEventListener('transitionend', onLineTransitionEnd)
               linePath.dataset.motionState = 'complete'
               // Start ambient motion after reveal
               linePath.dataset.motionState = 'ambient'
               attachAmbientController(linePath, () => startGraphAmbientMotion(linePath, hoverDot))
-            }, 1100)
+            }
+            linePath.addEventListener('transitionend', onLineTransitionEnd)
+            // Fallback in case transitionend doesn't fire
+            setTimeout(() => {
+              linePath.removeEventListener('transitionend', onLineTransitionEnd)
+              linePath.dataset.motionState = 'complete'
+              linePath.dataset.motionState = 'ambient'
+              attachAmbientController(linePath, () => startGraphAmbientMotion(linePath, hoverDot))
+            }, 1200)
           })
         }
       })
@@ -489,13 +449,22 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
             segEpargne.setAttribute('stroke-dashoffset', String(-lenCh))
             segLibre.setAttribute('stroke-dasharray', `${lenVar} ${totalCircumference - lenVar}`)
             segLibre.setAttribute('stroke-dashoffset', String(-(lenCh + lenEp)))
-            // Mark complete after animation finishes
-            setTimeout(() => {
+            // Mark complete after animation finishes. Use transitionend for robustness with a fallback timeout.
+            const onDonutTransitionEnd = (ev) => {
+              if (ev.propertyName && ev.propertyName.indexOf('dasharray') === -1 && ev.propertyName.indexOf('dashoffset') === -1) return
+              segCharges.removeEventListener('transitionend', onDonutTransitionEnd)
               segCharges.dataset.motionState = 'complete'
               // Start ambient motion after reveal
               segCharges.dataset.motionState = 'ambient'
               attachAmbientController(segCharges, () => startDonutAmbientMotion(segCharges, segEpargne))
-            }, 900)
+            }
+            segCharges.addEventListener('transitionend', onDonutTransitionEnd)
+            setTimeout(() => {
+              segCharges.removeEventListener('transitionend', onDonutTransitionEnd)
+              segCharges.dataset.motionState = 'complete'
+              segCharges.dataset.motionState = 'ambient'
+              attachAmbientController(segCharges, () => startDonutAmbientMotion(segCharges, segEpargne))
+            }, 1000)
           })
         }
       })
@@ -588,13 +557,22 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
           windowRef.requestAnimationFrame(() => {
             completeGoalBar.style.transition = 'width 800ms cubic-bezier(0.16, 1, 0.3, 1)'
             completeGoalBar.style.width = `${goalProgressPct}%`
-            // Mark complete after animation finishes
-            setTimeout(() => {
+            // Mark complete after animation finishes. Use transitionend for robustness with a fallback timeout.
+            const onGoalTransitionEnd = (ev) => {
+              if (ev.propertyName && ev.propertyName !== 'width') return
+              completeGoalBar.removeEventListener('transitionend', onGoalTransitionEnd)
               completeGoalBar.dataset.motionState = 'complete'
               // Start ambient motion after reveal
               completeGoalBar.dataset.motionState = 'ambient'
               attachAmbientController(completeGoalBar, () => startProgressAmbientSweep(completeGoalBar))
-            }, 850)
+            }
+            completeGoalBar.addEventListener('transitionend', onGoalTransitionEnd)
+            setTimeout(() => {
+              completeGoalBar.removeEventListener('transitionend', onGoalTransitionEnd)
+              completeGoalBar.dataset.motionState = 'complete'
+              completeGoalBar.dataset.motionState = 'ambient'
+              attachAmbientController(completeGoalBar, () => startProgressAmbientSweep(completeGoalBar))
+            }, 900)
           })
         }
       })
