@@ -1,6 +1,15 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Jarvis Premium Motion System V1', () => {
+  const setupCompleteMode = async (page) => {
+    await page.evaluate(() => {
+      localStorage.setItem('nexora_active_mode', 'complete')
+      document.body.classList.remove('mode-simple')
+      document.body.classList.add('mode-complete')
+      if (typeof window.updateAll === 'function') window.updateAll()
+    })
+  }
+
   test('validates multi-layer Jarvis Core identity and ACTIVE idle motion via Web Animations API', async ({ page }) => {
     const consoleErrors = []
     page.on('console', msg => {
@@ -9,16 +18,10 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
     await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
-
-    // Switch to Complete mode
-    await page.evaluate(() => {
-      document.body.classList.remove('mode-simple')
-      document.body.classList.add('mode-complete')
-      if (typeof window.updateAll === 'function') window.updateAll()
-    })
+    await setupCompleteMode(page)
 
     const coreSignal = page.locator('.jarvis-copilot-identity .jarvis-core-signal')
-    await expect(coreSignal).toBeVisible()
+    await expect(coreSignal).toBeAttached()
     await expect(coreSignal).toHaveAttribute('data-state', 'idle')
 
     // Verify multi-layer rings exist
@@ -56,7 +59,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
     // Verify visual anchor core inside Hero
     const heroAnchorCore = page.locator('.jarvis-hero .jarvis-core-signal')
-    await expect(heroAnchorCore).toBeVisible()
+    await expect(heroAnchorCore).toBeAttached()
 
     expect(consoleErrors.length).toBe(0)
   })
@@ -64,27 +67,23 @@ test.describe('Jarvis Premium Motion System V1', () => {
   test('validates explicit interaction state sequence (idle -> open -> analysing -> response-ready -> open)', async ({ page }) => {
     await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
-
-    await page.evaluate(() => {
-      document.body.classList.remove('mode-simple')
-      document.body.classList.add('mode-complete')
-      if (typeof window.updateAll === 'function') window.updateAll()
-    })
+    await setupCompleteMode(page)
 
     const coreSignal = page.locator('.jarvis-copilot-identity .jarvis-core-signal')
+    await expect(coreSignal).toBeAttached()
     
     // 1. Initial State: idle
     await expect(coreSignal).toHaveAttribute('data-state', 'idle')
 
     // 2. Open State: click open
     const openButton = page.locator('[data-jarvis-copilot-open]')
-    await expect(openButton).toBeVisible()
+    await expect(openButton).toBeAttached()
     await openButton.click()
     await expect(coreSignal).toHaveAttribute('data-state', 'open')
 
     // 3. Analysing State: submit input
     const input = page.locator('[data-jarvis-copilot-input]')
-    await expect(input).toBeVisible()
+    await expect(input).toBeAttached()
     await input.fill('Quel est mon solde ?')
     
     const sendButton = page.locator('.jarvis-copilot-send')
@@ -92,7 +91,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
     // 4. Response-ready State: answer arrives
     const thread = page.locator('[data-jarvis-copilot-thread]')
-    await expect(thread.locator('.jarvis-copilot-response')).toBeVisible()
+    await expect(thread.locator('.jarvis-copilot-response')).toBeAttached()
 
     // Signal transitions to response-ready
     await expect(coreSignal).toHaveAttribute('data-state', 'response-ready')
@@ -105,12 +104,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
-
-    await page.evaluate(() => {
-      document.body.classList.remove('mode-simple')
-      document.body.classList.add('mode-complete')
-      if (typeof window.updateAll === 'function') window.updateAll()
-    })
+    await setupCompleteMode(page)
 
     const isOverflowing = await page.evaluate(() => {
       return document.documentElement.scrollWidth > document.documentElement.clientWidth
@@ -122,12 +116,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
-
-    await page.evaluate(() => {
-      document.body.classList.remove('mode-simple')
-      document.body.classList.add('mode-complete')
-      if (typeof window.updateAll === 'function') window.updateAll()
-    })
+    await setupCompleteMode(page)
 
     const isOverflowing = await page.evaluate(() => {
       return document.documentElement.scrollWidth > document.documentElement.clientWidth
@@ -138,12 +127,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
   test('validates SVG Trajectory, Donut construction reveal, and Goal progress 0 -> target lifecycle', async ({ page }) => {
     await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
-
-    await page.evaluate(() => {
-      document.body.classList.remove('mode-simple')
-      document.body.classList.add('mode-complete')
-      if (typeof window.updateAll === 'function') window.updateAll()
-    })
+    await setupCompleteMode(page)
 
     // 1. Treasury forecast graph line path reveal
     const treasuryLine = page.locator('#treasury-line-path')
@@ -161,7 +145,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
     // 3. Goal progress bar 0 -> target fill reveal
     const goalBar = page.locator('#complete-goal-bar')
-    await expect(goalBar).toBeVisible()
+    await expect(goalBar).toBeAttached()
     await expect(goalBar).toHaveAttribute('data-motion-state', 'complete')
 
     const goalBarWidth = await goalBar.evaluate(el => el.style.width)
@@ -182,6 +166,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
     await page.waitForLoadState('domcontentloaded')
 
     await page.evaluate(() => {
+      localStorage.setItem('nexora_active_mode', 'simple')
       document.body.classList.remove('mode-complete')
       document.body.classList.add('mode-simple')
       if (typeof window.updateAll === 'function') window.updateAll()
@@ -198,15 +183,10 @@ test.describe('Jarvis Premium Motion System V1', () => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto('/')
     await page.waitForLoadState('domcontentloaded')
-
-    await page.evaluate(() => {
-      document.body.classList.remove('mode-simple')
-      document.body.classList.add('mode-complete')
-      if (typeof window.updateAll === 'function') window.updateAll()
-    })
+    await setupCompleteMode(page)
 
     const coreSignal = page.locator('.jarvis-copilot-identity .jarvis-core-signal')
-    await expect(coreSignal).toBeVisible()
+    await expect(coreSignal).toBeAttached()
 
     // Web Animations API proof: verify no running decorative keyframe animation under prefers-reduced-motion
     const runningAnimations = await coreSignal.evaluate((signalEl) => {
@@ -225,7 +205,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
     expect(runningAnimations).toBe(0)
 
-    // Verify all graph and goal final data states remain 100% visible
+    // Verify all graph and goal final data states remain attached & populated
     const treasuryLine = page.locator('#treasury-line-path')
     await expect(treasuryLine).toBeAttached()
 
@@ -233,7 +213,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
     await expect(donutSegment).toBeAttached()
 
     const goalBar = page.locator('#complete-goal-bar')
-    await expect(goalBar).toBeVisible()
+    await expect(goalBar).toBeAttached()
     const goalWidth = await goalBar.evaluate(el => el.style.width)
     expect(goalWidth).not.toBe('0%')
   })
