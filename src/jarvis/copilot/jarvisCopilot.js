@@ -310,7 +310,19 @@ export function attachJarvisCopilot(container, options = {}) {
     })
   }
 
+  let pendingSignalTimeoutId = null
+  let signalVersion = 0
+
+  const clearPendingSignalTimeout = () => {
+    if (pendingSignalTimeoutId) {
+      clearTimeout(pendingSignalTimeoutId)
+      pendingSignalTimeoutId = null
+    }
+  }
+
   const setSignalState = (state) => {
+    clearPendingSignalTimeout()
+    signalVersion++
     root.querySelectorAll('.jarvis-core-signal').forEach(s => s.dataset.state = state)
   }
 
@@ -325,8 +337,13 @@ export function attachJarvisCopilot(container, options = {}) {
     try {
       await renderResponse(trimmed)
       setSignalState('response-ready')
-      setTimeout(() => {
-        setSignalState(root.dataset.jarvisCopilotState === 'open' ? 'open' : 'idle')
+      const currentVersion = ++signalVersion
+      pendingSignalTimeoutId = setTimeout(() => {
+        if (currentVersion === signalVersion) {
+          root.querySelectorAll('.jarvis-core-signal').forEach(s => {
+            s.dataset.state = root.dataset.jarvisCopilotState === 'open' ? 'open' : 'idle'
+          })
+        }
       }, 1200)
     } catch (error) {
       setSignalState('idle')

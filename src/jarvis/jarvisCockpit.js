@@ -242,11 +242,18 @@ export async function renderJarvisCockpit(container, options = {}) {
       }
     })
 
-    // Trigger entry animation
+    // Trigger entry animation and goal progress fill
     requestAnimationFrame(() => {
       const cockpit = container.querySelector('.jarvis-cockpit')
       if (cockpit) {
         cockpit.dataset.motion = 'entry'
+        const bar = cockpit.querySelector('.jarvis-goal-progress-bar')
+        if (bar && bar.dataset.targetWidth) {
+          requestAnimationFrame(() => {
+            bar.style.width = bar.dataset.targetWidth
+            bar.dataset.motionState = 'complete'
+          })
+        }
       }
     })
 
@@ -463,7 +470,7 @@ function renderGoalModule(viewModel) {
         <span class="jarvis-goal-stat-value">${formatPercent(progressClamped)}</span>
       </div>
       <div class="jarvis-goal-progress">
-        <div class="jarvis-goal-progress-bar" style="width: ${progressClamped}%"></div>
+        <div class="jarvis-goal-progress-bar" style="width: 0%;" data-target-width="${progressClamped}%" data-motion-state="pending"></div>
       </div>
       <div class="jarvis-goal-stats">
         <span class="jarvis-goal-stat">Restant: <span class="jarvis-goal-stat-value">${formatCurrency(goal.remaining)}</span></span>

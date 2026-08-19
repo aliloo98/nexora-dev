@@ -269,10 +269,11 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   const isReducedMotion = typeof windowRef?.matchMedia === 'function' &&
     windowRef.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-  // SPRINT 2: COURBE DE TRÉSORERIE 30 JOURS
+  // SPRINT 2: COURBE DE TRÉSORERIE 30 JOURS (TRUE SVG PATH-DRAW REVEAL)
   const linePath = documentRef.getElementById('treasury-line-path')
   const areaPath = documentRef.getElementById('treasury-area-path')
   const hoverDot = documentRef.getElementById('treasury-hover-dot')
+
   if (linePath && areaPath) {
     const yStart = Math.max(20, Math.min(100, 100 - (revReel / Math.max(1, revReel)) * 50))
     const yMid = Math.max(15, Math.min(105, 100 - (copilotState.resteAVivre / Math.max(1, revReel)) * 70))
@@ -280,29 +281,74 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
     
     const lineD = `M 0,${yStart} Q 250,${yMid} 500,${yEnd}`
     const areaD = `M 0,120 L 0,${yStart} Q 250,${yMid} 500,${yEnd} L 500,120 Z`
-    
-    if (!isReducedMotion && !linePath.dataset.animated) {
-      linePath.style.transition = 'd 900ms cubic-bezier(0.16, 1, 0.3, 1)'
-      areaPath.style.transition = 'd 900ms cubic-bezier(0.16, 1, 0.3, 1), opacity 900ms ease-out'
-      linePath.dataset.animated = 'true'
-    } else if (isReducedMotion) {
+
+    const isInitialReveal = !linePath.dataset.motionState
+
+    if (isReducedMotion) {
       linePath.style.transition = 'none'
       areaPath.style.transition = 'none'
-    }
+      linePath.setAttribute('stroke-dasharray', 'none')
+      linePath.setAttribute('stroke-dashoffset', '0')
+      linePath.setAttribute('d', lineD)
+      areaPath.setAttribute('d', areaD)
+      areaPath.style.opacity = '1'
+      if (hoverDot) {
+        hoverDot.setAttribute('cx', '250')
+        hoverDot.setAttribute('cy', String(yMid))
+        hoverDot.style.opacity = '0.8'
+      }
+      linePath.dataset.motionState = 'complete'
+    } else if (isInitialReveal) {
+      // True SVG path drawing from left to right on first presentation
+      const pathLength = 520
+      linePath.dataset.motionState = 'pending'
+      linePath.setAttribute('d', lineD)
+      areaPath.setAttribute('d', areaD)
+      linePath.setAttribute('stroke-dasharray', String(pathLength))
+      linePath.setAttribute('stroke-dashoffset', String(pathLength))
+      areaPath.style.opacity = '0'
 
-    linePath.setAttribute('d', lineD)
-    areaPath.setAttribute('d', areaD)
-    if (hoverDot) {
-      hoverDot.setAttribute('cx', '250')
-      hoverDot.setAttribute('cy', String(yMid))
-      if (!isReducedMotion && !hoverDot.dataset.animated) {
-        hoverDot.style.transition = 'opacity 300ms ease-out 600ms, transform 300ms cubic-bezier(0.16, 1, 0.3, 1) 600ms'
-        hoverDot.dataset.animated = 'true'
+      if (hoverDot) {
+        hoverDot.setAttribute('cx', '250')
+        hoverDot.setAttribute('cy', String(yMid))
+        hoverDot.style.opacity = '0'
+        hoverDot.style.transform = 'scale(0.75)'
+      }
+
+      if (typeof windowRef?.requestAnimationFrame === 'function') {
+        windowRef.requestAnimationFrame(() => {
+          windowRef.requestAnimationFrame(() => {
+            linePath.style.transition = 'stroke-dashoffset 950ms cubic-bezier(0.16, 1, 0.3, 1)'
+            areaPath.style.transition = 'opacity 700ms ease-out 400ms'
+            linePath.setAttribute('stroke-dashoffset', '0')
+            areaPath.style.opacity = '1'
+            if (hoverDot) {
+              hoverDot.style.transition = 'opacity 350ms ease-out 750ms, transform 350ms cubic-bezier(0.16, 1, 0.3, 1) 750ms'
+              hoverDot.style.opacity = '0.85'
+              hoverDot.style.transform = 'scale(1)'
+            }
+            linePath.dataset.motionState = 'complete'
+          })
+        })
+      } else {
+        linePath.setAttribute('stroke-dashoffset', '0')
+        areaPath.style.opacity = '1'
+        linePath.dataset.motionState = 'complete'
+      }
+    } else {
+      // Subsequent updateAll calls: smooth geometry update without re-drawing line from left
+      linePath.style.transition = 'd 600ms cubic-bezier(0.16, 1, 0.3, 1)'
+      areaPath.style.transition = 'd 600ms cubic-bezier(0.16, 1, 0.3, 1)'
+      linePath.setAttribute('d', lineD)
+      areaPath.setAttribute('d', areaD)
+      if (hoverDot) {
+        hoverDot.setAttribute('cx', '250')
+        hoverDot.setAttribute('cy', String(yMid))
       }
     }
   }
 
-  // SPRINT 3: DONUT CHART 360°
+  // SPRINT 3: DONUT CHART 360° (TRUE CONSTRUCTION REVEAL)
   const totalCircumference = 238.76
   const pctCh = revReel > 0 ? Math.min(100, Math.round((fixReel / revReel) * 100)) : 0
   const pctEp = revReel > 0 ? Math.min(100 - pctCh, Math.max(0, Math.round(savingsRate))) : 0
@@ -316,30 +362,70 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   const segEpargne = documentRef.getElementById('donut-segment-epargne')
   const segLibre = documentRef.getElementById('donut-segment-libre')
 
-  const applySegmentTransition = (seg) => {
-    if (!seg) return
-    if (!isReducedMotion) {
-      seg.style.transition = 'stroke-dasharray 850ms cubic-bezier(0.16, 1, 0.3, 1), stroke-dashoffset 850ms cubic-bezier(0.16, 1, 0.3, 1)'
+  if (segCharges && segEpargne && segLibre) {
+    const isDonutInitialReveal = !segCharges.dataset.motionState
+
+    if (isReducedMotion) {
+      segCharges.style.transition = 'none'
+      segEpargne.style.transition = 'none'
+      segLibre.style.transition = 'none'
+      segCharges.setAttribute('stroke-dasharray', `${lenCh} ${totalCircumference - lenCh}`)
+      segCharges.setAttribute('stroke-dashoffset', '0')
+      segEpargne.setAttribute('stroke-dasharray', `${lenEp} ${totalCircumference - lenEp}`)
+      segEpargne.setAttribute('stroke-dashoffset', String(-lenCh))
+      segLibre.setAttribute('stroke-dasharray', `${lenVar} ${totalCircumference - lenVar}`)
+      segLibre.setAttribute('stroke-dashoffset', String(-(lenCh + lenEp)))
+      segCharges.dataset.motionState = 'complete'
+    } else if (isDonutInitialReveal) {
+      // True construction reveal clockwise
+      segCharges.dataset.motionState = 'pending'
+      segCharges.setAttribute('stroke-dasharray', `0 ${totalCircumference}`)
+      segCharges.setAttribute('stroke-dashoffset', '0')
+      segEpargne.setAttribute('stroke-dasharray', `0 ${totalCircumference}`)
+      segEpargne.setAttribute('stroke-dashoffset', '0')
+      segLibre.setAttribute('stroke-dasharray', `0 ${totalCircumference}`)
+      segLibre.setAttribute('stroke-dashoffset', '0')
+
+      if (typeof windowRef?.requestAnimationFrame === 'function') {
+        windowRef.requestAnimationFrame(() => {
+          windowRef.requestAnimationFrame(() => {
+            const segTransition = 'stroke-dasharray 850ms cubic-bezier(0.16, 1, 0.3, 1), stroke-dashoffset 850ms cubic-bezier(0.16, 1, 0.3, 1)'
+            segCharges.style.transition = segTransition
+            segEpargne.style.transition = segTransition
+            segLibre.style.transition = segTransition
+
+            segCharges.setAttribute('stroke-dasharray', `${lenCh} ${totalCircumference - lenCh}`)
+            segCharges.setAttribute('stroke-dashoffset', '0')
+            segEpargne.setAttribute('stroke-dasharray', `${lenEp} ${totalCircumference - lenEp}`)
+            segEpargne.setAttribute('stroke-dashoffset', String(-lenCh))
+            segLibre.setAttribute('stroke-dasharray', `${lenVar} ${totalCircumference - lenVar}`)
+            segLibre.setAttribute('stroke-dashoffset', String(-(lenCh + lenEp)))
+            segCharges.dataset.motionState = 'complete'
+          })
+        })
+      } else {
+        segCharges.setAttribute('stroke-dasharray', `${lenCh} ${totalCircumference - lenCh}`)
+        segCharges.setAttribute('stroke-dashoffset', '0')
+        segEpargne.setAttribute('stroke-dasharray', `${lenEp} ${totalCircumference - lenEp}`)
+        segEpargne.setAttribute('stroke-dashoffset', String(-lenCh))
+        segLibre.setAttribute('stroke-dasharray', `${lenVar} ${totalCircumference - lenVar}`)
+        segLibre.setAttribute('stroke-dashoffset', String(-(lenCh + lenEp)))
+        segCharges.dataset.motionState = 'complete'
+      }
     } else {
-      seg.style.transition = 'none'
+      // Subsequent updates: smooth transition from previous state
+      const segTransition = 'stroke-dasharray 500ms cubic-bezier(0.16, 1, 0.3, 1), stroke-dashoffset 500ms cubic-bezier(0.16, 1, 0.3, 1)'
+      segCharges.style.transition = segTransition
+      segEpargne.style.transition = segTransition
+      segLibre.style.transition = segTransition
+
+      segCharges.setAttribute('stroke-dasharray', `${lenCh} ${totalCircumference - lenCh}`)
+      segCharges.setAttribute('stroke-dashoffset', '0')
+      segEpargne.setAttribute('stroke-dasharray', `${lenEp} ${totalCircumference - lenEp}`)
+      segEpargne.setAttribute('stroke-dashoffset', String(-lenCh))
+      segLibre.setAttribute('stroke-dasharray', `${lenVar} ${totalCircumference - lenVar}`)
+      segLibre.setAttribute('stroke-dashoffset', String(-(lenCh + lenEp)))
     }
-  }
-
-  applySegmentTransition(segCharges)
-  applySegmentTransition(segEpargne)
-  applySegmentTransition(segLibre)
-
-  if (segCharges) {
-    segCharges.setAttribute('stroke-dasharray', `${lenCh} ${totalCircumference - lenCh}`)
-    segCharges.setAttribute('stroke-dashoffset', '0')
-  }
-  if (segEpargne) {
-    segEpargne.setAttribute('stroke-dasharray', `${lenEp} ${totalCircumference - lenEp}`)
-    segEpargne.setAttribute('stroke-dashoffset', String(-lenCh))
-  }
-  if (segLibre) {
-    segLibre.setAttribute('stroke-dasharray', `${lenVar} ${totalCircumference - lenVar}`)
-    segLibre.setAttribute('stroke-dashoffset', String(-(lenCh + lenEp)))
   }
 
   const donutCenterPct = documentRef.getElementById('donut-center-pct')
@@ -347,7 +433,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
     if (!isReducedMotion && !donutCenterPct.dataset.animated && typeof windowRef?.requestAnimationFrame === 'function') {
       donutCenterPct.dataset.animated = 'true'
       const startTime = Date.now()
-      const duration = 650
+      const duration = 700
       const targetVal = pctCh
       const animateCount = () => {
         const elapsed = Date.now() - startTime
@@ -388,15 +474,35 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   const analysisRatioVal = documentRef.getElementById('analysis-ratio-value')
   if (analysisRatioVal) analysisRatioVal.textContent = fmt(safetyMargin)
 
+  // GOAL PROGRESS BAR (TRUE 0 -> TARGET FILL REVEAL)
   const completeGoalBar = documentRef.getElementById('complete-goal-bar')
   const completeGoalText = documentRef.getElementById('complete-goal-progress-text')
   if (completeGoalBar && completeGoalText) {
-    if (!isReducedMotion) {
-      completeGoalBar.style.transition = 'width 800ms cubic-bezier(0.16, 1, 0.3, 1)'
-    } else {
+    const isGoalInitialReveal = !completeGoalBar.dataset.motionState
+
+    if (isReducedMotion) {
       completeGoalBar.style.transition = 'none'
+      completeGoalBar.style.width = `${goalProgressPct}%`
+      completeGoalBar.dataset.motionState = 'complete'
+    } else if (isGoalInitialReveal) {
+      completeGoalBar.dataset.motionState = 'pending'
+      completeGoalBar.style.width = '0%'
+      if (typeof windowRef?.requestAnimationFrame === 'function') {
+        windowRef.requestAnimationFrame(() => {
+          windowRef.requestAnimationFrame(() => {
+            completeGoalBar.style.transition = 'width 800ms cubic-bezier(0.16, 1, 0.3, 1)'
+            completeGoalBar.style.width = `${goalProgressPct}%`
+            completeGoalBar.dataset.motionState = 'complete'
+          })
+        })
+      } else {
+        completeGoalBar.style.width = `${goalProgressPct}%`
+        completeGoalBar.dataset.motionState = 'complete'
+      }
+    } else {
+      completeGoalBar.style.transition = 'width 500ms cubic-bezier(0.16, 1, 0.3, 1)'
+      completeGoalBar.style.width = `${goalProgressPct}%`
     }
-    completeGoalBar.style.width = `${goalProgressPct}%`
     completeGoalText.textContent = `${fmt(soldeFinMois)} / ${fmt(goalTarget)}`
   }
 
