@@ -14,6 +14,29 @@ const fmtPct = (value) => {
 }
 
 /**
+ * One-shot viewport observer for motion reveal
+ * Triggers animation when element enters viewport and never replays
+ */
+function setupViewportReveal(element, animationCallback, threshold = 0.25) {
+  if (!element || !window.IntersectionObserver) {
+    animationCallback()
+    return
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        observer.unobserve(entry.target)
+        animationCallback()
+      }
+    })
+  }, { threshold, rootMargin: '0px 0px -100px 0px' })
+
+  observer.observe(element)
+  return observer
+}
+
+/**
  * Crée un KPI horizontal compact
  */
 function createHorizontalKPI({ label, value, context, icon, tone = 'neutral' }, documentRef) {
@@ -299,7 +322,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
       }
       linePath.dataset.motionState = 'complete'
     } else if (isInitialReveal) {
-      // True SVG path drawing from left to right on first presentation
+      // Set initial state for viewport-triggered reveal
       const pathLength = 520
       linePath.dataset.motionState = 'pending'
       linePath.setAttribute('d', lineD)
@@ -315,8 +338,10 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
         hoverDot.style.transform = 'scale(0.75)'
       }
 
-      if (typeof windowRef?.requestAnimationFrame === 'function') {
-        windowRef.requestAnimationFrame(() => {
+      // Trigger animation only when element enters viewport
+      setupViewportReveal(linePath, () => {
+        linePath.dataset.motionState = 'running'
+        if (typeof windowRef?.requestAnimationFrame === 'function') {
           windowRef.requestAnimationFrame(() => {
             linePath.style.transition = 'stroke-dashoffset 950ms cubic-bezier(0.16, 1, 0.3, 1)'
             areaPath.style.transition = 'opacity 700ms ease-out 400ms'
@@ -327,14 +352,13 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
               hoverDot.style.opacity = '0.85'
               hoverDot.style.transform = 'scale(1)'
             }
-            linePath.dataset.motionState = 'complete'
+            // Mark complete after animation finishes
+            setTimeout(() => {
+              linePath.dataset.motionState = 'complete'
+            }, 1100)
           })
-        })
-      } else {
-        linePath.setAttribute('stroke-dashoffset', '0')
-        areaPath.style.opacity = '1'
-        linePath.dataset.motionState = 'complete'
-      }
+        }
+      })
     } else {
       // Subsequent updateAll calls: smooth geometry update without re-drawing line from left
       linePath.style.transition = 'd 600ms cubic-bezier(0.16, 1, 0.3, 1)'
@@ -377,7 +401,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
       segLibre.setAttribute('stroke-dashoffset', String(-(lenCh + lenEp)))
       segCharges.dataset.motionState = 'complete'
     } else if (isDonutInitialReveal) {
-      // True construction reveal clockwise
+      // Set initial state for viewport-triggered reveal
       segCharges.dataset.motionState = 'pending'
       segCharges.setAttribute('stroke-dasharray', `0 ${totalCircumference}`)
       segCharges.setAttribute('stroke-dashoffset', '0')
@@ -386,8 +410,10 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
       segLibre.setAttribute('stroke-dasharray', `0 ${totalCircumference}`)
       segLibre.setAttribute('stroke-dashoffset', '0')
 
-      if (typeof windowRef?.requestAnimationFrame === 'function') {
-        windowRef.requestAnimationFrame(() => {
+      // Trigger construction only when element enters viewport
+      setupViewportReveal(segCharges, () => {
+        segCharges.dataset.motionState = 'running'
+        if (typeof windowRef?.requestAnimationFrame === 'function') {
           windowRef.requestAnimationFrame(() => {
             const segTransition = 'stroke-dasharray 850ms cubic-bezier(0.16, 1, 0.3, 1), stroke-dashoffset 850ms cubic-bezier(0.16, 1, 0.3, 1)'
             segCharges.style.transition = segTransition
@@ -400,18 +426,13 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
             segEpargne.setAttribute('stroke-dashoffset', String(-lenCh))
             segLibre.setAttribute('stroke-dasharray', `${lenVar} ${totalCircumference - lenVar}`)
             segLibre.setAttribute('stroke-dashoffset', String(-(lenCh + lenEp)))
-            segCharges.dataset.motionState = 'complete'
+            // Mark complete after animation finishes
+            setTimeout(() => {
+              segCharges.dataset.motionState = 'complete'
+            }, 900)
           })
-        })
-      } else {
-        segCharges.setAttribute('stroke-dasharray', `${lenCh} ${totalCircumference - lenCh}`)
-        segCharges.setAttribute('stroke-dashoffset', '0')
-        segEpargne.setAttribute('stroke-dasharray', `${lenEp} ${totalCircumference - lenEp}`)
-        segEpargne.setAttribute('stroke-dashoffset', String(-lenCh))
-        segLibre.setAttribute('stroke-dasharray', `${lenVar} ${totalCircumference - lenVar}`)
-        segLibre.setAttribute('stroke-dashoffset', String(-(lenCh + lenEp)))
-        segCharges.dataset.motionState = 'complete'
-      }
+        }
+      })
     } else {
       // Subsequent updates: smooth transition from previous state
       const segTransition = 'stroke-dasharray 500ms cubic-bezier(0.16, 1, 0.3, 1), stroke-dashoffset 500ms cubic-bezier(0.16, 1, 0.3, 1)'
@@ -485,20 +506,24 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
       completeGoalBar.style.width = `${goalProgressPct}%`
       completeGoalBar.dataset.motionState = 'complete'
     } else if (isGoalInitialReveal) {
+      // Set initial state for viewport-triggered reveal
       completeGoalBar.dataset.motionState = 'pending'
       completeGoalBar.style.width = '0%'
-      if (typeof windowRef?.requestAnimationFrame === 'function') {
-        windowRef.requestAnimationFrame(() => {
+
+      // Trigger fill only when element enters viewport
+      setupViewportReveal(completeGoalBar, () => {
+        completeGoalBar.dataset.motionState = 'running'
+        if (typeof windowRef?.requestAnimationFrame === 'function') {
           windowRef.requestAnimationFrame(() => {
             completeGoalBar.style.transition = 'width 800ms cubic-bezier(0.16, 1, 0.3, 1)'
             completeGoalBar.style.width = `${goalProgressPct}%`
-            completeGoalBar.dataset.motionState = 'complete'
+            // Mark complete after animation finishes
+            setTimeout(() => {
+              completeGoalBar.dataset.motionState = 'complete'
+            }, 850)
           })
-        })
-      } else {
-        completeGoalBar.style.width = `${goalProgressPct}%`
-        completeGoalBar.dataset.motionState = 'complete'
-      }
+        }
+      })
     } else {
       completeGoalBar.style.transition = 'width 500ms cubic-bezier(0.16, 1, 0.3, 1)'
       completeGoalBar.style.width = `${goalProgressPct}%`

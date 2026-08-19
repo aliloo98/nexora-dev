@@ -11,6 +11,28 @@ import { createJarvisViewModel } from './jarvisViewModel.js'
 import { attachJarvisCopilot, renderJarvisCopilot } from './copilot/jarvisCopilot.js'
 
 /**
+ * One-shot viewport observer for motion reveal
+ */
+function setupViewportReveal(element, animationCallback, threshold = 0.25) {
+  if (!element || !window.IntersectionObserver) {
+    animationCallback()
+    return
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        observer.unobserve(entry.target)
+        animationCallback()
+      }
+    })
+  }, { threshold, rootMargin: '0px 0px -50px 0px' })
+
+  observer.observe(element)
+  return observer
+}
+
+/**
  * Single observer instance to prevent duplicates
  */
 let modeObserver = null
@@ -242,20 +264,93 @@ export async function renderJarvisCockpit(container, options = {}) {
       }
     })
 
-    // Trigger entry animation and goal progress fill
-    requestAnimationFrame(() => {
-      const cockpit = container.querySelector('.jarvis-cockpit')
-      if (cockpit) {
-        cockpit.dataset.motion = 'entry'
-        const bar = cockpit.querySelector('.jarvis-goal-progress-bar')
-        if (bar && bar.dataset.targetWidth) {
-          requestAnimationFrame(() => {
-            bar.style.width = bar.dataset.targetWidth
-            bar.dataset.motionState = 'complete'
-          })
+    // Trigger viewport-based staggered entry animation
+    const cockpit = container.querySelector('.jarvis-cockpit')
+    const isReducedMotion = typeof windowRef?.matchMedia === 'function' &&
+      windowRef.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    if (cockpit) {
+      cockpit.dataset.motion = 'pending'
+
+      // Staggered reveal of key Jarvis surfaces
+      const surfaces = [
+        '.jarvis-hero',
+        '.jarvis-copilot-identity',
+        '.jarvis-priority-card',
+        '.jarvis-trajectory-panel',
+        '.jarvis-signals-section',
+        '.jarvis-goal-module'
+      ]
+
+      const revealStagger = (index) => {
+        if (index >= surfaces.length) {
+          cockpit.dataset.motion = 'complete'
+          return
+        }
+
+        const selector = surfaces[index]
+        const element = container.querySelector(selector)
+        if (element) {
+          element.dataset.motionState = 'running'
+          element.style.transition = 'opacity 300ms ease-out, transform 300ms cubic-bezier(0.16, 1, 0.3, 1)'
+          element.style.opacity = '1'
+          element.style.transform = 'translateY(0) scale(1)'
+          setTimeout(() => {
+            element.dataset.motionState = 'complete'
+            revealStagger(index + 1)
+          }, 300)
+        } else {
+          revealStagger(index + 1)
         }
       }
-    })
+
+      // Set initial state for staggered reveal
+      surfaces.forEach(selector => {
+        const element = container.querySelector(selector)
+        if (element) {
+          element.dataset.motionState = 'pending'
+          element.style.opacity = '0'
+          element.style.transform = 'translateY(8px) scale(0.995)'
+          element.style.transition = 'none'
+        }
+      })
+
+      if (isReducedMotion) {
+        // Reduced motion: show all immediately
+        cockpit.dataset.motion = 'complete'
+        surfaces.forEach(selector => {
+          const element = container.querySelector(selector)
+          if (element) {
+            element.dataset.motionState = 'complete'
+            element.style.opacity = '1'
+            element.style.transform = 'translateY(0) scale(1)'
+          }
+        })
+
+        const bar = cockpit.querySelector('.jarvis-goal-progress-bar')
+        if (bar && bar.dataset.targetWidth) {
+          bar.dataset.motionState = 'complete'
+          bar.style.width = bar.dataset.targetWidth
+        }
+      } else {
+        // Trigger reveal when cockpit enters viewport
+        setupViewportReveal(cockpit, () => {
+          cockpit.dataset.motion = 'running'
+          revealStagger(0)
+
+          // Goal progress fill when cockpit enters viewport
+          const bar = cockpit.querySelector('.jarvis-goal-progress-bar')
+          if (bar && bar.dataset.targetWidth) {
+            bar.dataset.motionState = 'running'
+            bar.style.transition = 'width 800ms cubic-bezier(0.16, 1, 0.3, 1)'
+            bar.style.width = bar.dataset.targetWidth
+            setTimeout(() => {
+              bar.dataset.motionState = 'complete'
+            }, 850)
+          }
+        })
+      }
+    }
 
   } catch (error) {
     console.error('[Jarvis Cockpit] Error rendering cockpit:', error)

@@ -138,8 +138,17 @@ test.describe('Jarvis Premium Motion System V1', () => {
     // 1. Treasury forecast graph line path reveal
     const treasuryLine = page.locator('#treasury-line-path')
     await expect(treasuryLine).toBeAttached()
+
+    // Scroll to ensure elements enter viewport and trigger animations
+    await page.evaluate(() => {
+      const linePath = document.getElementById('treasury-line-path')
+      if (linePath) linePath.scrollIntoView({ behavior: 'instant', block: 'center' })
+    })
+
+    // Wait for animation to complete
+    await page.waitForTimeout(1200)
     await expect(treasuryLine).toHaveAttribute('data-motion-state', 'complete')
-    
+
     const lineD = await treasuryLine.getAttribute('d')
     expect(lineD).toBeTruthy()
     expect(lineD.startsWith('M 0,')).toBe(true)
@@ -147,11 +156,25 @@ test.describe('Jarvis Premium Motion System V1', () => {
     // 2. Donut segments construction reveal
     const donutSegment = page.locator('#donut-segment-charges')
     await expect(donutSegment).toBeAttached()
+
+    await page.evaluate(() => {
+      const donut = document.getElementById('donut-segment-charges')
+      if (donut) donut.scrollIntoView({ behavior: 'instant', block: 'center' })
+    })
+
+    await page.waitForTimeout(1000)
     await expect(donutSegment).toHaveAttribute('data-motion-state', 'complete')
 
     // 3. Goal progress bar 0 -> target fill reveal
     const goalBar = page.locator('#complete-goal-bar')
     await expect(goalBar).toBeAttached()
+
+    await page.evaluate(() => {
+      const goal = document.getElementById('complete-goal-bar')
+      if (goal) goal.scrollIntoView({ behavior: 'instant', block: 'center' })
+    })
+
+    await page.waitForTimeout(900)
     await expect(goalBar).toHaveAttribute('data-motion-state', 'complete')
 
     const goalBarWidth = await goalBar.evaluate(el => el.style.width)
@@ -165,6 +188,72 @@ test.describe('Jarvis Premium Motion System V1', () => {
     await expect(goalBar).toHaveAttribute('data-motion-state', 'complete')
     await expect(treasuryLine).toHaveAttribute('data-motion-state', 'complete')
     await expect(donutSegment).toHaveAttribute('data-motion-state', 'complete')
+  })
+
+  test('validates realistic mobile 390x844 scroll triggers viewport-based motion', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await setupCompleteMode(page)
+
+    // Verify initial pending states
+    const treasuryLine = page.locator('#treasury-line-path')
+    await expect(treasuryLine).toBeAttached()
+    const initialLineState = await treasuryLine.getAttribute('data-motion-state')
+    expect(initialLineState).toBe('pending')
+
+    const donutSegment = page.locator('#donut-segment-charges')
+    const initialDonutState = await donutSegment.getAttribute('data-motion-state')
+    expect(initialDonutState).toBe('pending')
+
+    const goalBar = page.locator('#complete-goal-bar')
+    const initialGoalState = await goalBar.getAttribute('data-motion-state')
+    expect(initialGoalState).toBe('pending')
+
+    // Realistic scroll sequence: open dashboard → scroll naturally
+    await page.evaluate(() => {
+      window.scrollTo(0, 0)
+    })
+
+    // Scroll to trigger trajectory graph animation
+    await page.evaluate(() => {
+      const linePath = document.getElementById('treasury-line-path')
+      if (linePath) linePath.scrollIntoView({ behavior: 'instant', block: 'center' })
+    })
+
+    await page.waitForTimeout(100)
+    const runningLineState = await treasuryLine.getAttribute('data-motion-state')
+    expect(runningLineState).toBe('running')
+
+    // Continue scroll to trigger donut animation
+    await page.evaluate(() => {
+      const donut = document.getElementById('donut-segment-charges')
+      if (donut) donut.scrollIntoView({ behavior: 'instant', block: 'center' })
+    })
+
+    await page.waitForTimeout(100)
+    const runningDonutState = await donutSegment.getAttribute('data-motion-state')
+    expect(runningDonutState).toBe('running')
+
+    // Continue scroll to trigger progress animation
+    await page.evaluate(() => {
+      const goal = document.getElementById('complete-goal-bar')
+      if (goal) goal.scrollIntoView({ behavior: 'instant', block: 'center' })
+    })
+
+    await page.waitForTimeout(100)
+    const runningGoalState = await goalBar.getAttribute('data-motion-state')
+    expect(runningGoalState).toBe('running')
+
+    // Verify final complete states
+    await page.waitForTimeout(1200)
+    await expect(treasuryLine).toHaveAttribute('data-motion-state', 'complete')
+    await expect(donutSegment).toHaveAttribute('data-motion-state', 'complete')
+    await expect(goalBar).toHaveAttribute('data-motion-state', 'complete')
+
+    // Verify no horizontal overflow
+    const isOverflowing = await page.evaluate(() => {
+      return document.documentElement.scrollWidth > document.documentElement.clientWidth
+    })
+    expect(isOverflowing).toBe(false)
   })
 
   test('validates Simplified mode isolation (0 Jarvis motion surfaces shown)', async ({ page }) => {
@@ -224,15 +313,19 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
     expect(runningAnimations).toBe(0)
 
-    // Verify all graph and goal final data states remain attached & populated
+    // Verify all graph and goal go directly to complete state without pending
     const treasuryLine = page.locator('#treasury-line-path')
     await expect(treasuryLine).toBeAttached()
+    await expect(treasuryLine).toHaveAttribute('data-motion-state', 'complete')
 
     const donutSegment = page.locator('#donut-segment-charges')
     await expect(donutSegment).toBeAttached()
+    await expect(donutSegment).toHaveAttribute('data-motion-state', 'complete')
 
     const goalBar = page.locator('#complete-goal-bar')
     await expect(goalBar).toBeAttached()
+    await expect(goalBar).toHaveAttribute('data-motion-state', 'complete')
+
     const goalWidth = await goalBar.evaluate(el => el.style.width)
     expect(goalWidth).not.toBe('0%')
   })
