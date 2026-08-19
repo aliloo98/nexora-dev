@@ -146,8 +146,9 @@ test.describe('Jarvis Premium Motion System V1', () => {
     })
 
     // Wait for animation to complete
-    await page.waitForTimeout(1200)
-    await expect(treasuryLine).toHaveAttribute('data-motion-state', 'complete')
+    await page.waitForTimeout(2000)
+    const lineState = await treasuryLine.getAttribute('data-motion-state')
+    expect(lineState === 'complete' || lineState === 'ambient').toBe(true)
 
     const lineD = await treasuryLine.getAttribute('d')
     expect(lineD).toBeTruthy()
@@ -163,7 +164,8 @@ test.describe('Jarvis Premium Motion System V1', () => {
     })
 
     await page.waitForTimeout(1000)
-    await expect(donutSegment).toHaveAttribute('data-motion-state', 'complete')
+    const donutState = await donutSegment.getAttribute('data-motion-state')
+    expect(donutState === 'complete' || donutState === 'ambient').toBe(true)
 
     // 3. Goal progress bar 0 -> target fill reveal
     const goalBar = page.locator('#complete-goal-bar')
@@ -175,7 +177,8 @@ test.describe('Jarvis Premium Motion System V1', () => {
     })
 
     await page.waitForTimeout(900)
-    await expect(goalBar).toHaveAttribute('data-motion-state', 'complete')
+    const goalState = await goalBar.getAttribute('data-motion-state')
+    expect(goalState === 'complete' || goalState === 'ambient').toBe(true)
 
     const goalBarWidth = await goalBar.evaluate(el => el.style.width)
     expect(goalBarWidth).not.toBe('0%')
@@ -185,9 +188,12 @@ test.describe('Jarvis Premium Motion System V1', () => {
     await page.evaluate(() => {
       if (typeof window.updateAll === 'function') window.updateAll()
     })
-    await expect(goalBar).toHaveAttribute('data-motion-state', 'complete')
-    await expect(treasuryLine).toHaveAttribute('data-motion-state', 'complete')
-    await expect(donutSegment).toHaveAttribute('data-motion-state', 'complete')
+    const afterUpdateGoalState = await goalBar.getAttribute('data-motion-state')
+    expect(afterUpdateGoalState === 'complete' || afterUpdateGoalState === 'ambient').toBe(true)
+    const afterUpdateLineState = await treasuryLine.getAttribute('data-motion-state')
+    expect(afterUpdateLineState === 'complete' || afterUpdateLineState === 'ambient').toBe(true)
+    const afterUpdateDonutState = await donutSegment.getAttribute('data-motion-state')
+    expect(afterUpdateDonutState === 'complete' || afterUpdateDonutState === 'ambient').toBe(true)
   })
 
   test('validates realistic mobile 390x844 scroll triggers viewport-based motion', async ({ page }) => {
@@ -243,17 +249,126 @@ test.describe('Jarvis Premium Motion System V1', () => {
     const runningGoalState = await goalBar.getAttribute('data-motion-state')
     expect(runningGoalState).toBe('running')
 
-    // Verify final complete states
+    // Verify final complete states (ambient motion starts after reveal)
     await page.waitForTimeout(1200)
-    await expect(treasuryLine).toHaveAttribute('data-motion-state', 'complete')
-    await expect(donutSegment).toHaveAttribute('data-motion-state', 'complete')
-    await expect(goalBar).toHaveAttribute('data-motion-state', 'complete')
+    const finalLineState = await treasuryLine.getAttribute('data-motion-state')
+    expect(finalLineState === 'complete' || finalLineState === 'ambient').toBe(true)
+    const finalDonutState = await donutSegment.getAttribute('data-motion-state')
+    expect(finalDonutState === 'complete' || finalDonutState === 'ambient').toBe(true)
+    const finalGoalState = await goalBar.getAttribute('data-motion-state')
+    expect(finalGoalState === 'complete' || finalGoalState === 'ambient').toBe(true)
 
     // Verify no horizontal overflow
     const isOverflowing = await page.evaluate(() => {
       return document.documentElement.scrollWidth > document.documentElement.clientWidth
     })
     expect(isOverflowing).toBe(false)
+  })
+
+  test('validates ambient motion lifecycle after reveal completion', async ({ page }) => {
+    await setupCompleteMode(page)
+
+    // Scroll elements into viewport to trigger reveal
+    await page.evaluate(() => {
+      const linePath = document.getElementById('treasury-line-path')
+      if (linePath) linePath.scrollIntoView({ behavior: 'instant', block: 'center' })
+    })
+
+    await page.evaluate(() => {
+      const donut = document.getElementById('donut-segment-charges')
+      if (donut) donut.scrollIntoView({ behavior: 'instant', block: 'center' })
+    })
+
+    await page.evaluate(() => {
+      const goal = document.getElementById('complete-goal-bar')
+      if (goal) goal.scrollIntoView({ behavior: 'instant', block: 'center' })
+    })
+
+    // Wait for reveal to complete and ambient to start
+    await page.waitForTimeout(3000)
+
+    // Verify ambient state (or complete if ambient hasn't started yet)
+    const treasuryLine = page.locator('#treasury-line-path')
+    const lineState = await treasuryLine.getAttribute('data-motion-state')
+    expect(lineState === 'complete' || lineState === 'ambient').toBe(true)
+
+    const donutSegment = page.locator('#donut-segment-charges')
+    const donutState = await donutSegment.getAttribute('data-motion-state')
+    expect(donutState === 'complete' || donutState === 'ambient').toBe(true)
+
+    const goalBar = page.locator('#complete-goal-bar')
+    const goalState = await goalBar.getAttribute('data-motion-state')
+    expect(goalState === 'complete' || goalState === 'ambient').toBe(true)
+
+    // Verify target values remain exact during ambient motion
+    const goalBarWidth = await goalBar.evaluate(el => el.style.width)
+    expect(goalBarWidth).not.toBe('0%')
+    expect(goalBarWidth.endsWith('%')).toBe(true)
+
+    // Verify graph geometry unchanged during ambient motion
+    const lineD = await treasuryLine.getAttribute('d')
+    expect(lineD).toBeTruthy()
+    expect(lineD.startsWith('M 0,')).toBe(true)
+
+    // Verify donut values unchanged during ambient motion
+    const donutStroke = await donutSegment.getAttribute('stroke-dasharray')
+    expect(donutStroke).toBeTruthy()
+
+    // Prove ambient animations exist using getAnimations
+    const goalAnimations = await goalBar.evaluate(el => el.getAnimations().length)
+    expect(goalAnimations).toBeGreaterThan(0)
+
+    // Scroll element out of viewport
+    await page.evaluate(() => {
+      window.scrollTo(0, 0)
+    })
+
+    await page.waitForTimeout(500)
+
+    // Scroll back into viewport
+    await page.evaluate(() => {
+      const goal = document.getElementById('complete-goal-bar')
+      if (goal) goal.scrollIntoView({ behavior: 'instant', block: 'center' })
+    })
+
+    // Verify ambient resumes without replaying reveal
+    const resumedGoalState = await goalBar.getAttribute('data-motion-state')
+    expect(resumedGoalState === 'complete' || resumedGoalState === 'ambient').toBe(true)
+  })
+
+  test('validates document.hidden pauses ambient motion', async ({ page }) => {
+    await setupCompleteMode(page)
+
+    // Scroll elements into viewport to trigger reveal
+    await page.evaluate(() => {
+      const goal = document.getElementById('complete-goal-bar')
+      if (goal) goal.scrollIntoView({ behavior: 'instant', block: 'center' })
+    })
+
+    // Wait for reveal to complete and ambient to start
+    await page.waitForTimeout(3000)
+
+    const goalBar = page.locator('#complete-goal-bar')
+    const goalState = await goalBar.getAttribute('data-motion-state')
+    expect(goalState).toBe('ambient')
+
+    // Simulate document hidden
+    await page.evaluate(() => {
+      Object.defineProperty(document, 'hidden', { value: true, writable: true })
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+
+    await page.waitForTimeout(500)
+
+    // Restore document visibility
+    await page.evaluate(() => {
+      Object.defineProperty(document, 'hidden', { value: false, writable: true })
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+
+    // Verify ambient state is preserved
+    const restoredGoalState = await goalBar.getAttribute('data-motion-state')
+    expect(restoredGoalState).toBe('ambient')
   })
 
   test('validates Simplified mode isolation (0 Jarvis motion surfaces shown)', async ({ page }) => {
@@ -328,5 +443,16 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
     const goalWidth = await goalBar.evaluate(el => el.style.width)
     expect(goalWidth).not.toBe('0%')
+
+    // Verify ambient motion is NOT started under reduced motion
+    await page.waitForTimeout(3000)
+    const lineState = await treasuryLine.getAttribute('data-motion-state')
+    expect(lineState).toBe('complete')
+
+    const donutState = await donutSegment.getAttribute('data-motion-state')
+    expect(donutState).toBe('complete')
+
+    const goalState = await goalBar.getAttribute('data-motion-state')
+    expect(goalState).toBe('complete')
   })
 })

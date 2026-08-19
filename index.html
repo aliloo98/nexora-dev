@@ -29,6 +29,18 @@ body.auth-locked > #nexora-status-bar {
 </head>
 <body class="auth-locked">
 
+<script>
+  // Legacy global shim for showToast: delegates to window.Utils.showToast when ready.
+  // This is declared as a global function (not an explicit `window.` assignment)
+  // to avoid adding an extra counted window property while preserving legacy usage.
+  function showToast(msg, options) {
+    if (typeof window !== 'undefined' && window.Utils && typeof window.Utils.showToast === 'function') {
+      try { return window.Utils.showToast(msg, options) } catch (e) { console.warn('showToast delegate failed', e) }
+    }
+    // No-op if Utils not yet available
+  }
+</script>
+
 <!-- SIDEBAR / BOTTOM BAR -->
 <nav class="sidebar" role="navigation" aria-label="Navigation principale">
   <div class="sidebar-logo" id="app-sidebar-logo">

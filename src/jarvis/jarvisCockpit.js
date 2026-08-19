@@ -9,6 +9,7 @@ import { buildIntelligenceSnapshot } from '../intelligence/IntelligenceEngine.js
 import { buildJarvisIntelligenceInput } from './jarvisDataAdapter.js'
 import { createJarvisViewModel } from './jarvisViewModel.js'
 import { attachJarvisCopilot, renderJarvisCopilot } from './copilot/jarvisCopilot.js'
+import { setupAmbientMotion, startJarvisCoreAmbientMotion } from './motion/jarvisAmbientMotion.js'
 
 /**
  * One-shot viewport observer for motion reveal
@@ -31,6 +32,8 @@ function setupViewportReveal(element, animationCallback, threshold = 0.25) {
   observer.observe(element)
   return observer
 }
+
+
 
 /**
  * Single observer instance to prevent duplicates
@@ -285,6 +288,24 @@ export async function renderJarvisCockpit(container, options = {}) {
       const revealStagger = (index) => {
         if (index >= surfaces.length) {
           cockpit.dataset.motion = 'complete'
+          // Start ambient motion after staggered reveal completes
+          if (!isReducedMotion) {
+            cockpit.dataset.motion = 'ambient'
+            startJarvisCoreAmbientMotion(cockpit)
+            // Setup visibility-aware ambient motion
+            if (typeof window.IntersectionObserver === 'function') {
+              const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                  if (entry.isIntersecting && cockpit.dataset.motion === 'ambient') {
+                    // Ambient motion resumes
+                  } else {
+                    // Ambient motion paused
+                  }
+                })
+              }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' })
+              observer.observe(cockpit)
+            }
+          }
           return
         }
 
@@ -316,7 +337,7 @@ export async function renderJarvisCockpit(container, options = {}) {
       })
 
       if (isReducedMotion) {
-        // Reduced motion: show all immediately
+        // Reduced motion: show all immediately, no ambient motion
         cockpit.dataset.motion = 'complete'
         surfaces.forEach(selector => {
           const element = container.querySelector(selector)

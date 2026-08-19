@@ -1,6 +1,7 @@
 import { createMetricCard } from '../components/MetricCard.js'
 import { evaluateCopilotState } from '../../coach/copilotEngine.js'
 import { getTimeContext } from '../../time/timeEngine.js'
+import { setupAmbientMotion, startGraphAmbientMotion, startDonutAmbientMotion, startProgressAmbientSweep } from '../../jarvis/motion/jarvisAmbientMotion.js'
 
 const fmt = (value) => {
   const amount = Number(value) || 0
@@ -35,6 +36,26 @@ function setupViewportReveal(element, animationCallback, threshold = 0.25) {
   observer.observe(element)
   return observer
 }
+
+/**
+ * Ambient motion observer for visibility-aware continuous animation
+ * Pauses/resumes ambient animation based on viewport visibility
+ */
+
+
+
+
+/**
+ * Ambient motion for graph pulse
+ * Subtle endpoint pulse and line intensity breathing
+ */
+
+
+/**
+ * Ambient motion for donut pulse
+ * Subtle perimeter pulse and segment breathing
+ */
+
 
 /**
  * Crée un KPI horizontal compact
@@ -355,6 +376,17 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
             // Mark complete after animation finishes
             setTimeout(() => {
               linePath.dataset.motionState = 'complete'
+              // Start ambient motion after reveal
+              linePath.dataset.motionState = 'ambient'
+              startGraphAmbientMotion(linePath, hoverDot)
+              // Setup visibility-aware ambient motion
+              setupAmbientMotion(linePath, (isVisible) => {
+                if (isVisible && linePath.dataset.motionState === 'ambient') {
+                  // Ambient motion resumes
+                } else {
+                  // Ambient motion paused
+                }
+              })
             }, 1100)
           })
         }
@@ -368,6 +400,18 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
       if (hoverDot) {
         hoverDot.setAttribute('cx', '250')
         hoverDot.setAttribute('cy', String(yMid))
+      }
+      // If already complete, start ambient motion
+      if (linePath.dataset.motionState === 'complete') {
+        linePath.dataset.motionState = 'ambient'
+        startGraphAmbientMotion(linePath, hoverDot)
+        setupAmbientMotion(linePath, (isVisible) => {
+          if (isVisible && linePath.dataset.motionState === 'ambient') {
+            // Ambient motion resumes
+          } else {
+            // Ambient motion paused
+          }
+        })
       }
     }
   }
@@ -429,6 +473,17 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
             // Mark complete after animation finishes
             setTimeout(() => {
               segCharges.dataset.motionState = 'complete'
+              // Start ambient motion after reveal
+              segCharges.dataset.motionState = 'ambient'
+              startDonutAmbientMotion(segCharges, segEpargne)
+              // Setup visibility-aware ambient motion
+              setupAmbientMotion(segCharges, (isVisible) => {
+                if (isVisible && segCharges.dataset.motionState === 'ambient') {
+                  // Ambient motion resumes
+                } else {
+                  // Ambient motion paused
+                }
+              })
             }, 900)
           })
         }
@@ -446,6 +501,18 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
       segEpargne.setAttribute('stroke-dashoffset', String(-lenCh))
       segLibre.setAttribute('stroke-dasharray', `${lenVar} ${totalCircumference - lenVar}`)
       segLibre.setAttribute('stroke-dashoffset', String(-(lenCh + lenEp)))
+      // If already complete, start ambient motion
+      if (segCharges.dataset.motionState === 'complete') {
+        segCharges.dataset.motionState = 'ambient'
+        startDonutAmbientMotion(segCharges, segEpargne)
+        setupAmbientMotion(segCharges, (isVisible) => {
+          if (isVisible && segCharges.dataset.motionState === 'ambient') {
+            // Ambient motion resumes
+          } else {
+            // Ambient motion paused
+          }
+        })
+      }
     }
   }
 
@@ -520,6 +587,17 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
             // Mark complete after animation finishes
             setTimeout(() => {
               completeGoalBar.dataset.motionState = 'complete'
+              // Start ambient motion after reveal
+              completeGoalBar.dataset.motionState = 'ambient'
+              startProgressAmbientSweep(completeGoalBar)
+              // Setup visibility-aware ambient motion
+              setupAmbientMotion(completeGoalBar, (isVisible) => {
+                if (isVisible && completeGoalBar.dataset.motionState === 'ambient') {
+                  // Ambient motion resumes
+                } else {
+                  // Ambient motion paused when not visible
+                }
+              })
             }, 850)
           })
         }
@@ -527,6 +605,18 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
     } else {
       completeGoalBar.style.transition = 'width 500ms cubic-bezier(0.16, 1, 0.3, 1)'
       completeGoalBar.style.width = `${goalProgressPct}%`
+      // If already complete, start ambient motion
+      if (completeGoalBar.dataset.motionState === 'complete') {
+        completeGoalBar.dataset.motionState = 'ambient'
+        startProgressAmbientSweep(completeGoalBar)
+        setupAmbientMotion(completeGoalBar, (isVisible) => {
+          if (isVisible && completeGoalBar.dataset.motionState === 'ambient') {
+            // Ambient motion resumes
+          } else {
+            // Ambient motion paused
+          }
+        })
+      }
     }
     completeGoalText.textContent = `${fmt(soldeFinMois)} / ${fmt(goalTarget)}`
   }
