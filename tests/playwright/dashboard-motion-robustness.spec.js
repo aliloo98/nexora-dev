@@ -197,16 +197,15 @@ test.describe('Dashboard Motion V1 robustness', () => {
       window.setNexoraUxMode('simple')
     })
     
-    // Wait for the body class to indicate Simple mode is active
-    await page.waitForFunction(() => {
-      return document.body.classList.contains('mode-simple')
-    }, { timeout: 5000 })
+    // Wait for the canonical Simple-mode state
+    await expect(page.locator('body')).toHaveClass(/mode-simple/)
 
-    // Wait for all Complete-mode elements to actually be hidden
-    await page.waitForFunction(() => {
-      const completeElements = document.querySelectorAll('[data-dashboard-mode="complete"]')
-      return Array.from(completeElements).every(el => el.hidden)
-    }, { timeout: 3000 })
+    // Verify the real Complete-only surfaces are hidden in Simple mode
+    await expect(page.locator('.dashboard-module--timeline')).toBeHidden()
+    await expect(page.locator('.treasury-chart-wrapper')).toBeHidden()
+    await expect(page.locator('.donut-chart-wrapper')).toBeHidden()
+    await expect(page.locator('.complete-analytics-grid')).toBeHidden()
+    await expect(page.locator('.complete-dual-grid')).toBeHidden()
 
     const after = await page.evaluate(() => {
       const completeElements = document.querySelectorAll('[data-dashboard-mode="complete"]')
