@@ -33,6 +33,35 @@ function setupViewportReveal(element, animationCallback, threshold = 0.25) {
   return observer
 }
 
+function attachAmbientController(element, starter) {
+  if (!element) return null
+  if (element.__ambientController) {
+    try { element.__ambientController.cleanup() } catch (e) {}
+    element.__ambientController = null
+  }
+  if (element.__ambientObserver) {
+    try { element.__ambientObserver.disconnect() } catch (e) {}
+    element.__ambientObserver = null
+  }
+
+  const controller = starter(element)
+  element.__ambientController = controller
+  const observer = setupAmbientMotion(element, (isVisible) => {
+    if (!element.__ambientController) return
+    if (isVisible && element.dataset.motion === 'ambient') {
+      element.__ambientController.resume()
+    } else {
+      element.__ambientController.pause()
+    }
+  })
+  element.__ambientObserver = observer
+
+  const rect = element.getBoundingClientRect()
+  const inViewport = rect.top < (window.innerHeight || document.documentElement.clientHeight) && rect.bottom > 0
+  if (inViewport && element.dataset.motion === 'ambient') controller.resume()
+  return controller
+}
+
 
 
 /**
@@ -291,20 +320,7 @@ export async function renderJarvisCockpit(container, options = {}) {
           // Start ambient motion after staggered reveal completes
           if (!isReducedMotion) {
             cockpit.dataset.motion = 'ambient'
-            startJarvisCoreAmbientMotion(cockpit)
-            // Setup visibility-aware ambient motion
-            if (typeof window.IntersectionObserver === 'function') {
-              const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                  if (entry.isIntersecting && cockpit.dataset.motion === 'ambient') {
-                    // Ambient motion resumes
-                  } else {
-                    // Ambient motion paused
-                  }
-                })
-              }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' })
-              observer.observe(cockpit)
-            }
+            attachAmbientController(cockpit, () => startJarvisCoreAmbientMotion(cockpit))
           }
           return
         }

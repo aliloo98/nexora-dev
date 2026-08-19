@@ -37,6 +37,40 @@ function setupViewportReveal(element, animationCallback, threshold = 0.25) {
   return observer
 }
 
+function attachAmbientController(element, starter) {
+  if (!element) return null
+  // cleanup any previous controller/observer
+  if (element.__ambientController) {
+    try { element.__ambientController.cleanup() } catch (e) {}
+    element.__ambientController = null
+  }
+  if (element.__ambientObserver) {
+    try { element.__ambientObserver.disconnect() } catch (e) {}
+    element.__ambientObserver = null
+  }
+
+  const controller = starter(element)
+  element.__ambientController = controller
+  const observer = setupAmbientMotion(element, (isVisible) => {
+    if (!element.__ambientController) return
+    if (isVisible && element.dataset.motionState === 'ambient') {
+      element.__ambientController.resume()
+    } else {
+      element.__ambientController.pause()
+    }
+  })
+  element.__ambientObserver = observer
+
+  // If element is currently visible, resume immediately
+  const rect = element.getBoundingClientRect()
+  const inViewport = rect.top < (window.innerHeight || document.documentElement.clientHeight) && rect.bottom > 0
+  if (inViewport && element.dataset.motionState === 'ambient') {
+    controller.resume()
+  }
+
+  return controller
+}
+
 /**
  * Ambient motion observer for visibility-aware continuous animation
  * Pauses/resumes ambient animation based on viewport visibility
@@ -378,15 +412,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
               linePath.dataset.motionState = 'complete'
               // Start ambient motion after reveal
               linePath.dataset.motionState = 'ambient'
-              startGraphAmbientMotion(linePath, hoverDot)
-              // Setup visibility-aware ambient motion
-              setupAmbientMotion(linePath, (isVisible) => {
-                if (isVisible && linePath.dataset.motionState === 'ambient') {
-                  // Ambient motion resumes
-                } else {
-                  // Ambient motion paused
-                }
-              })
+              attachAmbientController(linePath, () => startGraphAmbientMotion(linePath, hoverDot))
             }, 1100)
           })
         }
@@ -404,14 +430,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
       // If already complete, start ambient motion
       if (linePath.dataset.motionState === 'complete') {
         linePath.dataset.motionState = 'ambient'
-        startGraphAmbientMotion(linePath, hoverDot)
-        setupAmbientMotion(linePath, (isVisible) => {
-          if (isVisible && linePath.dataset.motionState === 'ambient') {
-            // Ambient motion resumes
-          } else {
-            // Ambient motion paused
-          }
-        })
+        attachAmbientController(linePath, () => startGraphAmbientMotion(linePath, hoverDot))
       }
     }
   }
@@ -475,15 +494,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
               segCharges.dataset.motionState = 'complete'
               // Start ambient motion after reveal
               segCharges.dataset.motionState = 'ambient'
-              startDonutAmbientMotion(segCharges, segEpargne)
-              // Setup visibility-aware ambient motion
-              setupAmbientMotion(segCharges, (isVisible) => {
-                if (isVisible && segCharges.dataset.motionState === 'ambient') {
-                  // Ambient motion resumes
-                } else {
-                  // Ambient motion paused
-                }
-              })
+              attachAmbientController(segCharges, () => startDonutAmbientMotion(segCharges, segEpargne))
             }, 900)
           })
         }
@@ -504,14 +515,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
       // If already complete, start ambient motion
       if (segCharges.dataset.motionState === 'complete') {
         segCharges.dataset.motionState = 'ambient'
-        startDonutAmbientMotion(segCharges, segEpargne)
-        setupAmbientMotion(segCharges, (isVisible) => {
-          if (isVisible && segCharges.dataset.motionState === 'ambient') {
-            // Ambient motion resumes
-          } else {
-            // Ambient motion paused
-          }
-        })
+        attachAmbientController(segCharges, () => startDonutAmbientMotion(segCharges, segEpargne))
       }
     }
   }
@@ -589,15 +593,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
               completeGoalBar.dataset.motionState = 'complete'
               // Start ambient motion after reveal
               completeGoalBar.dataset.motionState = 'ambient'
-              startProgressAmbientSweep(completeGoalBar)
-              // Setup visibility-aware ambient motion
-              setupAmbientMotion(completeGoalBar, (isVisible) => {
-                if (isVisible && completeGoalBar.dataset.motionState === 'ambient') {
-                  // Ambient motion resumes
-                } else {
-                  // Ambient motion paused when not visible
-                }
-              })
+              attachAmbientController(completeGoalBar, () => startProgressAmbientSweep(completeGoalBar))
             }, 850)
           })
         }
@@ -608,14 +604,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
       // If already complete, start ambient motion
       if (completeGoalBar.dataset.motionState === 'complete') {
         completeGoalBar.dataset.motionState = 'ambient'
-        startProgressAmbientSweep(completeGoalBar)
-        setupAmbientMotion(completeGoalBar, (isVisible) => {
-          if (isVisible && completeGoalBar.dataset.motionState === 'ambient') {
-            // Ambient motion resumes
-          } else {
-            // Ambient motion paused
-          }
-        })
+        attachAmbientController(completeGoalBar, () => startProgressAmbientSweep(completeGoalBar))
       }
     }
     completeGoalText.textContent = `${fmt(soldeFinMois)} / ${fmt(goalTarget)}`
