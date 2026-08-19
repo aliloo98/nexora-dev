@@ -300,6 +300,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   // SPRINT 2: COURBE DE TRÉSORERIE 30 JOURS (TRUE SVG PATH-DRAW REVEAL)
   const linePath = documentRef.getElementById('treasury-line-path')
   const areaPath = documentRef.getElementById('treasury-area-path')
+  const lineHighlight = documentRef.getElementById('treasury-line-highlight')
   const hoverDot = documentRef.getElementById('treasury-hover-dot')
 
   if (linePath && areaPath) {
@@ -319,6 +320,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
       linePath.setAttribute('stroke-dashoffset', '0')
       linePath.setAttribute('d', lineD)
       areaPath.setAttribute('d', areaD)
+      if (lineHighlight) lineHighlight.setAttribute('d', lineD)
       areaPath.style.opacity = '1'
       if (hoverDot) {
         hoverDot.setAttribute('cx', '250')
@@ -332,6 +334,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
       linePath.dataset.motionState = 'pending'
       linePath.setAttribute('d', lineD)
       areaPath.setAttribute('d', areaD)
+      if (lineHighlight) lineHighlight.setAttribute('d', lineD)
       linePath.setAttribute('stroke-dasharray', String(pathLength))
       linePath.setAttribute('stroke-dashoffset', String(pathLength))
       areaPath.style.opacity = '0'
@@ -383,6 +386,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
       areaPath.style.transition = 'd 600ms cubic-bezier(0.16, 1, 0.3, 1)'
       linePath.setAttribute('d', lineD)
       areaPath.setAttribute('d', areaD)
+      if (lineHighlight) lineHighlight.setAttribute('d', lineD)
       if (hoverDot) {
         hoverDot.setAttribute('cx', '250')
         hoverDot.setAttribute('cy', String(yMid))

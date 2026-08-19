@@ -273,15 +273,27 @@ test.describe('Jarvis Premium Motion System V1', () => {
       const linePath = document.getElementById('treasury-line-path')
       if (linePath) linePath.scrollIntoView({ behavior: 'instant', block: 'center' })
     })
+    await page.waitForFunction(() => {
+      const state = document.getElementById('treasury-line-path')?.dataset.motionState
+      return state === 'running' || state === 'complete' || state === 'ambient'
+    })
 
     await page.evaluate(() => {
       const donut = document.getElementById('donut-segment-charges')
       if (donut) donut.scrollIntoView({ behavior: 'instant', block: 'center' })
     })
+    await page.waitForFunction(() => {
+      const state = document.getElementById('donut-segment-charges')?.dataset.motionState
+      return state === 'running' || state === 'complete' || state === 'ambient'
+    })
 
     await page.evaluate(() => {
       const goal = document.getElementById('complete-goal-bar')
       if (goal) goal.scrollIntoView({ behavior: 'instant', block: 'center' })
+    })
+    await page.waitForFunction(() => {
+      const state = document.getElementById('complete-goal-bar')?.dataset.motionState
+      return state === 'running' || state === 'complete' || state === 'ambient'
     })
 
     // Wait for reveal to complete and ambient to start
@@ -314,9 +326,44 @@ test.describe('Jarvis Premium Motion System V1', () => {
     const donutStroke = await donutSegment.getAttribute('stroke-dasharray')
     expect(donutStroke).toBeTruthy()
 
-    // Prove ambient animations exist using getAnimations
-    const goalAnimations = await goalBar.evaluate(el => el.getAnimations().length)
-    expect(goalAnimations).toBeGreaterThan(0)
+    // Prove decorative properties change while financial geometry stays fixed.
+    const visualSamples = await page.evaluate(async () => {
+      const wait = (milliseconds) => new Promise(resolve => setTimeout(resolve, milliseconds))
+      const read = (selector, property) => {
+        const element = document.querySelector(selector)
+        return element ? getComputedStyle(element)[property] : null
+      }
+      const sampleWhileVisible = async (targetSelector, visualSelector, property, settleTime) => {
+        const target = document.querySelector(targetSelector)
+        target?.scrollIntoView({ behavior: 'instant', block: 'center' })
+        await wait(settleTime)
+        target?.__ambientController?.resume()
+        const before = read(visualSelector, property)
+        let after = before
+        for (let attempt = 0; attempt < 36 && after === before; attempt += 1) {
+          await wait(250)
+          after = read(visualSelector, property)
+        }
+        return { before, after }
+      }
+      const line = document.getElementById('treasury-line-path')
+      const donut = document.getElementById('donut-segment-charges')
+      const goal = document.getElementById('complete-goal-bar')
+      return {
+        width: { before: goal?.style.width, after: goal?.style.width },
+        lineD: { before: line?.getAttribute('d'), after: line?.getAttribute('d') },
+        donutStroke: { before: donut?.getAttribute('stroke-dasharray'), after: donut?.getAttribute('stroke-dasharray') },
+        sheen: await sampleWhileVisible('#complete-goal-bar', '#complete-goal-bar .goal-milestone-bar-sheen', 'transform', 1200),
+        highlight: await sampleWhileVisible('#treasury-line-path', '#treasury-line-highlight', 'opacity', 1900),
+        glint: await sampleWhileVisible('#donut-segment-charges', '#donut-perimeter-glint', 'opacity', 1750)
+      }
+    })
+    expect(visualSamples.width.after).toBe(visualSamples.width.before)
+    expect(visualSamples.lineD.after).toBe(visualSamples.lineD.before)
+    expect(visualSamples.donutStroke.after).toBe(visualSamples.donutStroke.before)
+    expect(visualSamples.sheen.after).not.toBe(visualSamples.sheen.before)
+    expect(visualSamples.highlight.after).not.toBe(visualSamples.highlight.before)
+    expect(visualSamples.glint.after).not.toBe(visualSamples.glint.before)
 
     // Scroll element out of viewport
     await page.evaluate(() => {

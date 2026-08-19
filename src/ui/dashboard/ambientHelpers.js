@@ -6,12 +6,18 @@ export function setupViewportReveal(element, animationCallback, threshold = 0.25
     return
   }
 
+  let triggered = false
+  const trigger = () => {
+    if (triggered) return
+    triggered = true
+    animationCallback()
+  }
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         observer.unobserve(entry.target)
         try { window.removeEventListener('scroll', onScroll, true) } catch (e) {}
-        animationCallback()
+        trigger()
       }
     })
   }, { threshold, rootMargin: '0px 0px -100px 0px' })
@@ -22,7 +28,7 @@ export function setupViewportReveal(element, animationCallback, threshold = 0.25
   const inViewport = rect.top < (window.innerHeight || document.documentElement.clientHeight) && rect.bottom > 0
   if (inViewport) {
     observer.unobserve(element)
-    animationCallback()
+    trigger()
     return null
   }
 
@@ -33,10 +39,18 @@ export function setupViewportReveal(element, animationCallback, threshold = 0.25
     if (nowIn) {
       observer.unobserve(element)
       window.removeEventListener('scroll', onScroll, true)
-      animationCallback()
+      trigger()
     }
   }
   window.addEventListener('scroll', onScroll, true)
+
+  window.requestAnimationFrame(() => {
+    if (element.getBoundingClientRect().top < (window.innerHeight || document.documentElement.clientHeight) && element.getBoundingClientRect().bottom > 0) {
+      observer.unobserve(element)
+      window.removeEventListener('scroll', onScroll, true)
+      trigger()
+    }
+  })
 
   return observer
 }

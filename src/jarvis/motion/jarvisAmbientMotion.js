@@ -6,13 +6,26 @@ export function setupAmbientMotion(element, ambientCallback, threshold = 0.1) {
     return null
   }
 
+  const isInViewport = () => {
+    const rect = element.getBoundingClientRect()
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight
+    return rect.top < viewportHeight && rect.bottom > 0
+  }
+  const checkViewport = () => ambientCallback(isInViewport())
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       ambientCallback(entry.isIntersecting)
     })
   }, { threshold, rootMargin: '0px 0px -50px 0px' })
 
+  window.addEventListener('scroll', checkViewport, true)
   observer.observe(element)
+  checkViewport()
+  const disconnect = observer.disconnect.bind(observer)
+  observer.disconnect = () => {
+    window.removeEventListener('scroll', checkViewport, true)
+    disconnect()
+  }
   return observer
 }
 
@@ -68,22 +81,40 @@ export function startGraphAmbientMotion(linePath, hoverDot) {
   if (!linePath) return null
 
   const animations = []
+  const highlight = linePath.parentElement?.querySelector('#treasury-line-highlight')
+  const cardSheen = linePath.closest('.treasury-chart-wrapper')?.querySelector('.treasury-card-sheen')
 
-  const lineAnim = linePath.animate([
-    { strokeOpacity: 1 },
-    { strokeOpacity: 0.85 },
-    { strokeOpacity: 1 }
-  ], { duration: 1200, iterations: Infinity, easing: 'ease-in-out' })
-  lineAnim.pause()
-  animations.push(lineAnim)
+  if (cardSheen) {
+    const cardSheenAnim = cardSheen.animate([
+      { transform: 'translateX(0)', opacity: 0 },
+      { transform: 'translateX(0)', opacity: 0 },
+      { transform: 'translateX(500%)', opacity: 0.55 },
+      { transform: 'translateX(500%)', opacity: 0 },
+      { transform: 'translateX(500%)', opacity: 0 }
+    ], { duration: 11000, iterations: Infinity, easing: 'ease-in-out' })
+    cardSheenAnim.pause()
+    animations.push(cardSheenAnim)
+  }
+
+  if (highlight) {
+    const highlightAnim = highlight.animate([
+      { strokeDashoffset: '520', opacity: 0 },
+      { strokeDashoffset: '520', opacity: 0 },
+      { strokeDashoffset: '0', opacity: 0.72 },
+      { strokeDashoffset: '-26', opacity: 0 },
+      { strokeDashoffset: '-26', opacity: 0 }
+    ], { duration: 9000, iterations: Infinity, easing: 'ease-in-out' })
+    highlightAnim.pause()
+    animations.push(highlightAnim)
+  }
 
   let hoverAnim = null
   if (hoverDot) {
     hoverAnim = hoverDot.animate([
       { transform: 'scale(1)' },
-      { transform: 'scale(1.08)' },
+      { transform: 'scale(1.05)' },
       { transform: 'scale(1)' }
-    ], { duration: 800, iterations: Infinity, easing: 'ease-in-out' })
+    ], { duration: 8000, iterations: Infinity, easing: 'ease-in-out' })
     hoverAnim.pause()
     animations.push(hoverAnim)
   }
@@ -102,17 +133,38 @@ export function startDonutAmbientMotion(segCharges, segEpargne) {
   if (!segCharges) return null
 
   const animations = []
+  const glint = segCharges.parentElement?.querySelector('#donut-perimeter-glint')
+
+  if (glint) {
+    const glintAnim = glint.animate([
+      { strokeDashoffset: '238.76', opacity: 0 },
+      { strokeDashoffset: '238.76', opacity: 0 },
+      { strokeDashoffset: '0', opacity: 0.78 },
+      { strokeDashoffset: '-7', opacity: 0 },
+      { strokeDashoffset: '-7', opacity: 0 }
+    ], { duration: 8200, iterations: Infinity, easing: 'ease-in-out' })
+    glintAnim.pause()
+    animations.push(glintAnim)
+  }
 
   const pulse = segCharges.animate([
-    { strokeWidth: '2' },
-    { strokeWidth: '2.5' },
-    { strokeWidth: '2' }
-  ], { duration: 1000, iterations: Infinity, easing: 'ease-in-out' })
+    { opacity: 1 },
+    { opacity: 1 },
+    { opacity: 0.84 },
+    { opacity: 1 },
+    { opacity: 1 }
+  ], { duration: 7600, iterations: Infinity, easing: 'ease-in-out' })
   pulse.pause()
   animations.push(pulse)
 
   if (segEpargne) {
-    const ep = segEpargne.animate([{ strokeOpacity: 1 }, { strokeOpacity: 0.9 }, { strokeOpacity: 1 }], { duration: 1200, iterations: Infinity, easing: 'ease-in-out' })
+    const ep = segEpargne.animate([
+      { opacity: 1 },
+      { opacity: 1 },
+      { opacity: 0.86 },
+      { opacity: 1 },
+      { opacity: 1 }
+    ], { duration: 7600, delay: 2400, iterations: Infinity, easing: 'ease-in-out' })
     ep.pause()
     animations.push(ep)
   }
@@ -130,10 +182,16 @@ export function startDonutAmbientMotion(segCharges, segEpargne) {
 export function startProgressAmbientSweep(element, duration = 1500) {
   if (!element) return null
 
-  const anim = element.animate([
-    { backgroundPosition: '200% 0' },
-    { backgroundPosition: '-200% 0' }
-  ], { duration, iterations: Infinity, easing: 'ease-out' })
+  const sheen = element.querySelector('.goal-milestone-bar-sheen')
+  if (!sheen) return null
+
+  const anim = sheen.animate([
+    { transform: 'translateX(-150%)', opacity: 0 },
+    { transform: 'translateX(-150%)', opacity: 0 },
+    { transform: 'translateX(300%)', opacity: 0.9 },
+    { transform: 'translateX(300%)', opacity: 0 },
+    { transform: 'translateX(300%)', opacity: 0 }
+  ], { duration: 7000, iterations: Infinity, easing: 'ease-in-out' })
   anim.pause()
 
   const visHandler = () => { if (document.hidden) anim.pause() }

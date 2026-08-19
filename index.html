@@ -186,6 +186,7 @@ body.auth-locked > #nexora-status-bar {
         <button type="button" class="btn btn-gold btn--large" onclick="showSection('plan')">Voir le plan financier</button>
       </div>
             <div class="treasury-chart-wrapper" id="treasury-svg-container" data-dashboard-mode="complete">
+              <span class="treasury-card-sheen" aria-hidden="true"></span>
               <svg class="treasury-svg-chart" viewBox="0 0 500 120" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="treasuryGradient" x1="0" y1="0" x2="0" y2="1">
@@ -195,6 +196,7 @@ body.auth-locked > #nexora-status-bar {
                 </defs>
                 <path id="treasury-area-path" d="M 0,120 L 0,60 Q 250,20 500,40 L 500,120 Z" fill="url(#treasuryGradient)" />
                 <path id="treasury-line-path" d="M 0,60 Q 250,20 500,40" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" />
+                <path id="treasury-line-highlight" d="M 0,60 Q 250,20 500,40" fill="none" stroke="#b8e8ff" stroke-width="4" stroke-linecap="round" pathLength="520" stroke-dasharray="26 494" stroke-dashoffset="520" opacity="0" pointer-events="none" />
                 <circle id="treasury-hover-dot" cx="250" cy="30" r="5" fill="#34d399" stroke="#ffffff" stroke-width="2" style="opacity: 0.8;" />
               </svg>
               <div class="treasury-chart-legend">
@@ -238,6 +240,7 @@ body.auth-locked > #nexora-status-bar {
                     <circle id="donut-segment-charges" class="donut-segment" cx="50" cy="50" r="38" fill="none" stroke="#8b5cf6" stroke-width="12" stroke-dasharray="140 238" stroke-dashoffset="0" />
                     <circle id="donut-segment-epargne" class="donut-segment" cx="50" cy="50" r="38" fill="none" stroke="#10b981" stroke-width="12" stroke-dasharray="60 238" stroke-dashoffset="-140" />
                     <circle id="donut-segment-libre" class="donut-segment" cx="50" cy="50" r="38" fill="none" stroke="#3b82f6" stroke-width="12" stroke-dasharray="38 238" stroke-dashoffset="-200" />
+                    <circle id="donut-perimeter-glint" cx="50" cy="50" r="38" fill="none" stroke="#f8e7b0" stroke-width="2" stroke-linecap="round" stroke-dasharray="7 231.76" stroke-dashoffset="238.76" opacity="0" pointer-events="none" />
                   </svg>
                   <div class="donut-center-text">
                     <span class="donut-center-label">Frais fixes</span>
@@ -264,7 +267,7 @@ body.auth-locked > #nexora-status-bar {
                     <strong id="complete-goal-progress-text">-- / -- €</strong>
                   </div>
                   <div class="goal-milestone-bar-bg">
-                    <div class="goal-milestone-bar-fill" id="complete-goal-bar" style="width: 0%;"></div>
+                    <div class="goal-milestone-bar-fill" id="complete-goal-bar" style="width: 0%;"><span class="goal-milestone-bar-sheen" aria-hidden="true"></span></div>
                   </div>
                 </div>
               </div>
