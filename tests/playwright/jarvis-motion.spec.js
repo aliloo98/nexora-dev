@@ -1,7 +1,18 @@
 import { test, expect } from '@playwright/test'
 
+async function loginDemo(page) {
+  await page.goto('http://localhost:5180/#section-dashboard', { waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 })
+  await page.click('#loginDemoBtn')
+  await page.waitForURL('**/#section-dashboard', { timeout: 20000 })
+  await page.waitForSelector('.dashboard-v2-modular', { state: 'visible', timeout: 30000 })
+  await page.waitForFunction(() => typeof window.setNexoraUxMode === 'function')
+}
+
 test.describe('Jarvis Premium Motion System V1', () => {
   const setupCompleteMode = async (page) => {
+    await loginDemo(page)
+
     await page.evaluate(async () => {
       if (typeof window.setNexoraUxMode === 'function') {
         window.setNexoraUxMode('complete')
@@ -21,8 +32,6 @@ test.describe('Jarvis Premium Motion System V1', () => {
       if (msg.type() === 'error') consoleErrors.push(msg.text())
     })
 
-    await page.goto('/')
-    await page.waitForLoadState('domcontentloaded')
     await setupCompleteMode(page)
 
     const coreSignal = page.locator('.jarvis-copilot-identity .jarvis-core-signal')
@@ -70,8 +79,6 @@ test.describe('Jarvis Premium Motion System V1', () => {
   })
 
   test('validates explicit interaction state sequence (idle -> open -> analysing -> response-ready -> open)', async ({ page }) => {
-    await page.goto('/')
-    await page.waitForLoadState('domcontentloaded')
     await setupCompleteMode(page)
 
     const coreSignal = page.locator('.jarvis-copilot-identity .jarvis-core-signal')
@@ -107,8 +114,6 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
   test('validates mobile 390x844 layout without horizontal overflow', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
-    await page.goto('/')
-    await page.waitForLoadState('domcontentloaded')
     await setupCompleteMode(page)
 
     const isOverflowing = await page.evaluate(() => {
@@ -119,8 +124,6 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
   test('validates desktop 1440x900 layout without horizontal overflow', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
-    await page.goto('/')
-    await page.waitForLoadState('domcontentloaded')
     await setupCompleteMode(page)
 
     const isOverflowing = await page.evaluate(() => {
@@ -130,8 +133,6 @@ test.describe('Jarvis Premium Motion System V1', () => {
   })
 
   test('validates SVG Trajectory, Donut construction reveal, and Goal progress 0 -> target lifecycle', async ({ page }) => {
-    await page.goto('/')
-    await page.waitForLoadState('domcontentloaded')
     await setupCompleteMode(page)
 
     // 1. Treasury forecast graph line path reveal
@@ -167,8 +168,7 @@ test.describe('Jarvis Premium Motion System V1', () => {
   })
 
   test('validates Simplified mode isolation (0 Jarvis motion surfaces shown)', async ({ page }) => {
-    await page.goto('/')
-    await page.waitForLoadState('domcontentloaded')
+    await loginDemo(page)
 
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
@@ -190,9 +190,19 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
   test('validates prefers-reduced-motion contract (decorative animation disabled, final content visible)', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
-    await page.goto('/')
-    await page.waitForLoadState('domcontentloaded')
-    await setupCompleteMode(page)
+    await loginDemo(page)
+
+    await page.evaluate(async () => {
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('complete')
+      } else {
+        localStorage.setItem('nexora_ux_mode', 'complete')
+        document.body.classList.remove('mode-simple')
+        document.body.classList.add('mode-complete')
+        if (typeof window.updateAll === 'function') window.updateAll()
+      }
+    })
+    await page.waitForSelector('.jarvis-copilot-identity .jarvis-core-signal', { state: 'attached', timeout: 10000 })
 
     const coreSignal = page.locator('.jarvis-copilot-identity .jarvis-core-signal')
     await expect(coreSignal).toBeAttached()
