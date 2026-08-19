@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test'
 
+const baseUrl = 'http://localhost:5180/'
+
 test.describe('Jarvis Premium Motion System V1', () => {
   test('validates multi-layer Jarvis Core identity and idle motion in Complete mode', async ({ page }) => {
     const consoleErrors = []
@@ -7,8 +9,8 @@ test.describe('Jarvis Premium Motion System V1', () => {
       if (msg.type() === 'error') consoleErrors.push(msg.text())
     })
 
-    await page.goto('/')
-    await page.waitForLoadState('networkidle')
+    await page.goto(baseUrl)
+    await page.waitForLoadState('domcontentloaded')
 
     // Switch to Complete mode if not active
     await page.evaluate(() => {
@@ -35,8 +37,8 @@ test.describe('Jarvis Premium Motion System V1', () => {
   })
 
   test('validates interaction state transitions (open, analysing, response-ready)', async ({ page }) => {
-    await page.goto('/')
-    await page.waitForLoadState('networkidle')
+    await page.goto(baseUrl)
+    await page.waitForLoadState('domcontentloaded')
 
     await page.evaluate(() => {
       document.body.classList.remove('mode-simple')
@@ -65,8 +67,8 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
   test('validates mobile 390x844 layout without horizontal overflow', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
-    await page.goto('/')
-    await page.waitForLoadState('networkidle')
+    await page.goto(baseUrl)
+    await page.waitForLoadState('domcontentloaded')
 
     await page.evaluate(() => {
       document.body.classList.remove('mode-simple')
@@ -82,8 +84,8 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
   test('validates desktop 1440x900 layout without horizontal overflow', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
-    await page.goto('/')
-    await page.waitForLoadState('networkidle')
+    await page.goto(baseUrl)
+    await page.waitForLoadState('domcontentloaded')
 
     await page.evaluate(() => {
       document.body.classList.remove('mode-simple')
@@ -98,8 +100,8 @@ test.describe('Jarvis Premium Motion System V1', () => {
   })
 
   test('validates SVG graphs, Donut, and Goal progress visual states', async ({ page }) => {
-    await page.goto('/')
-    await page.waitForLoadState('networkidle')
+    await page.goto(baseUrl)
+    await page.waitForLoadState('domcontentloaded')
 
     await page.evaluate(() => {
       document.body.classList.remove('mode-simple')
@@ -121,8 +123,8 @@ test.describe('Jarvis Premium Motion System V1', () => {
   })
 
   test('validates Simplified mode isolation (0 Jarvis motion surfaces shown)', async ({ page }) => {
-    await page.goto('/')
-    await page.waitForLoadState('networkidle')
+    await page.goto(baseUrl)
+    await page.waitForLoadState('domcontentloaded')
 
     await page.evaluate(() => {
       document.body.classList.remove('mode-complete')
@@ -139,8 +141,8 @@ test.describe('Jarvis Premium Motion System V1', () => {
 
   test('validates prefers-reduced-motion contract', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
-    await page.goto('/')
-    await page.waitForLoadState('networkidle')
+    await page.goto(baseUrl)
+    await page.waitForLoadState('domcontentloaded')
 
     await page.evaluate(() => {
       document.body.classList.remove('mode-simple')
