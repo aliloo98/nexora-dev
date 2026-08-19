@@ -2,12 +2,15 @@ import { test, expect } from '@playwright/test'
 
 test.describe('Jarvis Premium Motion System V1', () => {
   const setupCompleteMode = async (page) => {
-    await page.evaluate(() => {
+    await page.evaluate(async () => {
       localStorage.setItem('nexora_active_mode', 'complete')
       document.body.classList.remove('mode-simple')
       document.body.classList.add('mode-complete')
-      if (typeof window.updateAll === 'function') window.updateAll()
+      if (typeof window.updateAll === 'function') {
+        window.updateAll()
+      }
     })
+    await page.waitForSelector('.jarvis-copilot-identity .jarvis-core-signal', { state: 'attached', timeout: 10000 })
   }
 
   test('validates multi-layer Jarvis Core identity and ACTIVE idle motion via Web Animations API', async ({ page }) => {
