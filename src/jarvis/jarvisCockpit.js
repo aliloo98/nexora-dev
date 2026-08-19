@@ -213,7 +213,7 @@ export async function renderJarvisCockpit(container, options = {}) {
     // If core data is available but trends are missing, render full cockpit with trend message
     // This is the critical fix for Blocker 1
     const cockpitMarkup = `
-      <div class="jarvis-cockpit" data-dashboard-mode="complete" data-motion="entry">
+      <div class="jarvis-cockpit" data-dashboard-mode="complete">
         ${renderJarvisHero(viewModel)}
         ${renderJarvisCopilot(snapshot)}
         ${renderPriorityCard(viewModel)}
@@ -317,7 +317,14 @@ function renderJarvisHero(viewModel) {
     <div class="jarvis-hero" data-state="${visualState}">
       <div class="jarvis-status-badge">${escapeHtml(statusLabel)}</div>
       <h2 class="jarvis-headline">${escapeHtml(headline)}</h2>
-      <div class="jarvis-visual-anchor" aria-hidden="true"></div>
+      <div class="jarvis-visual-anchor" aria-hidden="true">
+        <span class="jarvis-core-signal" data-state="idle">
+          <span class="jarvis-core-ring jarvis-core-outer"></span>
+          <span class="jarvis-core-ring jarvis-core-arc"></span>
+          <span class="jarvis-core-ring jarvis-core-inner"></span>
+          <span class="jarvis-core-center"></span>
+        </span>
+      </div>
     </div>
   `
 }

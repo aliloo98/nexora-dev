@@ -266,6 +266,9 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   // Timeline is updated by updateWeekPlan() in index.html which is the official source for this component
 
   // 4. MODE COMPLET - CHARTS SVG DYNAMIQUES (SPRINTS 2 & 3)
+  const isReducedMotion = typeof windowRef?.matchMedia === 'function' &&
+    windowRef.matchMedia('(prefers-reduced-motion: reduce)').matches
+
   // SPRINT 2: COURBE DE TRÉSORERIE 30 JOURS
   const linePath = documentRef.getElementById('treasury-line-path')
   const areaPath = documentRef.getElementById('treasury-area-path')
@@ -278,11 +281,24 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
     const lineD = `M 0,${yStart} Q 250,${yMid} 500,${yEnd}`
     const areaD = `M 0,120 L 0,${yStart} Q 250,${yMid} 500,${yEnd} L 500,120 Z`
     
+    if (!isReducedMotion && !linePath.dataset.animated) {
+      linePath.style.transition = 'd 900ms cubic-bezier(0.16, 1, 0.3, 1)'
+      areaPath.style.transition = 'd 900ms cubic-bezier(0.16, 1, 0.3, 1), opacity 900ms ease-out'
+      linePath.dataset.animated = 'true'
+    } else if (isReducedMotion) {
+      linePath.style.transition = 'none'
+      areaPath.style.transition = 'none'
+    }
+
     linePath.setAttribute('d', lineD)
     areaPath.setAttribute('d', areaD)
     if (hoverDot) {
       hoverDot.setAttribute('cx', '250')
       hoverDot.setAttribute('cy', String(yMid))
+      if (!isReducedMotion && !hoverDot.dataset.animated) {
+        hoverDot.style.transition = 'opacity 300ms ease-out 600ms, transform 300ms cubic-bezier(0.16, 1, 0.3, 1) 600ms'
+        hoverDot.dataset.animated = 'true'
+      }
     }
   }
 
@@ -300,6 +316,19 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   const segEpargne = documentRef.getElementById('donut-segment-epargne')
   const segLibre = documentRef.getElementById('donut-segment-libre')
 
+  const applySegmentTransition = (seg) => {
+    if (!seg) return
+    if (!isReducedMotion) {
+      seg.style.transition = 'stroke-dasharray 850ms cubic-bezier(0.16, 1, 0.3, 1), stroke-dashoffset 850ms cubic-bezier(0.16, 1, 0.3, 1)'
+    } else {
+      seg.style.transition = 'none'
+    }
+  }
+
+  applySegmentTransition(segCharges)
+  applySegmentTransition(segEpargne)
+  applySegmentTransition(segLibre)
+
   if (segCharges) {
     segCharges.setAttribute('stroke-dasharray', `${lenCh} ${totalCircumference - lenCh}`)
     segCharges.setAttribute('stroke-dashoffset', '0')
@@ -314,7 +343,28 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   }
 
   const donutCenterPct = documentRef.getElementById('donut-center-pct')
-  if (donutCenterPct) donutCenterPct.textContent = `${pctCh}%`
+  if (donutCenterPct) {
+    if (!isReducedMotion && !donutCenterPct.dataset.animated && typeof windowRef?.requestAnimationFrame === 'function') {
+      donutCenterPct.dataset.animated = 'true'
+      const startTime = Date.now()
+      const duration = 650
+      const targetVal = pctCh
+      const animateCount = () => {
+        const elapsed = Date.now() - startTime
+        const progress = Math.min(1, elapsed / duration)
+        const currentVal = Math.round(targetVal * progress)
+        donutCenterPct.textContent = `${currentVal}%`
+        if (progress < 1) {
+          windowRef.requestAnimationFrame(animateCount)
+        } else {
+          donutCenterPct.textContent = `${targetVal}%`
+        }
+      }
+      windowRef.requestAnimationFrame(animateCount)
+    } else {
+      donutCenterPct.textContent = `${pctCh}%`
+    }
+  }
 
   const legCh = documentRef.getElementById('donut-leg-charges')
   if (legCh) legCh.textContent = `${pctCh}%`
@@ -325,7 +375,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
 
   // ANALYSES & DETTES - Use pre-calculated metrics from updateAll()
   const analysisProjVal = documentRef.getElementById('analysis-projection-value')
-  if (analysisProjVal) analysisProjVal.textContent = fmt(annualProjection) // Use pre-calculated annualProjection
+  if (analysisProjVal) analysisProjVal.textContent = fmt(annualProjection)
 
   const analysisProjTrend = documentRef.getElementById('analysis-projection-trend')
   if (analysisProjTrend) {
@@ -333,16 +383,21 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   }
 
   const analysisTrendVal = documentRef.getElementById('analysis-trend-value')
-  if (analysisTrendVal) analysisTrendVal.textContent = fmtPct(savingsRate) // Use pre-calculated savingsRate
+  if (analysisTrendVal) analysisTrendVal.textContent = fmtPct(savingsRate)
 
   const analysisRatioVal = documentRef.getElementById('analysis-ratio-value')
-  if (analysisRatioVal) analysisRatioVal.textContent = fmt(safetyMargin) // Use pre-calculated safetyMargin
+  if (analysisRatioVal) analysisRatioVal.textContent = fmt(safetyMargin)
 
   const completeGoalBar = documentRef.getElementById('complete-goal-bar')
   const completeGoalText = documentRef.getElementById('complete-goal-progress-text')
   if (completeGoalBar && completeGoalText) {
-    completeGoalBar.style.width = `${goalProgressPct}%` // Use pre-calculated goalProgressPct
-    completeGoalText.textContent = `${fmt(soldeFinMois)} / ${fmt(goalTarget)}` // Use pre-calculated goalTarget
+    if (!isReducedMotion) {
+      completeGoalBar.style.transition = 'width 800ms cubic-bezier(0.16, 1, 0.3, 1)'
+    } else {
+      completeGoalBar.style.transition = 'none'
+    }
+    completeGoalBar.style.width = `${goalProgressPct}%`
+    completeGoalText.textContent = `${fmt(soldeFinMois)} / ${fmt(goalTarget)}`
   }
 
   const completeDebtMonthly = documentRef.getElementById('complete-debt-monthly')
