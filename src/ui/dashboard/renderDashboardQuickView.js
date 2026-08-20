@@ -225,6 +225,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   const timeContext = getTimeContext(viewedMonthIso)
 
   const revReel = Number(metrics.revReel || 0)
+  const isHydrating = metrics.hydrationComplete === false || metrics.loading === true || metrics.hydrating === true
   const fixReel = Number(metrics.fixReel || 0)
   const varReel = Number(metrics.varReel || 0)
   const debtSummary = metrics.debtSummary || { total: 0, monthly: 0 }
@@ -379,7 +380,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
             }, 1200)
           })
         }
-      })
+      }, 0.25, windowRef)
     } else {
       // Subsequent updateAll calls: smooth geometry update without re-drawing line from left
       linePath.style.transition = 'd 600ms cubic-bezier(0.16, 1, 0.3, 1)'
@@ -401,9 +402,9 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
 
   // SPRINT 3: DONUT CHART 360° (TRUE CONSTRUCTION REVEAL)
   const totalCircumference = 238.76
-  const pctCh = revReel > 0 ? Math.min(100, Math.round((fixReel / revReel) * 100)) : 0
-  const pctEp = revReel > 0 ? Math.min(100 - pctCh, Math.max(0, Math.round(savingsRate))) : 0
-  const pctVar = Math.max(0, 100 - pctCh - pctEp)
+  const pctCh = !isHydrating && revReel > 0 ? Math.min(100, Math.round((fixReel / revReel) * 100)) : 0
+  const pctEp = !isHydrating && revReel > 0 ? Math.min(100 - pctCh, Math.max(0, Math.round(savingsRate))) : 0
+  const pctVar = isHydrating ? 0 : Math.max(0, 100 - pctCh - pctEp)
 
   const lenCh = (pctCh / 100) * totalCircumference
   const lenEp = (pctEp / 100) * totalCircumference
@@ -414,7 +415,11 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   const segLibre = documentRef.getElementById('donut-segment-libre')
 
   if (segCharges && segEpargne && segLibre) {
-    const isDonutInitialReveal = !segCharges.dataset.motionState
+    segCharges.__viewportRevealCleanup?.()
+    segCharges.__donutRevealCleanup?.()
+    const renderRevision = (Number(segCharges.dataset.semanticRevision) || 0) + 1
+    segCharges.dataset.semanticRevision = String(renderRevision)
+    const isDonutInitialReveal = !segCharges.dataset.motionState || segCharges.dataset.motionState === 'pending'
 
     if (isReducedMotion) {
       segCharges.style.transition = 'none'
@@ -438,10 +443,30 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
       segLibre.setAttribute('stroke-dashoffset', '0')
 
       // Trigger construction only when element enters viewport
-      setupViewportReveal(segCharges, () => {
+      const revealController = setupViewportReveal(segCharges, () => {
+        if (segCharges.dataset.semanticRevision !== String(renderRevision)) return
         segCharges.dataset.motionState = 'running'
         if (typeof windowRef?.requestAnimationFrame === 'function') {
-          windowRef.requestAnimationFrame(() => {
+          let revealRafId = null
+          let revealTimeoutId = null
+          const cleanupReveal = () => {
+            if (revealRafId !== null && typeof windowRef.cancelAnimationFrame === 'function') {
+              windowRef.cancelAnimationFrame(revealRafId)
+            }
+            if (revealTimeoutId !== null) clearTimeout(revealTimeoutId)
+            segCharges.removeEventListener('transitionend', onDonutTransitionEnd)
+          }
+          const onDonutTransitionEnd = (ev) => {
+            if (ev.propertyName && ev.propertyName.indexOf('dasharray') === -1 && ev.propertyName.indexOf('dashoffset') === -1) return
+            if (segCharges.dataset.semanticRevision !== String(renderRevision)) return
+            segCharges.removeEventListener('transitionend', onDonutTransitionEnd)
+            segCharges.dataset.motionState = 'ambient'
+            attachAmbientController(segCharges, () => startDonutAmbientMotion(segCharges, segEpargne))
+          }
+          segCharges.__donutRevealCleanup = cleanupReveal
+          revealRafId = windowRef.requestAnimationFrame(() => {
+            revealRafId = null
+            if (segCharges.dataset.semanticRevision !== String(renderRevision)) return
             const segTransition = 'stroke-dasharray 850ms cubic-bezier(0.16, 1, 0.3, 1), stroke-dashoffset 850ms cubic-bezier(0.16, 1, 0.3, 1)'
             segCharges.style.transition = segTransition
             segEpargne.style.transition = segTransition
@@ -454,24 +479,17 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
             segLibre.setAttribute('stroke-dasharray', `${lenVar} ${totalCircumference - lenVar}`)
             segLibre.setAttribute('stroke-dashoffset', String(-(lenCh + lenEp)))
             // Mark complete after animation finishes. Use transitionend for robustness with a fallback timeout.
-            const onDonutTransitionEnd = (ev) => {
-              if (ev.propertyName && ev.propertyName.indexOf('dasharray') === -1 && ev.propertyName.indexOf('dashoffset') === -1) return
-              segCharges.removeEventListener('transitionend', onDonutTransitionEnd)
-              segCharges.dataset.motionState = 'complete'
-              // Start ambient motion after reveal
-              segCharges.dataset.motionState = 'ambient'
-              attachAmbientController(segCharges, () => startDonutAmbientMotion(segCharges, segEpargne))
-            }
             segCharges.addEventListener('transitionend', onDonutTransitionEnd)
-            setTimeout(() => {
+            revealTimeoutId = setTimeout(() => {
+              if (segCharges.dataset.semanticRevision !== String(renderRevision)) return
               segCharges.removeEventListener('transitionend', onDonutTransitionEnd)
-              segCharges.dataset.motionState = 'complete'
               segCharges.dataset.motionState = 'ambient'
               attachAmbientController(segCharges, () => startDonutAmbientMotion(segCharges, segEpargne))
             }, 1000)
           })
         }
-      })
+      }, 0.25, windowRef)
+      segCharges.__viewportRevealCleanup = revealController?.cleanup || null
     } else {
       // Subsequent updates: smooth transition from previous state
       const segTransition = 'stroke-dasharray 500ms cubic-bezier(0.16, 1, 0.3, 1), stroke-dashoffset 500ms cubic-bezier(0.16, 1, 0.3, 1)'
@@ -495,7 +513,8 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
 
   const donutCenterPct = documentRef.getElementById('donut-center-pct')
   if (donutCenterPct) {
-    if (!isReducedMotion && !donutCenterPct.dataset.animated && typeof windowRef?.requestAnimationFrame === 'function') {
+    if (isHydrating) donutCenterPct.dataset.animated = ''
+    if (!isHydrating && !isReducedMotion && !donutCenterPct.dataset.animated && typeof windowRef?.requestAnimationFrame === 'function') {
       donutCenterPct.dataset.animated = 'true'
       const startTime = Date.now()
       const duration = 700
@@ -513,16 +532,16 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
       }
       windowRef.requestAnimationFrame(animateCount)
     } else {
-      donutCenterPct.textContent = `${pctCh}%`
+      donutCenterPct.textContent = isHydrating ? '—' : `${pctCh}%`
     }
   }
 
   const legCh = documentRef.getElementById('donut-leg-charges')
-  if (legCh) legCh.textContent = `${pctCh}%`
+  if (legCh) legCh.textContent = isHydrating ? '—' : `${pctCh}%`
   const legEp = documentRef.getElementById('donut-leg-epargne')
-  if (legEp) legEp.textContent = `${pctEp}%`
+  if (legEp) legEp.textContent = isHydrating ? '—' : `${pctEp}%`
   const legVar = documentRef.getElementById('donut-leg-variables')
-  if (legVar) legVar.textContent = `${pctVar}%`
+  if (legVar) legVar.textContent = isHydrating ? '—' : `${pctVar}%`
 
   // ANALYSES & DETTES - Use pre-calculated metrics from updateAll()
   const analysisProjVal = documentRef.getElementById('analysis-projection-value')
@@ -579,7 +598,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
             }, 900)
           })
         }
-      })
+      }, 0.25, windowRef)
     } else {
       completeGoalBar.style.transition = 'width 500ms cubic-bezier(0.16, 1, 0.3, 1)'
       completeGoalBar.style.width = `${goalProgressPct}%`

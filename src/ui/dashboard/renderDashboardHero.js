@@ -43,6 +43,8 @@ export function renderDashboardHero(rootId, metrics = {}, options = {}) {
   const root = documentRef.getElementById(rootId)
   if (!root) return
 
+  const isHydrating = metrics.loading === true || metrics.hydrating === true || metrics.isHydrating === true || metrics.hydrationComplete === false
+  const hasBudgetData = Boolean(metrics.hasBudgetData || metrics.hasData || metrics.revReel > 0 || metrics.fixReel > 0 || metrics.varReel > 0 || metrics.totalDepRestant > 0)
   const revReel = Number(metrics.revReel || 0)
   const solde = Number(metrics.solde || 0)
   const tauxCh = Number(metrics.tauxCh || 0)
@@ -51,34 +53,41 @@ export function renderDashboardHero(rootId, metrics = {}, options = {}) {
   const savingsRate = Number(metrics.savingsRate || 0)
 
   let tone = 'neutral'
-  let context = 'Synthèse à compléter'
+  let context = isHydrating ? 'Chargement du budget' : 'Synthèse à compléter'
   let trend = null
   let subMetrics = []
 
-  if (revReel > 0) {
+  if (isHydrating) {
+    tone = 'neutral'
+    trend = null
+    subMetrics = []
+  } else if (revReel > 0) {
     const situation = getNexoraOfficialSituation({ revReel, solde, tauxCh, variablesPct })
     tone = situation.state
     context = situation.label
     trend = `Charges ${tauxCh}% · Variables ${variablesPct}%`
-    
+
     subMetrics = [
       { label: 'Taux d\'épargne', value: fmtPct(savingsRate) }
     ]
+  } else if (hasBudgetData) {
+    context = 'Synthèse à compléter'
   }
 
+  const isActionable = !isHydrating && revReel > 0
   const heroCard = createHeroCard({
-    amount: revReel > 0 ? fmt(solde) : '—',
+    amount: isHydrating || revReel === 0 ? '—' : fmt(solde),
     label: 'Argent restant ce mois-ci',
     context,
     trend,
     subMetrics,
     tone,
-    actionLabel: revReel > 0 ? 'Voir le plan' : 'Saisir le mois',
+    actionLabel: isHydrating ? 'Chargement…' : isActionable ? 'Voir le plan' : 'Saisir le mois',
     onAction: () => {
       if (typeof options.onAction === 'function') {
-        options.onAction(revReel > 0 ? 'plan' : 'saisie')
+        options.onAction(isHydrating ? 'dashboard' : isActionable ? 'plan' : 'saisie')
       } else if (typeof windowRef !== 'undefined' && typeof windowRef.showSection === 'function') {
-        windowRef.showSection(revReel > 0 ? 'plan' : 'saisie')
+        windowRef.showSection(isHydrating ? 'dashboard' : isActionable ? 'plan' : 'saisie')
       }
     },
     ariaLabel: 'Solde du mois'

@@ -124,6 +124,15 @@ class TestElement extends TestEventTarget {
     this.childNodes = []
     this.attributes = new Map()
     this.classList = new TestClassList(this)
+    this.dataset = new Proxy({}, {
+      set: (target, property, value) => {
+        target[property] = String(value)
+        const attributeName = `data-${String(property).replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`)}`
+        this.attributes.set(attributeName, String(value))
+        return true
+      }
+    })
+    this.style = {}
     this.hidden = false
     this.disabled = false
     this.required = false
@@ -168,6 +177,18 @@ class TestElement extends TestEventTarget {
 
   set textContent(value) {
     this._text = String(value ?? '')
+    this.childNodes = []
+  }
+
+  get innerHTML() {
+    return ''
+  }
+
+  set innerHTML(value) {
+    this._text = ''
+    this.childNodes.forEach((node) => {
+      node.parentNode = null
+    })
     this.childNodes = []
   }
 

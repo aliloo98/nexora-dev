@@ -2037,6 +2037,12 @@ if ('ResizeObserver' in window) {
 
 let loadMonthRequestId = 0;
 let hasUnsavedBudgetChanges = false;
+let budgetHydrationState = 'idle';
+
+function setBudgetHydrationState(state) {
+  budgetHydrationState = state;
+  window.__nexoraBudgetHydrationState = state;
+}
 
 function setSaveBarDirty(isDirty) {
   hasUnsavedBudgetChanges = Boolean(isDirty);
@@ -2150,6 +2156,7 @@ async function loadMonth(){
   const m=getMonth();
   applyBudgetCycleLabels();
   const requestId = ++loadMonthRequestId;
+  setBudgetHydrationState('hydrating');
   let data={};
   try { data = await readMonthData(m); } catch (err) { console.warn('Donnée mois indisponible', err); data = {}; }
   if (requestId !== loadMonthRequestId) return;
@@ -2212,6 +2219,7 @@ async function loadMonth(){
     updateNoteIconState(baseKey);
   });
 
+  setBudgetHydrationState('loaded');
   updateAll();
   if (document.body.classList.contains('mode-complete')) {
     try {
@@ -3966,6 +3974,7 @@ function validateRevenueInput(element) {
 
 function updateAll(){
     const resolvedBudget = getResolvedBudgetSnapshot({ includeRecurring: false });
+  const hydrationComplete = budgetHydrationState === 'loaded';
   const inputCache = new Map();
   const valueCache = new Map();
   const parseCache = new Map();
@@ -4372,7 +4381,8 @@ function updateAll(){
     solde,
     tauxCh,
     variablesPct,
-    savingsRate
+    savingsRate,
+    hydrationComplete
   });
   
   // Update Dashboard Coach with V2 renderer
@@ -4382,7 +4392,8 @@ function updateAll(){
       solde,
       tauxCh,
       variablesPct,
-      totalDepRestant
+      totalDepRestant,
+      hydrationComplete
     }, { windowRef: window });
   }
   // Update Quick View / Analytics / Goals (Mode Complet) with source of truth metrics
@@ -4401,7 +4412,8 @@ function updateAll(){
       safetyMargin, // Calculated in updateAll()
       goalProgressPct, // Calculated in updateAll()
       goalTarget, // Calculated in updateAll()
-      debtSummary: getDebtSummary()
+      debtSummary: getDebtSummary(),
+      hydrationComplete
     }, { windowRef: window });
   }
   updateMonthForecast({
@@ -4652,12 +4664,13 @@ function updateDashboardSynthesisHero(metrics = {}) {
   const solde = Number(metrics.solde || 0);
   const tauxCh = Number(metrics.tauxCh || 0);
   const variablesPct = Number(metrics.variablesPct || 0);
+  const isHydrating = metrics.hydrationComplete === false || metrics.loading === true || metrics.hydrating === true;
   let state = 'neutral';
-  let status = 'Synthèse à compléter';
-  let actionTitle = 'Compléter le budget';
-  let actionDetail = 'Ajoutez vos revenus et dépenses pour activer le diagnostic Nexora.';
+  let status = isHydrating ? 'Chargement du budget' : 'Synthèse à compléter';
+  let actionTitle = isHydrating ? 'Préparation…' : 'Compléter le budget';
+  let actionDetail = isHydrating ? 'Le mois est en cours de restauration…' : 'Ajoutez vos revenus et dépenses pour activer le diagnostic Nexora.';
 
-  if (revReel > 0) {
+  if (!isHydrating && revReel > 0) {
     const situation = getNexoraOfficialSituation({ revReel, solde, tauxCh, variablesPct });
     window.__nexoraDashboardSituation = situation;
     state = situation.state;
@@ -7782,6 +7795,7 @@ let legacyBudgetUiInitPromise = null;
 window.initLegacyBudgetUi = () => {
   if (legacyBudgetUiInitPromise) return legacyBudgetUiInitPromise;
   legacyBudgetUiInitPromise = (async () => {
+    setBudgetHydrationState('hydrating');
     // Initialize modules
     if (typeof ThemeManager !== 'undefined') await ThemeManager.init();
     if (typeof LogoManager !== 'undefined') await LogoManager.init();

@@ -19,6 +19,7 @@ export function renderDashboardCoach(rootId, metrics = {}, options = {}) {
   const root = documentRef.getElementById(rootId)
   if (!root) return
 
+  const isHydrating = metrics.loading === true || metrics.hydrating === true || metrics.isHydrating === true || metrics.hydrationComplete === false
   const revReel = Number(metrics.revReel || 0)
   const solde = Number(metrics.solde || 0)
   const tauxCh = Number(metrics.tauxCh || 0)
@@ -31,13 +32,13 @@ export function renderDashboardCoach(rootId, metrics = {}, options = {}) {
     key: 'neutral',
     tone: 'info',
     kicker: 'Prochaine étape',
-    title: 'Synthèse à compléter',
-    reason: 'Commence par saisir tes revenus et charges.',
-    actionLabel: 'Saisir le budget',
-    target: 'saisie'
+    title: isHydrating ? 'Chargement du budget' : 'Synthèse à compléter',
+    reason: isHydrating ? 'Le mois est en cours de restauration…' : 'Commence par saisir tes revenus et charges.',
+    actionLabel: isHydrating ? 'Préparation…' : 'Saisir le budget',
+    target: isHydrating ? 'dashboard' : 'saisie'
   }
 
-  if (revReel > 0) {
+  if (!isHydrating && revReel > 0) {
     if (solde < 0) {
       coachState = {
         key: 'danger',

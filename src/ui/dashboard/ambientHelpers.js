@@ -1,22 +1,29 @@
 import { setupAmbientMotion, startGraphAmbientMotion, startDonutAmbientMotion, startProgressAmbientSweep } from '../../jarvis/motion/jarvisAmbientMotion.js'
 
-export function setupViewportReveal(element, animationCallback, threshold = 0.25) {
-  if (!element || !window.IntersectionObserver) {
+export function setupViewportReveal(element, animationCallback, threshold = 0.25, windowOverride = null) {
+  if (!element) return null
+
+  const windowRef = windowOverride || element.ownerDocument?.defaultView || (typeof window !== 'undefined' ? window : null)
+  const documentRef = element.ownerDocument || (typeof document !== 'undefined' ? document : null)
+  const IntersectionObserverRef = windowRef?.IntersectionObserver
+  if (!windowRef || !IntersectionObserverRef) {
     animationCallback()
-    return
+    return { cleanup() {} }
   }
 
   let triggered = false
+  let cleanedUp = false
+  let rafId = null
   const trigger = () => {
-    if (triggered) return
+    if (triggered || cleanedUp) return
     triggered = true
     animationCallback()
   }
-  const observer = new IntersectionObserver((entries) => {
+  const observer = new IntersectionObserverRef((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         observer.unobserve(entry.target)
-        try { window.removeEventListener('scroll', onScroll, true) } catch (e) {}
+        try { windowRef.removeEventListener('scroll', onScroll, true) } catch (e) {}
         trigger()
       }
     })
@@ -25,34 +32,45 @@ export function setupViewportReveal(element, animationCallback, threshold = 0.25
   observer.observe(element)
   // If element is already in viewport (e.g., after scrollIntoView), trigger immediately
   const rect = element.getBoundingClientRect()
-  const inViewport = rect.top < (window.innerHeight || document.documentElement.clientHeight) && rect.bottom > 0
+  const inViewport = rect.top < (windowRef.innerHeight || documentRef?.documentElement?.clientHeight) && rect.bottom > 0
   if (inViewport) {
     observer.unobserve(element)
     trigger()
-    return null
+    return { cleanup() { cleanedUp = true; observer.disconnect() } }
   }
 
   // Also listen for scroll events to handle programmatic scrollIntoView races
   const onScroll = () => {
     const r = element.getBoundingClientRect()
-    const nowIn = r.top < (window.innerHeight || document.documentElement.clientHeight) && r.bottom > 0
+    const nowIn = r.top < (windowRef.innerHeight || documentRef?.documentElement?.clientHeight) && r.bottom > 0
     if (nowIn) {
       observer.unobserve(element)
-      window.removeEventListener('scroll', onScroll, true)
+      windowRef.removeEventListener('scroll', onScroll, true)
       trigger()
     }
   }
-  window.addEventListener('scroll', onScroll, true)
+  windowRef.addEventListener('scroll', onScroll, true)
 
-  window.requestAnimationFrame(() => {
-    if (element.getBoundingClientRect().top < (window.innerHeight || document.documentElement.clientHeight) && element.getBoundingClientRect().bottom > 0) {
+  rafId = typeof windowRef.requestAnimationFrame === 'function' ? windowRef.requestAnimationFrame(() => {
+    rafId = null
+    if (element.getBoundingClientRect().top < (windowRef.innerHeight || documentRef?.documentElement?.clientHeight) && element.getBoundingClientRect().bottom > 0) {
       observer.unobserve(element)
-      window.removeEventListener('scroll', onScroll, true)
+      windowRef.removeEventListener('scroll', onScroll, true)
       trigger()
     }
-  })
+  }) : null
 
-  return observer
+  return {
+    cleanup() {
+      if (cleanedUp) return
+      cleanedUp = true
+      if (rafId !== null && typeof windowRef.cancelAnimationFrame === 'function') {
+        windowRef.cancelAnimationFrame(rafId)
+      }
+      windowRef.removeEventListener('scroll', onScroll, true)
+      observer.disconnect()
+    }
+  }
 }
 
 export function attachAmbientController(element, starter) {
@@ -63,7 +81,7 @@ export function attachAmbientController(element, starter) {
     element.__ambientController = null
   }
   if (element.__ambientObserver) {
-    try { element.__ambientObserver.disconnect() } catch (e) {}
+    try { element.__ambientObserver.cleanup?.() || element.__ambientObserver.disconnect?.() } catch (e) {}
     element.__ambientObserver = null
   }
 
