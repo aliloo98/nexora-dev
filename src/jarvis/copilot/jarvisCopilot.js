@@ -84,7 +84,12 @@ export function renderJarvisCopilot(snapshot = {}) {
           aria-expanded="false"
           aria-controls="jarvis-copilot-panel"
         >
-          <span class="jarvis-copilot-signal" aria-hidden="true"></span>
+          <span class="jarvis-core-signal" aria-hidden="true" data-state="idle">
+            <span class="jarvis-core-ring jarvis-core-outer"></span>
+            <span class="jarvis-core-ring jarvis-core-arc"></span>
+            <span class="jarvis-core-ring jarvis-core-inner"></span>
+            <span class="jarvis-core-center"></span>
+          </span>
           <span>
             <span class="jarvis-copilot-kicker">JARVIS</span>
             <span class="jarvis-copilot-role">Copilote financier</span>
@@ -131,9 +136,13 @@ export function renderJarvisCopilot(snapshot = {}) {
 function setOpenState(root, open) {
   const panel = root.querySelector('#jarvis-copilot-panel')
   const trigger = root.querySelector('[data-jarvis-copilot-open]')
+  const signals = root.ownerDocument.querySelectorAll('.jarvis-core-signal')
   root.dataset.jarvisCopilotState = open ? 'open' : 'closed'
   if (panel) panel.hidden = !open
   if (trigger) trigger.setAttribute('aria-expanded', open ? 'true' : 'false')
+  signals.forEach((signal) => {
+    signal.dataset.state = open ? 'open' : 'idle'
+  })
 }
 
 function autoGrow(textarea) {
@@ -301,16 +310,43 @@ export function attachJarvisCopilot(container, options = {}) {
     })
   }
 
+  let pendingSignalTimeoutId = null
+  let signalVersion = 0
+
+  const clearPendingSignalTimeout = () => {
+    if (pendingSignalTimeoutId) {
+      clearTimeout(pendingSignalTimeoutId)
+      pendingSignalTimeoutId = null
+    }
+  }
+
+  const setSignalState = (state) => {
+    clearPendingSignalTimeout()
+    signalVersion++
+    root.querySelectorAll('.jarvis-core-signal').forEach(s => s.dataset.state = state)
+  }
+
   const submitText = async (text) => {
     const trimmed = String(text || '').trim()
     if (!trimmed) return
     openPanel(false)
     appendUserMessage(thread, trimmed)
+    setSignalState('analysing')
     if (submitButton) submitButton.disabled = true
     if (input) input.disabled = true
     try {
       await renderResponse(trimmed)
+      setSignalState('response-ready')
+      const currentVersion = ++signalVersion
+      pendingSignalTimeoutId = setTimeout(() => {
+        if (currentVersion === signalVersion) {
+          root.querySelectorAll('.jarvis-core-signal').forEach(s => {
+            s.dataset.state = root.dataset.jarvisCopilotState === 'open' ? 'open' : 'idle'
+          })
+        }
+      }, 1200)
     } catch (error) {
+      setSignalState('idle')
       const fallback = thread.ownerDocument.createElement('article')
       fallback.className = 'jarvis-copilot-response'
       fallback.dataset.tone = 'warning'

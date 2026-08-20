@@ -124,40 +124,13 @@ body.mode-simple .jarvis-data-quality-mode {
 
 .jarvis-visual-anchor {
   position: absolute;
-  top: var(--nx-space-lg);
-  right: var(--nx-space-lg);
+  top: var(--nx-space-md);
+  right: var(--nx-space-md);
   width: 44px;
   height: 44px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--jarvis-accent-glow);
-  border: 2px solid var(--jarvis-accent);
-  opacity: 0.9;
-  box-shadow: 0 0 0 1px rgba(215, 169, 74, 0.1), inset 0 0 12px rgba(215, 169, 74, 0.08);
-}
-
-.jarvis-hero[data-state="critical"] .jarvis-visual-anchor {
-  background: var(--nx-color-surface-critical);
-  border-color: var(--jarvis-critical);
-}
-
-.jarvis-hero[data-state="fragile"] .jarvis-visual-anchor {
-  border-color: var(--jarvis-fragile);
-}
-
-.jarvis-hero[data-state="stable"] .jarvis-visual-anchor,
-.jarvis-hero[data-state="strong"] .jarvis-visual-anchor {
-  border-color: var(--jarvis-stable);
-}
-
-.jarvis-visual-anchor::after {
-  content: '';
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: currentColor;
 }
 
 /* ============================================
@@ -476,49 +449,38 @@ body.mode-simple .jarvis-data-quality-mode {
 
 .jarvis-cockpit[data-motion="entry"] > * {
   opacity: 0;
-  transform: translateY(10px);
-  animation: jarvis-entry var(--nx-motion-standard) var(--nx-easing-entrance) forwards;
+  transform: translateY(12px) scale(0.995);
+  animation: jarvis-entry 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .jarvis-cockpit[data-motion="entry"] .jarvis-hero {
   animation-delay: 0ms;
 }
 
+.jarvis-cockpit[data-motion="entry"] .jarvis-copilot {
+  animation-delay: 60ms;
+}
+
 .jarvis-cockpit[data-motion="entry"] .jarvis-priority-card {
-  animation-delay: 25ms;
+  animation-delay: 120ms;
 }
 
 .jarvis-cockpit[data-motion="entry"] .jarvis-trajectory-panel {
-  animation-delay: 50ms;
+  animation-delay: 180ms;
 }
 
 .jarvis-cockpit[data-motion="entry"] .jarvis-signals-section {
-  animation-delay: 75ms;
+  animation-delay: 240ms;
 }
 
 .jarvis-cockpit[data-motion="entry"] .jarvis-goal-module {
-  animation-delay: 100ms;
+  animation-delay: 300ms;
 }
 
 @keyframes jarvis-entry {
   to {
     opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.jarvis-visual-anchor {
-  animation: jarvis-pulse 5s ease-in-out infinite;
-}
-
-@keyframes jarvis-pulse {
-  0%, 100% {
-    opacity: 0.9;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.02);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -528,21 +490,24 @@ body.mode-simple .jarvis-data-quality-mode {
 
 @media (prefers-reduced-motion: reduce) {
   .jarvis-cockpit[data-motion="entry"] > * {
-    animation: none;
-    opacity: 1;
-    transform: none;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 
-  .jarvis-visual-anchor {
-    animation: none;
+  .jarvis-core-outer,
+  .jarvis-core-arc,
+  .jarvis-core-inner,
+  .jarvis-core-center {
+    animation: none !important;
   }
 
   .jarvis-goal-progress-bar {
-    transition: none;
+    transition: none !important;
   }
 
   .jarvis-priority-cta {
-    transition: none;
+    transition: none !important;
   }
 }
 

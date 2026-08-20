@@ -113,22 +113,16 @@ const openBudgetSection = async (page) => {
 };
 
 const clearBudgetInputs = async (page) => {
-  await page.evaluate(() => {
-    const keysToClear = [
-      'rev_ali', 'rev_megane', 'rev_excep',
-      'loyer', 'credit', 'assauto', 'gasoil', 'elec', 'eau', 'psy', 'diete', 'itou', 'sante', 'impots', 'box', 'tel_ali', 'tel_meg', 'stream', 'ps', 'cb', 'impfix',
-      'courses', 'tabac', 'sport', 'ongles', 'cadeaux', 'impvar'
-    ];
-    for (const key of keysToClear) {
-      const field = document.querySelector(`#section-saisie input[data-key="${key}"]`);
-      if (field) {
-        field.value = '';
-      }
-    }
-    if (typeof window.updateAll === 'function') {
-      window.updateAll();
-    }
-  });
+  const keysToClear = [
+    'rev_ali', 'rev_megane', 'rev_excep',
+    'loyer', 'credit', 'assauto', 'gasoil', 'elec', 'eau', 'psy', 'diete', 'itou', 'sante', 'impots', 'box', 'tel_ali', 'tel_meg', 'stream', 'ps', 'cb', 'impfix',
+    'courses', 'tabac', 'sport', 'ongles', 'cadeaux', 'impvar'
+  ];
+  for (const key of keysToClear) {
+    const field = page.locator(`#section-saisie input[data-key="${key}"]`);
+    if (await field.count()) await field.fill('');
+  }
+  await page.evaluate(() => window.updateAll?.());
 };
 
 const applyScenarioValues = async (page, values) => {

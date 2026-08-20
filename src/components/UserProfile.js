@@ -199,7 +199,11 @@ export const attachUserMenuListeners = () => {
             // Redirect to login
             setTimeout(() => {
               AuthPages.showAuthPages()
-              AuthPages.showLoginPage()
+              if (!document.getElementById('forgotPasswordForm') &&
+                  !document.getElementById('registerForm') &&
+                  !document.getElementById('resetPasswordForm')) {
+                AuthPages.showLoginPage()
+              }
             }, 800)
           } catch (error) {
             console.error('Logout error:', error)

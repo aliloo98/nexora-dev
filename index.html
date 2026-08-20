@@ -29,6 +29,8 @@ body.auth-locked > #nexora-status-bar {
 </head>
 <body class="auth-locked">
 
+<!-- Legacy inline scripts should call Utils.showToast to use the exposed API -->
+
 <!-- SIDEBAR / BOTTOM BAR -->
 <nav class="sidebar" role="navigation" aria-label="Navigation principale">
   <div class="sidebar-logo" id="app-sidebar-logo">
@@ -184,6 +186,7 @@ body.auth-locked > #nexora-status-bar {
         <button type="button" class="btn btn-gold btn--large" onclick="showSection('plan')">Voir le plan financier</button>
       </div>
             <div class="treasury-chart-wrapper" id="treasury-svg-container" data-dashboard-mode="complete">
+              <span class="treasury-card-sheen" aria-hidden="true"></span>
               <svg class="treasury-svg-chart" viewBox="0 0 500 120" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="treasuryGradient" x1="0" y1="0" x2="0" y2="1">
@@ -193,6 +196,7 @@ body.auth-locked > #nexora-status-bar {
                 </defs>
                 <path id="treasury-area-path" d="M 0,120 L 0,60 Q 250,20 500,40 L 500,120 Z" fill="url(#treasuryGradient)" />
                 <path id="treasury-line-path" d="M 0,60 Q 250,20 500,40" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" />
+                <path id="treasury-line-highlight" d="M 0,60 Q 250,20 500,40" fill="none" stroke="#b8e8ff" stroke-width="4" stroke-linecap="round" pathLength="520" stroke-dasharray="26 494" stroke-dashoffset="520" opacity="0" pointer-events="none" />
                 <circle id="treasury-hover-dot" cx="250" cy="30" r="5" fill="#34d399" stroke="#ffffff" stroke-width="2" style="opacity: 0.8;" />
               </svg>
               <div class="treasury-chart-legend">
@@ -236,6 +240,7 @@ body.auth-locked > #nexora-status-bar {
                     <circle id="donut-segment-charges" class="donut-segment" cx="50" cy="50" r="38" fill="none" stroke="#8b5cf6" stroke-width="12" stroke-dasharray="140 238" stroke-dashoffset="0" />
                     <circle id="donut-segment-epargne" class="donut-segment" cx="50" cy="50" r="38" fill="none" stroke="#10b981" stroke-width="12" stroke-dasharray="60 238" stroke-dashoffset="-140" />
                     <circle id="donut-segment-libre" class="donut-segment" cx="50" cy="50" r="38" fill="none" stroke="#3b82f6" stroke-width="12" stroke-dasharray="38 238" stroke-dashoffset="-200" />
+                    <circle id="donut-perimeter-glint" cx="50" cy="50" r="38" fill="none" stroke="#f8e7b0" stroke-width="2" stroke-linecap="round" stroke-dasharray="7 231.76" stroke-dashoffset="238.76" opacity="0" pointer-events="none" />
                   </svg>
                   <div class="donut-center-text">
                     <span class="donut-center-label">Frais fixes</span>
@@ -262,7 +267,7 @@ body.auth-locked > #nexora-status-bar {
                     <strong id="complete-goal-progress-text">-- / -- €</strong>
                   </div>
                   <div class="goal-milestone-bar-bg">
-                    <div class="goal-milestone-bar-fill" id="complete-goal-bar" style="width: 0%;"></div>
+                    <div class="goal-milestone-bar-fill" id="complete-goal-bar" style="width: 0%;"><span class="goal-milestone-bar-sheen" aria-hidden="true"></span></div>
                   </div>
                 </div>
               </div>
@@ -1476,7 +1481,7 @@ async function setNexoraDemoMode(enabled) {
     applyNexoraUxMode(getNexoraUxMode());
   }
   if (typeof window.refreshPlanHub === 'function') window.refreshPlanHub().catch(() => {});
-  showToast(enabled ? 'Mode démo activé — données fictives affichées' : 'Mode démo désactivé — données réelles affichées');
+  Utils.showToast(enabled ? 'Mode démo activé — données fictives affichées' : 'Mode démo désactivé — données réelles affichées');
 }
 
 document.addEventListener('nexora:demo-mode-request', (event) => {
@@ -1601,10 +1606,10 @@ function saveNexoraAiSettingsFromUI() {
     applyNexoraAiSettingsUI();
     if (typeof window.refreshDashboardCoach === 'function') window.refreshDashboardCoach().catch(() => {});
     if (typeof scheduleAssistantRefresh === 'function') scheduleAssistantRefresh();
-    showToast('Réglages Nexora enregistrés');
+    Utils.showToast('Réglages Nexora enregistrés');
   } catch (err) {
     console.warn('[Nexora AI settings] save failed', err);
-    showToast('Erreur lors de l’enregistrement des réglages Nexora');
+    Utils.showToast('Erreur lors de l’enregistrement des réglages Nexora');
   }
 }
 
@@ -1728,29 +1733,29 @@ async function saveNexoraNotificationSettings() {
 
 async function enableNexoraNotifications() {
   if (!window.NotificationsService?.enable) {
-    showToast('⚠️ Notifications indisponibles');
+    Utils.showToast('⚠️ Notifications indisponibles');
     return;
   }
   const settings = await window.NotificationsService.enable();
   await saveNexoraNotificationSettings();
-  showToast(settings.permission === 'granted' ? '✅ Permission accordée, lance un test' : '⚠️ Autorisation notification refusée');
+  Utils.showToast(settings.permission === 'granted' ? '✅ Permission accordée, lance un test' : '⚠️ Autorisation notification refusée');
 }
 
 async function disableNexoraNotifications() {
   if (!window.NotificationsService?.disable) return;
   await window.NotificationsService.disable();
   await refreshNexoraNotificationSettingsUI();
-  showToast('Notifications désactivées');
+  Utils.showToast('Notifications désactivées');
 }
 
 async function testNexoraNotification() {
   if (!window.NotificationsService?.test) {
-    showToast('⚠️ Notifications indisponibles');
+    Utils.showToast('⚠️ Notifications indisponibles');
     return;
   }
   const result = await window.NotificationsService.test();
   if (result?.ok) {
-    showToast('✅ Notification envoyée');
+    Utils.showToast('✅ Notification envoyée');
   } else {
     const status = result?.status?.local || window.NotificationsService.getProviderStatus?.()?.local || {};
     const messages = {
@@ -1773,7 +1778,7 @@ async function testNexoraNotification() {
         showCancel: false
       });
     }
-    showToast(`⚠️ ${message}`);
+    Utils.showToast(`⚠️ ${message}`);
   }
   await refreshNexoraNotificationSettingsUI();
 }
@@ -2032,6 +2037,12 @@ if ('ResizeObserver' in window) {
 
 let loadMonthRequestId = 0;
 let hasUnsavedBudgetChanges = false;
+let budgetHydrationState = 'idle';
+
+function setBudgetHydrationState(state) {
+  budgetHydrationState = state;
+  window.__nexoraBudgetHydrationState = state;
+}
 
 function setSaveBarDirty(isDirty) {
   hasUnsavedBudgetChanges = Boolean(isDirty);
@@ -2145,6 +2156,7 @@ async function loadMonth(){
   const m=getMonth();
   applyBudgetCycleLabels();
   const requestId = ++loadMonthRequestId;
+  setBudgetHydrationState('hydrating');
   let data={};
   try { data = await readMonthData(m); } catch (err) { console.warn('Donnée mois indisponible', err); data = {}; }
   if (requestId !== loadMonthRequestId) return;
@@ -2207,6 +2219,7 @@ async function loadMonth(){
     updateNoteIconState(baseKey);
   });
 
+  setBudgetHydrationState('loaded');
   updateAll();
   if (document.body.classList.contains('mode-complete')) {
     try {
@@ -2245,9 +2258,9 @@ async function saveData(){
   }
 
   if (isNexoraDemoMode()) {
-    showToast('Mode démo : données sauvegardées localement');
+    Utils.showToast('Mode démo : données sauvegardées localement');
   } else {
-    showToast('✅ Sauvegardé avec succès !');
+    Utils.showToast('✅ Sauvegardé avec succès !');
   }
   buildHistory();
   setSaveBarDirty(false);
@@ -2386,7 +2399,7 @@ async function applySavedRevenues(force = false) {
   setSavedModelsButtonsDisabled(true);
   try {
     const { recurringIncomes } = await loadSavedBudgetModels();
-  if (!recurringIncomes.length) { showToast('Aucun revenu enregistré'); return; }
+  if (!recurringIncomes.length) { Utils.showToast('Aucun revenu enregistré'); return; }
   const incomeKeys = getBudgetKeysByType('income');
   const categoriesById = new Map(budgetCategoriesCache.map(c => [c.id, c]));
   const budgetData = getResolvedBudgetSnapshot({ includeRecurring: false });
@@ -2420,7 +2433,7 @@ async function applySavedRevenues(force = false) {
   }
 
   if (typeof updateAll === 'function') updateAll();
-  showToast(`✅ Revenus appliqués${applied ? ' — ' + applied + ' champs remplis' : ''}`);
+  Utils.showToast(`✅ Revenus appliqués${applied ? ' — ' + applied + ' champs remplis' : ''}`);
   } finally {
     setSavedModelsButtonsDisabled(false);
   }
@@ -2430,7 +2443,7 @@ async function applySavedExpenses(force = false) {
   setSavedModelsButtonsDisabled(true);
   try {
     const { billSchedules } = await loadSavedBudgetModels();
-    if (!billSchedules.length) { showToast('Aucun modèle de dépense'); return; }
+    if (!billSchedules.length) { Utils.showToast('Aucun modèle de dépense'); return; }
   const expenseKeys = getAllExpenseKeys();
   const categoriesById = new Map(budgetCategoriesCache.map(c => [c.id, c]));
   const budgetData = getResolvedBudgetSnapshot({ includeRecurring: false });
@@ -2464,7 +2477,7 @@ async function applySavedExpenses(force = false) {
   }
 
   if (typeof updateAll === 'function') updateAll();
-  showToast(`✅ Dépenses appliquées${applied ? ' — ' + applied + ' champs remplis' : ''}`);
+  Utils.showToast(`✅ Dépenses appliquées${applied ? ' — ' + applied + ' champs remplis' : ''}`);
   } finally {
     setSavedModelsButtonsDisabled(false);
   }
@@ -2474,7 +2487,7 @@ async function applySavedAll(force = false) {
   setSavedModelsButtonsDisabled(true);
   try {
     const { recurringIncomes, billSchedules } = await loadSavedBudgetModels();
-    if (!recurringIncomes.length && !billSchedules.length) { showToast('Aucun modèle enregistré'); return; }
+    if (!recurringIncomes.length && !billSchedules.length) { Utils.showToast('Aucun modèle enregistré'); return; }
   const incomeKeys = getBudgetKeysByType('income');
   const expenseKeys = getAllExpenseKeys();
   const categoriesById = new Map(budgetCategoriesCache.map(c => [c.id, c]));
@@ -2509,7 +2522,7 @@ async function applySavedAll(force = false) {
   }
 
   if (typeof updateAll === 'function') updateAll();
-  showToast(`✅ Modèles appliqués au budget du mois${applied ? ' — ' + applied + ' champs remplis' : ''}`);
+  Utils.showToast(`✅ Modèles appliqués au budget du mois${applied ? ' — ' + applied + ' champs remplis' : ''}`);
   } finally {
     setSavedModelsButtonsDisabled(false);
   }
@@ -3262,7 +3275,7 @@ function validateStrictMoneyFields(fields) {
   for (const [label, value] of fields) {
     const parsed = parseBudgetNumberStrict(value);
     if (parsed === null) {
-      showToast(`Expression invalide pour ${label}`);
+      Utils.showToast(`Expression invalide pour ${label}`);
       return null;
     }
   }
@@ -3332,7 +3345,7 @@ function evaluateFormula(input) {
     : parseBudgetNumberStrict(val);
   if (result === null || !Number.isFinite(result)) {
     input.classList.add('input-error');
-    showToast('Expression financière invalide : rien n’a été enregistré');
+    Utils.showToast('Expression financière invalide : rien n’a été enregistré');
     if (Object.prototype.hasOwnProperty.call(input.dataset, 'lastValidValue')) {
       input.value = input.dataset.lastValidValue;
     }
@@ -3361,7 +3374,7 @@ function hasInvalidFinancialInputs() {
   if (invalidInput) {
     invalidInput.classList.add('input-error');
     invalidInput.focus();
-    showToast('Expression financière invalide : sauvegarde annulée');
+    Utils.showToast('Expression financière invalide : sauvegarde annulée');
     return true;
   }
   return false;
@@ -3953,7 +3966,7 @@ function validateRevenueInput(element) {
   const value = parseBudgetNumber(element.value);
   if (value < 0) {
     element.value = '0';
-    showToast('Un revenu ne peut pas être négatif.');
+    Utils.showToast('Un revenu ne peut pas être négatif.');
     return false;
   }
   return true;
@@ -3961,6 +3974,7 @@ function validateRevenueInput(element) {
 
 function updateAll(){
     const resolvedBudget = getResolvedBudgetSnapshot({ includeRecurring: false });
+  const hydrationComplete = budgetHydrationState === 'loaded';
   const inputCache = new Map();
   const valueCache = new Map();
   const parseCache = new Map();
@@ -4367,7 +4381,8 @@ function updateAll(){
     solde,
     tauxCh,
     variablesPct,
-    savingsRate
+    savingsRate,
+    hydrationComplete
   });
   
   // Update Dashboard Coach with V2 renderer
@@ -4377,7 +4392,8 @@ function updateAll(){
       solde,
       tauxCh,
       variablesPct,
-      totalDepRestant
+      totalDepRestant,
+      hydrationComplete
     }, { windowRef: window });
   }
   // Update Quick View / Analytics / Goals (Mode Complet) with source of truth metrics
@@ -4396,7 +4412,8 @@ function updateAll(){
       safetyMargin, // Calculated in updateAll()
       goalProgressPct, // Calculated in updateAll()
       goalTarget, // Calculated in updateAll()
-      debtSummary: getDebtSummary()
+      debtSummary: getDebtSummary(),
+      hydrationComplete
     }, { windowRef: window });
   }
   updateMonthForecast({
@@ -4647,12 +4664,13 @@ function updateDashboardSynthesisHero(metrics = {}) {
   const solde = Number(metrics.solde || 0);
   const tauxCh = Number(metrics.tauxCh || 0);
   const variablesPct = Number(metrics.variablesPct || 0);
+  const isHydrating = metrics.hydrationComplete === false || metrics.loading === true || metrics.hydrating === true;
   let state = 'neutral';
-  let status = 'Synthèse à compléter';
-  let actionTitle = 'Compléter le budget';
-  let actionDetail = 'Ajoutez vos revenus et dépenses pour activer le diagnostic Nexora.';
+  let status = isHydrating ? 'Chargement du budget' : 'Synthèse à compléter';
+  let actionTitle = isHydrating ? 'Préparation…' : 'Compléter le budget';
+  let actionDetail = isHydrating ? 'Le mois est en cours de restauration…' : 'Ajoutez vos revenus et dépenses pour activer le diagnostic Nexora.';
 
-  if (revReel > 0) {
+  if (!isHydrating && revReel > 0) {
     const situation = getNexoraOfficialSituation({ revReel, solde, tauxCh, variablesPct });
     window.__nexoraDashboardSituation = situation;
     state = situation.state;
@@ -5326,7 +5344,7 @@ function addDebt() {
   const monthly = parsed['mensualité'];
   const rate = parsed['taux'];
   if (!name || remaining <= 0 || monthly < 0) {
-    showToast('⚠️ Nom, montant restant et mensualité sont requis');
+    Utils.showToast('⚠️ Nom, montant restant et mensualité sont requis');
     return;
   }
   const debts = readDebts();
@@ -5334,7 +5352,7 @@ function addDebt() {
   saveDebts(debts);
   [nameEl, initialEl, remainingEl, monthlyEl, rateEl].forEach(el => { if (el) el.value = ''; });
   renderDebts();
-  showToast('Dette ajoutée');
+  Utils.showToast('Dette ajoutée');
 }
 
 async function editDebt(id) {
@@ -5582,15 +5600,15 @@ async function exportMonthlyPdf(){
     if (typeof updateAll === 'function') updateAll();
 
     if (!window.NexoraPdfExport?.exportMonthlyBudgetPdf) {
-      showToast('❌ Export PDF indisponible');
+      Utils.showToast('❌ Export PDF indisponible');
       return;
     }
 
     await window.NexoraPdfExport.exportMonthlyBudgetPdf();
-    showToast('✅ PDF généré et téléchargé');
+    Utils.showToast('✅ PDF généré et téléchargé');
   } catch (err) {
     console.error('[PDF] Export impossible', err);
-    showToast('❌ Erreur lors de l’export PDF');
+    Utils.showToast('❌ Erreur lors de l’export PDF');
   }
 }
 
@@ -5604,21 +5622,21 @@ async function exportMonthlyExcel(){
     if (typeof updateAll === 'function') updateAll();
 
     if (typeof window.loadNexoraExcelExport !== 'function') {
-      showToast('❌ Export Excel indisponible');
+      Utils.showToast('❌ Export Excel indisponible');
       return;
     }
     const { NexoraExcelExport } = await window.loadNexoraExcelExport();
     if (!NexoraExcelExport?.exportMonthlyBudgetXlsx) {
-      showToast('❌ Export Excel indisponible');
+      Utils.showToast('❌ Export Excel indisponible');
       return;
     }
 
     const result = await NexoraExcelExport.exportMonthlyBudgetXlsx();
-    showToast('✅ Excel généré et téléchargé');
+    Utils.showToast('✅ Excel généré et téléchargé');
     return { data: result.data, size: result.size };
   } catch (err) {
     console.error('[Excel] Export impossible', err);
-    showToast('❌ Erreur lors de l’export Excel');
+    Utils.showToast('❌ Erreur lors de l’export Excel');
   }
 }
 
@@ -5689,10 +5707,10 @@ function exportBudgetCsv(){
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    showToast('✅ Export Excel généré et téléchargé');
+    Utils.showToast('✅ Export Excel généré et téléchargé');
   } catch (err) {
     console.error('[CSV] Export impossible', err);
-    showToast('❌ Erreur lors de l’export Excel');
+    Utils.showToast('❌ Erreur lors de l’export Excel');
   }
 }
 
@@ -5867,9 +5885,9 @@ async function exportData(){
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('✅ Sauvegarde exportée et téléchargée');
+    Utils.showToast('✅ Sauvegarde exportée et téléchargée');
   } catch (err) {
-    showToast('❌ Erreur lors de l\'exportation');
+    Utils.showToast('❌ Erreur lors de l\'exportation');
     console.error(err);
   }
 }
@@ -6105,14 +6123,14 @@ async function importData(e){
     try {
       parsed = JSON.parse(ev.target.result);
     } catch (err) {
-      showToast('❌ Fichier JSON invalide');
+      Utils.showToast('❌ Fichier JSON invalide');
       console.error(err);
       input.value = '';
       return;
     }
 
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      showToast('❌ Le fichier importé doit être un objet JSON valide');
+      Utils.showToast('❌ Le fichier importé doit être un objet JSON valide');
       input.value = '';
       return;
     }
@@ -6146,7 +6164,7 @@ async function importData(e){
       }
 
       if (importedCount === 0) {
-        showToast('❌ Aucune donnée valide trouvée dans le fichier');
+        Utils.showToast('❌ Aucune donnée valide trouvée dans le fichier');
       } else {
         selectImportedMonth(importedMonths);
         await loadMonth();
@@ -6154,10 +6172,10 @@ async function importData(e){
         buildHistory();
         if (typeof ThemeManager !== 'undefined') await ThemeManager.init();
         loadPersonalization();
-        showToast(`✅ Import fusionné : ${summary.added} ajout, ${summary.updated} mise à jour, ${summary.deleted} suppression`);
+        Utils.showToast(`✅ Import fusionné : ${summary.added} ajout, ${summary.updated} mise à jour, ${summary.deleted} suppression`);
       }
     } catch (err) {
-      showToast('❌ Erreur lors de l\'importation');
+      Utils.showToast('❌ Erreur lors de l\'importation');
       console.error(err);
     } finally {
       input.value = '';
@@ -6183,7 +6201,7 @@ function resetMonth(){
         SafeStorage.removeItem(storageKey(month));
       }
       await loadMonth();
-      showToast('🗑️ Mois réinitialisé');
+      Utils.showToast('🗑️ Mois réinitialisé');
     }
   );
 }
@@ -6934,7 +6952,7 @@ function handleCSVSelect(event) {
   if (!file) return;
 
   if (!file.name.toLowerCase().endsWith('.csv')) {
-    showToast('❌ Merci de sélectionner un fichier CSV');
+    Utils.showToast('❌ Merci de sélectionner un fichier CSV');
     return;
   }
 
@@ -6951,7 +6969,7 @@ function parseCSV(text) {
   csvDetectedSeparator = detectCSVSeparator(text);
   const lines = String(text || '').replace(/^\uFEFF/, '').split(/\r?\n/).filter(line => line.trim() !== '');
   if (lines.length < 2) {
-    showToast('❌ Fichier CSV vide ou sans opérations');
+    Utils.showToast('❌ Fichier CSV vide ou sans opérations');
     return;
   }
 
@@ -6962,7 +6980,7 @@ function parseCSV(text) {
     .filter(row => row.some(value => value !== ''));
 
   if (csvRows.length === 0) {
-    showToast('❌ Aucune ligne de données trouvée');
+    Utils.showToast('❌ Aucune ligne de données trouvée');
     return;
   }
 
@@ -6995,7 +7013,7 @@ function parseCSV(text) {
   document.getElementById('csv-mapping-panel').style.display = canAutoAnalyze ? 'none' : 'block';
   document.getElementById('csv-preview-panel').style.display = 'none';
   document.getElementById('csv-actions-panel').style.display = 'none';
-  showToast(`✅ CSV lu (${csvRows.length} opérations, ${csvDetectedBank}, ${csvDetectedEncoding})`);
+  Utils.showToast(`✅ CSV lu (${csvRows.length} opérations, ${csvDetectedBank}, ${csvDetectedEncoding})`);
   if (canAutoAnalyze) analyzeCSVData();
 }
 
@@ -7221,7 +7239,7 @@ function analyzeCSVData() {
   const effectiveAmountIdx = csvColumnMap.amount >= 0 ? csvColumnMap.amount : (csvColumnMap.debit >= 0 ? csvColumnMap.debit : csvColumnMap.credit);
 
   if (effectiveDateIdx < 0 || effectiveDescIdx < 0 || effectiveAmountIdx < 0) {
-    showToast('⚠️ Veuillez associer toutes les colonnes requises');
+    Utils.showToast('⚠️ Veuillez associer toutes les colonnes requises');
     return;
   }
 
@@ -7383,7 +7401,7 @@ async function bulkCategorizeCSVRows() {
   if (value === null) return;
   const categoryKey = findCSVCategoryKey(value);
   if (!categoryKey) {
-    showToast('⚠️ Catégorie non reconnue');
+    Utils.showToast('⚠️ Catégorie non reconnue');
     return;
   }
   selected.forEach(transaction => {
@@ -7413,7 +7431,7 @@ async function bulkAttachCSVRows() {
   if (value === null) return;
   const budgetKey = findCSVBudgetKey(value);
   if (!budgetKey) {
-    showToast('⚠️ Ligne budget non reconnue');
+    Utils.showToast('⚠️ Ligne budget non reconnue');
     return;
   }
   const option = getBudgetMatchOptions().find(item => item.key === budgetKey);
@@ -7507,7 +7525,7 @@ function summarizeCSVBudgetApplication(transactions) {
 async function applyCSVToBudget() {
   const applicable = getApplicableCSVBudgetTransactions();
   if (applicable.length === 0) {
-    showToast('⚠️ Aucune ligne CSV applicable au budget');
+    Utils.showToast('⚠️ Aucune ligne CSV applicable au budget');
     return;
   }
 
@@ -7537,7 +7555,7 @@ async function applyCSVToBudget() {
   });
 
   if (appliedCount === 0) {
-    showToast('⚠️ Aucune ligne budget correspondante trouvée');
+    Utils.showToast('⚠️ Aucune ligne budget correspondante trouvée');
     return;
   }
 
@@ -7546,7 +7564,7 @@ async function applyCSVToBudget() {
   renderCSVOperationsTable();
   renderCSVSummary();
   updateCSVMatchSummary();
-  showToast(`✅ ${appliedCount} ligne(s) appliquée(s) au budget`);
+  Utils.showToast(`✅ ${appliedCount} ligne(s) appliquée(s) au budget`);
 }
 
 function applyCSVTransactions() {
@@ -7571,7 +7589,7 @@ function applyCSVTransactions() {
     }));
 
   if (selected.length === 0) {
-    showToast('⚠️ Aucune opération sélectionnée pour le brouillon');
+    Utils.showToast('⚠️ Aucune opération sélectionnée pour le brouillon');
     return;
   }
 
@@ -7596,7 +7614,7 @@ function applyCSVTransactions() {
   });
 
   resetCSVImporter();
-  showToast(`✅ Brouillon CSV enregistré (${selected.length} opération(s))`);
+  Utils.showToast(`✅ Brouillon CSV enregistré (${selected.length} opération(s))`);
 }
 
 function toggleCagnottes() {
@@ -7677,7 +7695,7 @@ function addCagnotte() {
   const current = parseBudgetNumber(currentEl.value);
 
   if (name === '' || target <= 0) {
-    showToast('⚠️ Veuillez renseigner un nom et un objectif valide');
+    Utils.showToast('⚠️ Veuillez renseigner un nom et un objectif valide');
     return;
   }
 
@@ -7690,7 +7708,7 @@ function addCagnotte() {
   currentEl.value = '0';
 
   renderCagnottes();
-  showToast('🎯 Nouveau projet d\'épargne créé !');
+  Utils.showToast('🎯 Nouveau projet d\'épargne créé !');
 }
 
 function deleteCagnotte(index) {
@@ -7699,7 +7717,7 @@ function deleteCagnotte(index) {
     cagnottes.splice(index, 1);
     writeCagnottes(cagnottes);
     renderCagnottes();
-    showToast('🗑️ Projet d\'épargne supprimé');
+    Utils.showToast('🗑️ Projet d\'épargne supprimé');
   });
 }
 
@@ -7777,6 +7795,7 @@ let legacyBudgetUiInitPromise = null;
 window.initLegacyBudgetUi = () => {
   if (legacyBudgetUiInitPromise) return legacyBudgetUiInitPromise;
   legacyBudgetUiInitPromise = (async () => {
+    setBudgetHydrationState('hydrating');
     // Initialize modules
     if (typeof ThemeManager !== 'undefined') await ThemeManager.init();
     if (typeof LogoManager !== 'undefined') await LogoManager.init();

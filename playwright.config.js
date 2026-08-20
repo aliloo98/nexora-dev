@@ -14,6 +14,7 @@ export default {
     timeout: 60000
   },
   use: {
+    baseURL: 'http://localhost:5180',
     headless: true,
     trace: process.env.CI === 'true' ? 'retain-on-failure' : 'off',
     screenshot: process.env.CI === 'true' ? 'only-on-failure' : 'off',
