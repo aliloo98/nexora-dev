@@ -159,7 +159,7 @@ body.mode-simple .jarvis-copilot {
   display: block;
   font-size: var(--nx-font-size-label);
   font-weight: var(--nx-font-weight-semibold);
-  color: var(--jarvis-copilot-accent);
+  color: var(--nx-color-gold-hover);
   text-transform: uppercase;
   letter-spacing: var(--nx-letter-spacing-eyebrow);
 }
@@ -168,7 +168,7 @@ body.mode-simple .jarvis-copilot {
   display: block;
   margin-top: var(--nx-space-2xs);
   font-size: var(--nx-font-size-label);
-  color: var(--jarvis-copilot-muted);
+  color: var(--jarvis-copilot-text);
 }
 
 .jarvis-copilot-status {
