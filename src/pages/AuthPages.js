@@ -114,6 +114,7 @@ export const AuthPages = {
   showLoginPage() {
     const authContainer = document.getElementById('auth-container')
     if (!authContainer) return
+    if (currentAuthPage === 'login' && document.getElementById('loginForm')) return
 
     _cleanupResetPassword()
     authContainer.innerHTML = createLoginForm()
@@ -127,6 +128,7 @@ export const AuthPages = {
   showRegisterPage() {
     const authContainer = document.getElementById('auth-container')
     if (!authContainer) return
+    if (currentAuthPage === 'register' && document.getElementById('registerForm')) return
 
     _cleanupResetPassword()
     authContainer.innerHTML = createRegisterForm()
@@ -140,6 +142,7 @@ export const AuthPages = {
   showForgotPasswordPage() {
     const authContainer = document.getElementById('auth-container')
     if (!authContainer) return
+    if (currentAuthPage === 'forgot-password' && document.getElementById('forgotPasswordForm')) return
 
     _cleanupResetPassword()
     authContainer.innerHTML = createForgotPasswordForm()
