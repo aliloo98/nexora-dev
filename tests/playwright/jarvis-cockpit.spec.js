@@ -80,6 +80,9 @@ test.describe('Jarvis Cockpit - Desktop', () => {
       return hero && hero.dataset.motionState === 'complete'
     }, { timeout: 10000 })
 
+    // Wait for priority card animation to complete (has 120ms delay + 500ms animation)
+    await page.waitForTimeout(700)
+
     // Scan Jarvis for accessibility violations
     const jarvis = await new AxeBuilder({ page }).include('.jarvis-cockpit').analyze()
     expect(formatViolations(jarvis.violations)).toEqual([])
