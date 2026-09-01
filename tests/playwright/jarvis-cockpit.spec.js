@@ -4,7 +4,14 @@
  * LOT J5 - Autonomous runtime validation of Jarvis Financial Cockpit
  */
 
+import AxeBuilder from '@axe-core/playwright'
 import { test, expect } from '@playwright/test'
+
+const formatViolations = (violations) => violations.map(({ id, impact, nodes }) => ({
+  id,
+  impact,
+  targets: nodes.map((node) => node.target)
+}))
 
 test.describe('Jarvis Cockpit - Desktop', () => {
   test.beforeEach(async ({ page }) => {
@@ -50,7 +57,35 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await expect(legacyHero).toHaveCount(0)
   })
 
-  test('2. Simplified mode excludes Jarvis', async ({ page }) => {
+  test('2. Complete mode Jarvis passes accessibility scan', async ({ page }) => {
+    // Set Complete mode
+    await page.evaluate(() => {
+      if (typeof window.setNexoraUxMode === 'function') {
+        window.setNexoraUxMode('complete')
+      }
+    })
+
+    await page.waitForTimeout(1000)
+
+    // Verify Complete mode is active
+    await expect(page.locator('body')).toHaveClass(/mode-complete/)
+
+    // Verify Jarvis is present
+    const jarvisCockpit = page.locator('#cockpit-financier-root .jarvis-cockpit')
+    await expect(jarvisCockpit).toHaveCount(1)
+
+    // Wait for Jarvis motion to complete
+    await page.waitForFunction(() => {
+      const hero = document.querySelector('.jarvis-hero')
+      return hero && hero.dataset.motionState === 'complete'
+    }, { timeout: 10000 })
+
+    // Scan Jarvis for accessibility violations
+    const jarvis = await new AxeBuilder({ page }).include('.jarvis-cockpit').analyze()
+    expect(formatViolations(jarvis.violations)).toEqual([])
+  })
+
+  test('3. Simplified mode excludes Jarvis', async ({ page }) => {
     // Set Simplified mode
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
@@ -72,7 +107,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await expect(legacyHero).toHaveCount(1)
   })
 
-  test('3. Simple → Complete transition', async ({ page }) => {
+  test('4. Simple → Complete transition', async ({ page }) => {
     // Start in Simple mode
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
@@ -106,7 +141,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await expect(legacyHero).toHaveCount(0)
   })
 
-  test('4. Complete → Simple transition', async ({ page }) => {
+  test('5. Complete → Simple transition', async ({ page }) => {
     // Start in Complete mode
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
@@ -137,7 +172,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await expect(legacyHero).toHaveCount(1)
   })
 
-  test('5. no-duplicate Jarvis roots on repeated navigation', async ({ page }) => {
+  test('6. no-duplicate Jarvis roots on repeated navigation', async ({ page }) => {
     // Set Complete mode
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
@@ -169,7 +204,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await expect(jarvisCockpit).toHaveCount(1)
   })
 
-  test('6. console and page errors collection', async ({ page }) => {
+  test('7. console and page errors collection', async ({ page }) => {
     // Collect console errors
     const consoleErrors = []
     page.on('console', msg => {
@@ -202,7 +237,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     expect(pageErrors.length).toBe(0)
   })
 
-  test('7. viewport 1440x900', async ({ page }) => {
+  test('8. viewport 1440x900', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     
     await page.evaluate(() => {
@@ -225,7 +260,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     expect(hasOverflow).toBeFalsy()
   })
 
-  test('8. viewport 1366x768', async ({ page }) => {
+  test('9. viewport 1366x768', async ({ page }) => {
     await page.setViewportSize({ width: 1366, height: 768 })
     
     await page.evaluate(() => {
@@ -248,7 +283,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     expect(hasOverflow).toBeFalsy()
   })
 
-  test('9. viewport 1024x768', async ({ page }) => {
+  test('10. viewport 1024x768', async ({ page }) => {
     await page.setViewportSize({ width: 1024, height: 768 })
     
     await page.evaluate(() => {
@@ -271,7 +306,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     expect(hasOverflow).toBeFalsy()
   })
 
-  test('10. keyboard CTA Enter activation', async ({ page }) => {
+  test('11. keyboard CTA Enter activation', async ({ page }) => {
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
         window.setNexoraUxMode('complete')
@@ -292,7 +327,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     }
   })
 
-  test('11. keyboard CTA Space activation', async ({ page }) => {
+  test('12. keyboard CTA Space activation', async ({ page }) => {
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
         window.setNexoraUxMode('complete')
@@ -313,7 +348,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     }
   })
 
-  test('12. normal motion behavior', async ({ page }) => {
+  test('13. normal motion behavior', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     
     await page.evaluate(() => {
@@ -329,7 +364,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await expect(jarvisCockpit).toHaveCount(1)
   })
 
-  test('13. reduced motion behavior', async ({ page }) => {
+  test('14. reduced motion behavior', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     
     await page.evaluate(() => {
@@ -375,7 +410,7 @@ test.describe('Jarvis Cockpit - Mobile', () => {
     expect(hasSetNexoraUxMode).toBe(true)
   })
 
-  test('14. mobile viewport 375x812', async ({ page }) => {
+  test('15. mobile viewport 375x812', async ({ page }) => {
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
         window.setNexoraUxMode('complete')
@@ -396,7 +431,7 @@ test.describe('Jarvis Cockpit - Mobile', () => {
     expect(hasOverflow).toBeFalsy()
   })
 
-  test('15. mobile Simple mode', async ({ page }) => {
+  test('16. mobile Simple mode', async ({ page }) => {
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
         window.setNexoraUxMode('simple')
@@ -437,7 +472,7 @@ test.describe('Jarvis Cockpit - Refresh Persistence', () => {
     expect(hasSetNexoraUxMode).toBe(true)
   })
 
-  test('16. Complete mode refresh persistence', async ({ page }) => {
+  test('17. Complete mode refresh persistence', async ({ page }) => {
     // Set Complete mode
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
@@ -469,7 +504,7 @@ test.describe('Jarvis Cockpit - Refresh Persistence', () => {
     await expect(legacyHero).toHaveCount(0)
   })
 
-  test('17. Simplified mode refresh persistence', async ({ page }) => {
+  test('18. Simplified mode refresh persistence', async ({ page }) => {
     // Set Simplified mode
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
@@ -524,7 +559,7 @@ test.describe('Jarvis Cockpit - MutationObserver Lifecycle', () => {
     expect(hasSetNexoraUxMode).toBe(true)
   })
 
-  test('18. no duplicate Jarvis roots on repeated mode switches', async ({ page }) => {
+  test('19. no duplicate Jarvis roots on repeated mode switches', async ({ page }) => {
     // Switch modes multiple times
     for (let i = 0; i < 5; i++) {
       await page.evaluate(() => {
