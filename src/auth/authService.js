@@ -604,6 +604,36 @@ export const AuthService = {
       console.error('❌ UpdatePassword error:', error.message)
       return { error }
     }
+  },
+
+  /**
+   * Resend confirmation email
+   *
+   * @param {string} email - User email
+   * @param {object} supabaseClient - Optional Supabase client for testing
+   * @param {boolean} bypassPlaceholderCheck - For testing only, bypass placeholder mode check
+   * @returns {Promise<{error}>}
+   */
+  async resendConfirmationEmail(email, supabaseClient = supabase, bypassPlaceholderCheck = false) {
+    try {
+      if (!bypassPlaceholderCheck && shouldUsePlaceholderAuth()) {
+        // Mode placeholder: fonctionnalité indisponible
+        return {
+          error: new Error('Le renvoi d\'e-mail de confirmation est temporairement indisponible en mode développement')
+        }
+      }
+
+      const { error } = await supabaseClient.auth.resend({
+        type: 'signup',
+        email
+      })
+
+      if (error) throw error
+      return { error: null }
+    } catch (error) {
+      console.error('❌ ResendConfirmationEmail error:', error.message)
+      return { error }
+    }
   }
 }
 

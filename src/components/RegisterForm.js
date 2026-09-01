@@ -8,6 +8,7 @@
  */
 
 import AuthContext from '../auth/authContext.js'
+import { normalizeAuthError, getAuthErrorType, allowsResendConfirmation } from '../auth/authErrorNormalization.js'
 import { showToast } from '../../js/utils.js'
 
 /**
@@ -156,6 +157,20 @@ export const attachRegisterFormListeners = () => {
   form.addEventListener('submit', async (e) => {
     e.preventDefault()
 
+    // Double-submit protection
+    if (isSubmitting) {
+      return
+    }
+
+    // Check rate limit cooldown
+    const now = Date.now()
+    if (now - lastSubmitTime < RATE_LIMIT_COOLDOWN) {
+      const remainingSeconds = Math.ceil((RATE_LIMIT_COOLDOWN - (now - lastSubmitTime)) / 1000)
+      errorMessage.textContent = `Attendez ${remainingSeconds} secondes avant de réessayer.`
+      errorBox.style.display = 'flex'
+      return
+    }
+
     // Clear errors
     errorBox.style.display = 'none'
     loadingBox.style.display = 'none'
@@ -196,6 +211,10 @@ export const attachRegisterFormListeners = () => {
 
     if (hasError) return
 
+    // Set submitting state
+    isSubmitting = true
+    lastSubmitTime = now
+
     // Show loading state
     submitBtn.disabled = true
     loadingBox.style.display = 'flex'
@@ -206,9 +225,18 @@ export const attachRegisterFormListeners = () => {
       const { user, session, error } = await AuthContext.signUp(email, password, username)
 
       if (error) {
-        errorMessage.textContent = error.message || 'Erreur d\'inscription. Réessayez.'
+        const errorType = getAuthErrorType(error)
+        const userMessage = normalizeAuthError(error)
+
+        errorMessage.textContent = userMessage
         errorBox.style.display = 'flex'
         console.error('Register error:', error)
+
+        // Show resend button if email not confirmed
+        if (allowsResendConfirmation(errorType)) {
+          showResendButton(email)
+        }
+
         return
       }
 
@@ -239,6 +267,7 @@ export const attachRegisterFormListeners = () => {
       errorMessage.textContent = 'Une erreur est survenue. Réessayez.'
       errorBox.style.display = 'flex'
     } finally {
+      isSubmitting = false
       submitBtn.disabled = false
       loadingBox.style.display = 'none'
     }
@@ -304,6 +333,84 @@ const clearAllErrors = () => {
   document.getElementById('registerPasswordError').textContent = ''
   document.getElementById('registerPasswordConfirmError').textContent = ''
   document.getElementById('registerTermsError').textContent = ''
+}
+
+/**
+ * Double-submit protection
+ * @private
+ */
+let isSubmitting = false
+const RATE_LIMIT_COOLDOWN = 60000 // 60 seconds
+let lastSubmitTime = 0
+
+/**
+ * Show resend confirmation button
+ * @param {string} email - User email
+ * @private
+ */
+const showResendButton = (email) => {
+  const existingResend = document.getElementById('resendConfirmationBtn')
+  if (existingResend) {
+    existingResend.remove()
+  }
+
+  const resendBtn = document.createElement('button')
+  resendBtn.id = 'resendConfirmationBtn'
+  resendBtn.type = 'button'
+  resendBtn.className = 'btn btn-outline'
+  resendBtn.style.marginTop = '1rem'
+  resendBtn.style.width = '100%'
+  resendBtn.textContent = 'Renvoyer l\'e-mail de confirmation'
+
+  resendBtn.addEventListener('click', async (e) => {
+    e.preventDefault()
+
+    // Check cooldown
+    const now = Date.now()
+    if (now - lastSubmitTime < RATE_LIMIT_COOLDOWN) {
+      const remainingSeconds = Math.ceil((RATE_LIMIT_COOLDOWN - (now - lastSubmitTime)) / 1000)
+      showToast(`⏱️ Attendez ${remainingSeconds} secondes avant de réessayer.`)
+      return
+    }
+
+    resendBtn.disabled = true
+    resendBtn.textContent = 'Envoi en cours...'
+
+    try {
+      // Call real Supabase Auth resend
+      const { AuthService } = await import('../auth/authService.js')
+      const { error } = await AuthService.resendConfirmationEmail(email)
+
+      if (error) {
+        throw error
+      }
+
+      showToast('✅ Si cette adresse est associée à un compte, un nouvel e-mail de confirmation a été envoyé.')
+
+      // Update cooldown
+      lastSubmitTime = Date.now()
+
+      // Show cooldown
+      const cooldownSeconds = Math.ceil(RATE_LIMIT_COOLDOWN / 1000)
+      resendBtn.textContent = `Réessayer dans ${cooldownSeconds}s`
+
+      // Enable button after cooldown
+      setTimeout(() => {
+        resendBtn.disabled = false
+        resendBtn.textContent = 'Renvoyer l\'e-mail de confirmation'
+      }, RATE_LIMIT_COOLDOWN)
+
+    } catch (error) {
+      console.error('Resend error:', error)
+      const errorType = getAuthErrorType(error)
+      const userMessage = normalizeAuthError(error)
+      showToast(`❌ ${userMessage}`)
+      resendBtn.disabled = false
+      resendBtn.textContent = 'Renvoyer l\'e-mail de confirmation'
+    }
+  })
+
+  errorBox.parentNode.insertBefore(resendBtn, errorBox.nextSibling)
 }
 
 export default { createRegisterForm, attachRegisterFormListeners }

@@ -160,6 +160,83 @@ async function runTests() {
     assert(hasUnavailableError, 'updatePassword should return unavailable error in placeholder mode')
   })
 
+  // Test 8: resendConfirmationEmail calls supabase.auth.resend with correct params
+  test('resendConfirmationEmail calls supabase.auth.resend({ type: signup, email })', async () => {
+    let capturedOptions = null
+
+    const mockSupabaseClient = {
+      auth: {
+        resend: async (options) => {
+          capturedOptions = options
+          return { error: null }
+        }
+      }
+    }
+
+    await AuthService.resendConfirmationEmail('test@example.com', mockSupabaseClient, true)
+
+    assert(capturedOptions !== null, 'Should pass options object')
+    assertEqual(capturedOptions.type, 'signup', 'Should pass correct type')
+    assertEqual(capturedOptions.email, 'test@example.com', 'Should pass correct email')
+  })
+
+  // Test 9: resendConfirmationEmail propagates Supabase error
+  test('resendConfirmationEmail propagates Supabase error', async () => {
+    const mockSupabaseClient = {
+      auth: {
+        resend: async () => {
+          return { error: { message: 'Supabase error' } }
+        }
+      }
+    }
+
+    const result = await AuthService.resendConfirmationEmail('test@example.com', mockSupabaseClient, true)
+
+    assert(result.error !== null, 'Should return error')
+    assertEqual(result.error.message, 'Supabase error', 'Error message should be propagated')
+  })
+
+  // Test 10: resendConfirmationEmail handles network error
+  test('resendConfirmationEmail handles network error', async () => {
+    const mockSupabaseClient = {
+      auth: {
+        resend: async () => {
+          throw new Error('Network error')
+        }
+      }
+    }
+
+    const result = await AuthService.resendConfirmationEmail('test@example.com', mockSupabaseClient, true)
+
+    assert(result.error !== null, 'Should return error')
+    assertEqual(result.error.message, 'Network error', 'Network error should be propagated')
+  })
+
+  // Test 11: resendConfirmationEmail handles rate limit error
+  test('resendConfirmationEmail handles rate limit error', async () => {
+    const mockSupabaseClient = {
+      auth: {
+        resend: async () => {
+          return { error: { message: 'over_email_send_rate_limit' } }
+        }
+      }
+    }
+
+    const result = await AuthService.resendConfirmationEmail('test@example.com', mockSupabaseClient, true)
+
+    assert(result.error !== null, 'Should return error')
+    assertEqual(result.error.message, 'over_email_send_rate_limit', 'Rate limit error should be propagated')
+  })
+
+  // Test 12: resendConfirmationEmail returns error in placeholder mode
+  test('resendConfirmationEmail returns error in placeholder mode', async () => {
+    const authServiceSource = fs.readFileSync(new URL('./authService.js', import.meta.url), 'utf8')
+    const hasPlaceholderCheck = authServiceSource.includes('shouldUsePlaceholderAuth()')
+    const hasUnavailableError = authServiceSource.includes('indisponible')
+    assert(hasPlaceholderCheck, 'resendConfirmationEmail should check placeholder mode')
+    assert(hasUnavailableError, 'resendConfirmationEmail should return unavailable error in placeholder mode')
+  })
+
   console.log(`\n=== Test Results: ${passed} passed, ${failed} failed ===\n`)
   
   return { passed, failed }

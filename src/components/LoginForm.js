@@ -9,6 +9,7 @@
 
 import AuthContext from '../auth/authContext.js'
 import { shouldUsePlaceholderAuth, isDemoModeAllowed, isDevelopmentMode } from '../auth/authService.js'
+import { normalizeAuthError, getAuthErrorType } from '../auth/authErrorNormalization.js'
 import { showToast } from '../../js/utils.js'
 
 /**
@@ -128,6 +129,14 @@ async function requestDemoModeActivation() {
 }
 
 /**
+ * Double-submit protection
+ * @private
+ */
+let isLoginSubmitting = false
+const LOGIN_RATE_LIMIT_COOLDOWN = 30000 // 30 seconds for login
+let lastLoginSubmitTime = 0
+
+/**
  * Attach Login Form Event Listeners
  * Sets up form submission and validation
  */
@@ -146,6 +155,20 @@ export const attachLoginFormListeners = () => {
   // Form submission
   form.addEventListener('submit', async (e) => {
     e.preventDefault()
+
+    // Double-submit protection
+    if (isLoginSubmitting) {
+      return
+    }
+
+    // Check rate limit cooldown
+    const now = Date.now()
+    if (now - lastLoginSubmitTime < LOGIN_RATE_LIMIT_COOLDOWN) {
+      const remainingSeconds = Math.ceil((LOGIN_RATE_LIMIT_COOLDOWN - (now - lastLoginSubmitTime)) / 1000)
+      errorMessage.textContent = `Attendez ${remainingSeconds} secondes avant de réessayer.`
+      errorBox.style.display = 'flex'
+      return
+    }
 
     // Clear errors
     errorBox.style.display = 'none'
@@ -167,6 +190,10 @@ export const attachLoginFormListeners = () => {
       return
     }
 
+    // Set submitting state
+    isLoginSubmitting = true
+    lastLoginSubmitTime = now
+
     // Show loading state
     submitBtn.disabled = true
     loadingBox.style.display = 'flex'
@@ -177,7 +204,10 @@ export const attachLoginFormListeners = () => {
       const { user, error } = await AuthContext.signIn(email, password)
 
       if (error) {
-        errorMessage.textContent = error.message || 'Erreur de connexion. Réessayez.'
+        const errorType = getAuthErrorType(error)
+        const userMessage = normalizeAuthError(error)
+
+        errorMessage.textContent = userMessage
         errorBox.style.display = 'flex'
         console.error('Login error:', error)
         return
@@ -202,6 +232,7 @@ export const attachLoginFormListeners = () => {
       errorMessage.textContent = 'Une erreur est survenue. Réessayez.'
       errorBox.style.display = 'flex'
     } finally {
+      isLoginSubmitting = false
       submitBtn.disabled = false
       loadingBox.style.display = 'none'
     }
