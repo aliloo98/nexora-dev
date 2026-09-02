@@ -282,6 +282,25 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     // TEST 15: NEW PASSWORD ACCEPTANCE
     console.log('TEST 15: New password acceptance')
 
+    // PHASE 1: Capture network response for login
+    const networkRequests = []
+    page.on('response', async (response) => {
+      const url = response.url()
+      if (url.includes('auth') || url.includes('signin') || url.includes('login')) {
+        try {
+          const status = response.status()
+          const contentType = response.headers()['content-type'] || ''
+          networkRequests.push({
+            url: url.split('?')[0], // Remove query params
+            status,
+            contentType
+          })
+        } catch (e) {
+          // Ignore network errors
+        }
+      }
+    })
+
     // Diagnostics: Check AuthContext state before login
     const authStateBefore = await page.evaluate(() => {
       if (typeof window.AuthContext !== 'undefined') {
@@ -305,13 +324,41 @@ test.describe('Real Supabase Auth Lifecycle', () => {
 
     // Diagnostics: Wait for login to complete and check for errors
     await page.waitForTimeout(3000)
-    
-    // Check for any error messages in the login form
+
+    // PHASE 1: Log network requests
+    console.log('PHASE1: Network requests during login:', networkRequests)
+
+    // PHASE 2: Capture DOM state after login
+    const domState = await page.evaluate(() => {
+      const main = document.querySelector('main')
+      const dashboard = document.querySelector('#section-dashboard')
+      const authContainer = document.querySelector('#auth-container')
+
+      return {
+        url: window.location.href,
+        hash: window.location.hash,
+        mainDisplay: main ? getComputedStyle(main).display : 'not found',
+        bodyClass: document.body.className,
+        dashboardClass: dashboard ? dashboard.className : 'not found',
+        authContainerDisplay: authContainer ? getComputedStyle(authContainer).display : 'not found'
+      }
+    })
+    console.log('PHASE2: DOM state after login:', domState)
+
+    // PHASE 3: Capture UI error messages
     const loginError = await page.locator('#loginErrorBox').isVisible().catch(() => false)
-    console.log('Login error box visible:', loginError)
+    console.log('PHASE3: Login error box visible:', loginError)
     if (loginError) {
       const errorText = await page.locator('#loginErrorMessage').textContent().catch(() => 'No error text')
-      console.log('Login error text:', errorText)
+      console.log('PHASE3: Login error text:', errorText)
+    }
+
+    // Check for toast messages
+    const toastVisible = await page.locator('.toast, .notification, .alert').isVisible().catch(() => false)
+    console.log('PHASE3: Toast/notification visible:', toastVisible)
+    if (toastVisible) {
+      const toastText = await page.locator('.toast, .notification, .alert').textContent().catch(() => 'No toast text')
+      console.log('PHASE3: Toast text:', toastText)
     }
 
     // Check console for login errors
@@ -323,7 +370,7 @@ test.describe('Real Supabase Auth Lifecycle', () => {
       }
       return errors
     })
-    console.log('Console errors during login:', consoleErrors)
+    console.log('PHASE3: Console errors during login:', consoleErrors)
 
     // Diagnostics: Check AuthContext state after login click
     const authStateAfter = await page.evaluate(() => {
