@@ -1,6 +1,6 @@
 {
   "name": "nexora",
-  "version": "6.4.3-rc1",
+  "version": "6.4.3",
   "type": "module",
   "description": "PWA de gestion de budget - Version SaaS multi-utilisateurs",
   "scripts": {
