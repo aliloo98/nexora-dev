@@ -285,9 +285,6 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     await page.fill('#loginPassword', ACCOUNT_A_NEW_PASSWORD) // NEW password
     await page.click('#loginForm button[type="submit"]')
 
-    // Wait for main content to be visible (auth pages hidden)
-    await page.waitForSelector('main', { state: 'visible', timeout: 15000 })
-    // Then wait for dashboard to be visible
     await page.waitForSelector('#section-dashboard', { state: 'visible', timeout: 15000 })
 
     const newPassDashboard = await page.locator('#section-dashboard').isVisible()
