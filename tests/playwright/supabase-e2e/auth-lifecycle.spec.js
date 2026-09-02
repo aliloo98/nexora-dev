@@ -303,8 +303,29 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     await page.fill('#loginPassword', ACCOUNT_A_NEW_PASSWORD) // NEW password
     await page.click('#loginForm button[type="submit"]')
 
+    // Diagnostics: Wait for login to complete and check for errors
+    await page.waitForTimeout(3000)
+    
+    // Check for any error messages in the login form
+    const loginError = await page.locator('#loginErrorBox').isVisible().catch(() => false)
+    console.log('Login error box visible:', loginError)
+    if (loginError) {
+      const errorText = await page.locator('#loginErrorMessage').textContent().catch(() => 'No error text')
+      console.log('Login error text:', errorText)
+    }
+
+    // Check console for login errors
+    const consoleErrors = await page.evaluate(() => {
+      const errors = []
+      // Try to get recent console errors if available
+      if (window.__testConsoleErrors) {
+        return window.__testConsoleErrors
+      }
+      return errors
+    })
+    console.log('Console errors during login:', consoleErrors)
+
     // Diagnostics: Check AuthContext state after login click
-    await page.waitForTimeout(2000)
     const authStateAfter = await page.evaluate(() => {
       if (typeof window.AuthContext !== 'undefined') {
         return {
