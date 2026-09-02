@@ -279,121 +279,20 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     const oldPassDashboard = await page.locator('#section-dashboard').isVisible().catch(() => false)
     expect(oldPassDashboard).toBe(false)
 
+    // Reset LoginForm cooldown by reloading page
+    console.log('Reloading page to reset LoginForm cooldown before TEST 15')
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+    await page.waitForSelector('#loginForm', { state: 'visible', timeout: 10000 })
+
     // TEST 15: NEW PASSWORD ACCEPTANCE
     console.log('TEST 15: New password acceptance')
 
-    // PHASE 1: Capture network response for login
-    const networkRequests = []
-    page.on('response', async (response) => {
-      const url = response.url()
-      if (url.includes('auth') || url.includes('signin') || url.includes('login')) {
-        try {
-          const status = response.status()
-          const contentType = response.headers()['content-type'] || ''
-          networkRequests.push({
-            url: url.split('?')[0], // Remove query params
-            status,
-            contentType
-          })
-        } catch (e) {
-          // Ignore network errors
-        }
-      }
-    })
-
-    // Diagnostics: Check AuthContext state before login
-    const authStateBefore = await page.evaluate(() => {
-      if (typeof window.AuthContext !== 'undefined') {
-        return {
-          isAuthenticated: window.AuthContext.isAuthenticated(),
-          isPasswordRecovery: window.AuthContext.isPasswordRecoveryMode(),
-          user: window.AuthContext.getCurrentUser()?.id,
-          hasUser: !!window.AuthContext.getCurrentUser()
-        }
-      }
-      return { error: 'AuthContext not available' }
-    })
-    console.log('AuthContext state before new password login:', authStateBefore)
-
-    // Diagnostics: Check main visibility before login
-    const mainVisibleBefore = await page.locator('main').isVisible().catch(() => false)
-    console.log('Main visibility before new password login:', mainVisibleBefore)
-
+    await page.fill('#loginEmail', ACCOUNT_A_EMAIL)
     await page.fill('#loginPassword', ACCOUNT_A_NEW_PASSWORD) // NEW password
     await page.click('#loginForm button[type="submit"]')
 
-    // Diagnostics: Wait for login to complete and check for errors
-    await page.waitForTimeout(3000)
-
-    // PHASE 1: Log network requests
-    console.log('PHASE1: Network requests during login:', networkRequests)
-
-    // PHASE 2: Capture DOM state after login
-    const domState = await page.evaluate(() => {
-      const main = document.querySelector('main')
-      const dashboard = document.querySelector('#section-dashboard')
-      const authContainer = document.querySelector('#auth-container')
-
-      return {
-        url: window.location.href,
-        hash: window.location.hash,
-        mainDisplay: main ? getComputedStyle(main).display : 'not found',
-        bodyClass: document.body.className,
-        dashboardClass: dashboard ? dashboard.className : 'not found',
-        authContainerDisplay: authContainer ? getComputedStyle(authContainer).display : 'not found'
-      }
-    })
-    console.log('PHASE2: DOM state after login:', domState)
-
-    // PHASE 3: Capture UI error messages
-    const loginError = await page.locator('#loginErrorBox').isVisible().catch(() => false)
-    console.log('PHASE3: Login error box visible:', loginError)
-    if (loginError) {
-      const errorText = await page.locator('#loginErrorMessage').textContent().catch(() => 'No error text')
-      console.log('PHASE3: Login error text:', errorText)
-    }
-
-    // Check for toast messages
-    const toastVisible = await page.locator('.toast, .notification, .alert').isVisible().catch(() => false)
-    console.log('PHASE3: Toast/notification visible:', toastVisible)
-    if (toastVisible) {
-      const toastText = await page.locator('.toast, .notification, .alert').textContent().catch(() => 'No toast text')
-      console.log('PHASE3: Toast text:', toastText)
-    }
-
-    // Check console for login errors
-    const consoleErrors = await page.evaluate(() => {
-      const errors = []
-      // Try to get recent console errors if available
-      if (window.__testConsoleErrors) {
-        return window.__testConsoleErrors
-      }
-      return errors
-    })
-    console.log('PHASE3: Console errors during login:', consoleErrors)
-
-    // Diagnostics: Check AuthContext state after login click
-    const authStateAfter = await page.evaluate(() => {
-      if (typeof window.AuthContext !== 'undefined') {
-        return {
-          isAuthenticated: window.AuthContext.isAuthenticated(),
-          isPasswordRecovery: window.AuthContext.isPasswordRecoveryMode(),
-          user: window.AuthContext.getCurrentUser()?.id,
-          hasUser: !!window.AuthContext.getCurrentUser()
-        }
-      }
-      return { error: 'AuthContext not available' }
-    })
-    console.log('AuthContext state after new password login:', authStateAfter)
-
-    // Diagnostics: Check main visibility after login
-    const mainVisibleAfter = await page.locator('main').isVisible().catch(() => false)
-    console.log('Main visibility after new password login:', mainVisibleAfter)
-
-    // Diagnostics: Check dashboard state
-    const dashboardActive = await page.locator('#section-dashboard').evaluate(el => el.classList.contains('active')).catch(() => false)
-    console.log('Dashboard has active class:', dashboardActive)
-
+    // Wait for dashboard to appear
     await page.waitForSelector('#section-dashboard', { state: 'visible', timeout: 15000 })
 
     const newPassDashboard = await page.locator('#section-dashboard').isVisible()
