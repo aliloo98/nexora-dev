@@ -64,7 +64,7 @@ Le thème s'applique instantanément et se sauvegarde automatiquement.
 - **Projets d'épargne** : Cagnottes avec progression
 
 ### Saisie du Mois (✏️)
-- Revenus (Ali, Mégane, exceptionnels)
+- Revenus (principaux, exceptionnels)
 - Charges fixes (loyer, assurances, etc.)
 - Dépenses variables (courses, loisirs, etc.)
 - **Tracking des paiements** : Cochez quand c'est payé
@@ -129,8 +129,8 @@ Appuyez sur **Entrée** pour valider.
 
 ## 📞 Support
 
-Application v2.0 (27 mai 2026)
-Créée pour Ali & Mégane ❤️
+Application v6.4.3 (Septembre 2026)
+Application de gestion budgétaire pour tous 💰
 
 ---
 

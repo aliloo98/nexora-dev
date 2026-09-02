@@ -5393,8 +5393,8 @@ async function updateDashboardPrimaryGoal() {
 
   const monthlyInput = document.getElementById('goal-monthly-contrib');
   const monthly = monthlyInput ? parseBudgetNumber(monthlyInput.value) : 0;
-  const estimatedMonths = window.GoalsService?.estimateMonthsToTarget?.(goal, monthly);
-  const forecast = window.GoalsService?.getGoalForecast?.(goal, monthly);
+  const estimatedMonths = goal ? window.GoalsService?.estimateMonthsToTarget?.(goal, monthly) : null;
+  const forecast = goal ? window.GoalsService?.getGoalForecast?.(goal, monthly) : null;
 
   // Use V2 renderer if available
   if (typeof window.renderDashboardGoalCard === 'function') {
