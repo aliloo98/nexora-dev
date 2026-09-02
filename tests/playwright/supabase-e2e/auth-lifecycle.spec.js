@@ -282,8 +282,49 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     // TEST 15: NEW PASSWORD ACCEPTANCE
     console.log('TEST 15: New password acceptance')
 
+    // Diagnostics: Check AuthContext state before login
+    const authStateBefore = await page.evaluate(() => {
+      if (typeof window.AuthContext !== 'undefined') {
+        return {
+          isAuthenticated: window.AuthContext.isAuthenticated(),
+          isPasswordRecovery: window.AuthContext.isPasswordRecoveryMode(),
+          user: window.AuthContext.getCurrentUser()?.id,
+          hasUser: !!window.AuthContext.getCurrentUser()
+        }
+      }
+      return { error: 'AuthContext not available' }
+    })
+    console.log('AuthContext state before new password login:', authStateBefore)
+
+    // Diagnostics: Check main visibility before login
+    const mainVisibleBefore = await page.locator('main').isVisible().catch(() => false)
+    console.log('Main visibility before new password login:', mainVisibleBefore)
+
     await page.fill('#loginPassword', ACCOUNT_A_NEW_PASSWORD) // NEW password
     await page.click('#loginForm button[type="submit"]')
+
+    // Diagnostics: Check AuthContext state after login click
+    await page.waitForTimeout(2000)
+    const authStateAfter = await page.evaluate(() => {
+      if (typeof window.AuthContext !== 'undefined') {
+        return {
+          isAuthenticated: window.AuthContext.isAuthenticated(),
+          isPasswordRecovery: window.AuthContext.isPasswordRecoveryMode(),
+          user: window.AuthContext.getCurrentUser()?.id,
+          hasUser: !!window.AuthContext.getCurrentUser()
+        }
+      }
+      return { error: 'AuthContext not available' }
+    })
+    console.log('AuthContext state after new password login:', authStateAfter)
+
+    // Diagnostics: Check main visibility after login
+    const mainVisibleAfter = await page.locator('main').isVisible().catch(() => false)
+    console.log('Main visibility after new password login:', mainVisibleAfter)
+
+    // Diagnostics: Check dashboard state
+    const dashboardActive = await page.locator('#section-dashboard').hasClass('active').catch(() => false)
+    console.log('Dashboard has active class:', dashboardActive)
 
     await page.waitForSelector('#section-dashboard', { state: 'visible', timeout: 15000 })
 
