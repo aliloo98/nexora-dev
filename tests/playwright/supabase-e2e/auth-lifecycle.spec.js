@@ -323,7 +323,7 @@ test.describe('Real Supabase Auth Lifecycle', () => {
     console.log('Main visibility after new password login:', mainVisibleAfter)
 
     // Diagnostics: Check dashboard state
-    const dashboardActive = await page.locator('#section-dashboard').hasClass('active').catch(() => false)
+    const dashboardActive = await page.locator('#section-dashboard').evaluate(el => el.classList.contains('active')).catch(() => false)
     console.log('Dashboard has active class:', dashboardActive)
 
     await page.waitForSelector('#section-dashboard', { state: 'visible', timeout: 15000 })
