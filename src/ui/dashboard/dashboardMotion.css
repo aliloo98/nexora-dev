@@ -40,7 +40,7 @@
   transition-duration: var(--nx-motion-fast);
 }
 
-#section-dashboard :where(button, a, [tabindex]):focus-visible,
+#section-dashboard :where(button, a, [tabindex]:not(h1, h2, h3, h4, h5, h6, .budget-block-title)):focus-visible,
 .sidebar .nav-btn:focus-visible,
 .month-nav-btn:focus-visible {
   box-shadow: var(--nx-shadow-focus);

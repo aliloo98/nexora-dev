@@ -1,4 +1,4 @@
-.nx-scope :where(button, a, input, textarea, select, [tabindex]):focus-visible {
+.nx-scope :where(button, a, input, textarea, select, [tabindex]:not(h1, h2, h3, h4, h5, h6, .budget-block-title)):focus-visible {
   outline: 2px solid var(--nx-color-focus);
   outline-offset: 3px;
 }
@@ -53,7 +53,7 @@
 }
 
 @media (forced-colors: active) {
-  .nx-scope :where(button, a, input, textarea, select, [tabindex]):focus-visible {
+  .nx-scope :where(button, a, input, textarea, select, [tabindex]:not(h1, h2, h3, h4, h5, h6, .budget-block-title)):focus-visible {
     outline-color: Highlight;
   }
 }

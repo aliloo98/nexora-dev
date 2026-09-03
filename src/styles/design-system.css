@@ -100,7 +100,7 @@ textarea {
   font: inherit;
 }
 
-:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+:where(button, a, input, select, textarea, [tabindex]:not(h1, h2, h3, h4, h5, h6, .budget-block-title)):focus-visible {
   outline: 2px solid var(--nx-focus);
   outline-offset: 2px;
 }
