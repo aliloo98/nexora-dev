@@ -7796,10 +7796,6 @@ window.initLegacyBudgetUi = () => {
   if (legacyBudgetUiInitPromise) return legacyBudgetUiInitPromise;
   legacyBudgetUiInitPromise = (async () => {
     setBudgetHydrationState('hydrating');
-    // Initialize modules
-    if (typeof ThemeManager !== 'undefined') await ThemeManager.init();
-    if (typeof LogoManager !== 'undefined') await LogoManager.init();
-
     // Initialize app only after the modern entry point has resolved authentication.
     loadPersonalization();
     updateSaveBarSpacer();
