@@ -4,6 +4,7 @@ import { getNamespacedStorageKey } from './userStorage.js'
 
 const SETTINGS_KEY = STORAGE_KEYS.notificationsSettings
 const HISTORY_KEY = STORAGE_KEYS.notificationsHistory
+let historyWriteQueue = Promise.resolve()
 
 const defaultSettings = {
   enabled: false,
@@ -50,6 +51,18 @@ const writeJson = async (key, value) => {
     if (typeof SafeStorage !== 'undefined') SafeStorage.setItem(namespacedKey, serialized)
   } catch {
     // Keep StorageManager as source if SafeStorage is unavailable.
+  }
+}
+
+const withHistoryWriteLock = async (operation) => {
+  const previous = historyWriteQueue
+  let release
+  historyWriteQueue = new Promise(resolve => { release = resolve })
+  await previous
+  try {
+    return await operation()
+  } finally {
+    release()
   }
 }
 
@@ -344,6 +357,7 @@ const NotificationsService = {
   getHistory: async () => {
     const history = await readJson(HISTORY_KEY, { sent: {}, notifications: [] })
     const normalized = history && typeof history === 'object' ? { sent: {}, notifications: [], ...history } : { sent: {}, notifications: [] }
+    normalized.sent = normalized.sent && typeof normalized.sent === 'object' ? normalized.sent : {}
     normalized.notifications = Array.isArray(normalized.notifications)
       ? normalized.notifications.map(normalizeNotification)
       : []
@@ -351,9 +365,11 @@ const NotificationsService = {
   },
 
   markSent: async (signature) => {
-    const history = await NotificationsService.getHistory()
-    history.sent[signature] = new Date().toISOString()
-    await writeJson(HISTORY_KEY, history)
+    await withHistoryWriteLock(async () => {
+      const history = await NotificationsService.getHistory()
+      history.sent[signature] = new Date().toISOString()
+      await writeJson(HISTORY_KEY, history)
+    })
   },
 
   hasSent: async (signature) => {
@@ -388,14 +404,18 @@ const NotificationsService = {
   },
 
   createNotification: async (notification) => {
-    const history = await NotificationsService.getHistory()
-    const { duplicate, notification: next } = await NotificationsService.dedupeNotification(notification)
-    if (duplicate) return next
-    history.notifications.unshift(next)
-    history.notifications = history.notifications.slice(0, 80)
-    await writeJson(HISTORY_KEY, history)
-    if (typeof window !== 'undefined') window.dispatchEvent?.(new CustomEvent('nexora:notifications-updated'))
-    return next
+    return withHistoryWriteLock(async () => {
+      const history = await NotificationsService.getHistory()
+      const next = normalizeNotification(notification)
+      const signature = getNotificationSignature(next)
+      const lastSame = history.notifications.find(item => getNotificationSignature(item) === signature && !item.archivedAt)
+      if (lastSame) return lastSame
+      history.notifications.unshift(next)
+      history.notifications = history.notifications.slice(0, 80)
+      await writeJson(HISTORY_KEY, history)
+      if (typeof window !== 'undefined') window.dispatchEvent?.(new CustomEvent('nexora:notifications-updated'))
+      return next
+    })
   },
 
   markNotificationRead: async (id) => {
@@ -453,19 +473,25 @@ const NotificationsService = {
   },
 
   sendOnce: async ({ eventKey, periodKey, title = 'Nexora', body, tag }) => {
-    const settings = await NotificationsService.getSettings()
-    if (!settings.enabled || settings.permission !== 'granted') {
-      return { ok: false, reason: 'disabled-or-denied' }
-    }
+    return withHistoryWriteLock(async () => {
+      const settings = await NotificationsService.getSettings()
+      if (!settings.enabled || settings.permission !== 'granted') {
+        return { ok: false, reason: 'disabled-or-denied' }
+      }
 
-    const signature = `${periodKey || 'global'}:${eventKey}`
-    if (await NotificationsService.hasSent(signature)) {
-      return { ok: false, reason: 'already-sent' }
-    }
+      const signature = `${periodKey || 'global'}:${eventKey}`
+      const history = await NotificationsService.getHistory()
+      if (history.sent?.[signature]) {
+        return { ok: false, reason: 'already-sent' }
+      }
 
-    const result = await provider.send({ title, body, tag: tag || signature })
-    if (result.ok) await NotificationsService.markSent(signature)
-    return result
+      const result = await provider.send({ title, body, tag: tag || signature })
+      if (result.ok) {
+        history.sent[signature] = new Date().toISOString()
+        await writeJson(HISTORY_KEY, history)
+      }
+      return result
+    })
   },
 
   evaluateBusinessNotifications: async ({ monthKey, cycleLabel, metrics = {}, savingsTarget = 0 }) => {
