@@ -105,6 +105,12 @@ textarea {
   outline-offset: 2px;
 }
 
+:where(h1, h2, h3, h4, h5, h6, .budget-block-title)[tabindex="-1"]:focus {
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: none;
+  outline: none !important;
+}
+
 .btn {
   align-items: center;
   border: 1px solid transparent;
