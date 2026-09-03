@@ -36,17 +36,19 @@ export async function bootstrapAuthenticatedServices({
   // Step 9: Initialize monthly budget state service
   await MonthlyBudgetStateService.init()
 
-  // Step 10: Keep the connection check for early failure visibility without blocking offline usage
+  // Step 10: Initialize legacy UI for auth state without waiting for diagnostics
+  await initializeLegacyUiForAuthState()
+
+  // The connection check is diagnostic only and must not delay the first usable dashboard.
   if (navigatorRef.onLine !== false) {
-    await testSupabaseConnection()
+    void testSupabaseConnection().catch((error) => {
+      console.warn('[Bootstrap] Supabase connection check failed', error)
+    })
   } else {
     console.info('📴 Supabase connection check skipped while offline')
   }
 
-  // Step 11: Initialize legacy UI for auth state
-  await initializeLegacyUiForAuthState()
-
-  // Step 12: First Couple navigation update (V1: disabled)
+  // Step 11: First Couple navigation update (V1: disabled)
   if (V1_SCOPE.COUPLE_MODE_ENABLED && typeof updateCoupleNavigation === 'function') {
     await updateCoupleNavigation()
   }
