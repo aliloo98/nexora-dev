@@ -114,16 +114,20 @@ export async function renderJarvisInDashboard(options = {}) {
     return
   }
 
+  const renderVersion = ++modeRenderVersion
+  const isRenderCurrent = () => renderVersion === modeRenderVersion && shouldShowJarvis(documentRef)
+
   try {
     await renderJarvisCockpit(cockpitRoot, {
       monthKey,
       documentRef,
-      windowRef
+      windowRef,
+      isRenderCurrent
     })
   } catch (error) {
     console.error('[Jarvis Integration] Error rendering Jarvis:', error)
     // Render error fallback scoped to Complete mode
-    renderErrorFallback(cockpitRoot, documentRef)
+    if (isRenderCurrent()) renderErrorFallback(cockpitRoot, documentRef)
   }
 }
 
@@ -140,10 +144,12 @@ export async function updateJarvisOnModeChange(documentRef = document, windowRef
     // Complete mode: render Jarvis
     cockpitRoot.innerHTML = ''
     const monthKey = typeof windowRef.getMonth === 'function' ? windowRef.getMonth() : null
-    await renderJarvisCockpit(cockpitRoot, { monthKey, documentRef, windowRef })
-    if (renderVersion !== modeRenderVersion && !shouldShowJarvis(documentRef)) {
-      cockpitRoot.innerHTML = ''
-    }
+    await renderJarvisCockpit(cockpitRoot, {
+      monthKey,
+      documentRef,
+      windowRef,
+      isRenderCurrent: () => renderVersion === modeRenderVersion && shouldShowJarvis(documentRef)
+    })
   } else {
     // Simplified mode: clear Jarvis and let existing system restore Hero
     cockpitRoot.innerHTML = ''
@@ -220,7 +226,7 @@ export function initJarvisDashboardIntegration(options = {}) {
  * Main render function for Jarvis cockpit
  */
 export async function renderJarvisCockpit(container, options = {}) {
-  const { monthKey, documentRef = document, windowRef = window } = options
+  const { monthKey, documentRef = document, windowRef = window, isRenderCurrent = () => true } = options
 
   if (!container) {
     console.warn('[Jarvis Cockpit] No container provided')
@@ -246,6 +252,7 @@ export async function renderJarvisCockpit(container, options = {}) {
 
     // If core data is missing, show data quality mode
     if (!coreDataAvailable) {
+      if (!isRenderCurrent()) return
       container.innerHTML = renderDataQualityMode(viewModel, snapshot)
       attachJarvisCopilot(container, {
         initialSnapshot: snapshot,
@@ -277,6 +284,7 @@ export async function renderJarvisCockpit(container, options = {}) {
       </div>
     `
 
+    if (!isRenderCurrent()) return
     container.innerHTML = cockpitMarkup
 
     // Attach CTA listeners
