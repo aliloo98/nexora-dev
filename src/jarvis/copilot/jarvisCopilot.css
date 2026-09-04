@@ -681,14 +681,23 @@ body.mode-simple .jarvis-copilot {
   }
 
   .jarvis-copilot-prompts {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-bottom: var(--nx-space-2xs);
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: stretch;
+    overflow: visible;
   }
 
-  .jarvis-copilot-prompts::-webkit-scrollbar {
-    display: none;
+  .jarvis-copilot-prompt {
+    min-width: 0;
+    min-height: 76px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: var(--nx-space-xs) var(--nx-space-2xs);
+    text-align: center;
+    line-height: var(--nx-line-height-label);
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 }
