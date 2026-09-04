@@ -120,7 +120,18 @@ const clearBudgetInputs = async (page) => {
   ];
   for (const key of keysToClear) {
     const field = page.locator(`#section-saisie input[data-key="${key}"]`);
-    if (await field.count()) await field.fill('');
+    if (await field.count()) {
+      if (await field.inputValue() === '') continue;
+      await page.waitForFunction(
+        (key) => {
+          const el = document.querySelector(`#section-saisie input[data-key="${key}"]`);
+          return el && el.offsetParent !== null && !el.disabled && !el.readOnly;
+        },
+        key,
+        { timeout: 30000 }
+      );
+      await field.fill('');
+    }
   }
   await page.evaluate(() => window.updateAll?.());
 };

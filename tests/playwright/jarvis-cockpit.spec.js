@@ -111,17 +111,27 @@ test.describe('Jarvis Cockpit - Desktop', () => {
   })
 
   test('4. Simple → Complete transition', async ({ page }) => {
+    const jarvisCockpit = page.locator('#cockpit-financier-root .jarvis-cockpit')
+
+    // Let the initial Complete-mode render settle before switching modes.
+    await expect(jarvisCockpit).toHaveCount(1)
+
     // Start in Simple mode
     await page.evaluate(() => {
       if (typeof window.setNexoraUxMode === 'function') {
         window.setNexoraUxMode('simple')
       }
     })
-    
-    await page.waitForTimeout(500)
+
+    await page.waitForFunction(() => {
+      const cockpitRoot = document.querySelector('#cockpit-financier-root')
+      return document.body.classList.contains('mode-simple')
+        && !document.body.classList.contains('mode-complete')
+        && !cockpitRoot?.querySelector('.jarvis-cockpit')
+        && cockpitRoot?.querySelector('.nx-hero-card')
+    })
 
     // Verify Jarvis is not present
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
     await expect(jarvisCockpit).toHaveCount(0)
     
     // Verify Hero legacy is present
@@ -134,8 +144,14 @@ test.describe('Jarvis Cockpit - Desktop', () => {
         window.setNexoraUxMode('complete')
       }
     })
-    
-    await page.waitForTimeout(1000)
+
+    await page.waitForFunction(() => {
+      const cockpitRoot = document.querySelector('#cockpit-financier-root')
+      return document.body.classList.contains('mode-complete')
+        && !document.body.classList.contains('mode-simple')
+        && cockpitRoot?.querySelector('.jarvis-cockpit')
+        && !cockpitRoot?.querySelector('.nx-hero-card')
+    })
     
     // Verify Jarvis is now present
     await expect(jarvisCockpit).toHaveCount(1)
@@ -441,8 +457,13 @@ test.describe('Jarvis Cockpit - Mobile', () => {
       }
     })
     
-    await page.waitForTimeout(1000)
-    
+    await page.waitForFunction(() => {
+      const cockpitRoot = document.querySelector('#cockpit-financier-root')
+      return document.body.classList.contains('mode-simple')
+        && !document.querySelector('.jarvis-cockpit')
+        && cockpitRoot?.querySelector('.nx-hero-card')
+    })
+
     // Jarvis should not exist in Simple mode
     const jarvisCockpit = page.locator('.jarvis-cockpit')
     await expect(jarvisCockpit).toHaveCount(0)
@@ -515,7 +536,12 @@ test.describe('Jarvis Cockpit - Refresh Persistence', () => {
       }
     })
     
-    await page.waitForTimeout(1000)
+    await page.waitForFunction(() => {
+      const cockpitRoot = document.querySelector('#cockpit-financier-root')
+      return document.body.classList.contains('mode-simple')
+        && !document.querySelector('.jarvis-cockpit')
+        && cockpitRoot?.querySelector('.nx-hero-card')
+    })
 
     // Verify Jarvis is not present before refresh
     const jarvisCockpit = page.locator('.jarvis-cockpit')
