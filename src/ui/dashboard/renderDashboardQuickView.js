@@ -4,6 +4,7 @@ import { getTimeContext } from '../../time/timeEngine.js'
 import { setupAmbientMotion, startGraphAmbientMotion, startDonutAmbientMotion, startProgressAmbientSweep } from '../../jarvis/motion/jarvisAmbientMotion.js'
 import { setupViewportReveal, attachAmbientController } from './ambientHelpers.js'
 import { buildNorthStarDecision } from './northStarDecision.js'
+import { bindNorthStarJarvis } from './renderNorthStarJarvis.js'
 
 const fmt = (value) => {
   const amount = Number(value) || 0
@@ -336,7 +337,9 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   const timeContext = getTimeContext(viewedMonthIso)
   const quickRoot = documentRef.getElementById('cockpit-financier-root')
   if (quickRoot && !documentRef.body?.classList.contains('mode-complete') && !quickRoot.querySelector('.jarvis-cockpit')) {
+    const decision = buildNorthStarDecision(metrics)
     renderNorthStarPriorityInQuickView(quickRoot, metrics, documentRef, windowRef)
+    bindNorthStarJarvis(quickRoot, decision, documentRef, windowRef)
     renderNorthStarPanelInQuickView(quickRoot, metrics, documentRef)
   }
 

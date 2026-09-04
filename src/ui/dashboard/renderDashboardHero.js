@@ -1,5 +1,6 @@
 import { createHeroCard } from '../components/HeroCard.js'
 import { buildNorthStarDecision } from './northStarDecision.js'
+import { bindNorthStarJarvis } from './renderNorthStarJarvis.js'
 
 const fmt = (value) => {
   const amount = Number(value) || 0
@@ -209,7 +210,9 @@ export function renderDashboardHero(rootId, metrics = {}, options = {}) {
   }, documentRef)
 
   root.innerHTML = ''
+  const decision = buildNorthStarDecision(metrics)
   renderNorthStarPriority(root, metrics, documentRef, windowRef)
+  bindNorthStarJarvis(root, decision, documentRef, windowRef)
   renderNorthStarPanel(root, metrics, documentRef)
   root.appendChild(heroCard)
 }

@@ -8,6 +8,7 @@
 import { buildIntelligenceSnapshot } from '../intelligence/IntelligenceEngine.js'
 import { buildJarvisIntelligenceInput } from './jarvisDataAdapter.js'
 import { createJarvisViewModel } from './jarvisViewModel.js'
+import { publishJarvisDecisionContext } from './jarvisDecisionContext.js'
 import { attachJarvisCopilot, renderJarvisCopilot } from './copilot/jarvisCopilot.js'
 import { setupAmbientMotion, startJarvisCoreAmbientMotion } from './motion/jarvisAmbientMotion.js'
 
@@ -122,7 +123,8 @@ export async function renderJarvisInDashboard(options = {}) {
       monthKey,
       documentRef,
       windowRef,
-      isRenderCurrent
+      isRenderCurrent,
+      renderVersion
     })
   } catch (error) {
     console.error('[Jarvis Integration] Error rendering Jarvis:', error)
@@ -148,6 +150,7 @@ export async function updateJarvisOnModeChange(documentRef = document, windowRef
       monthKey,
       documentRef,
       windowRef,
+      renderVersion,
       isRenderCurrent: () => renderVersion === modeRenderVersion && shouldShowJarvis(documentRef)
     })
   } else {
@@ -226,7 +229,13 @@ export function initJarvisDashboardIntegration(options = {}) {
  * Main render function for Jarvis cockpit
  */
 export async function renderJarvisCockpit(container, options = {}) {
-  const { monthKey, documentRef = document, windowRef = window, isRenderCurrent = () => true } = options
+  const {
+    monthKey,
+    documentRef = document,
+    windowRef = window,
+    renderVersion = null,
+    isRenderCurrent = () => true
+  } = options
 
   if (!container) {
     console.warn('[Jarvis Cockpit] No container provided')
@@ -244,6 +253,8 @@ export async function renderJarvisCockpit(container, options = {}) {
 
     // 3. Create Jarvis view model
     const viewModel = createJarvisViewModel(snapshot)
+    if (!isRenderCurrent()) return
+    publishJarvisDecisionContext(viewModel, { version: renderVersion })
 
     // 4. Check if core data is sufficient (Blocker 1 fix)
     // Separate core data availability from trend/history availability

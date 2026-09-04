@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { buildNorthStarDecision } from './northStarDecision.js'
+import { buildNorthStarDecision, buildNorthStarJarvisEnrichment } from './northStarDecision.js'
 
 const assertDecision = (metrics, expected) => {
   const decision = buildNorthStarDecision(metrics)
@@ -38,6 +38,23 @@ assertDecision({}, {
   priority: 'data',
   tone: 'neutral'
 })
+
+const deficitDecision = buildNorthStarDecision({ revReel: 3000, solde: -240, varReel: 300, variablesPct: 10 })
+const coherentJarvis = buildNorthStarJarvisEnrichment(deficitDecision, {
+  priority: { id: 'fix_deficit', label: 'Réduire les dépenses' },
+  risks: [{ id: 'deficit' }],
+  dataQuality: { isComplete: true },
+  insight: 'Un déficit est projeté.',
+  supportingFacts: [{ label: 'Solde projeté', value: -240 }, { label: 'Marge', value: 80 }, { label: 'Extra', value: 1 }, { label: 'Ignoré', value: 2 }],
+  recommendation: { label: 'Corriger le budget', target: 'saisie' }
+})
+assert.equal(coherentJarvis.facts.length, 3, 'Jarvis enrichment should expose at most three facts')
+assert.equal(coherentJarvis.recommendation.target, 'saisie', 'Coherent Jarvis CTA should be exposed')
+assert.equal(buildNorthStarJarvisEnrichment(deficitDecision, { priority: { id: 'capture_opportunity' }, risks: [], dataQuality: { isComplete: true } }), null, 'Incoherent Jarvis context should be ignored')
+assert.equal(buildNorthStarJarvisEnrichment(deficitDecision, null), null, 'Missing Jarvis context should be ignored')
+const limitedJarvis = buildNorthStarJarvisEnrichment(deficitDecision, { priority: { id: 'fix_deficit' }, risks: [{ id: 'deficit' }], dataQuality: { isComplete: false }, insight: 'Incomplete' })
+assert.equal(limitedJarvis.insight, 'Analyse limitée', 'Incomplete Jarvis data should be presented as limited')
+assert.equal(limitedJarvis.recommendation, null, 'Incomplete Jarvis data should not make a recommendation')
 
 assertDecision({ revReel: 3000, solde: -1, soldeEstime: -20, safetyMargin: -10 }, {
   priority: 'projected-deficit',

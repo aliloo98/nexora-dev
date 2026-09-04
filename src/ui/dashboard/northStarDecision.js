@@ -86,4 +86,42 @@ export function buildNorthStarDecision(metrics = {}) {
   }
 }
 
+function jarvisMatchesPriority(decision, context) {
+  const priorityId = context?.priority?.id
+  const riskIds = new Set((context?.risks || []).map((risk) => risk?.id))
+  if (decision.priority === 'projected-deficit') {
+    return priorityId === 'fix_deficit' || riskIds.has('deficit') || riskIds.has('overdraft_risk')
+  }
+  if (decision.priority === 'low-margin') {
+    return riskIds.has('overdraft_risk') || priorityId === 'fix_deficit'
+  }
+  if (decision.priority === 'variable-overrun') {
+    return priorityId === 'reduce_variable_expenses' || riskIds.has('variable_expenses') || riskIds.has('high_variable_spending')
+  }
+  if (decision.priority === 'healthy') {
+    return !context?.risks?.length && !priorityId
+  }
+  return decision.priority === 'data' && context?.dataQuality?.isComplete !== true
+}
+
+export function buildNorthStarJarvisEnrichment(decision, context = null) {
+  if (!context || !jarvisMatchesPriority(decision, context)) return null
+
+  if (context.dataQuality?.isComplete !== true) {
+    return {
+      tone: 'neutral',
+      insight: 'Analyse limitée',
+      facts: [],
+      recommendation: null
+    }
+  }
+
+  return {
+    tone: decision.tone,
+    insight: context.insight || null,
+    facts: Array.isArray(context.supportingFacts) ? context.supportingFacts.slice(0, 3) : [],
+    recommendation: context.recommendation || null
+  }
+}
+
 export { formatEuro }
