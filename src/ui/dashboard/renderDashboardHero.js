@@ -1,4 +1,5 @@
 import { createHeroCard } from '../components/HeroCard.js'
+import { buildNorthStarDecision } from './northStarDecision.js'
 
 const fmt = (value) => {
   const amount = Number(value) || 0
@@ -114,6 +115,37 @@ function renderNorthStarPanel(root, metrics = {}, documentRef) {
   return panel
 }
 
+function renderNorthStarPriority(root, metrics = {}, documentRef, windowRef) {
+  if (!root || !documentRef) return null
+  const decision = buildNorthStarDecision(metrics)
+  const existing = root.querySelector('.north-star-priority')
+  if (existing) existing.remove()
+
+  const panel = documentRef.createElement('section')
+  panel.className = `north-star-priority north-star-priority--${decision.tone}`
+  panel.setAttribute('aria-label', 'Priorité financière')
+  panel.innerHTML = `
+    <div class="north-star-priority__header">
+      <span class="north-star-priority__eyebrow">Priorité</span>
+      <span class="north-star-priority__label">${decision.label}</span>
+    </div>
+    <h3 class="north-star-priority__title">${decision.title}</h3>
+    <p class="north-star-priority__why"><strong>Pourquoi ?</strong> ${decision.why}</p>
+    <div class="north-star-priority__action">
+      <span class="north-star-priority__action-label">Action recommandée</span>
+      <button type="button" class="north-star-priority__action-button"${decision.action.targetSection ? ` data-target-section="${decision.action.targetSection}"` : ''}>→ ${decision.action.label}</button>
+    </div>
+  `
+  const actionButton = panel.querySelector('.north-star-priority__action-button')
+  if (actionButton && decision.action.targetSection && typeof windowRef?.showSection === 'function') {
+    actionButton.addEventListener('click', () => windowRef.showSection(decision.action.targetSection))
+  } else if (actionButton) {
+    actionButton.disabled = true
+  }
+  root.appendChild(panel)
+  return panel
+}
+
 /**
  * Renders the premium Hero Card using V2 components with sub-metrics.
  * @param {string} rootId - The ID of the container element
@@ -177,6 +209,7 @@ export function renderDashboardHero(rootId, metrics = {}, options = {}) {
   }, documentRef)
 
   root.innerHTML = ''
+  renderNorthStarPriority(root, metrics, documentRef, windowRef)
   renderNorthStarPanel(root, metrics, documentRef)
   root.appendChild(heroCard)
 }

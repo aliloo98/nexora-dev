@@ -3,6 +3,7 @@ import { evaluateCopilotState } from '../../coach/copilotEngine.js'
 import { getTimeContext } from '../../time/timeEngine.js'
 import { setupAmbientMotion, startGraphAmbientMotion, startDonutAmbientMotion, startProgressAmbientSweep } from '../../jarvis/motion/jarvisAmbientMotion.js'
 import { setupViewportReveal, attachAmbientController } from './ambientHelpers.js'
+import { buildNorthStarDecision } from './northStarDecision.js'
 
 const fmt = (value) => {
   const amount = Number(value) || 0
@@ -90,6 +91,37 @@ function renderNorthStarPanelInQuickView(root, metrics = {}, documentRef) {
       </article>
     </div>
   `
+  root.appendChild(panel)
+  return panel
+}
+
+function renderNorthStarPriorityInQuickView(root, metrics = {}, documentRef, windowRef) {
+  if (!root || !documentRef) return null
+  const decision = buildNorthStarDecision(metrics)
+  const existing = root.querySelector('.north-star-priority')
+  if (existing) existing.remove()
+
+  const panel = documentRef.createElement('section')
+  panel.className = `north-star-priority north-star-priority--${decision.tone}`
+  panel.setAttribute('aria-label', 'Priorité financière')
+  panel.innerHTML = `
+    <div class="north-star-priority__header">
+      <span class="north-star-priority__eyebrow">Priorité</span>
+      <span class="north-star-priority__label">${decision.label}</span>
+    </div>
+    <h3 class="north-star-priority__title">${decision.title}</h3>
+    <p class="north-star-priority__why"><strong>Pourquoi ?</strong> ${decision.why}</p>
+    <div class="north-star-priority__action">
+      <span class="north-star-priority__action-label">Action recommandée</span>
+      <button type="button" class="north-star-priority__action-button"${decision.action.targetSection ? ` data-target-section="${decision.action.targetSection}"` : ''}>→ ${decision.action.label}</button>
+    </div>
+  `
+  const actionButton = panel.querySelector('.north-star-priority__action-button')
+  if (actionButton && decision.action.targetSection && typeof windowRef?.showSection === 'function') {
+    actionButton.addEventListener('click', () => windowRef.showSection(decision.action.targetSection))
+  } else if (actionButton) {
+    actionButton.disabled = true
+  }
   root.appendChild(panel)
   return panel
 }
@@ -304,6 +336,7 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   const timeContext = getTimeContext(viewedMonthIso)
   const quickRoot = documentRef.getElementById('cockpit-financier-root')
   if (quickRoot && !documentRef.body?.classList.contains('mode-complete') && !quickRoot.querySelector('.jarvis-cockpit')) {
+    renderNorthStarPriorityInQuickView(quickRoot, metrics, documentRef, windowRef)
     renderNorthStarPanelInQuickView(quickRoot, metrics, documentRef)
   }
 
