@@ -31,6 +31,89 @@ const getNexoraOfficialSituation = ({ revReel, solde, tauxCh, variablesPct }) =>
   return { state: 'positive', label: 'Situation stable', riskLabel: 'Faible' }
 }
 
+function buildNorthStarVerdict({ revReel, solde, tauxCh, variablesPct, soldeEstime, safetyMargin = 0 } = {}) {
+  if (revReel === 0) {
+    return {
+      tone: 'neutral',
+      label: 'Synthèse à compléter',
+      summary: 'Ajoute les revenus et dépenses du mois pour activer le diagnostic Nexora.',
+      available: '—'
+    }
+  }
+
+  if (solde < 0) {
+    return {
+      tone: 'danger',
+      label: 'Situation à risque',
+      summary: `Ton solde projeté devient négatif avant la fin du cycle. Il reste ${fmt(Math.abs(solde))} à couvrir.`,
+      available: fmt(Math.max(0, soldeEstime || 0))
+    }
+  }
+
+  if (solde < revReel * 0.1 || tauxCh > 85) {
+    return {
+      tone: 'warning',
+      label: 'Situation fragile',
+      summary: `Ton budget reste positif mais la marge est faible. La sécurité du mois dépend de tes prochaines dépenses.`,
+      available: fmt(Math.max(0, safetyMargin || soldeEstime || 0))
+    }
+  }
+
+  return {
+    tone: 'positive',
+    label: 'Situation stable',
+    summary: `Ton mois est sous contrôle. Tu devrais terminer le cycle avec ${fmt(solde)} de marge.`,
+    available: fmt(Math.max(0, safetyMargin || soldeEstime || 0))
+  }
+}
+
+function renderNorthStarPanel(root, metrics = {}, documentRef) {
+  if (!root || !documentRef) return null
+  const currentValue = Number(metrics.soldeEstime ?? metrics.solde ?? 0)
+  const projectedValue = Number(metrics.solde ?? 0)
+  const availableValue = Number(metrics.safetyMargin ?? Math.max(0, currentValue))
+  const verdict = buildNorthStarVerdict({
+    revReel: Number(metrics.revReel || 0),
+    solde: projectedValue,
+    tauxCh: Number(metrics.tauxCh || 0),
+    variablesPct: Number(metrics.variablesPct || 0),
+    soldeEstime: currentValue,
+    safetyMargin: availableValue
+  })
+
+  const existing = root.querySelector('.north-star-panel')
+  if (existing) {
+    existing.remove()
+  }
+
+  const panel = documentRef.createElement('section')
+  panel.className = 'north-star-panel'
+  panel.setAttribute('aria-label', 'North Star dashboard')
+  panel.innerHTML = `
+    <div class="north-star-panel__header">
+      <span class="north-star-panel__eyebrow">North Star</span>
+      <span class="north-star-panel__verdict north-star-panel__verdict--${verdict.tone}">${verdict.label}</span>
+    </div>
+    <p class="north-star-panel__summary">${verdict.summary}</p>
+    <div class="north-star-panel__grid">
+      <article class="north-star-stat" data-role="north-star-current">
+        <span class="north-star-stat__label">Solde actuel</span>
+        <strong class="north-star-stat__value">${fmt(currentValue)}</strong>
+      </article>
+      <article class="north-star-stat" data-role="north-star-projected">
+        <span class="north-star-stat__label">Solde projeté</span>
+        <strong class="north-star-stat__value">${fmt(projectedValue)}</strong>
+      </article>
+      <article class="north-star-stat north-star-stat--accent" data-role="north-star-available">
+        <span class="north-star-stat__label">Disponible</span>
+        <strong class="north-star-stat__value">${fmt(availableValue)}</strong>
+      </article>
+    </div>
+  `
+  root.appendChild(panel)
+  return panel
+}
+
 /**
  * Renders the premium Hero Card using V2 components with sub-metrics.
  * @param {string} rootId - The ID of the container element
@@ -94,6 +177,7 @@ export function renderDashboardHero(rootId, metrics = {}, options = {}) {
   }, documentRef)
 
   root.innerHTML = ''
+  renderNorthStarPanel(root, metrics, documentRef)
   root.appendChild(heroCard)
 }
 

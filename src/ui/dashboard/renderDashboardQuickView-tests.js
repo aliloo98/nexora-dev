@@ -113,6 +113,13 @@ renderDashboardQuickView({
   debtSummary: { total: 0, monthly: 0 }
 }, { documentRef, windowRef: secondWin })
 
+const northStarPanel = documentRef.querySelector('.north-star-panel')
+assert.ok(northStarPanel, 'North Star panel should be rendered')
+assert.match(northStarPanel.textContent, /Situation stable|Déficit prévu|Marge faible/i, 'North Star verdict should be visible')
+assert.ok(documentRef.querySelector('[data-role="north-star-current"]'), 'Current balance card should exist in North Star panel')
+assert.ok(documentRef.querySelector('[data-role="north-star-projected"]'), 'Projected balance card should exist in North Star panel')
+assert.ok(documentRef.querySelector('[data-role="north-star-available"]'), 'Available amount card should exist in North Star panel')
+
 const staleCallback = firstWin.__rafQueue.shift()
 assert.ok(staleCallback, 'old render should have scheduled reveal work')
 

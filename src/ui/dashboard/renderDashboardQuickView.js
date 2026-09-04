@@ -15,6 +15,85 @@ const fmtPct = (value) => {
   return `${Math.round(pct)}%`
 }
 
+function buildNorthStarPanelMetrics(metrics = {}) {
+  const revReel = Number(metrics.revReel || 0)
+  const projectedValue = Number(metrics.solde ?? 0)
+  const currentValue = Number(metrics.soldeEstime ?? metrics.solde ?? 0)
+  const availableValue = Number(metrics.safetyMargin ?? Math.max(0, currentValue))
+  if (revReel === 0) {
+    return {
+      tone: 'neutral',
+      label: 'Synthèse à compléter',
+      summary: 'Ajoute les revenus et dépenses du mois pour activer le diagnostic Nexora.',
+      currentValue,
+      projectedValue,
+      availableValue
+    }
+  }
+  if (projectedValue < 0) {
+    return {
+      tone: 'danger',
+      label: 'Situation à risque',
+      summary: `Ton solde projeté devient négatif avant la fin du cycle. Il reste ${fmt(Math.abs(projectedValue))} à couvrir.`,
+      currentValue,
+      projectedValue,
+      availableValue
+    }
+  }
+  if (projectedValue < revReel * 0.1 || Number(metrics.tauxCh || 0) > 85) {
+    return {
+      tone: 'warning',
+      label: 'Situation fragile',
+      summary: `Ton budget reste positif mais la marge est faible. La sécurité du mois dépend de tes prochaines dépenses.`,
+      currentValue,
+      projectedValue,
+      availableValue
+    }
+  }
+  return {
+    tone: 'positive',
+    label: 'Situation stable',
+    summary: `Ton mois est sous contrôle. Tu devrais terminer le cycle avec ${fmt(projectedValue)} de marge.`,
+    currentValue,
+    projectedValue,
+    availableValue
+  }
+}
+
+function renderNorthStarPanelInQuickView(root, metrics = {}, documentRef) {
+  if (!root || !documentRef) return null
+  const panelMetrics = buildNorthStarPanelMetrics(metrics)
+  const existing = root.querySelector('.north-star-panel')
+  if (existing) existing.remove()
+
+  const panel = documentRef.createElement('section')
+  panel.className = 'north-star-panel'
+  panel.setAttribute('aria-label', 'North Star dashboard')
+  panel.innerHTML = `
+    <div class="north-star-panel__header">
+      <span class="north-star-panel__eyebrow">North Star</span>
+      <span class="north-star-panel__verdict north-star-panel__verdict--${panelMetrics.tone}">${panelMetrics.label}</span>
+    </div>
+    <p class="north-star-panel__summary">${panelMetrics.summary}</p>
+    <div class="north-star-panel__grid">
+      <article class="north-star-stat" data-role="north-star-current">
+        <span class="north-star-stat__label">Solde actuel</span>
+        <strong class="north-star-stat__value">${fmt(panelMetrics.currentValue)}</strong>
+      </article>
+      <article class="north-star-stat" data-role="north-star-projected">
+        <span class="north-star-stat__label">Solde projeté</span>
+        <strong class="north-star-stat__value">${fmt(panelMetrics.projectedValue)}</strong>
+      </article>
+      <article class="north-star-stat north-star-stat--accent" data-role="north-star-available">
+        <span class="north-star-stat__label">Disponible</span>
+        <strong class="north-star-stat__value">${fmt(panelMetrics.availableValue)}</strong>
+      </article>
+    </div>
+  `
+  root.appendChild(panel)
+  return panel
+}
+
 /**
  * One-shot viewport observer for motion reveal
  * Triggers animation when element enters viewport and never replays
@@ -223,6 +302,10 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
   const monthSelectEl = documentRef.getElementById('monthSelect')
   const viewedMonthIso = options.viewedMonth || metrics.viewedMonthIso || (monthSelectEl ? monthSelectEl.value : null)
   const timeContext = getTimeContext(viewedMonthIso)
+  const quickRoot = documentRef.getElementById('cockpit-financier-root')
+  if (quickRoot && !documentRef.body?.classList.contains('mode-complete') && !quickRoot.querySelector('.jarvis-cockpit')) {
+    renderNorthStarPanelInQuickView(quickRoot, metrics, documentRef)
+  }
 
   const revReel = Number(metrics.revReel || 0)
   const isHydrating = metrics.hydrationComplete === false || metrics.loading === true || metrics.hydrating === true
