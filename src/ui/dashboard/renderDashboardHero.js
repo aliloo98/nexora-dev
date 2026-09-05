@@ -1,6 +1,7 @@
 import { createHeroCard } from '../components/HeroCard.js'
 import { buildNorthStarDecision } from './northStarDecision.js'
 import { bindNorthStarJarvis } from './renderNorthStarJarvis.js'
+import { renderNorthStarTrajectory } from './renderNorthStarTrajectory.js'
 
 const fmt = (value) => {
   const amount = Number(value) || 0
@@ -39,6 +40,7 @@ function buildNorthStarVerdict({ revReel, solde, tauxCh, variablesPct, soldeEsti
       tone: 'neutral',
       label: 'Synthèse à compléter',
       summary: 'Ajoute les revenus et dépenses du mois pour activer le diagnostic Nexora.',
+      action: 'Commencer le budget',
       available: '—'
     }
   }
@@ -46,8 +48,9 @@ function buildNorthStarVerdict({ revReel, solde, tauxCh, variablesPct, soldeEsti
   if (solde < 0) {
     return {
       tone: 'danger',
-      label: 'Situation à risque',
-      summary: `Ton solde projeté devient négatif avant la fin du cycle. Il reste ${fmt(Math.abs(solde))} à couvrir.`,
+      label: 'Action nécessaire',
+      summary: `Ton solde projeté devient négatif. Réduis les dépenses de ${fmt(Math.abs(solde))} pour équilibrer.`,
+      action: 'Réviser le budget',
       available: fmt(Math.max(0, soldeEstime || 0))
     }
   }
@@ -55,8 +58,9 @@ function buildNorthStarVerdict({ revReel, solde, tauxCh, variablesPct, soldeEsti
   if (solde < revReel * 0.1 || tauxCh > 85) {
     return {
       tone: 'warning',
-      label: 'Situation fragile',
-      summary: `Ton budget reste positif mais la marge est faible. La sécurité du mois dépend de tes prochaines dépenses.`,
+      label: 'Attention requise',
+      summary: `Marge faible de ${fmt(Math.max(0, safetyMargin || soldeEstime))}. Surveille les dépenses variables.`,
+      action: 'Optimiser les dépenses',
       available: fmt(Math.max(0, safetyMargin || soldeEstime || 0))
     }
   }
@@ -64,12 +68,13 @@ function buildNorthStarVerdict({ revReel, solde, tauxCh, variablesPct, soldeEsti
   return {
     tone: 'positive',
     label: 'Situation stable',
-    summary: `Ton mois est sous contrôle. Tu devrais terminer le cycle avec ${fmt(solde)} de marge.`,
+    summary: `Fin de cycle estimée : +${fmt(solde)}. Aucune action urgente requise.`,
+    action: 'Surveiller la trajectoire',
     available: fmt(Math.max(0, safetyMargin || soldeEstime || 0))
   }
 }
 
-function renderNorthStarPanel(root, metrics = {}, documentRef) {
+function renderNorthStarPanel(root, metrics = {}, documentRef, windowRef) {
   if (!root || !documentRef) return null
   const currentValue = Number(metrics.soldeEstime ?? metrics.solde ?? 0)
   const projectedValue = Number(metrics.solde ?? 0)
@@ -93,25 +98,33 @@ function renderNorthStarPanel(root, metrics = {}, documentRef) {
   panel.setAttribute('aria-label', 'North Star dashboard')
   panel.innerHTML = `
     <div class="north-star-panel__header">
-      <span class="north-star-panel__eyebrow">North Star</span>
       <span class="north-star-panel__verdict north-star-panel__verdict--${verdict.tone}">${verdict.label}</span>
     </div>
     <p class="north-star-panel__summary">${verdict.summary}</p>
-    <div class="north-star-panel__grid">
-      <article class="north-star-stat" data-role="north-star-current">
-        <span class="north-star-stat__label">Solde actuel</span>
-        <strong class="north-star-stat__value">${fmt(currentValue)}</strong>
-      </article>
-      <article class="north-star-stat" data-role="north-star-projected">
-        <span class="north-star-stat__label">Solde projeté</span>
-        <strong class="north-star-stat__value">${fmt(projectedValue)}</strong>
-      </article>
-      <article class="north-star-stat north-star-stat--accent" data-role="north-star-available">
-        <span class="north-star-stat__label">Disponible</span>
-        <strong class="north-star-stat__value">${fmt(availableValue)}</strong>
-      </article>
+    <div class="north-star-panel__metrics">
+      <div class="north-star-metric">
+        <span class="north-star-metric__label">Actuel</span>
+        <strong class="north-star-metric__value">${fmt(currentValue)}</strong>
+      </div>
+      <div class="north-star-metric">
+        <span class="north-star-metric__label">Projeté</span>
+        <strong class="north-star-metric__value">${fmt(projectedValue)}</strong>
+      </div>
+      <div class="north-star-metric north-star-metric--highlight">
+        <span class="north-star-metric__label">Disponible</span>
+        <strong class="north-star-metric__value">${fmt(availableValue)}</strong>
+      </div>
     </div>
+    ${verdict.action ? `<button type="button" class="north-star-panel__action" data-target-section="${verdict.tone === 'neutral' ? 'saisie' : 'saisie'}">${verdict.action}</button>` : ''}
   `
+
+  const actionButton = panel.querySelector('.north-star-panel__action')
+  if (actionButton && typeof windowRef?.showSection === 'function') {
+    actionButton.addEventListener('click', () => windowRef.showSection('saisie'))
+  } else if (actionButton) {
+    actionButton.disabled = true
+  }
+
   root.appendChild(panel)
   return panel
 }
@@ -213,7 +226,8 @@ export function renderDashboardHero(rootId, metrics = {}, options = {}) {
   const decision = buildNorthStarDecision(metrics)
   renderNorthStarPriority(root, metrics, documentRef, windowRef)
   bindNorthStarJarvis(root, decision, documentRef, windowRef)
-  renderNorthStarPanel(root, metrics, documentRef)
+  renderNorthStarPanel(root, metrics, documentRef, windowRef)
+  renderNorthStarTrajectory(rootId, metrics, { documentRef, windowRef })
   root.appendChild(heroCard)
 }
 

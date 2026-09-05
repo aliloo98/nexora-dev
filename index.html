@@ -147,37 +147,29 @@ body.auth-locked > #nexora-status-bar {
       <!-- DASHBOARD MODULAIRE V2 - 4 Composants Premium -->
       <div class="dashboard-v2-modular">
         
-        <!-- MODULE 1 : COCKPIT FINANCIER - Où j'en suis maintenant -->
-        <section class="dashboard-module dashboard-module--cockpit" aria-label="Situation financière actuelle">
-          <div class="dashboard-module__header">
-            <span class="dashboard-module__eyebrow">Où j'en suis</span>
-          </div>
+        <!-- NORTH STAR COCKPIT - Intelligence financière unifiée -->
+        <section class="dashboard-module dashboard-module--north-star" aria-label="North Star Cockpit">
           <div id="cockpit-financier-root"></div>
         </section>
 
-        <!-- MODULE 2 : PROCHAINE ÉTAPE - Ce qui arrive ensuite -->
-        <section class="dashboard-module dashboard-module--timeline" data-dashboard-mode="complete" aria-label="Événements à venir">
-          <div class="dashboard-module__header">
-            <span class="dashboard-module__eyebrow">Prochaine étape</span>
-          </div>
-          <div id="timeline-next-root"></div>
-        </section>
+        <!-- SECONDARY INFORMATION - Objectifs et dettes -->
+        <div class="dashboard-secondary-grid">
+          <!-- OBJECTIFS -->
+          <section class="dashboard-module dashboard-module--goal" aria-label="Objectifs financiers">
+            <div class="dashboard-module__header">
+              <span class="dashboard-module__eyebrow">Objectifs</span>
+            </div>
+            <div id="goal-progress-root"></div>
+          </section>
 
-        <!-- MODULE 3 : OBJECTIF - Ce que je construis -->
-        <section class="dashboard-module dashboard-module--goal" aria-label="Objectif d'épargne">
-          <div class="dashboard-module__header">
-            <span class="dashboard-module__eyebrow">Ce que je construis</span>
-          </div>
-          <div id="goal-progress-root"></div>
-        </section>
-
-        <!-- MODULE 4 : COACH - Ce que je dois faire -->
-        <section class="dashboard-module dashboard-module--coach" aria-label="Recommandation personnalisée">
-          <div class="dashboard-module__header">
-            <span class="dashboard-module__eyebrow">Ce que je dois faire</span>
-          </div>
-          <div id="coach-action-root"></div>
-        </section>
+          <!-- DETTES -->
+          <section class="dashboard-module dashboard-module--debts" data-dashboard-mode="complete" aria-label="Dettes et crédits">
+            <div class="dashboard-module__header">
+              <span class="dashboard-module__eyebrow">Dettes</span>
+            </div>
+            <div id="debts-summary-root"></div>
+          </section>
+        </div>
 
       </div>
 
@@ -4396,6 +4388,27 @@ function updateAll(){
       hydrationComplete
     }, { windowRef: window });
   }
+
+  // Update North Star Goals component
+  if (typeof window.renderNorthStarGoals === 'function') {
+    window.renderNorthStarGoals('goal-progress-root', {
+      revReel,
+      solde,
+      soldeEstime,
+      safetyMargin,
+      hydrationComplete
+    }, { windowRef: window }).catch(err => console.warn('[North Star Goals] render failed', err));
+  }
+  // Update North Star Debts component
+  if (typeof window.renderNorthStarDebts === 'function') {
+    window.renderNorthStarDebts('debts-summary-root', {
+      revReel,
+      solde,
+      debtSummary: getDebtSummary(),
+      hydrationComplete
+    }, { windowRef: window });
+  }
+
   // Update Quick View / Analytics / Goals (Mode Complet) with source of truth metrics
   if (typeof window.renderDashboardQuickView === 'function') {
     window.renderDashboardQuickView({

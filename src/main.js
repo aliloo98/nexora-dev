@@ -62,6 +62,9 @@ import { renderDashboardAlerts } from './ui/dashboard/renderDashboardAlerts.js'
 import { renderAssistantInsights } from './ui/dashboard/renderAssistantInsights.js'
 import { renderDashboardCoach } from './ui/dashboard/renderDashboardCoach.js'
 import { initJarvisDashboardIntegration } from './jarvis/jarvisCockpit.js'
+import { renderNorthStarTrajectory } from './ui/dashboard/renderNorthStarTrajectory.js'
+import { renderNorthStarDebts } from './ui/dashboard/renderNorthStarDebts.js'
+import { renderNorthStarGoals } from './ui/dashboard/renderNorthStarGoals.js'
 
 
 import { renderBudgetCoach, buildBudgetCoachState } from './ui/budgetCoach.js'
@@ -360,6 +363,9 @@ const initApp = async () => {
       refreshDashboardCoach: window.refreshDashboardCoach,
       refreshDashboardModular: window.refreshDashboardModular,
       initJarvisDashboardIntegration,
+      renderNorthStarTrajectory,
+      renderNorthStarDebts,
+      renderNorthStarGoals,
 
       // Event handlers dependencies
       parseFinancialExpression,
@@ -422,3 +428,8 @@ window.enableNexoraV8 = (enable = true) => {
 }
 
 window.disableNexoraV8 = () => window.enableNexoraV8(false)
+
+// Expose North Star components for dashboard integration
+window.renderNorthStarTrajectory = renderNorthStarTrajectory
+window.renderNorthStarDebts = renderNorthStarDebts
+window.renderNorthStarGoals = renderNorthStarGoals

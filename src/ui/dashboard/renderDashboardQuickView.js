@@ -5,6 +5,7 @@ import { setupAmbientMotion, startGraphAmbientMotion, startDonutAmbientMotion, s
 import { setupViewportReveal, attachAmbientController } from './ambientHelpers.js'
 import { buildNorthStarDecision } from './northStarDecision.js'
 import { bindNorthStarJarvis } from './renderNorthStarJarvis.js'
+import { renderNorthStarTrajectory } from './renderNorthStarTrajectory.js'
 
 const fmt = (value) => {
   const amount = Number(value) || 0
@@ -27,6 +28,7 @@ function buildNorthStarPanelMetrics(metrics = {}) {
       tone: 'neutral',
       label: 'Synthèse à compléter',
       summary: 'Ajoute les revenus et dépenses du mois pour activer le diagnostic Nexora.',
+      action: 'Commencer le budget',
       currentValue,
       projectedValue,
       availableValue
@@ -35,8 +37,9 @@ function buildNorthStarPanelMetrics(metrics = {}) {
   if (projectedValue < 0) {
     return {
       tone: 'danger',
-      label: 'Situation à risque',
-      summary: `Ton solde projeté devient négatif avant la fin du cycle. Il reste ${fmt(Math.abs(projectedValue))} à couvrir.`,
+      label: 'Action nécessaire',
+      summary: `Ton solde projeté devient négatif. Réduis les dépenses de ${fmt(Math.abs(projectedValue))} pour équilibrer.`,
+      action: 'Réviser le budget',
       currentValue,
       projectedValue,
       availableValue
@@ -45,8 +48,9 @@ function buildNorthStarPanelMetrics(metrics = {}) {
   if (projectedValue < revReel * 0.1 || Number(metrics.tauxCh || 0) > 85) {
     return {
       tone: 'warning',
-      label: 'Situation fragile',
-      summary: `Ton budget reste positif mais la marge est faible. La sécurité du mois dépend de tes prochaines dépenses.`,
+      label: 'Attention requise',
+      summary: `Marge faible de ${fmt(Math.max(0, availableValue))}. Surveille les dépenses variables.`,
+      action: 'Optimiser les dépenses',
       currentValue,
       projectedValue,
       availableValue
@@ -55,14 +59,15 @@ function buildNorthStarPanelMetrics(metrics = {}) {
   return {
     tone: 'positive',
     label: 'Situation stable',
-    summary: `Ton mois est sous contrôle. Tu devrais terminer le cycle avec ${fmt(projectedValue)} de marge.`,
+    summary: `Fin de cycle estimée : +${fmt(projectedValue)}. Aucune action urgente requise.`,
+    action: 'Surveiller la trajectoire',
     currentValue,
     projectedValue,
     availableValue
   }
 }
 
-function renderNorthStarPanelInQuickView(root, metrics = {}, documentRef) {
+function renderNorthStarPanelInQuickView(root, metrics = {}, documentRef, windowRef) {
   if (!root || !documentRef) return null
   const panelMetrics = buildNorthStarPanelMetrics(metrics)
   const existing = root.querySelector('.north-star-panel')
@@ -73,25 +78,33 @@ function renderNorthStarPanelInQuickView(root, metrics = {}, documentRef) {
   panel.setAttribute('aria-label', 'North Star dashboard')
   panel.innerHTML = `
     <div class="north-star-panel__header">
-      <span class="north-star-panel__eyebrow">North Star</span>
       <span class="north-star-panel__verdict north-star-panel__verdict--${panelMetrics.tone}">${panelMetrics.label}</span>
     </div>
     <p class="north-star-panel__summary">${panelMetrics.summary}</p>
-    <div class="north-star-panel__grid">
-      <article class="north-star-stat" data-role="north-star-current">
-        <span class="north-star-stat__label">Solde actuel</span>
-        <strong class="north-star-stat__value">${fmt(panelMetrics.currentValue)}</strong>
-      </article>
-      <article class="north-star-stat" data-role="north-star-projected">
-        <span class="north-star-stat__label">Solde projeté</span>
-        <strong class="north-star-stat__value">${fmt(panelMetrics.projectedValue)}</strong>
-      </article>
-      <article class="north-star-stat north-star-stat--accent" data-role="north-star-available">
-        <span class="north-star-stat__label">Disponible</span>
-        <strong class="north-star-stat__value">${fmt(panelMetrics.availableValue)}</strong>
-      </article>
+    <div class="north-star-panel__metrics">
+      <div class="north-star-metric">
+        <span class="north-star-metric__label">Actuel</span>
+        <strong class="north-star-metric__value">${fmt(panelMetrics.currentValue)}</strong>
+      </div>
+      <div class="north-star-metric">
+        <span class="north-star-metric__label">Projeté</span>
+        <strong class="north-star-metric__value">${fmt(panelMetrics.projectedValue)}</strong>
+      </div>
+      <div class="north-star-metric north-star-metric--highlight">
+        <span class="north-star-metric__label">Disponible</span>
+        <strong class="north-star-metric__value">${fmt(panelMetrics.availableValue)}</strong>
+      </div>
     </div>
+    ${panelMetrics.action ? `<button type="button" class="north-star-panel__action" data-target-section="saisie">${panelMetrics.action}</button>` : ''}
   `
+
+  const actionButton = panel.querySelector('.north-star-panel__action')
+  if (actionButton && typeof windowRef?.showSection === 'function') {
+    actionButton.addEventListener('click', () => windowRef.showSection('saisie'))
+  } else if (actionButton) {
+    actionButton.disabled = true
+  }
+
   root.appendChild(panel)
   return panel
 }
@@ -340,7 +353,8 @@ export function renderDashboardQuickView(metrics = {}, options = {}) {
     const decision = buildNorthStarDecision(metrics)
     renderNorthStarPriorityInQuickView(quickRoot, metrics, documentRef, windowRef)
     bindNorthStarJarvis(quickRoot, decision, documentRef, windowRef)
-    renderNorthStarPanelInQuickView(quickRoot, metrics, documentRef)
+    renderNorthStarPanelInQuickView(quickRoot, metrics, documentRef, windowRef)
+    renderNorthStarTrajectory('cockpit-financier-root', metrics, { documentRef, windowRef })
   }
 
   const revReel = Number(metrics.revReel || 0)
