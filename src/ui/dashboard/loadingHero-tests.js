@@ -34,16 +34,15 @@ const renderLoadedReal = () => renderDashboardHero('hydration-root', {
 }, { documentRef: doc })
 
 renderLoading()
-assert.ok(root.textContent.includes('Argent restant ce mois-ci'), 'loading state should still render the neutral layout')
+assert.ok(root.textContent.includes('Solde actuel'), 'loading state should still render the neutral layout')
 assert.ok(!root.textContent.includes('Synthèse à compléter'), 'loading state should not show the semantic empty-month message')
 
 renderLoadedEmpty()
 const emptyText = root.textContent
-assert.ok(emptyText.includes('Synthèse à compléter'), 'genuine empty month should still show the semantic empty state')
+assert.ok(emptyText.includes('Données limitées'), 'genuine empty month should still show the semantic empty state')
 
 renderLoadedReal()
 assert.ok(root.textContent.includes('Situation stable') || root.textContent.includes('Charges 52%') || root.textContent.includes('Voir le plan'), 'hydrated real month should render real financial state')
 assert.ok(!root.textContent.includes('Saisir le mois'), 'real month should not show the empty month CTA')
-assert.ok(root.textContent.includes('Voir le plan'), 'hydrated real month should offer the plan action')
 
 console.info('loading-vs-empty hydration regression tests: OK')

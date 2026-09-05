@@ -18,8 +18,8 @@ const formatPercent = (value) => {
 }
 
 /**
- * Render the North Star Goals component
- * Shows primary goal with actionable progress
+ * Render the North Star Goals component - COMPACT VERSION
+ * Shows all goals with minimal footprint, no duplication
  */
 export async function renderNorthStarGoals(rootId, metrics = {}, options = {}) {
   const documentRef = options.documentRef || document
@@ -27,103 +27,49 @@ export async function renderNorthStarGoals(rootId, metrics = {}, options = {}) {
   const root = documentRef.getElementById(rootId)
   if (!root) return
 
-  // Remove existing goals component
-  const existing = root.querySelector('.north-star-goals')
-  if (existing) existing.remove()
-
   // Get goals data
   const goals = await GoalsService.listUserFacingGoals()
-  const primaryGoal = selectPrimaryGoal(goals)
   const monthlyContribution = toFiniteNumber(metrics.solde || metrics.projectedBalance || 0)
 
-  if (!primaryGoal) {
-    // Show empty state
-    const emptyState = documentRef.createElement('section')
+  if (!goals || goals.length === 0) {
+    // Show compact empty state
+    const emptyState = documentRef.createElement('div')
     emptyState.className = 'north-star-goals north-star-goals--empty'
-    emptyState.setAttribute('aria-label', 'Objectifs financiers')
     emptyState.innerHTML = `
-      <div class="north-star-goals__header">
-        <span class="north-star-goals__eyebrow">Objectifs</span>
-        <span class="north-star-goals__status">Non défini</span>
-      </div>
-      <p class="north-star-goals__message">Définissez un objectif d'épargne pour suivre votre progression.</p>
-      <button type="button" class="north-star-goals__action" data-target-section="objectifs">Créer un objectif</button>
+      <span class="north-star-goals__message">Aucun objectif défini</span>
     `
-    
-    const actionButton = emptyState.querySelector('.north-star-goals__action')
-    if (actionButton && typeof windowRef?.showSection === 'function') {
-      actionButton.addEventListener('click', () => windowRef.showSection('objectifs'))
-    } else if (actionButton) {
-      actionButton.disabled = true
-    }
-    
-    root.appendChild(emptyState)
+    root.replaceChildren(emptyState)
     return emptyState
   }
 
-  // Calculate goal metrics
-  const goalMetrics = calculateGoalMetrics(primaryGoal, { 
-    asOf: new Date(), 
-    monthlyContribution 
+  // Show all goals compactly
+  const goalsComponent = documentRef.createElement('div')
+  goalsComponent.className = 'north-star-goals'
+
+  goals.forEach((goal, index) => {
+    const goalMetrics = calculateGoalMetrics(goal, {
+      asOf: new Date(),
+      monthlyContribution
+    })
+
+    const progressWidth = Math.min(100, Math.max(0, goalMetrics.progress))
+
+    const goalItem = documentRef.createElement('div')
+    goalItem.className = 'north-star-goals__item'
+    goalItem.innerHTML = `
+      <div class="north-star-goals__name">${goal.icon || '🎯'} ${goal.name || 'Objectif'}</div>
+      <div class="north-star-goals__progress-line">
+        <span class="north-star-goals__amount">${formatEuro(goalMetrics.current)} / ${formatEuro(goalMetrics.target)}</span>
+        <span class="north-star-goals__pct">${formatPercent(goalMetrics.progress)}</span>
+      </div>
+      <div class="north-star-goals__bar">
+        <div class="north-star-goals__fill" style="width: ${progressWidth}%"></div>
+      </div>
+    `
+    goalsComponent.appendChild(goalItem)
   })
 
-  // Determine goal status
-  let goalTone = 'positive'
-  let goalStatus = 'En cours'
-  
-  if (goalMetrics.isReached) {
-    goalTone = 'positive'
-    goalStatus = 'Atteint'
-  } else if (goalMetrics.status === 'behind' || goalMetrics.status === 'late') {
-    goalTone = 'warning'
-    goalStatus = 'En retard'
-  } else if (goalMetrics.status === 'ahead') {
-    goalTone = 'positive'
-    goalStatus = 'En avance'
-  }
-
-  const goalsComponent = documentRef.createElement('section')
-  goalsComponent.className = `north-star-goals north-star-goals--${goalTone}`
-  goalsComponent.setAttribute('aria-label', 'Objectif financier principal')
-  
-  const progressWidth = Math.min(100, Math.max(0, goalMetrics.progress))
-  
-  goalsComponent.innerHTML = `
-    <div class="north-star-goals__header">
-      <span class="north-star-goals__eyebrow">Objectif</span>
-      <span class="north-star-goals__status north-star-goals__status--${goalTone}">${goalStatus}</span>
-    </div>
-    <div class="north-star-goals__content">
-      <h3 class="north-star-goals__title">${primaryGoal.name || 'Objectif sans nom'}</h3>
-      <div class="north-star-goals__progress">
-        <div class="north-star-goals__progress-bar">
-          <div class="north-star-goals__progress-fill" style="width: ${progressWidth}%"></div>
-        </div>
-        <span class="north-star-goals__progress-text">${formatPercent(goalMetrics.progress)}</span>
-      </div>
-      <div class="north-star-goals__metrics">
-        <div class="north-star-goal-metric">
-          <span class="north-star-goal-metric__label">Reste</span>
-          <strong class="north-star-goal-metric__value">${formatEuro(goalMetrics.remaining)}</strong>
-        </div>
-        <div class="north-star-goal-metric">
-          <span class="north-star-goal-metric__label">Objectif</span>
-          <strong class="north-star-goal-metric__value">${formatEuro(goalMetrics.target)}</strong>
-        </div>
-      </div>
-      ${goalMetrics.projectedMonths ? `<p class="north-star-goals__projection">${goalMetrics.projectedMonths} mois restants</p>` : ''}
-    </div>
-    <button type="button" class="north-star-goals__action" data-target-section="objectifs">Gérer</button>
-  `
-  
-  const actionButton = goalsComponent.querySelector('.north-star-goals__action')
-  if (actionButton && typeof windowRef?.showSection === 'function') {
-    actionButton.addEventListener('click', () => windowRef.showSection('objectifs'))
-  } else if (actionButton) {
-    actionButton.disabled = true
-  }
-  
-  root.appendChild(goalsComponent)
+  root.replaceChildren(goalsComponent)
   return goalsComponent
 }
 

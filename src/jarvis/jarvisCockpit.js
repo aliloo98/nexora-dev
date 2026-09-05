@@ -102,10 +102,21 @@ function shouldShowJarvis(documentRef) {
  */
 export async function renderJarvisInDashboard(options = {}) {
   const { monthKey, documentRef = document, windowRef = window } = options
-  const cockpitRoot = documentRef.getElementById('cockpit-financier-root')
+
+  // Check for V2 modular structure first
+  const v2JarvisRoot = documentRef.getElementById('jarvis-root')
+  const legacyCockpitRoot = documentRef.getElementById('cockpit-financier-root')
+
+  // If V2 structure exists, skip Jarvis cockpit rendering
+  // V2 uses its own North Star Jarvis system via bindNorthStarJarvis
+  if (v2JarvisRoot) {
+    return
+  }
+
+  const cockpitRoot = legacyCockpitRoot
 
   if (!cockpitRoot) {
-    console.warn('[Jarvis Integration] cockpit-financier-root not found')
+    // Both roots missing - this is expected in V2 structure
     return
   }
 
@@ -137,7 +148,17 @@ export async function renderJarvisInDashboard(options = {}) {
  * Updates Jarvis on mode change
  */
 export async function updateJarvisOnModeChange(documentRef = document, windowRef = window) {
-  const cockpitRoot = documentRef.getElementById('cockpit-financier-root')
+  // Check for V2 modular structure first
+  const v2JarvisRoot = documentRef.getElementById('jarvis-root')
+  const legacyCockpitRoot = documentRef.getElementById('cockpit-financier-root')
+
+  // If V2 structure exists, skip Jarvis cockpit updates
+  // V2 uses its own North Star Jarvis system via bindNorthStarJarvis
+  if (v2JarvisRoot) {
+    return
+  }
+
+  const cockpitRoot = legacyCockpitRoot
   if (!cockpitRoot) return
 
   const renderVersion = ++modeRenderVersion
@@ -169,7 +190,17 @@ export async function updateJarvisOnModeChange(documentRef = document, windowRef
 export async function refreshJarvisData(monthKey, documentRef = document, windowRef = window) {
   if (!shouldShowJarvis(documentRef)) return
 
-  const cockpitRoot = documentRef.getElementById('cockpit-financier-root')
+  // Check for V2 modular structure first
+  const v2JarvisRoot = documentRef.getElementById('jarvis-root')
+  const legacyCockpitRoot = documentRef.getElementById('cockpit-financier-root')
+
+  // If V2 structure exists, skip Jarvis cockpit refresh
+  // V2 uses its own North Star Jarvis system via bindNorthStarJarvis
+  if (v2JarvisRoot) {
+    return
+  }
+
+  const cockpitRoot = legacyCockpitRoot
   if (!cockpitRoot) return
 
   try {
@@ -504,7 +535,7 @@ function renderPriorityCard(viewModel) {
     `
   }
 
-  const ctaMarkup = priorityCta 
+  const ctaMarkup = priorityCta
     ? `<button type="button" class="jarvis-priority-cta" data-target="${priorityCta.target}">${escapeHtml(priorityCta.label)}</button>`
     : ''
 
@@ -636,12 +667,12 @@ function renderGoalModule(viewModel) {
  */
 function attachCtaListeners(container, windowRef) {
   const ctaButtons = container.querySelectorAll('.jarvis-priority-cta')
-  
+
   ctaButtons.forEach(button => {
     button.addEventListener('click', (e) => {
       e.preventDefault()
       const target = button.dataset.target
-      
+
       if (target && typeof windowRef.showSection === 'function') {
         windowRef.showSection(target)
       }

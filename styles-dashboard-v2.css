@@ -1,0 +1,1035 @@
+/* Dashboard V2 - Integrated Financial Cockpit */
+/* This file contains the NEW integrated layout styles */
+/* These styles override legacy cockpit styles */
+
+/* Reference cockpit composition: decision first, then the financial rail. */
+.dashboard-v2-cockpit {
+  gap: 12px !important;
+  max-width: 1120px !important;
+  padding: 8px 0 36px !important;
+}
+
+.cockpit-decision-section {
+  order: 1 !important;
+  padding: 0 !important;
+}
+
+.cockpit-situation-section {
+  order: 2 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+.cockpit-insight-section {
+  order: 3 !important;
+}
+
+.cockpit-engagements-section {
+  order: 4 !important;
+}
+
+/* Visual treatment aligned with the supplied dark finance cockpit reference. */
+.dashboard-v2-cockpit .north-star-priority {
+  position: relative !important;
+  min-height: 190px !important;
+  padding: 28px 34px !important;
+  border: 1px solid rgba(214, 161, 57, 0.72) !important;
+  border-radius: 14px !important;
+  background: radial-gradient(circle at 78% 18%, rgba(214, 161, 57, 0.12), transparent 34%), linear-gradient(120deg, #171b20 0%, #0c1118 72%) !important;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28), inset 0 1px rgba(255, 255, 255, 0.06) !important;
+}
+
+.dashboard-v2-cockpit .north-star-priority__header {
+  gap: 10px !important;
+}
+
+.dashboard-v2-cockpit .north-star-priority__eyebrow {
+  display: inline-flex !important;
+  padding: 6px 10px !important;
+  border-radius: 6px !important;
+  background: rgba(214, 161, 57, 0.18) !important;
+  color: #f2c45e !important;
+  font-size: 10px !important;
+  letter-spacing: 0.08em !important;
+}
+
+.dashboard-v2-cockpit .north-star-priority__label {
+  color: #f7d887 !important;
+  font-size: 12px !important;
+}
+
+.dashboard-v2-cockpit .north-star-priority__title {
+  max-width: 680px !important;
+  margin-top: 16px !important;
+  font-size: clamp(28px, 3vw, 42px) !important;
+  letter-spacing: -0.03em !important;
+}
+
+.dashboard-v2-cockpit .north-star-priority__why {
+  max-width: 700px !important;
+  color: #c7ccd4 !important;
+  font-size: 14px !important;
+}
+
+.dashboard-v2-cockpit .north-star-priority__reasons {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px 24px !important;
+  margin: 10px 0 0 !important;
+}
+
+.dashboard-v2-cockpit .north-star-priority__reason {
+  color: #aeb6c2 !important;
+  font-size: 12px !important;
+}
+
+.dashboard-v2-cockpit .north-star-priority__action {
+  position: absolute !important;
+  right: 30px !important;
+  bottom: 28px !important;
+  min-width: 210px !important;
+  text-align: right !important;
+}
+
+.dashboard-v2-cockpit .north-star-priority__action-label {
+  display: block !important;
+  color: #8d96a3 !important;
+  font-size: 10px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+}
+
+.dashboard-v2-cockpit .north-star-priority__action-text,
+.dashboard-v2-cockpit .north-star-priority__action-button {
+  color: #f3c65b !important;
+  font-size: 13px !important;
+}
+
+.dashboard-v2-cockpit .cockpit-situation-section {
+  padding: 0 !important;
+  border: 1px solid rgba(112, 133, 159, 0.28) !important;
+  border-radius: 14px !important;
+  background: linear-gradient(145deg, rgba(17, 27, 39, 0.98), rgba(7, 14, 23, 0.98)) !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.04) !important;
+  overflow: hidden !important;
+}
+
+.dashboard-v2-cockpit .cockpit-situation-section .cockpit-hero {
+  display: grid !important;
+  grid-template-columns: 1.1fr 1fr !important;
+  gap: 20px !important;
+  padding: 20px 24px 16px !important;
+}
+
+.dashboard-v2-cockpit .cockpit-situation-section .cockpit-hero__header {
+  grid-column: 1 !important;
+  display: block !important;
+}
+
+.dashboard-v2-cockpit .cockpit-situation-section .cockpit-hero__amount {
+  display: block !important;
+  margin-top: 8px !important;
+  font-size: clamp(30px, 3.3vw, 48px) !important;
+  color: #eef1f5 !important;
+}
+
+.dashboard-v2-cockpit .cockpit-situation-section .cockpit-hero__message {
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+  margin: 0 !important;
+  font-size: 13px !important;
+}
+
+.dashboard-v2-cockpit .cockpit-situation-section .cockpit-hero__metrics {
+  grid-column: 2 !important;
+  grid-row: 1 / span 2 !important;
+  align-self: center !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+.dashboard-v2-cockpit .cockpit-situation__kpis {
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 0 !important;
+  padding: 14px 24px !important;
+  border-top: 1px solid rgba(112, 133, 159, 0.2) !important;
+}
+
+.dashboard-v2-cockpit .cockpit-situation__kpi {
+  padding: 0 20px !important;
+  border-right: 1px solid rgba(112, 133, 159, 0.2) !important;
+}
+
+.dashboard-v2-cockpit .cockpit-situation__kpi:first-child {
+  padding-left: 0 !important;
+}
+
+.dashboard-v2-cockpit .cockpit-situation__kpi:last-child {
+  border-right: 0 !important;
+}
+
+.dashboard-v2-cockpit .cockpit-insight-section,
+.dashboard-v2-cockpit .cockpit-engagements-section {
+  padding: 0 !important;
+}
+
+.dashboard-v2-cockpit .cockpit-insight__trajectory,
+.dashboard-v2-cockpit .cockpit-insight__jarvis,
+.dashboard-v2-cockpit .cockpit-engagement {
+  min-width: 0 !important;
+  padding: 20px !important;
+  border: 1px solid rgba(112, 133, 159, 0.24) !important;
+  border-radius: 12px !important;
+  background: #0c1520 !important;
+}
+
+body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-mode="complete"] {
+  display: none !important;
+}
+
+/* North Star Dashboard V2 - Integrated Financial Cockpit */
+.dashboard-v2-cockpit {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 24px !important;
+  max-width: 1400px !important;
+  margin: 0 auto !important;
+  padding: 0 32px !important;
+}
+
+/* SITUATION SECTION - Hero + KPIs integrated */
+.cockpit-situation-section {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  padding: 16px 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.cockpit-situation__kpis {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 24px !important;
+  padding-top: 24px !important;
+}
+
+.cockpit-situation__kpi {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.cockpit-situation__kpi-label {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: var(--text2) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+.cockpit-situation__kpi-value {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: var(--text) !important;
+}
+
+/* DECISION SECTION - Priority */
+.cockpit-decision-section {
+  padding: 16px 0 !important;
+}
+
+/* INSIGHT SECTION - Trajectory + Jarvis integrated */
+.cockpit-insight-section {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 24px !important;
+  padding: 16px 0 !important;
+}
+
+/* ENGAGEMENTS SECTION - Compact row */
+.cockpit-engagements-section {
+  padding: 16px 0 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.cockpit-engagements-row {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 24px !important;
+}
+
+.cockpit-engagement {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.cockpit-engagement__label {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: var(--text2) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+}
+
+/* Hero DOMINANT - The focal point */
+.cockpit-hero {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.cockpit-hero__header {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 24px !important;
+  justify-content: space-between !important;
+}
+
+.cockpit-hero__context {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.15em !important;
+  text-transform: uppercase !important;
+  color: var(--text2) !important;
+  opacity: 0.7 !important;
+}
+
+.cockpit-hero__amount {
+  font-size: 56px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.02em !important;
+  color: var(--text) !important;
+}
+
+.cockpit-hero__amount--positive {
+  color: var(--green) !important;
+}
+
+.cockpit-hero__amount--warning {
+  color: var(--orange) !important;
+}
+
+.cockpit-hero__amount--danger {
+  color: var(--red) !important;
+}
+
+.cockpit-hero__message {
+  font-size: 15px !important;
+  font-weight: 400 !important;
+  color: var(--text2) !important;
+  line-height: 1.4 !important;
+  max-width: 700px !important;
+}
+
+.cockpit-hero__metrics {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  padding-top: 16px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.cockpit-hero__metric {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.cockpit-hero__metric-label {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: var(--text2) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+.cockpit-hero__metric-value {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: var(--text) !important;
+}
+
+/* North Star Priority - Narrative Decision (V2) */
+.cockpit-decision-section .north-star-priority {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  border-left: none !important;
+}
+
+.cockpit-decision-section .north-star-priority__header {
+  display: flex !important;
+  align-items: center !important;
+  margin-bottom: 0 !important;
+}
+
+.cockpit-decision-section .north-star-priority__eyebrow {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.15em !important;
+  text-transform: uppercase !important;
+  color: var(--text2) !important;
+  opacity: 0.7 !important;
+}
+
+.cockpit-decision-section .north-star-priority__title {
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  color: var(--text) !important;
+  margin: 0 !important;
+  line-height: 1.2 !important;
+}
+
+.cockpit-decision-section .north-star-priority__why {
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  color: var(--text2) !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+}
+
+.cockpit-decision-section .north-star-priority--positive .north-star-priority__eyebrow {
+  color: var(--green) !important;
+}
+
+.cockpit-decision-section .north-star-priority--warning .north-star-priority__eyebrow {
+  color: var(--orange) !important;
+}
+
+.cockpit-decision-section .north-star-priority--danger .north-star-priority__eyebrow {
+  color: var(--red) !important;
+}
+
+.cockpit-decision-section .north-star-priority__action-button {
+  margin-top: 16px !important;
+  padding: 12px 24px !important;
+  background: var(--primary) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: opacity 0.2s !important;
+  align-self: flex-start !important;
+}
+
+.cockpit-decision-section .north-star-priority__action-button:hover {
+  opacity: 0.9 !important;
+}
+
+/* North Star Goals - Compact */
+.north-star-goals {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.north-star-goals--empty .north-star-goals__message {
+  font-size: 14px !important;
+  color: var(--text2) !important;
+  font-style: italic !important;
+}
+
+.north-star-goals__item {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+.north-star-goals__name {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: var(--text) !important;
+}
+
+.north-star-goals__progress-line {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  font-size: 13px !important;
+  color: var(--text2) !important;
+}
+
+.north-star-goals__pct {
+  font-weight: 600 !important;
+  color: var(--primary) !important;
+}
+
+.north-star-goals__bar {
+  height: 4px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 2px !important;
+  overflow: hidden !important;
+}
+
+.north-star-goals__fill {
+  height: 100% !important;
+  background: var(--primary) !important;
+  border-radius: 2px !important;
+  transition: width 0.3s ease !important;
+}
+
+/* North Star Debts - Compact */
+.north-star-debts {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.north-star-debts__message {
+  font-size: 13px !important;
+  color: var(--text2) !important;
+  font-style: italic !important;
+}
+
+.north-star-debts__summary {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.north-star-debts__total {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: var(--text) !important;
+}
+
+.north-star-debts__monthly {
+  font-size: 12px !important;
+  color: var(--text2) !important;
+}
+
+/* North Star Trajectory - Compact */
+.north-star-trajectory {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.north-star-trajectory--limited {
+  padding: 0 !important;
+}
+
+.north-star-trajectory__compact {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.north-star-trajectory__label {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  color: var(--text2) !important;
+}
+
+.north-star-trajectory__status {
+  font-size: 14px !important;
+  color: var(--text2) !important;
+  font-style: italic !important;
+}
+
+.north-star-trajectory__header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+.north-star-trajectory__title {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  color: var(--text2) !important;
+}
+
+.north-star-trajectory__timeline {
+  position: relative !important;
+  padding-left: 24px !important;
+}
+
+.north-star-trajectory__timeline::before {
+  content: '' !important;
+  position: absolute !important;
+  left: 7px !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  width: 2px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.north-star-trajectory__event {
+  position: relative !important;
+  margin-bottom: 16px !important;
+}
+
+.north-star-trajectory__marker {
+  position: absolute !important;
+  left: -20px !important;
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  background: var(--primary) !important;
+  border: 2px solid var(--bg) !important;
+}
+
+.north-star-trajectory__date {
+  font-size: 12px !important;
+  color: var(--text2) !important;
+  margin-bottom: 4px !important;
+}
+
+.north-star-trajectory__event strong {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: var(--text) !important;
+}
+
+.north-star-trajectory__event span {
+  font-size: 13px !important;
+  color: var(--text2) !important;
+}
+
+.north-star-trajectory--empty {
+  padding: 32px 0 !important;
+  text-align: center !important;
+}
+
+.north-star-trajectory--empty p {
+  font-size: 14px !important;
+  color: var(--text2) !important;
+  margin: 0 !important;
+}
+
+/* North Star Jarvis - Compact Advisor */
+.north-star-jarvis {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.north-star-jarvis__header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.north-star-jarvis__title {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.15em !important;
+  text-transform: uppercase !important;
+  color: var(--text2) !important;
+}
+
+.north-star-jarvis__question {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  color: var(--primary) !important;
+}
+
+.north-star-jarvis__insight {
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  color: var(--text) !important;
+  line-height: 1.4 !important;
+}
+
+.north-star-jarvis__reasons {
+  margin: 8px 0 !important;
+  padding-left: 16px !important;
+}
+
+.north-star-jarvis__reasons li {
+  font-size: 13px !important;
+  color: var(--text2) !important;
+  margin-bottom: 4px !important;
+  line-height: 1.3 !important;
+}
+
+.north-star-jarvis__action-container {
+  margin-top: 8px !important;
+}
+
+.north-star-jarvis__action {
+  font-size: 13px !important;
+  color: var(--primary) !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  text-align: left !important;
+}
+
+.north-star-jarvis__action:hover {
+  text-decoration: underline !important;
+}
+
+/* Full Jarvis Copilot presentation. */
+.north-star-jarvis {
+  gap: 14px !important;
+}
+
+.north-star-jarvis__brief {
+  display: grid !important;
+  gap: 7px !important;
+}
+
+.north-star-jarvis__brief-label {
+  color: #53e3e7 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+}
+
+.north-star-jarvis__brief-text {
+  margin: 0 !important;
+  color: #d9e0e8 !important;
+  font-size: 15px !important;
+  line-height: 1.45 !important;
+}
+
+.north-star-jarvis__copilot {
+  min-width: 0 !important;
+}
+
+.north-star-jarvis .jarvis-copilot {
+  display: grid !important;
+  gap: 12px !important;
+}
+
+.north-star-jarvis .jarvis-copilot-command {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 12px !important;
+  align-items: center !important;
+}
+
+.north-star-jarvis .jarvis-copilot-identity {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  text-align: left !important;
+  cursor: pointer !important;
+}
+
+.north-star-jarvis .jarvis-copilot-kicker {
+  display: block !important;
+  color: #f2c45e !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+}
+
+.north-star-jarvis .jarvis-copilot-role {
+  display: block !important;
+  margin-top: 3px !important;
+  color: #bdc8d3 !important;
+  font-size: 13px !important;
+}
+
+.north-star-jarvis .jarvis-core-signal {
+  position: relative !important;
+  display: inline-grid !important;
+  width: 52px !important;
+  height: 52px !important;
+  flex: 0 0 52px !important;
+  place-items: center !important;
+  border: 1px solid rgba(242, 196, 94, 0.58) !important;
+  border-radius: 50% !important;
+  background: radial-gradient(circle, rgba(242, 196, 94, 0.28), rgba(7, 25, 35, 0.25) 52%, transparent 54%) !important;
+  box-shadow: 0 0 18px rgba(242, 196, 94, 0.12) !important;
+}
+
+.north-star-jarvis .jarvis-core-ring {
+  position: absolute !important;
+  inset: 6px !important;
+  border: 1px dashed rgba(83, 227, 231, 0.68) !important;
+  border-radius: 50% !important;
+}
+
+.north-star-jarvis .jarvis-core-arc {
+  inset: 11px !important;
+  border-style: solid !important;
+  border-color: transparent #f2c45e #f2c45e transparent !important;
+}
+
+.north-star-jarvis .jarvis-core-inner {
+  inset: 17px !important;
+  border-color: rgba(83, 227, 231, 0.9) !important;
+}
+
+.north-star-jarvis .jarvis-core-center {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  background: #f2c45e !important;
+  box-shadow: 0 0 12px rgba(242, 196, 94, 0.8) !important;
+}
+
+.north-star-jarvis .jarvis-copilot-status {
+  display: grid !important;
+  gap: 3px !important;
+  color: #9eabb9 !important;
+  font-size: 11px !important;
+  text-align: right !important;
+}
+
+.north-star-jarvis .jarvis-copilot-status strong {
+  color: #dbe2ea !important;
+  font-size: 12px !important;
+}
+
+.north-star-jarvis .jarvis-copilot-form {
+  position: relative !important;
+  grid-column: 1 / -1 !important;
+  display: flex !important;
+  align-items: stretch !important;
+  border: 1px solid rgba(83, 227, 231, 0.32) !important;
+  border-radius: 10px !important;
+  background: rgba(4, 13, 22, 0.72) !important;
+  overflow: hidden !important;
+}
+
+.north-star-jarvis .jarvis-copilot-input {
+  min-height: 44px !important;
+  flex: 1 1 auto !important;
+  resize: none !important;
+  padding: 11px 12px !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  color: #eef2f7 !important;
+  font: inherit !important;
+  font-size: 14px !important;
+}
+
+.north-star-jarvis .jarvis-copilot-input::placeholder {
+  color: #9aaabd !important;
+}
+
+.north-star-jarvis .jarvis-copilot-send {
+  width: 48px !important;
+  border: 0 !important;
+  border-left: 1px solid rgba(242, 196, 94, 0.38) !important;
+  background: rgba(242, 196, 94, 0.1) !important;
+  color: #f2c45e !important;
+  font-size: 22px !important;
+  cursor: pointer !important;
+}
+
+.north-star-jarvis .jarvis-copilot-prompts {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+
+.north-star-jarvis .jarvis-copilot-prompt {
+  min-height: 54px !important;
+  padding: 8px 7px !important;
+  border: 1px solid rgba(112, 133, 159, 0.3) !important;
+  border-radius: 9px !important;
+  background: rgba(18, 28, 45, 0.76) !important;
+  color: #c8d1dc !important;
+  font: inherit !important;
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+  cursor: pointer !important;
+}
+
+.north-star-jarvis .jarvis-copilot-prompt:hover,
+.north-star-jarvis .jarvis-copilot-prompt:focus-visible {
+  border-color: rgba(242, 196, 94, 0.72) !important;
+  color: #f2c45e !important;
+}
+
+.north-star-jarvis .jarvis-copilot-panel {
+  padding: 14px !important;
+  border: 1px solid rgba(83, 227, 231, 0.34) !important;
+  border-radius: 10px !important;
+  background: rgba(3, 12, 20, 0.82) !important;
+}
+
+/* Mobile */
+@media (max-width: 430px) {
+  .dashboard-v2-cockpit {
+    width: 100% !important;
+    gap: 12px !important;
+    padding: 0 !important;
+  }
+
+  .cockpit-situation-section {
+    gap: 0 !important;
+  }
+
+  .cockpit-situation__kpis {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 0 !important;
+    padding: 12px 14px !important;
+  }
+
+  .cockpit-situation__kpi-label,
+  .cockpit-hero__metric-label {
+    font-size: 9px !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  .cockpit-situation__kpi-value {
+    font-size: 14px !important;
+  }
+
+  .cockpit-hero {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    padding: 18px 16px 14px !important;
+  }
+
+  .cockpit-hero__amount {
+    font-size: 34px !important;
+  }
+
+  .cockpit-hero__message {
+    font-size: 14px !important;
+  }
+
+  .cockpit-hero__metrics {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    padding-top: 10px !important;
+    border-top: 1px solid rgba(112, 133, 159, 0.18) !important;
+  }
+
+  .cockpit-hero__metric-value {
+    font-size: 14px !important;
+  }
+
+  .cockpit-hero__metric-helper {
+    font-size: 10px !important;
+  }
+
+  .cockpit-decision-section {
+    padding: 0 !important;
+  }
+
+  .dashboard-v2-cockpit .north-star-priority {
+    min-height: 0 !important;
+    padding: 18px 16px 16px !important;
+    border-radius: 12px !important;
+  }
+
+  .dashboard-v2-cockpit .north-star-priority__title {
+    max-width: 100% !important;
+    margin-top: 12px !important;
+    font-size: 25px !important;
+  }
+
+  .cockpit-decision-section .north-star-priority__title {
+    font-size: 25px !important;
+  }
+
+  .cockpit-decision-section .north-star-priority__why {
+    font-size: 14px !important;
+  }
+
+  .dashboard-v2-cockpit .north-star-priority__reasons {
+    display: block !important;
+    margin-top: 8px !important;
+  }
+
+  .dashboard-v2-cockpit .north-star-priority__reason {
+    margin-top: 5px !important;
+  }
+
+  .dashboard-v2-cockpit .north-star-priority__action {
+    position: static !important;
+    min-width: 0 !important;
+    margin-top: 14px !important;
+    text-align: left !important;
+  }
+
+  .cockpit-insight-section {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    padding: 0 !important;
+  }
+
+  .dashboard-v2-cockpit .cockpit-insight__jarvis {
+    order: -1 !important;
+    border-color: rgba(35, 206, 215, 0.68) !important;
+    background: radial-gradient(circle at 90% 0%, rgba(35, 206, 215, 0.16), transparent 45%), #071923 !important;
+    box-shadow: 0 0 24px rgba(35, 206, 215, 0.08), inset 0 1px rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .dashboard-v2-cockpit .cockpit-insight__trajectory,
+  .dashboard-v2-cockpit .cockpit-insight__jarvis,
+  .dashboard-v2-cockpit .cockpit-engagement {
+    padding: 16px !important;
+    border-radius: 11px !important;
+  }
+
+  .dashboard-v2-cockpit .north-star-jarvis__title {
+    color: #53e3e7 !important;
+    font-size: 12px !important;
+  }
+
+  .dashboard-v2-cockpit .north-star-jarvis__question {
+    color: #f2c45e !important;
+  }
+
+  .dashboard-v2-cockpit .north-star-jarvis__insight {
+    font-size: 15px !important;
+    line-height: 1.45 !important;
+  }
+
+  .cockpit-engagements-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .cockpit-engagements-section {
+    padding: 0 !important;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1367px) {
+  .dashboard-v2-cockpit {
+    gap: 48px !important;
+  }
+
+  .cockpit-hero__amount {
+    font-size: 72px !important;
+  }
+
+  .cockpit-hero__message {
+    font-size: 18px !important;
+  }
+
+  .cockpit-decision-section .north-star-priority__title {
+    font-size: 28px !important;
+  }
+
+  .cockpit-decision-section .north-star-priority__why {
+    font-size: 17px !important;
+  }
+}

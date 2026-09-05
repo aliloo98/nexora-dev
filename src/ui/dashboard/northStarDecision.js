@@ -11,6 +11,10 @@ const formatEuro = (value) => {
 
 const actionFor = (label, targetSection = null) => ({ label, targetSection })
 
+const compactReasons = (...reasons) => reasons
+  .filter((reason) => typeof reason === 'string' && reason.trim().length > 0)
+  .slice(0, 3)
+
 /**
  * Deterministic decision layer for the North Star dashboard.
  * It consumes dashboard metrics already produced by updateAll().
@@ -32,6 +36,10 @@ export function buildNorthStarDecision(metrics = {}) {
       label: 'Données insuffisantes',
       title: 'Ajoute les montants qui manquent pour décider.',
       why: 'Nexora a besoin de revenus et de dépenses renseignés pour calculer une priorité fiable.',
+      reasons: [
+        'Aucun revenu et aucune dépense exploitable ne suffisent pour qualifier le mois.',
+        'La priorité reste volontairement limitée tant que les données ne sont pas complètes.'
+      ],
       action: actionFor('Compléter le budget', 'saisie'),
       priority: 'data'
     }
@@ -48,6 +56,11 @@ export function buildNorthStarDecision(metrics = {}) {
       label: 'Risque immédiat',
       title: 'Ton solde de fin de cycle risque de passer dans le rouge.',
       why: `Les dépenses prévues dépassent ta trajectoire de ${formatEuro(amountToCover)}${variablesPct > 0 ? ` et les variables représentent ${Math.round(variablesPct)} % de tes revenus` : ''}.`,
+      reasons: compactReasons(
+        `Solde projeté : -${formatEuro(amountToCover)}.`,
+        variableExpenses > 0 ? `Dépenses variables suivables : ${formatEuro(variableExpenses)}.` : null,
+        variablesPct > 0 ? `Variables : ${Math.round(variablesPct)} % des revenus.` : null
+      ),
       action: actionFor(action, 'saisie'),
       priority: 'projected-deficit'
     }
@@ -60,6 +73,11 @@ export function buildNorthStarDecision(metrics = {}) {
       label: 'Attention',
       title: 'Ta marge de sécurité est faible.',
       why: `Il te reste ${formatEuro(Math.max(0, available))} de marge disponible pour ${formatEuro(income)} de revenus.`,
+      reasons: compactReasons(
+        `Marge disponible : ${formatEuro(Math.max(0, available))}.`,
+        `Seuil de vigilance : ${formatEuro(marginFloor)}.`,
+        projected < marginFloor ? `Solde projeté : ${formatEuro(projected)}.` : null
+      ),
       action: actionFor('Vérifier les dépenses variables', 'saisie'),
       priority: 'low-margin'
     }
@@ -71,6 +89,11 @@ export function buildNorthStarDecision(metrics = {}) {
       label: 'Attention',
       title: 'Tes dépenses variables méritent un contrôle.',
       why: `Elles représentent ${Math.round(variablesPct)} % de tes revenus, soit ${formatEuro(variableExpenses)}.`,
+      reasons: compactReasons(
+        `Variables : ${Math.round(variablesPct)} % des revenus.`,
+        `Montant variable engagé : ${formatEuro(variableExpenses)}.`,
+        `Solde projeté : ${formatEuro(projected)}.`
+      ),
       action: actionFor('Revoir les dépenses variables', 'saisie'),
       priority: 'variable-overrun'
     }
@@ -79,9 +102,14 @@ export function buildNorthStarDecision(metrics = {}) {
   return {
     tone: 'positive',
     label: 'Situation saine',
-    title: 'Aucune priorité urgente détectée.',
+    title: 'Protéger le rythme actuel.',
     why: `Ta trajectoire reste positive avec ${formatEuro(Math.max(0, projected))} projetés en fin de cycle.`,
-    action: actionFor('Surveiller la trajectoire'),
+    reasons: compactReasons(
+      `Solde projeté : ${formatEuro(Math.max(0, projected))}.`,
+      `Marge disponible : ${formatEuro(Math.max(0, available))}.`,
+      variablesPct > 0 ? `Variables : ${Math.round(variablesPct)} % des revenus.` : null
+    ),
+    action: actionFor('Conserver le rythme et surveiller la trajectoire'),
     priority: 'healthy'
   }
 }

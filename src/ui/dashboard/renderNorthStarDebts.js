@@ -10,8 +10,8 @@ const formatEuro = (value) => {
 }
 
 /**
- * Render the North Star Debts component
- * Shows debt summary with actionable insights
+ * Render the North Star Debts component - COMPACT VERSION
+ * Shows debt summary with minimal footprint
  */
 export function renderNorthStarDebts(rootId, metrics = {}, options = {}) {
   const documentRef = options.documentRef || document
@@ -22,73 +22,26 @@ export function renderNorthStarDebts(rootId, metrics = {}, options = {}) {
   const debtSummary = metrics.debtSummary || { total: 0, monthly: 0 }
   const totalDebt = toFiniteNumber(debtSummary.total)
   const monthlyPayment = toFiniteNumber(debtSummary.monthly)
-  const income = toFiniteNumber(metrics.revReel || metrics.income)
 
   // Remove existing debts component
   const existing = root.querySelector('.north-star-debts')
   if (existing) existing.remove()
 
-  // Determine debt health
-  let debtHealth = 'none'
-  let debtMessage = 'Aucune dette enregistrée'
-  let debtTone = 'positive'
+  // Compact debt display
+  const debts = documentRef.createElement('div')
+  debts.className = 'north-star-debts'
 
-  if (totalDebt > 0) {
-    const debtToIncomeRatio = income > 0 ? (monthlyPayment / income) * 100 : 0
-    
-    if (debtToIncomeRatio > 40) {
-      debtHealth = 'critical'
-      debtMessage = `Taux d'endettement élevé (${Math.round(debtToIncomeRatio)}% des revenus)`
-      debtTone = 'danger'
-    } else if (debtToIncomeRatio > 25) {
-      debtHealth = 'warning'
-      debtMessage = `Taux d'endettement modéré (${Math.round(debtToIncomeRatio)}% des revenus)`
-      debtTone = 'warning'
-    } else {
-      debtHealth = 'healthy'
-      debtMessage = 'Endettement maîtrisé'
-      debtTone = 'positive'
-    }
-  }
-
-  const debts = documentRef.createElement('section')
-  debts.className = `north-star-debts north-star-debts--${debtTone}`
-  debts.setAttribute('aria-label', 'Synthèse des dettes')
-  
   if (totalDebt === 0) {
     debts.innerHTML = `
-      <div class="north-star-debts__header">
-        <span class="north-star-debts__eyebrow">Dettes</span>
-        <span class="north-star-debts__status north-star-debts__status--positive">Aucune</span>
-      </div>
-      <p class="north-star-debts__message">${debtMessage}</p>
+      <span class="north-star-debts__message">Aucune dette enregistrée</span>
     `
   } else {
     debts.innerHTML = `
-      <div class="north-star-debts__header">
-        <span class="north-star-debts__eyebrow">Dettes</span>
-        <span class="north-star-debts__status north-star-debts__status--${debtTone}">${debtHealth === 'critical' ? 'Élevé' : debtHealth === 'warning' ? 'Modéré' : 'Maîtrisé'}</span>
+      <div class="north-star-debts__summary">
+        <span class="north-star-debts__total">${formatEuro(totalDebt)}</span>
+        <span class="north-star-debts__monthly">${formatEuro(monthlyPayment)}/mois</span>
       </div>
-      <div class="north-star-debts__grid">
-        <article class="north-star-debt-stat">
-          <span class="north-star-debt-stat__label">Total</span>
-          <strong class="north-star-debt-stat__value">${formatEuro(totalDebt)}</strong>
-        </article>
-        <article class="north-star-debt-stat">
-          <span class="north-star-debt-stat__label">Mensualités</span>
-          <strong class="north-star-debt-stat__value">${formatEuro(monthlyPayment)}/mois</strong>
-        </article>
-      </div>
-      <p class="north-star-debts__message">${debtMessage}</p>
-      ${debtHealth !== 'healthy' ? `<button type="button" class="north-star-debts__action" data-target-section="dettes">Voir le plan</button>` : ''}
     `
-    
-    const actionButton = debts.querySelector('.north-star-debts__action')
-    if (actionButton && typeof windowRef?.showSection === 'function') {
-      actionButton.addEventListener('click', () => windowRef.showSection('dettes'))
-    } else if (actionButton) {
-      actionButton.disabled = true
-    }
   }
 
   root.appendChild(debts)

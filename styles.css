@@ -278,7 +278,7 @@
 
 :root {
 /* Nexora Core Action Hub — inline compact styles (mobile-first) */
-.nexora-core-inline-card { 
+.nexora-core-inline-card {
   margin-top: 12px;
   padding: 10px;
   border-radius: 12px;
@@ -520,10 +520,18 @@ body {
   opacity: 0.7;
 }
 
-@media(max-width: 430px) {
+@media (max-width: 430px) {
   .north-star-priority {
-    padding: 14px;
-    gap: 10px;
+    padding: 24px 0;
+    gap: 16px;
+  }
+
+  .north-star-priority__title {
+    font-size: 22px;
+  }
+
+  .north-star-priority__why {
+    font-size: 15px;
   }
 
   .north-star-priority__header,
@@ -862,8 +870,33 @@ body {
 
 @media (max-width: 430px) {
   .north-star-trajectory {
-    padding: 12px;
-    gap: 10px;
+    padding: 24px 0;
+    gap: 16px;
+  }
+
+  .north-star-trajectory__timeline::before {
+    left: 5px;
+  }
+
+  .north-star-trajectory__marker {
+    width: 12px;
+    height: 12px;
+  }
+
+  .north-star-trajectory__date {
+    min-width: 60px;
+  }
+
+  .north-star-trajectory__date strong {
+    font-size: 13px;
+  }
+
+  .north-star-trajectory__event strong {
+    font-size: 14px;
+  }
+
+  .north-star-trajectory__event span {
+    font-size: 13px;
   }
 
   .north-star-trajectory__header {
@@ -2715,64 +2748,1269 @@ body.mode-simple .dashboard-secondary-kpis {
   border-left: 3px solid var(--gold2);
 }
 
-/* North Star Dashboard Modules */
-.dashboard-module {
+/* North Star Dashboard V2 - Integrated Financial Cockpit */
+.dashboard-v2-cockpit {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 40px !important;
+  max-width: 1400px !important;
+  margin: 0 auto !important;
+  padding: 0 32px !important;
+}
+
+/* SITUATION SECTION - Hero + KPIs integrated */
+.cockpit-situation-section {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 24px !important;
+  padding: 40px 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.cockpit-situation__kpis {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 24px !important;
+  padding-top: 24px !important;
+}
+
+.cockpit-situation__kpi {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.cockpit-situation__kpi-label {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: var(--text2) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+.cockpit-situation__kpi-value {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: var(--text) !important;
+}
+
+/* DECISION SECTION - Priority */
+.cockpit-decision-section {
+  padding: 32px 0 !important;
+}
+
+/* INSIGHT SECTION - Trajectory + Jarvis integrated */
+.cockpit-insight-section {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 32px !important;
+  padding: 32px 0 !important;
+}
+
+/* ENGAGEMENTS SECTION - Compact row */
+.cockpit-engagements-section {
+  padding: 32px 0 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.cockpit-engagements-row {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 32px !important;
+}
+
+.cockpit-engagement {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.cockpit-engagement__label {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: var(--text2) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+}
+
+/* Hero DOMINANT - The focal point */
+.cockpit-hero {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+}
+
+.cockpit-hero__context {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.15em !important;
+  text-transform: uppercase !important;
+  color: var(--text2) !important;
+  opacity: 0.7 !important;
+}
+
+.cockpit-hero__amount {
+  font-size: 64px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.02em !important;
+  color: var(--text) !important;
+}
+
+.cockpit-hero__amount--positive {
+  color: var(--green) !important;
+}
+
+.cockpit-hero__amount--warning {
+  color: var(--orange) !important;
+}
+
+.cockpit-hero__amount--danger {
+  color: var(--red) !important;
+}
+
+.cockpit-hero__message {
+  font-size: 17px !important;
+  font-weight: 400 !important;
+  color: var(--text2) !important;
+  line-height: 1.5 !important;
+  max-width: 700px !important;
+}
+
+.cockpit-hero__metrics {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 20px !important;
+  padding-top: 20px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.cockpit-hero__metric {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.cockpit-hero__metric-label {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: var(--text2) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+.cockpit-hero__metric-value {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: var(--text) !important;
+}
+
+/* Mobile */
+@media (max-width: 430px) {
+  .dashboard-v2-cockpit {
+    gap: 32px;
+    padding: 0 16px;
+  }
+
+  .cockpit-situation-section {
+    padding: 32px 0;
+    gap: 20px;
+  }
+
+  .cockpit-situation__kpis {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .cockpit-situation__kpi-value {
+    font-size: 16px;
+  }
+
+  .cockpit-hero {
+    gap: 16px;
+  }
+
+  .cockpit-hero__amount {
+    font-size: 48px;
+  }
+
+  .cockpit-hero__message {
+    font-size: 15px;
+  }
+
+  .cockpit-hero__metrics {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .cockpit-decision-section {
+    padding: 24px 0;
+  }
+
+  .cockpit-insight-section {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 24px 0;
+  }
+
+  .cockpit-engagements-row {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1367px) {
+  .dashboard-v2-cockpit {
+    gap: 48px;
+  }
+
+  .cockpit-hero__amount {
+    font-size: 72px;
+  }
+
+  .cockpit-hero__message {
+    font-size: 18px;
+  }
+}
+
+/* PRIORITÉ - The decision */
+.cockpit-priority-section {
+  padding: 0 4px;
+}
+
+/* TRAJECTOIRE NARRATIVE - The story */
+.cockpit-trajectory-section {
+  padding: 0 4px;
+}
+
+/* KPI COMPACTS - Secondary proofs */
+.cockpit-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  padding: 0 4px;
+}
+
+.cockpit-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cockpit-kpi__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cockpit-kpi__value {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ENGAGEMENTS - Goals and Debts */
+.cockpit-engagements-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+}
+
+.cockpit-engagement-block {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cockpit-engagement__eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* North Star Priority - Narrative Decision */
+.north-star-priority {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 32px 0;
+}
+
+.north-star-priority__header {
+  margin-bottom: 8px;
+}
+
+.north-star-priority__eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text2);
+  opacity: 0.7;
+}
+
+.north-star-priority__title {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+  margin: 0;
+}
+
+.north-star-priority__why {
+  font-size: 16px;
+  color: var(--text2);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 700px;
+}
+
+.north-star-priority__action-button {
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.north-star-priority--positive .north-star-priority__action-button {
+  background: var(--green);
+  color: var(--bg);
+}
+
+.north-star-priority--warning .north-star-priority__action-button {
+  background: var(--orange);
+  color: var(--bg);
+}
+
+.north-star-priority--danger .north-star-priority__action-button {
+  background: var(--red);
+  color: var(--bg);
+}
+
+.north-star-priority--neutral .north-star-priority__action-button {
+  background: var(--gold);
+  color: var(--bg);
+}
+
+.north-star-priority__action-button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.north-star-priority__action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* North Star Trajectory - Narrative Timeline */
+.north-star-trajectory {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px 0;
+}
+
+.north-star-trajectory__header {
+  margin-bottom: 8px;
+}
+
+.north-star-trajectory__eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text2);
+  opacity: 0.7;
+}
+
+.north-star-trajectory__timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+}
+
+.north-star-trajectory__timeline::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 12px;
+  bottom: 12px;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.north-star-trajectory__item {
+  display: flex;
+  gap: 16px;
+  position: relative;
+}
+
+.north-star-trajectory__item.is-current {
+  font-weight: 600;
+}
+
+.north-star-trajectory__item.is-risk {
+  opacity: 0.8;
+}
+
+.north-star-trajectory__date {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.north-star-trajectory__date strong {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.north-star-trajectory__date span {
+  font-size: 11px;
+  color: var(--text2);
+}
+
+.north-star-trajectory__marker {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--gold);
+  flex-shrink: 0;
+  margin-top: 4px;
+  position: relative;
+  z-index: 1;
+}
+
+.north-star-trajectory__item.is-current .north-star-trajectory__marker {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.north-star-trajectory__item.is-risk .north-star-trajectory__marker {
+  border-color: var(--red);
+}
+
+.north-star-trajectory__event {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.north-star-trajectory__event strong {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.north-star-trajectory__event span {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.north-star-trajectory__event .positive {
+  color: var(--green);
+}
+
+.north-star-trajectory__event .negative {
+  color: var(--red);
+}
+
+.north-star-trajectory__event .risk-indicator {
+  font-size: 12px;
+  color: var(--red);
+  font-style: italic;
+  font-weight: 500;
+}
+
+.north-star-trajectory--limited {
+  padding: 24px 0;
+}
+
+.north-star-trajectory__message {
+  font-size: 15px;
+  color: var(--text2);
+  margin: 0;
+}
+
+/* Mobile */
+@media (max-width: 430px) {
+  .dashboard-v2-cockpit {
+    gap: 32px;
+    padding: 0 16px;
+  }
+
+  .cockpit-hero {
+    padding: 32px 0;
+    gap: 20px;
+  }
+
+  .cockpit-hero__amount {
+    font-size: 56px;
+  }
+
+  .cockpit-hero__message {
+    font-size: 16px;
+  }
+
+  .cockpit-hero__metrics {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .north-star-priority {
+    padding: 24px 0;
+    gap: 16px;
+  }
+
+  .north-star-priority__title {
+    font-size: 22px;
+  }
+
+  .north-star-priority__why {
+    font-size: 15px;
+  }
+
+  .north-star-trajectory {
+    padding: 24px 0;
+    gap: 16px;
+  }
+
+  .north-star-trajectory__timeline::before {
+    left: 5px;
+  }
+
+  .north-star-trajectory__marker {
+    width: 12px;
+    height: 12px;
+  }
+
+  .north-star-trajectory__date {
+    min-width: 60px;
+  }
+
+  .north-star-trajectory__date strong {
+    font-size: 13px;
+  }
+
+  .north-star-trajectory__event strong {
+    font-size: 14px;
+  }
+
+  .north-star-trajectory__event span {
+    font-size: 13px;
+  }
+
+  .cockpit-kpi-row {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .cockpit-engagements-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .cockpit-kpi__value {
+    font-size: 20px;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1367px) {
+  .dashboard-v2-cockpit {
+    gap: 56px;
+  }
+
+  .cockpit-hero__amount {
+    font-size: 88px;
+  }
+
+  .cockpit-hero__message {
+    font-size: 20px;
+  }
+
+  .north-star-priority__title {
+    font-size: 32px;
+  }
+
+  .north-star-priority__why {
+    font-size: 18px;
+  }
+}
+
+/* Hero Card - Premium Financial Focal Point */
+.nx-hero-card {
+  border: none;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.nx-hero-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.nx-hero-card__header {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 16px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
+}
+
+.nx-hero-card__context {
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+.nx-hero-card__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text2);
+  opacity: 0.8;
+  margin: 0;
+  line-height: 1.4;
+  letter-spacing: 0.05em;
+}
+
+.nx-hero-card__amount-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nx-hero-card__amount {
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--text1);
+}
+
+.nx-hero-card__trend {
+  font-size: 14px;
+  color: var(--text2);
+  opacity: 0.7;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.nx-hero-card__sub-metrics {
+  display: flex;
+  gap: 24px;
+  margin-top: 8px;
+}
+
+.nx-hero-card__sub-metric {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.nx-hero-card__sub-metric-label {
+  font-size: 12px;
+  color: var(--text2);
+  opacity: 0.6;
+}
+
+.nx-hero-card__sub-metric-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text1);
+}
+
+.nx-hero-card__action {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+
+/* Hero Card Tones */
+.nx-hero-card--positive .nx-hero-card__amount {
+  color: var(--green);
+}
+
+.nx-hero-card--warning .nx-hero-card__amount {
+  color: var(--orange);
+}
+
+.nx-hero-card--danger .nx-hero-card__amount {
+  color: var(--red);
+}
+
+.nx-hero-card--neutral .nx-hero-card__amount {
+  color: var(--text1);
+}
+
+/* Priority Component - Second Major Focus */
+.north-star-priority {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.north-star-priority__header {
   margin-bottom: 16px;
 }
 
-.dashboard-module--north-star {
-  border-left: 3px solid var(--gold);
-  background: rgba(255, 255, 255, 0.04);
+.north-star-priority__eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text2);
+  opacity: 0.7;
+}
+
+.north-star-priority__title {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text1);
+  margin: 0 0 12px 0;
+}
+
+.north-star-priority__why {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text2);
+  opacity: 0.8;
+  margin: 0 0 20px 0;
+}
+
+.north-star-priority__action-button {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.north-star-priority__action-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.north-star-priority__action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.north-star-priority--positive .north-star-priority__title {
+  color: var(--green);
+}
+
+.north-star-priority--warning .north-star-priority__title {
+  color: var(--orange);
+}
+
+.north-star-priority--danger .north-star-priority__title {
+  color: var(--red);
+}
+
+/* Trajectory Component - Timeline Visualization */
+.north-star-trajectory {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.north-star-trajectory__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 20px;
 }
 
-.dashboard-module__header {
+.north-star-trajectory__eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text2);
+  opacity: 0.7;
+}
+
+.north-star-trajectory__status {
+  font-size: 12px;
+  color: var(--text2);
+  opacity: 0.6;
+}
+
+.north-star-trajectory__timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.north-star-trajectory__item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: start;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.north-star-trajectory__item.is-current {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(229, 192, 96, 0.2);
+}
+
+.north-star-trajectory__item.is-risk {
+  border-color: rgba(255, 100, 100, 0.2);
+}
+
+.north-star-trajectory__date {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 80px;
+}
+
+.north-star-trajectory__date strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text1);
+}
+
+.north-star-trajectory__date span {
+  font-size: 12px;
+  color: var(--text2);
+  opacity: 0.6;
+}
+
+.north-star-trajectory__event {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.north-star-trajectory__event strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text1);
+}
+
+.north-star-trajectory__event span {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.north-star-trajectory__event .positive {
+  color: var(--green);
+}
+
+.north-star-trajectory__event .negative {
+  color: var(--red);
+}
+
+.north-star-trajectory__message {
+  font-size: 14px;
+  color: var(--text2);
+  opacity: 0.7;
+  text-align: center;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.01);
+  border-radius: 12px;
+}
+
+/* Jarvis Component - Explanation Layer */
+.north-star-jarvis {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.north-star-jarvis__eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text2);
+  opacity: 0.6;
+  margin-bottom: 12px;
+}
+
+.north-star-jarvis__insight {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text1);
+  margin-bottom: 16px;
+}
+
+.north-star-jarvis__facts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.north-star-jarvis__facts li {
+  font-size: 13px;
+  color: var(--text2);
+  opacity: 0.8;
+  padding-left: 16px;
+  position: relative;
+}
+
+.north-star-jarvis__facts li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--gold);
+}
+
+.north-star-jarvis__recommendation {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text1);
+  padding: 12px 16px;
+  background: rgba(229, 192, 96, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(229, 192, 96, 0.2);
+}
+
+/* Goals Component - Compact Secondary */
+.north-star-goals {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.north-star-goals__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.north-star-goals__eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text2);
+  opacity: 0.7;
+}
+
+.north-star-goals__status {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.north-star-goals__status--positive {
+  color: var(--green);
+}
+
+.north-star-goals__status--warning {
+  color: var(--orange);
+}
+
+.north-star-goals__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text1);
+  margin: 0 0 12px 0;
+}
+
+.north-star-goals__progress {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-bottom: 12px;
 }
 
-.dashboard-module__eyebrow {
-  color: var(--text2);
+.north-star-goals__progress-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.north-star-goals__progress-fill {
+  height: 100%;
+  background: var(--green);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.north-star-goals__progress-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text1);
+  min-width: 40px;
+}
+
+.north-star-goals__metrics {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.north-star-goal-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.north-star-goal-metric__label {
   font-size: 11px;
-  font-weight: 800;
+  color: var(--text2);
+  opacity: 0.6;
+}
+
+.north-star-goal-metric__value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text1);
+}
+
+.north-star-goals__action {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: var(--text1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.north-star-goals__action:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Debts Component - Compact Secondary */
+.north-star-debts {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.north-star-debts__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.north-star-debts__eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  color: var(--text2);
+  opacity: 0.7;
 }
 
-.dashboard-module--goal {
-  border-left: 3px solid var(--green);
+.north-star-debts__status {
+  font-size: 12px;
+  font-weight: 600;
 }
 
-.dashboard-module--debts {
-  border-left: 3px solid var(--orange);
+.north-star-debts__status--positive {
+  color: var(--green);
+}
+
+.north-star-debts__status--warning {
+  color: var(--orange);
+}
+
+.north-star-debts__status--danger {
+  color: var(--red);
+}
+
+.north-star-debts__message {
+  font-size: 14px;
+  color: var(--text2);
+  opacity: 0.8;
+  margin-bottom: 12px;
+}
+
+.north-star-debts__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.north-star-debt-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.north-star-debt-stat__label {
+  font-size: 11px;
+  color: var(--text2);
+  opacity: 0.6;
+}
+
+.north-star-debt-stat__value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text1);
+}
+
+.north-star-debts__action {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: var(--text1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.north-star-debts__action:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .dashboard-secondary-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+  margin-top: 0;
+}
+
+.dashboard-tertiary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
   margin-top: 16px;
 }
 
+.dashboard-tertiary-grid .analytics-card {
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.01);
+  border-radius: 12px;
+}
+
+.dashboard-tertiary-grid .analytics-card__title {
+  font-size: 11px;
+  color: var(--text2);
+  opacity: 0.6;
+  margin-bottom: 8px;
+}
+
+.dashboard-tertiary-grid .analytics-card__value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text1);
+}
+
+.dashboard-tertiary-grid .analytics-card__sub {
+  font-size: 12px;
+  color: var(--text2);
+  opacity: 0.5;
+  margin-top: 4px;
+}
+
+.dashboard-navigation {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
 @media (max-width: 430px) {
-  .dashboard-module {
-    padding: 12px;
-    margin-bottom: 12px;
-  }
-
-  .dashboard-module--north-star {
-    margin-bottom: 16px;
-  }
-
   .dashboard-v2-modular {
+    gap: 20px;
+  }
+
+  .dashboard-module {
+    padding: 20px;
+  }
+
+  .dashboard-module--hero {
+    padding: 24px;
+    min-height: 240px;
+  }
+
+  .dashboard-module--priority {
+    padding: 24px;
+  }
+
+  .dashboard-module--trajectory {
+    padding: 20px;
+  }
+
+  .dashboard-module--jarvis {
+    padding: 18px;
+  }
+
+  .dashboard-module--goals,
+  .dashboard-module--debts {
+    padding: 18px;
+  }
+
+  .nx-hero-card__amount {
+    font-size: 42px;
+  }
+
+  .nx-hero-card__label {
+    font-size: 13px;
+  }
+
+  .nx-hero-card__sub-metrics {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .north-star-priority__title {
+    font-size: 20px;
+  }
+
+  .north-star-priority__why {
+    font-size: 14px;
+  }
+
+  .north-star-trajectory__item {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .north-star-trajectory__date {
+    min-width: auto;
+  }
+
+  .north-star-debts__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-tertiary-grid {
+    grid-template-columns: 1fr;
     gap: 12px;
   }
 
@@ -2784,17 +4022,59 @@ body.mode-simple .dashboard-secondary-kpis {
   .dashboard-module__header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
+    gap: 6px;
   }
 
   .dashboard-module__eyebrow {
     font-size: 10px;
   }
+
+  .dashboard-navigation {
+    margin-top: 24px;
+    padding-top: 20px;
+  }
 }
 
 @media (min-width: 1367px) {
-  .dashboard-card--priority {
-    min-height: 380px;
+  .dashboard-v2-modular {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .dashboard-secondary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .dashboard-tertiary-grid {
+    gap: 16px;
+  }
+
+  .nx-hero-card__amount {
+    font-size: 64px;
+  }
+
+  /* Desktop composition - Goals and Debts side by side */
+  .dashboard-module--goals,
+  .dashboard-module--debts {
+    min-height: 200px;
+  }
+
+  .north-star-debts__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Better desktop spacing */
+  .dashboard-module--hero {
+    padding: 40px;
+  }
+
+  .dashboard-module--priority {
+    padding: 32px;
+  }
+
+  .dashboard-module--trajectory {
+    padding: 28px;
   }
 }
 
@@ -14095,24 +15375,24 @@ body {
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
-  
+
   .financial-card__item {
     padding: 6px;
     gap: 6px;
   }
-  
+
   .financial-card__icon {
     font-size: 1rem;
   }
-  
+
   .financial-card__label {
     font-size: 0.7rem;
   }
-  
+
   .financial-card__value {
     font-size: 0.85rem;
   }
-  
+
   .financial-card__message {
     margin-top: 8px;
     padding: 8px 12px;
@@ -14526,7 +15806,7 @@ body {
 .cockpit-hero-v4__background {
   position: absolute;
   inset: 0;
-  background: 
+  background:
     linear-gradient(135deg, #0a0f1a 0%, #151e2e 40%, #0d121f 100%),
     radial-gradient(ellipse at 30% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
     radial-gradient(ellipse at 70% 80%, rgba(16, 185, 129, 0.06) 0%, transparent 50%);
@@ -14637,7 +15917,7 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  box-shadow: 
+  box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
@@ -16627,7 +17907,7 @@ body.mode-complete [data-mode="complete"].cockpit-kpis {
   .kpi-analysis-grid {
     gap: 14px;
   }
-  
+
   .cockpit-main-zone {
     grid-template-columns: 1fr 320px;
     gap: 18px;
@@ -16644,7 +17924,7 @@ body.mode-complete [data-mode="complete"].cockpit-kpis {
   .kpi-analysis-grid {
     gap: 16px;
   }
-  
+
   .cockpit-main-zone {
     gap: 20px;
   }

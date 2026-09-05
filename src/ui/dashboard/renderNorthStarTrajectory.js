@@ -127,16 +127,14 @@ export function renderNorthStarTrajectory(rootId, metrics = {}, options = {}) {
   if (existing) existing.remove()
 
   if (!hasData) {
-    // Show limited state if insufficient data
-    const limitedState = documentRef.createElement('section')
+    // Show compact limited state if insufficient data
+    const limitedState = documentRef.createElement('div')
     limitedState.className = 'north-star-trajectory north-star-trajectory--limited'
-    limitedState.setAttribute('aria-label', 'Trajectoire financière')
     limitedState.innerHTML = `
-      <div class="north-star-trajectory__header">
-        <span class="north-star-trajectory__eyebrow">Trajectoire</span>
-        <span class="north-star-trajectory__status">Données limitées</span>
+      <div class="north-star-trajectory__compact">
+        <span class="north-star-trajectory__label">COMMENT VA FINIR MON MOIS ?</span>
+        <span class="north-star-trajectory__status">Données limitées — Complète ton budget</span>
       </div>
-      <p class="north-star-trajectory__message">Complétez votre budget pour obtenir une projection fiable.</p>
     `
     root.appendChild(limitedState)
     return
@@ -147,7 +145,7 @@ export function renderNorthStarTrajectory(rootId, metrics = {}, options = {}) {
     const isRisk = event.isRisk === true
     const amountClass = event.amount >= 0 ? 'positive' : 'negative'
     const amountSign = event.amount >= 0 ? '+' : ''
-    
+
     return `
       <div class="north-star-trajectory__item ${event.isCurrent ? 'is-current' : ''} ${isRisk ? 'is-risk' : ''}">
         <div class="north-star-trajectory__date">
@@ -164,13 +162,11 @@ export function renderNorthStarTrajectory(rootId, metrics = {}, options = {}) {
     `
   }).join('')
 
-  const trajectory = documentRef.createElement('section')
+  const trajectory = documentRef.createElement('div')
   trajectory.className = 'north-star-trajectory'
-  trajectory.setAttribute('aria-label', 'Trajectoire financière')
   trajectory.innerHTML = `
     <div class="north-star-trajectory__header">
-      <span class="north-star-trajectory__eyebrow">Trajectoire</span>
-      <span class="north-star-trajectory__count">${events.length} événements</span>
+      <span class="north-star-trajectory__title">COMMENT VA FINIR MON MOIS ?</span>
     </div>
     <div class="north-star-trajectory__timeline">
       ${timelineEvents}

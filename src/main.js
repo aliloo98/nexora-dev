@@ -54,7 +54,7 @@ import NexoraRecurringResolver from './finance/recurringResolution.js'
 import NexoraCore from './ui/nexoraCore.js'
 import { toggleAvailableMoneyOptions } from './ui/availableMoneyOptions.js'
 import { buildDashboardGuidance } from './ui/dashboardGuidance.js'
-import { renderDashboardHero } from './ui/dashboard/renderDashboardHero.js'
+import { renderDashboardHero, renderNorthStarPriority, renderNorthStarPanel, bindNorthStarJarvis } from './ui/dashboard/renderDashboardHero.js'
 import { renderDashboardGoalCard } from './ui/dashboard/renderDashboardGoalCard.js'
 import { renderDashboardKpiStrip } from './ui/dashboard/renderDashboardKpiStrip.js'
 import { renderDashboardQuickView } from './ui/dashboard/renderDashboardQuickView.js'
@@ -113,6 +113,9 @@ installLegacyBridge({
   toggleAvailableMoneyOptions,
   NexoraDashboardGuidance: { buildDashboardGuidance },
   renderDashboardHero,
+  renderNorthStarPriority,
+  renderNorthStarPanel,
+  bindNorthStarJarvis,
   renderDashboardGoalCard,
   renderDashboardKpiStrip,
   renderDashboardQuickView,

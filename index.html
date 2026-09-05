@@ -14,6 +14,7 @@
 <link rel="icon" type="image/png" href="/favicon.png" id="favicon-link">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" id="apple-icon-link">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles-dashboard-v2.css">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a1128">
@@ -144,153 +145,57 @@ body.auth-locked > #nexora-status-bar {
         </div>
       </header>
 
-      <!-- DASHBOARD MODULAIRE V2 - 4 Composants Premium -->
-      <div class="dashboard-v2-modular">
-        
-        <!-- NORTH STAR COCKPIT - Intelligence financière unifiée -->
-        <section class="dashboard-module dashboard-module--north-star" aria-label="North Star Cockpit">
-          <div id="cockpit-financier-root"></div>
-        </section>
-
-        <!-- SECONDARY INFORMATION - Objectifs et dettes -->
-        <div class="dashboard-secondary-grid">
-          <!-- OBJECTIFS -->
-          <section class="dashboard-module dashboard-module--goal" aria-label="Objectifs financiers">
-            <div class="dashboard-module__header">
-              <span class="dashboard-module__eyebrow">Objectifs</span>
-            </div>
-            <div id="goal-progress-root"></div>
-          </section>
-
-          <!-- DETTES -->
-          <section class="dashboard-module dashboard-module--debts" data-dashboard-mode="complete" aria-label="Dettes et crédits">
-            <div class="dashboard-module__header">
-              <span class="dashboard-module__eyebrow">Dettes</span>
-            </div>
-            <div id="debts-summary-root"></div>
-          </section>
+      <!-- DASHBOARD V2 - INTEGRATED COCKPIT EXPERIENCE -->
+      <div class="dashboard-v2-cockpit">
+        <!-- PRIORITÉ - La décision -->
+        <div class="cockpit-decision-section">
+          <div id="priority-root"></div>
         </div>
 
-      </div>
-
-      <!-- ACTION PRINCIPALE -->
-      <div class="dashboard-v2-actions">
-        <button type="button" class="btn btn-gold btn--large" onclick="showSection('plan')">Voir le plan financier</button>
-      </div>
-            <div class="treasury-chart-wrapper" id="treasury-svg-container" data-dashboard-mode="complete">
-              <span class="treasury-card-sheen" aria-hidden="true"></span>
-              <svg class="treasury-svg-chart" viewBox="0 0 500 120" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="treasuryGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.35" />
-                    <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.0" />
-                  </linearGradient>
-                </defs>
-                <path id="treasury-area-path" d="M 0,120 L 0,60 Q 250,20 500,40 L 500,120 Z" fill="url(#treasuryGradient)" />
-                <path id="treasury-line-path" d="M 0,60 Q 250,20 500,40" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" />
-                <path id="treasury-line-highlight" d="M 0,60 Q 250,20 500,40" fill="none" stroke="#b8e8ff" stroke-width="4" stroke-linecap="round" pathLength="520" stroke-dasharray="26 494" stroke-dashoffset="520" opacity="0" pointer-events="none" />
-                <circle id="treasury-hover-dot" cx="250" cy="30" r="5" fill="#34d399" stroke="#ffffff" stroke-width="2" style="opacity: 0.8;" />
-              </svg>
-              <div class="treasury-chart-legend">
-                <span>📅 Début de mois</span>
-                <span id="treasury-mid-text">📈 Atterrissage estimé</span>
-                <span>Fin de cycle 🎯</span>
-              </div>
+        <!-- SITUATION - KPI de référence -->
+        <div class="cockpit-situation-section">
+          <div id="hero-root"></div>
+          <div class="cockpit-situation__kpis">
+            <div class="cockpit-situation__kpi">
+              <span class="cockpit-situation__kpi-label">Fin du mois</span>
+              <span class="cockpit-situation__kpi-value" id="kpi-final-balance">0 €</span>
             </div>
-
-            <div class="complete-analytics-grid" data-dashboard-mode="complete">
-              <div class="analytics-card">
-                <span class="analytics-card__title">Projection annuelle</span>
-                <div class="analytics-card__value" id="analysis-projection-value">0 €</div>
-                <div class="analytics-card__sub" id="analysis-projection-trend">Trajectoire sous contrôle</div>
-              </div>
-              <div class="analytics-card">
-                <span class="analytics-card__title">Taux d'épargne mensuel</span>
-                <div class="analytics-card__value" id="analysis-trend-value">0%</div>
-                <div class="analytics-card__sub" id="analysis-trend-direction">Capacité optimale</div>
-              </div>
-              <div class="analytics-card">
-                <span class="analytics-card__title">Marge de sécurité</span>
-                <div class="analytics-card__value" id="analysis-ratio-value">0 €</div>
-                <div class="analytics-card__sub" id="analysis-ratio-potential">Disponible préservé</div>
-              </div>
+            <div class="cockpit-situation__kpi">
+              <span class="cockpit-situation__kpi-label">Point bas</span>
+              <span class="cockpit-situation__kpi-value" id="kpi-lowest-balance">0 €</span>
             </div>
-          </section>
-
-          <!-- SECTION 2 & 3 : CE QUI ARRIVE ENSUITE & CE QUE TU CONSTRUIS -->
-          <div class="complete-dual-grid" data-dashboard-mode="complete">
-            <section class="complete-block complete-block--next">
-              <div class="complete-block__header">
-                <h3>👉 Ce qui arrive ensuite</h3>
-              </div>
-              
-              <!-- DONUT CHART 360° -->
-              <div class="donut-chart-wrapper" id="expense-donut-container" data-dashboard-mode="complete">
-                <div class="donut-svg-box">
-                  <svg class="donut-svg" viewBox="0 0 100 100">
-                    <circle class="donut-bg" cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="12" />
-                    <circle id="donut-segment-charges" class="donut-segment" cx="50" cy="50" r="38" fill="none" stroke="#8b5cf6" stroke-width="12" stroke-dasharray="140 238" stroke-dashoffset="0" />
-                    <circle id="donut-segment-epargne" class="donut-segment" cx="50" cy="50" r="38" fill="none" stroke="#10b981" stroke-width="12" stroke-dasharray="60 238" stroke-dashoffset="-140" />
-                    <circle id="donut-segment-libre" class="donut-segment" cx="50" cy="50" r="38" fill="none" stroke="#3b82f6" stroke-width="12" stroke-dasharray="38 238" stroke-dashoffset="-200" />
-                    <circle id="donut-perimeter-glint" cx="50" cy="50" r="38" fill="none" stroke="#f8e7b0" stroke-width="2" stroke-linecap="round" stroke-dasharray="7 231.76" stroke-dashoffset="238.76" opacity="0" pointer-events="none" />
-                  </svg>
-                  <div class="donut-center-text">
-                    <span class="donut-center-label">Frais fixes</span>
-                    <strong class="donut-center-val" id="donut-center-pct">50%</strong>
-                  </div>
-                </div>
-                <div class="donut-legend-list">
-                  <div class="donut-legend-item"><span class="donut-dot" style="background:#8b5cf6"></span><span>Frais engagés</span><strong id="donut-leg-charges">50%</strong></div>
-                  <div class="donut-legend-item"><span class="donut-dot" style="background:#10b981"></span><span>Épargne</span><strong id="donut-leg-epargne">20%</strong></div>
-                  <div class="donut-legend-item"><span class="donut-dot" style="background:#3b82f6"></span><span>Disponible libre</span><strong id="donut-leg-variables">30%</strong></div>
-                </div>
-              </div>
-            </section>
-
-            <section class="complete-block complete-block--build">
-              <div class="complete-block__header">
-                <h3>👉 Ce que tu construis</h3>
-              </div>
-              <div id="dashboard-goals-summary-root" class="goals-summary-list">
-                <div id="dashboard-primary-goal"></div>
-                <div class="goal-milestone-item">
-                  <div class="goal-milestone-info">
-                    <span>Objectif d'épargne (20% des revenus)</span>
-                    <strong id="complete-goal-progress-text">-- / -- €</strong>
-                  </div>
-                  <div class="goal-milestone-bar-bg">
-                    <div class="goal-milestone-bar-fill" id="complete-goal-bar" style="width: 0%;"><span class="goal-milestone-bar-sheen" aria-hidden="true"></span></div>
-                  </div>
-                </div>
-              </div>
-              <div class="debt-health-card" style="margin-top:14px;">
-                <div class="debt-health-row">
-                  <span>Mensualités engagées</span>
-                  <strong id="complete-debt-monthly">0 €/mois</strong>
-                </div>
-                <div class="debt-health-row">
-                  <span>Encours total</span>
-                  <strong id="complete-debt-total">0 €</strong>
-                </div>
-              </div>
-            </section>
+            <div class="cockpit-situation__kpi">
+              <span class="cockpit-situation__kpi-label">Revenus</span>
+              <span class="cockpit-situation__kpi-value" id="kpi-income-trend">→</span>
+            </div>
           </div>
-
-          <!-- SECTION 4 : CE QUE JE TE CONSEILLE AUJOURD'HUI -->
-          <section class="complete-block complete-block--advice">
-            <div class="complete-block__header">
-              <h3>👉 Ce que je te conseille aujourd’hui</h3>
-            </div>
-            <div class="advisor-insight-card">
-              <p id="complete-advisor-text">Tes charges fixes et tes dépenses sont équilibrées. Tu peux continuer ainsi en toute sérénité.</p>
-            </div>
-          </section>
-
         </div>
 
+        <!-- TRAJECTOIRE + JARVIS INTEGRÉ - L'histoire et l'explication -->
+        <div class="cockpit-insight-section" data-dashboard-mode="complete">
+          <div class="cockpit-insight__trajectory">
+            <div id="trajectory-root"></div>
+          </div>
+          <div class="cockpit-insight__jarvis">
+            <div id="jarvis-root"></div>
+          </div>
+        </div>
+
+        <!-- ENGAGEMENTS - Objectifs et Dettes compact -->
+        <div class="cockpit-engagements-section" data-dashboard-mode="complete">
+          <div class="cockpit-engagements-row">
+            <div class="cockpit-engagement">
+              <span class="cockpit-engagement__label">Objectifs</span>
+              <div id="goal-progress-root"></div>
+            </div>
+            <div class="cockpit-engagement">
+              <span class="cockpit-engagement__label">Engagements</span>
+              <div id="debts-summary-root"></div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- CTA SECTION (Mode Simplifié) -->
 
     </div>
   </div>
@@ -460,7 +365,7 @@ body.auth-locked > #nexora-status-bar {
         </div>
       </div>
     </div>
-    
+
     <!-- CHARGES FIXES -->
     <div class="budget-block">
       <div class="budget-block-header">
@@ -4135,7 +4040,7 @@ function updateAll(){
         // Remove existing listener to prevent memory leaks
         const newActionBtn = actionBtn.cloneNode(true);
         actionBtn.parentNode.replaceChild(newActionBtn, actionBtn);
-        
+
         newActionBtn.addEventListener('click', () => {
           const target = newActionBtn.dataset.target;
           if (target === 'revenues') {
@@ -4368,15 +4273,38 @@ function updateAll(){
     totalDepRestant,
     variablesPct
   });
-  updateDashboardSynthesisHero({
-    revReel,
-    solde,
-    tauxCh,
-    variablesPct,
-    savingsRate,
-    hydrationComplete
-  });
-  
+
+  // Render North Star Dashboard (both modes) - V2 modular structure
+  if (typeof window.renderDashboardHero === 'function') {
+    try {
+      // Build metrics object from individual variables
+      const dashboardMetrics = {
+        revReel,
+        solde,
+        soldeEstime,
+        tauxCh,
+        variablesPct,
+        totalDepRestant,
+        savingsRate,
+        hydrationComplete,
+        annualProjection,
+        safetyMargin,
+        goalProgressPct,
+        goalTarget
+      };
+
+      window.renderDashboardHero('hero-root', dashboardMetrics, {
+        documentRef: document,
+        windowRef: window,
+        onAction: (section) => {
+          if (typeof showSection === 'function') showSection(section);
+        }
+      });
+    } catch (err) {
+      console.error('[DASHBOARD] renderDashboardHero error:', err);
+    }
+  }
+
   // Update Dashboard Coach with V2 renderer
   if (typeof window.renderDashboardCoach === 'function') {
     window.renderDashboardCoach('coach-action-root', {
@@ -4389,27 +4317,9 @@ function updateAll(){
     }, { windowRef: window });
   }
 
-  // Update North Star Goals component
-  if (typeof window.renderNorthStarGoals === 'function') {
-    window.renderNorthStarGoals('goal-progress-root', {
-      revReel,
-      solde,
-      soldeEstime,
-      safetyMargin,
-      hydrationComplete
-    }, { windowRef: window }).catch(err => console.warn('[North Star Goals] render failed', err));
-  }
-  // Update North Star Debts component
-  if (typeof window.renderNorthStarDebts === 'function') {
-    window.renderNorthStarDebts('debts-summary-root', {
-      revReel,
-      solde,
-      debtSummary: getDebtSummary(),
-      hydrationComplete
-    }, { windowRef: window });
-  }
-
-  // Update Quick View / Analytics / Goals (Mode Complet) with source of truth metrics
+  // Legacy Quick View update (no longer used in new modular structure)
+  // Kept for potential migration reference
+  /*
   if (typeof window.renderDashboardQuickView === 'function') {
     window.renderDashboardQuickView({
       revReel,
@@ -4429,6 +4339,8 @@ function updateAll(){
       hydrationComplete
     }, { windowRef: window });
   }
+  */
+
   updateMonthForecast({
     revReel,
     solde
@@ -4441,11 +4353,11 @@ function updateAll(){
     totalDepReel,
     totalDepPayee
   });
-  
+
   // Get detailed metrics with categories for the financial card
   const currentMonth = getMonth();
   const detailedMetrics = getMonthMetrics(currentMonth, { fromDom: true });
-  
+
   updateFinancialCard({
     solde,
     currentBalance: detailedMetrics.currentBalance || solde,
@@ -4461,7 +4373,7 @@ function updateAll(){
     variablesPct,
     totalDepRestant
   });
-  updateAssistantInsights();
+  // updateAssistantInsights(); // Disabled: legacy V1 reference, no longer used in Dashboard V2
   window.NexoraMetricsCache?.invalidateMetricsCache?.();
   refreshNexoraCore({
     revReel,
@@ -4664,47 +4576,9 @@ async function updatePriorityAction(metrics = {}) {
 }
 
 function updateDashboardSynthesisHero(metrics = {}) {
-  const hero = document.querySelector('.dashboard-module--cockpit');
-  const heroRoot = document.getElementById('cockpit-financier-root');
-  const coreStatusEl = document.getElementById('nexora-core-status-badge');
-  const coreMissionTitleEl = document.getElementById('nexora-core-mission-title');
-  const coreMissionDetailEl = document.getElementById('nexora-core-mission-detail');
-  const corePrimaryCta = document.getElementById('nexora-core-primary-cta');
-  const corePanel = document.getElementById('nexora-core-panel');
-  if (!hero || !heroRoot) return;
-
-  const revReel = Number(metrics.revReel || 0);
-  const solde = Number(metrics.solde || 0);
-  const tauxCh = Number(metrics.tauxCh || 0);
-  const variablesPct = Number(metrics.variablesPct || 0);
-  const isHydrating = metrics.hydrationComplete === false || metrics.loading === true || metrics.hydrating === true;
-  let state = 'neutral';
-  let status = isHydrating ? 'Chargement du budget' : 'Synthèse à compléter';
-  let actionTitle = isHydrating ? 'Préparation…' : 'Compléter le budget';
-  let actionDetail = isHydrating ? 'Le mois est en cours de restauration…' : 'Ajoutez vos revenus et dépenses pour activer le diagnostic Nexora.';
-
-  if (!isHydrating && revReel > 0) {
-    const situation = getNexoraOfficialSituation({ revReel, solde, tauxCh, variablesPct });
-    window.__nexoraDashboardSituation = situation;
-    state = situation.state;
-    status = situation.label;
-    actionTitle = document.getElementById('priority-action-title')?.textContent?.trim() || 'Voir le plan';
-    actionDetail = document.getElementById('priority-action-detail')?.textContent?.trim() || 'Ouvre le plan pour voir les prochaines étapes.';
-  }
-
-  hero.dataset.state = state;
-
-  // Render HeroCard in Simplified mode only
-  // Complete mode uses Jarvis through bootstrap integration
-  const isCompleteMode = document.body.classList.contains('mode-complete');
-  
-  if (!isCompleteMode && typeof window.renderDashboardHero === 'function') {
-    // Mode Simplifié: Utiliser le HeroCard existant
-    window.renderDashboardHero('cockpit-financier-root', {
-      ...metrics,
-      totalDepRestant: metrics.totalDepRestant || 0,
-      savingsRate: metrics.savingsRate ?? 0
-    }, {
+  // V2 modular structure: delegate to renderDashboardHero
+  if (typeof window.renderDashboardHero === 'function') {
+    window.renderDashboardHero('hero-root', metrics, {
       documentRef: document,
       windowRef: window,
       onAction: (section) => {
@@ -4712,13 +4586,6 @@ function updateDashboardSynthesisHero(metrics = {}) {
       }
     });
   }
-
-  // Update core panel elements if they exist
-  if (coreStatusEl) coreStatusEl.textContent = status;
-  if (coreMissionTitleEl) coreMissionTitleEl.textContent = actionTitle || 'Voir le plan';
-  if (coreMissionDetailEl) coreMissionDetailEl.textContent = actionDetail || 'Ouvre le plan pour voir les prochaines étapes.';
-  if (corePrimaryCta) corePrimaryCta.textContent = actionTitle || 'Voir le plan d’action';
-  if (corePanel) corePanel.dataset.state = state;
 }
 
 function updateMonthForecast(metrics = {}) {
@@ -4828,7 +4695,7 @@ function updateFinancialCard(metrics = {}) {
   const messageEl = document.getElementById('financial-message');
   const messageIconEl = document.getElementById('financial-message-icon');
   const messageTextEl = document.getElementById('financial-message-text');
-  
+
   const hasProgrammedIncome = (() => {
     try {
       const storageKey = syncedSettingStorageKey('nexora_recurring_incomes');
@@ -4843,34 +4710,34 @@ function updateFinancialCard(metrics = {}) {
       return false;
     }
   })();
-  
+
   const range = getBudgetCycleRange(getMonth());
-  
+
   // Utiliser les nouvelles fonctions de calcul
   const currentBalance = metrics.currentBalance || metrics.solde || 0;
   const remainingCharges = metrics.remainingExpenses || metrics.remainingToSpend || 0;
   const projectedBalance = currentBalance - remainingCharges;
-  
+
   // Récupérer les détails des charges restantes
   const remainingChargesCount = (() => {
     const categories = metrics.categories || [];
-    return categories.filter(cat => 
+    return categories.filter(cat =>
       cat.type !== 'income' && cat.amount > 0 && cat.paidAmount < cat.amount
     ).length;
   })();
-  
+
   // Déterminer l'état financier pour l'UX
   const financialState = (() => {
     if (remainingCharges <= 0) {
       return {
         state: 'positive',
-        message: currentBalance > 0 
+        message: currentBalance > 0
           ? `Toutes tes charges prévues sont réglées. Tu peux affecter tes ${Math.round(currentBalance).toLocaleString('fr-FR')} € restants à ton objectif ou à ton épargne.`
           : 'Toutes tes charges prévues sont réglées.',
         icon: '🎉'
       };
     }
-    
+
     if (projectedBalance < 0) {
       return {
         state: 'critical',
@@ -4878,7 +4745,7 @@ function updateFinancialCard(metrics = {}) {
         icon: '⚠️'
       };
     }
-    
+
     if (projectedBalance < currentBalance * 0.2) {
       return {
         state: 'warning',
@@ -4886,17 +4753,17 @@ function updateFinancialCard(metrics = {}) {
         icon: '📊'
       };
     }
-    
+
     return {
       state: 'neutral',
       message: null,
       icon: null
     };
   })();
-  
+
   // Mise à jour de l'UI
   if (currentBalanceEl) currentBalanceEl.textContent = fmt(currentBalance);
-  
+
   // Gestion de l'affichage des charges restantes
   if (remainingItem) {
     if (remainingCharges <= 0) {
@@ -4908,7 +4775,7 @@ function updateFinancialCard(metrics = {}) {
       }
     }
   }
-  
+
   // Gestion de l'affichage du solde prévisionnel
   if (projectedItem) {
     if (financialState.state === 'critical') {
@@ -4920,7 +4787,7 @@ function updateFinancialCard(metrics = {}) {
     }
     if (projectedBalanceEl) projectedBalanceEl.textContent = fmt(projectedBalance);
   }
-  
+
   // Gestion du message dynamique
   if (messageEl && messageIconEl && messageTextEl) {
     if (financialState.message) {
@@ -4933,13 +4800,13 @@ function updateFinancialCard(metrics = {}) {
       messageEl.style.display = 'none';
     }
   }
-  
+
   if (nextIncomeEl) {
-    nextIncomeEl.textContent = hasProgrammedIncome && range.start 
+    nextIncomeEl.textContent = hasProgrammedIncome && range.start
       ? `${formatShortDate(range.start)} (+${fmt(parseBudgetNumber(metrics.revReel || 0))} €)`
       : 'À définir';
   }
-  
+
   console.log('[Financial Card update] currentBalance:', currentBalance, 'remainingCharges:', remainingCharges, 'projectedBalance:', projectedBalance, 'state:', financialState.state);
 }
 
@@ -5409,15 +5276,15 @@ async function updateDashboardPrimaryGoal() {
   const estimatedMonths = goal ? window.GoalsService?.estimateMonthsToTarget?.(goal, monthly) : null;
   const forecast = goal ? window.GoalsService?.getGoalForecast?.(goal, monthly) : null;
 
-  // Use V2 renderer if available
-  if (typeof window.renderDashboardGoalCard === 'function') {
-    window.renderDashboardGoalCard('goal-progress-root', goal, {
-      monthly,
-      estimatedMonths,
-      forecast,
-      windowRef: window
-    });
-  }
+  // Disabled: V2 Dashboard uses renderNorthStarGoals instead
+  // if (typeof window.renderDashboardGoalCard === 'function') {
+  //   window.renderDashboardGoalCard('goal-progress-root', goal, {
+  //     monthly,
+  //     estimatedMonths,
+  //     forecast,
+  //     windowRef: window
+  //   });
+  // }
 
   // Keep legacy guidance updates for other parts of the app
   if (!goal) {
@@ -5544,7 +5411,7 @@ function showSection(id, options = {}){
   const currentHash = window.location.hash;
   const targetHash = '#section-' + id;
   const isHashAlreadySet = currentHash === targetHash;
-  
+
   if (navigationOrigin !== 'history' && navigationOrigin !== 'restore' && !isHashAlreadySet) {
     prepareVoluntarySectionNavigation(nextSection);
   }

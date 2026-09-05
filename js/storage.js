@@ -11,6 +11,10 @@ const StorageManager = (() => {
   };
 
   const initIndexedDB = async () => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
     if (!('indexedDB' in window)) {
       console.warn('IndexedDB not supported, falling back to localStorage');
       return false;
