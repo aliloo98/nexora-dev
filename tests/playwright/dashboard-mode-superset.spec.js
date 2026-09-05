@@ -1,231 +1,113 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '@playwright/test'
+
+const v2Roots = '#hero-root, #priority-root, #trajectory-root, #jarvis-root'
+
+async function loginDemo(page) {
+  await page.goto('http://localhost:5180', { waitUntil: 'domcontentloaded' })
+  await page.locator('#loginDemoBtn').waitFor({ state: 'visible', timeout: 15000 })
+  await page.locator('#loginDemoBtn').click()
+  await page.waitForURL('**/#section-dashboard', { timeout: 30000 })
+  await page.locator('.dashboard-v2-cockpit').waitFor({ state: 'visible', timeout: 30000 })
+  await expect(page.locator('#hero-root')).toBeVisible()
+}
+
+async function setMode(page, mode) {
+  await page.evaluate((nextMode) => window.setNexoraUxMode(nextMode), mode)
+  await expect(page.locator('body')).toHaveClass(mode === 'complete' ? /mode-complete/ : /mode-simple/)
+}
+
+async function expectDataIntegrity(page) {
+  const integrity = await page.evaluate(() => ({
+    overflow: document.documentElement.scrollWidth > window.innerWidth,
+    invalid: document.body.innerText.match(/NaN|Infinity|undefined|null/g) || [],
+    legacyRoots: document.querySelectorAll('#cockpit-financier-root, .jarvis-cockpit').length
+  }))
+  expect(integrity.overflow).toBe(false)
+  expect(integrity.invalid).toEqual([])
+  expect(integrity.legacyRoots).toBe(0)
+}
+
+async function expectNorthStar(page, { complete = false } = {}) {
+  await expect(page.locator('.dashboard-v2-cockpit')).toBeVisible()
+  await expect(page.locator('#hero-root')).toBeVisible()
+  await expect(page.locator('#priority-root')).toBeVisible()
+  await expect(page.locator('[aria-label="Priorité financière"]')).toBeVisible()
+
+  if (complete) {
+    await expect(page.locator('#trajectory-root')).toBeVisible()
+    await expect(page.locator('#jarvis-root .jarvis-copilot')).toBeVisible()
+    await expect(page.locator('#goal-progress-root')).toBeVisible()
+    await expect(page.locator('#debts-summary-root')).toBeVisible()
+  } else {
+    await expect(page.locator('#trajectory-root')).toBeHidden()
+    await expect(page.locator('#jarvis-root .jarvis-copilot')).toBeHidden()
+  }
+
+  await expectDataIntegrity(page)
+}
 
 test.describe('Dashboard Mode Superset', () => {
   test.beforeEach(async ({ page }) => {
-    // Use official test server URL from playwright.config.js
-    await page.goto('http://localhost:5180');
+    await loginDemo(page)
+    await expect(page.evaluate(() => typeof window.setNexoraUxMode === 'function')).resolves.toBe(true)
+  })
 
-    // Wait for page to load
-    await page.waitForLoadState('networkidle');
+  test('mode simplifié displays North Star and hides Complete-only Jarvis', async ({ page }) => {
+    await setMode(page, 'simple')
+    await expectNorthStar(page)
+  })
 
-    // Perform real demo login
-    const loginDemoBtn = page.locator('#loginDemoBtn')
-    await expect(loginDemoBtn).toBeVisible()
-    await loginDemoBtn.click()
+  test('mode complet displays the complete North Star cockpit', async ({ page }) => {
+    await setMode(page, 'complete')
+    await expectNorthStar(page, { complete: true })
+  })
 
-    // Wait for navigation to dashboard
-    await page.waitForURL('**/#section-dashboard', { timeout: 30000 })
+  test('mode toggle correctly switches between Simple and Complete', async ({ page }) => {
+    await setMode(page, 'simple')
+    await expectNorthStar(page)
 
-    // Wait for dashboard V2 modular to be visible
-    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000, state: 'visible' })
+    await setMode(page, 'complete')
+    await expectNorthStar(page, { complete: true })
 
-    // Verify setNexoraUxMode exists in runtime
-    const hasSetNexoraUxMode = await page.evaluate(() => typeof window.setNexoraUxMode === 'function')
-    expect(hasSetNexoraUxMode).toBe(true)
-  });
+    await setMode(page, 'simple')
+    await expectNorthStar(page)
+  })
 
-  test('mode simplifié displays simple cards and hides advanced KPIs', async ({ page }) => {
-    // Switch to simple mode using real API
-    await page.evaluate(() => {
-      window.setNexoraUxMode('simple');
-    });
-    await expect(page.locator('body')).toHaveClass(/mode-simple/);
+  test('complete mode is a strict superset of the visible Simple North Star', async ({ page }) => {
+    await setMode(page, 'simple')
+    const visibleSimple = await page.locator(v2Roots).evaluateAll((elements) => elements
+      .filter((element) => element.offsetParent !== null)
+      .map((element) => element.id))
 
-    // Essential elements must exist and be visible
-    const hero = page.locator('#cockpit-financier-root .nx-hero-card')
-    await expect(hero).toHaveCount(1)
-    await expect(hero).toBeVisible()
+    await setMode(page, 'complete')
+    const visibleComplete = await page.locator(v2Roots).evaluateAll((elements) => elements
+      .filter((element) => element.offsetParent !== null)
+      .map((element) => element.id))
 
-    // Jarvis must NOT be visible in Simple mode
-    const jarvis = page.locator('#cockpit-financier-root .jarvis-cockpit')
-    await expect(jarvis).toHaveCount(0)
+    expect(visibleSimple.length).toBeGreaterThan(0)
+    expect(visibleComplete.length).toBeGreaterThan(visibleSimple.length)
+    visibleSimple.forEach((id) => expect(visibleComplete).toContain(id))
+  })
 
-    const goal = page.locator('.dashboard-module--goal')
-    await expect(goal).toHaveCount(1)
-    await expect(goal).toBeVisible()
-
-    const coach = page.locator('.dashboard-module--coach')
-    await expect(coach).toHaveCount(1)
-    await expect(coach).toBeVisible()
-
-    // Advanced elements must exist but be hidden
-    const timeline = page.locator('.dashboard-module--timeline')
-    await expect(timeline).toHaveCount(1)
-    await expect(timeline).toBeHidden()
-
-    const treasury = page.locator('.treasury-chart-wrapper')
-    await expect(treasury).toHaveCount(1)
-    await expect(treasury).toBeHidden()
-
-    const donut = page.locator('.donut-chart-wrapper')
-    await expect(donut).toHaveCount(1)
-    await expect(donut).toBeHidden()
-
-    const analytics = page.locator('.complete-analytics-grid')
-    await expect(analytics).toHaveCount(1)
-    await expect(analytics).toBeHidden()
-
-    const dual = page.locator('.complete-dual-grid')
-    await expect(dual).toHaveCount(1)
-    await expect(dual).toBeHidden()
-  });
-
-  test('mode complet displays advanced KPIs and all elements visible', async ({ page }) => {
-    // Switch to complete mode using real API
-    await page.evaluate(() => {
-      window.setNexoraUxMode('complete');
-    });
-    await expect(page.locator('body')).toHaveClass(/mode-complete/);
-
-    // Essential elements must exist and be visible
-    // In Complete mode, Jarvis replaces the HeroCard
-    const jarvis = page.locator('#cockpit-financier-root .jarvis-cockpit')
-    await expect(jarvis).toHaveCount(1)
-    await expect(jarvis).toBeVisible()
-
-    // Legacy HeroCard should NOT be visible in Complete mode
-    const hero = page.locator('#cockpit-financier-root .nx-hero-card')
-    await expect(hero).toHaveCount(0)
-
-    const goal = page.locator('.dashboard-module--goal')
-    await expect(goal).toHaveCount(1)
-    await expect(goal).toBeVisible()
-
-    const coach = page.locator('.dashboard-module--coach')
-    await expect(coach).toHaveCount(1)
-    await expect(coach).toBeVisible()
-
-    // Advanced elements must exist and be visible
-    const timeline = page.locator('.dashboard-module--timeline')
-    await expect(timeline).toHaveCount(1)
-    await expect(timeline).toBeVisible()
-
-    const treasury = page.locator('.treasury-chart-wrapper')
-    await expect(treasury).toHaveCount(1)
-    await expect(treasury).toBeVisible()
-
-    const donut = page.locator('.donut-chart-wrapper')
-    await expect(donut).toHaveCount(1)
-    await expect(donut).toBeVisible()
-
-    const analytics = page.locator('.complete-analytics-grid')
-    await expect(analytics).toHaveCount(1)
-    await expect(analytics).toBeVisible()
-
-    const dual = page.locator('.complete-dual-grid')
-    await expect(dual).toHaveCount(1)
-    await expect(dual).toBeVisible()
-  });
-
-  test('mode toggle correctly switches between simple and complete views', async ({ page }) => {
-    // Start in simple mode using real API
-    await page.evaluate(() => {
-      window.setNexoraUxMode('simple');
-    });
-    await expect(page.locator('body')).toHaveClass(/mode-simple/);
-
-    // Verify advanced elements hidden
-    await expect(page.locator('.dashboard-module--timeline')).toBeHidden()
-
-    // Switch to complete mode using real API
-    await page.evaluate(() => {
-      window.setNexoraUxMode('complete');
-    });
-    await expect(page.locator('body')).toHaveClass(/mode-complete/);
-
-    // Verify advanced elements visible
-    await expect(page.locator('.dashboard-module--timeline')).toBeVisible()
-
-    // Switch back to simple mode using real API
-    await page.evaluate(() => {
-      window.setNexoraUxMode('simple');
-    });
-    await expect(page.locator('body')).toHaveClass(/mode-simple/);
-
-    // Verify advanced elements hidden again
-    await expect(page.locator('.dashboard-module--timeline')).toBeHidden()
-  });
-
-  test('complete mode is a strict superset of simple mode', async ({ page }) => {
-    // Get visible elements in simple mode
-    await page.evaluate(() => {
-      window.setNexoraUxMode('simple');
-    });
-    await expect(page.locator('body')).toHaveClass(/mode-simple/);
-
-    const visibleSimple = await page.evaluate(() => {
-      const elements = document.querySelectorAll('.dashboard-module--cockpit, .dashboard-module--timeline, .dashboard-module--goal, .dashboard-module--coach, .treasury-chart-wrapper, .donut-chart-wrapper, .complete-analytics-grid, .complete-dual-grid');
-      const visible = [];
-      elements.forEach(el => {
-        const style = window.getComputedStyle(el);
-        if (style.display !== 'none' && style.visibility !== 'hidden' && !el.hidden) {
-          visible.push(el.className);
-        }
-      });
-      return visible;
-    });
-
-    // Get visible elements in complete mode
-    await page.evaluate(() => {
-      window.setNexoraUxMode('complete');
-    });
-    await expect(page.locator('body')).toHaveClass(/mode-complete/);
-
-    const visibleComplete = await page.evaluate(() => {
-      const elements = document.querySelectorAll('.dashboard-module--cockpit, .dashboard-module--timeline, .dashboard-module--goal, .dashboard-module--coach, .treasury-chart-wrapper, .donut-chart-wrapper, .complete-analytics-grid, .complete-dual-grid');
-      const visible = [];
-      elements.forEach(el => {
-        const style = window.getComputedStyle(el);
-        if (style.display !== 'none' && style.visibility !== 'hidden' && !el.hidden) {
-          visible.push(el.className);
-        }
-      });
-      return visible;
-    });
-
-    // Prove simple ⊂ complete
-    expect(visibleSimple.length).toBeGreaterThan(0);
-    expect(visibleComplete.length).toBeGreaterThan(visibleSimple.length);
-
-    // Every element visible in simple must be visible in complete
-    visibleSimple.forEach(className => {
-      expect(visibleComplete).toContain(className);
-    });
-  });
-
-  test('mode persists across reload', async ({ page }) => {
-    // Set simple mode
-    await page.evaluate(() => {
-      window.setNexoraUxMode('simple');
-    });
-    await expect(page.locator('body')).toHaveClass(/mode-simple/);
-
-    // Reload
+  test('mode persists across a Simple and Complete reload', async ({ page }) => {
+    await setMode(page, 'simple')
     await page.reload()
-    await page.waitForLoadState('networkidle')
-    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000, state: 'visible' })
-
-    // Verify mode persisted
-    const modeAfterReload = await page.evaluate(() => window.getNexoraUxMode())
-    expect(modeAfterReload).toBe('simple')
+    await page.locator('.dashboard-v2-cockpit').waitFor({ state: 'visible', timeout: 30000 })
     await expect(page.locator('body')).toHaveClass(/mode-simple/)
-    await expect(page.locator('.dashboard-module--timeline')).toBeHidden()
+    await expectNorthStar(page)
 
-    // Set complete mode
-    await page.evaluate(() => {
-      window.setNexoraUxMode('complete');
-    });
-    await expect(page.locator('body')).toHaveClass(/mode-complete/);
-
-    // Reload
+    await setMode(page, 'complete')
     await page.reload()
-    await page.waitForLoadState('networkidle')
-    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000, state: 'visible' })
-
-    // Verify mode persisted
-    const modeAfterSecondReload = await page.evaluate(() => window.getNexoraUxMode())
-    expect(modeAfterSecondReload).toBe('complete')
+    await page.locator('.dashboard-v2-cockpit').waitFor({ state: 'visible', timeout: 30000 })
     await expect(page.locator('body')).toHaveClass(/mode-complete/)
-    await expect(page.locator('.dashboard-module--timeline')).toBeVisible()
-  });
-});
+    await expectNorthStar(page, { complete: true })
+  })
+
+  test('Dashboard V2 exposes no legacy cockpit sections', async ({ page }) => {
+    await setMode(page, 'complete')
+    await expect(page.locator('#cockpit-financier-root')).toHaveCount(0)
+    await expect(page.locator('.dashboard-module--timeline')).toHaveCount(0)
+    await expect(page.locator('.dashboard-module--cockpit')).toHaveCount(0)
+    await expectDataIntegrity(page)
+  })
+})
