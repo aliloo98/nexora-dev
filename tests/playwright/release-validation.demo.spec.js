@@ -12,7 +12,6 @@ async function readCockpitState(page) {
       return Number.isFinite(parsed) ? parsed : null;
     };
 
-    const root = document.getElementById('cockpit-financier-root');
     const isSimple = document.body.classList.contains('mode-simple');
     const isComplete = document.body.classList.contains('mode-complete');
     const month = typeof window.getMonth === 'function' ? window.getMonth() : null;
@@ -26,12 +25,12 @@ async function readCockpitState(page) {
     return {
       bodyClass: document.body.className,
       mode: isSimple ? 'simple' : isComplete ? 'complete' : 'unknown',
-      heroCount: root?.querySelectorAll('.nx-hero-card').length || 0,
-      jarvisCount: root?.querySelectorAll('.jarvis-cockpit').length || 0,
-      rootText: normalizeText(root?.textContent),
-      jarvisMetricValues: Array.from(root?.querySelectorAll('.jarvis-metric-value') || [])
+      heroCount: document.querySelectorAll('#hero-root .nx-hero-card').length,
+      jarvisCount: document.querySelectorAll('#jarvis-root .north-star-jarvis').length,
+      rootText: normalizeText(document.querySelector('.dashboard-v2-cockpit')?.textContent),
+      jarvisMetricValues: Array.from(document.querySelectorAll('#jarvis-root .jarvis-copilot-context-item strong') || [])
         .map(element => normalizeText(element.textContent)),
-      jarvisNumericValues: Array.from(root?.querySelectorAll('.jarvis-metric-value') || [])
+      jarvisNumericValues: Array.from(document.querySelectorAll('#jarvis-root .jarvis-copilot-context-item strong') || [])
         .map(element => parseEuro(element.textContent))
         .filter(value => value !== null),
       metrics,
@@ -42,16 +41,14 @@ async function readCockpitState(page) {
 
 async function waitForCockpitContract(page) {
   await page.waitForFunction(() => {
-    const root = document.getElementById('cockpit-financier-root');
-    if (!root) return false;
-
-    const heroCount = root.querySelectorAll('.nx-hero-card').length;
-    const jarvisCount = root.querySelectorAll('.jarvis-cockpit').length;
+    const heroCount = document.querySelectorAll('#hero-root .nx-hero-card').length;
+    const jarvisCount = document.querySelectorAll('#jarvis-root .north-star-jarvis').length;
     if (document.body.classList.contains('mode-simple')) {
-      return heroCount === 1 && jarvisCount === 0;
+      const jarvis = document.querySelector('#jarvis-root .north-star-jarvis');
+      return heroCount === 1 && jarvisCount === 1 && jarvis.offsetParent === null;
     }
     if (document.body.classList.contains('mode-complete')) {
-      return jarvisCount === 1 && heroCount === 0;
+      return jarvisCount === 1 && heroCount === 1 && document.querySelector('#jarvis-root .north-star-jarvis')?.offsetParent !== null;
     }
     return false;
   });
@@ -64,13 +61,13 @@ function expectCockpitContract(state) {
 
   if (state.mode === 'simple') {
     expect(state.heroCount).toBe(1);
-    expect(state.jarvisCount).toBe(0);
+    expect(state.jarvisCount).toBe(1);
     expect(state.rootText.length).toBeGreaterThan(0);
     return;
   }
 
   expect(state.jarvisCount).toBe(1);
-  expect(state.heroCount).toBe(0);
+  expect(state.heroCount).toBe(1);
   expect(state.rootText).toContain('Solde projeté fin de mois');
   expect(state.rootText).toContain(state.formattedProjected);
   expect(state.jarvisNumericValues.some(value => Math.abs(value) > 0)).toBe(true);

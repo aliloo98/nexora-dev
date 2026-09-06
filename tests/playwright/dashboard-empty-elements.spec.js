@@ -8,12 +8,12 @@ test.describe('Dashboard Empty Elements Regression', () => {
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 });
     await page.click('#loginDemoBtn');
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 });
-    await page.waitForSelector('.dashboard-v2-modular', { state: 'visible', timeout: 10000 });
+    await page.waitForSelector('.dashboard-v2-cockpit', { state: 'visible', timeout: 10000 });
   });
 
   test('no visible empty dashboard panels should exist', async ({ page }) => {
     const panels = await page.evaluate(() => {
-      const panels = document.querySelectorAll('.dashboard-module');
+      const panels = document.querySelectorAll('.cockpit-decision-section, .cockpit-situation-section, .cockpit-insight-section, .cockpit-engagements-section');
       return Array.from(panels).map(panel => ({
         id: panel.id,
         className: panel.className,
@@ -46,8 +46,10 @@ test.describe('Dashboard Empty Elements Regression', () => {
     expect(emptyPanels.length).toBe(0);
   });
 
-  test('coach module should be visible on dashboard', async ({ page }) => {
-    const coachModule = page.locator('.dashboard-module--coach');
-    await expect(coachModule).toBeVisible();
+  test('North Star insight surfaces should be visible on dashboard', async ({ page }) => {
+    await expect(page.locator('#priority-root')).toBeVisible();
+    await expect(page.locator('#hero-root')).toBeVisible();
+    await expect(page.locator('#trajectory-root')).toBeVisible();
+    await expect(page.locator('#jarvis-root')).toBeVisible();
   });
 });

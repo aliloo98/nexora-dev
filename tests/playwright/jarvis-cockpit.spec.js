@@ -28,7 +28,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await page.waitForURL('**/#section-dashboard', { timeout: 30000 })
 
     // Wait for dashboard V2 modular to be visible
-    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000, state: 'visible' })
+    await page.waitForSelector('.dashboard-v2-cockpit', { timeout: 30000, state: 'visible' })
 
     // Verify setNexoraUxMode exists in runtime
     const hasSetNexoraUxMode = await page.evaluate(() => typeof window.setNexoraUxMode === 'function')
@@ -49,12 +49,12 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await expect(page.locator('body')).toHaveClass(/mode-complete/)
     
     // Verify Jarvis is present
-    const jarvisCockpit = page.locator('#cockpit-financier-root .jarvis-cockpit')
+    const jarvisCockpit = page.locator('#jarvis-root .north-star-jarvis')
     await expect(jarvisCockpit).toHaveCount(1)
     
-    // Verify Hero legacy is NOT in the cockpit
-    const legacyHero = page.locator('#cockpit-financier-root .nx-hero-card')
-    await expect(legacyHero).toHaveCount(0)
+    // V2 keeps the situation Hero in its own sibling root.
+    const legacyHero = page.locator('#hero-root .nx-hero-card')
+    await expect(legacyHero).toBeVisible()
   })
 
   test('2. Complete mode Jarvis passes accessibility scan', async ({ page }) => {
@@ -71,20 +71,17 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await expect(page.locator('body')).toHaveClass(/mode-complete/)
 
     // Verify Jarvis is present
-    const jarvisCockpit = page.locator('#cockpit-financier-root .jarvis-cockpit')
+    const jarvisCockpit = page.locator('#jarvis-root .north-star-jarvis')
     await expect(jarvisCockpit).toHaveCount(1)
 
     // Wait for Jarvis motion to complete
-    await page.waitForFunction(() => {
-      const hero = document.querySelector('.jarvis-hero')
-      return hero && hero.dataset.motionState === 'complete'
-    }, { timeout: 10000 })
+    await expect(page.locator('#jarvis-root .north-star-jarvis')).toBeVisible()
 
     // Wait for priority card animation to complete (has 120ms delay + 500ms animation)
     await page.waitForTimeout(700)
 
     // Scan Jarvis for accessibility violations
-    const jarvis = await new AxeBuilder({ page }).include('.jarvis-cockpit').analyze()
+    const jarvis = await new AxeBuilder({ page }).include('#jarvis-root .north-star-jarvis').analyze()
     expect(formatViolations(jarvis.violations)).toEqual([])
   })
 
@@ -101,17 +98,17 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     // Verify Simple mode is active
     await expect(page.locator('body')).toHaveClass(/mode-simple/)
     
-    // Jarvis cockpit should not exist in Simplified mode
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
-    await expect(jarvisCockpit).toHaveCount(0)
+    // The Copilot may remain mounted, but must be hidden in Simple mode.
+    const jarvisCockpit = page.locator('#jarvis-root .north-star-jarvis')
+    await expect(jarvisCockpit).toBeHidden()
     
     // Legacy hero should exist
-    const legacyHero = page.locator('#cockpit-financier-root .nx-hero-card')
+    const legacyHero = page.locator('#hero-root .nx-hero-card')
     await expect(legacyHero).toHaveCount(1)
   })
 
   test('4. Simple → Complete transition', async ({ page }) => {
-    const jarvisCockpit = page.locator('#cockpit-financier-root .jarvis-cockpit')
+    const jarvisCockpit = page.locator('#jarvis-root .north-star-jarvis')
 
     // Let the initial Complete-mode render settle before switching modes.
     await expect(jarvisCockpit).toHaveCount(1)
@@ -124,18 +121,19 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     })
 
     await page.waitForFunction(() => {
-      const cockpitRoot = document.querySelector('#cockpit-financier-root')
+      const cockpitRoot = document.querySelector('#jarvis-root')
       return document.body.classList.contains('mode-simple')
         && !document.body.classList.contains('mode-complete')
-        && !cockpitRoot?.querySelector('.jarvis-cockpit')
-        && cockpitRoot?.querySelector('.nx-hero-card')
+        && cockpitRoot?.querySelector('.north-star-jarvis')
+        && cockpitRoot.querySelector('.north-star-jarvis').offsetParent === null
+          && document.querySelector('#hero-root .nx-hero-card')
     })
 
-    // Verify Jarvis is not present
-    await expect(jarvisCockpit).toHaveCount(0)
+    // Verify the mounted Copilot is hidden.
+    await expect(jarvisCockpit).toBeHidden()
     
     // Verify Hero legacy is present
-    const legacyHero = page.locator('#cockpit-financier-root .nx-hero-card')
+    const legacyHero = page.locator('#hero-root .nx-hero-card')
     await expect(legacyHero).toHaveCount(1)
 
     // Switch to Complete mode
@@ -146,18 +144,19 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     })
 
     await page.waitForFunction(() => {
-      const cockpitRoot = document.querySelector('#cockpit-financier-root')
+      const cockpitRoot = document.querySelector('#jarvis-root')
       return document.body.classList.contains('mode-complete')
         && !document.body.classList.contains('mode-simple')
-        && cockpitRoot?.querySelector('.jarvis-cockpit')
-        && !cockpitRoot?.querySelector('.nx-hero-card')
+        && cockpitRoot?.querySelector('.north-star-jarvis')
+        && getComputedStyle(cockpitRoot.querySelector('.north-star-jarvis')).display !== 'none'
+        && document.querySelector('#hero-root .nx-hero-card')
     })
     
     // Verify Jarvis is now present
     await expect(jarvisCockpit).toHaveCount(1)
 
-    // Verify Hero legacy is removed
-    await expect(legacyHero).toHaveCount(0)
+    // The V2 situation Hero remains visible beside Jarvis.
+    await expect(legacyHero).toBeVisible()
   })
 
   test('5. Complete → Simple transition', async ({ page }) => {
@@ -171,7 +170,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await page.waitForTimeout(500)
 
     // Verify Jarvis is present
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    const jarvisCockpit = page.locator('#jarvis-root .north-star-jarvis')
     await expect(jarvisCockpit).toHaveCount(1)
     
     // Switch to Simple mode
@@ -184,11 +183,11 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await page.waitForTimeout(1000)
     
     // Verify Jarvis is now absent
-    await expect(jarvisCockpit).toHaveCount(0)
+    await expect(jarvisCockpit).toBeHidden()
 
     // Verify Hero legacy is restored
-    const legacyHero = page.locator('#cockpit-financier-root .nx-hero-card')
-    await expect(legacyHero).toHaveCount(1)
+    const legacyHero = page.locator('#hero-root .nx-hero-card')
+      await expect(legacyHero).toBeVisible()
   })
 
   test('6. no-duplicate Jarvis roots on repeated navigation', async ({ page }) => {
@@ -219,7 +218,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     }
     
     // Should still have exactly one Jarvis cockpit
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    const jarvisCockpit = page.locator('#jarvis-root .north-star-jarvis')
     await expect(jarvisCockpit).toHaveCount(1)
   })
 
@@ -268,7 +267,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await page.waitForTimeout(1000)
     
     // Jarvis should render
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    const jarvisCockpit = page.locator('#jarvis-root .north-star-jarvis')
     await expect(jarvisCockpit).toHaveCount(1)
     
     // Check for horizontal overflow
@@ -291,7 +290,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await page.waitForTimeout(1000)
     
     // Jarvis should render
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    const jarvisCockpit = page.locator('#jarvis-root .north-star-jarvis')
     await expect(jarvisCockpit).toHaveCount(1)
     
     // Check for horizontal overflow
@@ -314,7 +313,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await page.waitForTimeout(1000)
     
     // Jarvis should render
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    const jarvisCockpit = page.locator('#jarvis-root .north-star-jarvis')
     await expect(jarvisCockpit).toHaveCount(1)
     
     // Check for horizontal overflow
@@ -335,7 +334,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await page.waitForTimeout(1000)
     
     // Find CTA button
-    const ctaButton = page.locator('.jarvis-cta')
+    const ctaButton = page.locator('#jarvis-root [data-jarvis-copilot-open]')
     const count = await ctaButton.count()
     
     if (count > 0) {
@@ -356,7 +355,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await page.waitForTimeout(1000)
     
     // Find CTA button
-    const ctaButton = page.locator('.jarvis-cta')
+    const ctaButton = page.locator('#jarvis-root [data-jarvis-copilot-open]')
     const count = await ctaButton.count()
     
     if (count > 0) {
@@ -379,7 +378,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await page.waitForTimeout(1000)
     
     // Jarvis should render
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    const jarvisCockpit = page.locator('#jarvis-root .north-star-jarvis')
     await expect(jarvisCockpit).toHaveCount(1)
   })
 
@@ -395,7 +394,7 @@ test.describe('Jarvis Cockpit - Desktop', () => {
     await page.waitForTimeout(1000)
     
     // Jarvis should render
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    const jarvisCockpit = page.locator('#jarvis-root .north-star-jarvis')
     await expect(jarvisCockpit).toHaveCount(1)
     
     // Check that reduced motion is respected
@@ -422,7 +421,7 @@ test.describe('Jarvis Cockpit - Mobile', () => {
     await page.waitForURL('**/#section-dashboard', { timeout: 30000 })
 
     // Wait for dashboard V2 modular to be visible
-    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000, state: 'visible' })
+    await page.waitForSelector('.dashboard-v2-cockpit', { timeout: 30000, state: 'visible' })
 
     // Verify setNexoraUxMode exists in runtime
     const hasSetNexoraUxMode = await page.evaluate(() => typeof window.setNexoraUxMode === 'function')
@@ -439,7 +438,7 @@ test.describe('Jarvis Cockpit - Mobile', () => {
     await page.waitForTimeout(1000)
     
     // Jarvis should render
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
+    const jarvisCockpit = page.locator('#jarvis-root .north-star-jarvis')
     await expect(jarvisCockpit).toHaveCount(1)
     
     // Check for horizontal overflow
@@ -458,18 +457,19 @@ test.describe('Jarvis Cockpit - Mobile', () => {
     })
     
     await page.waitForFunction(() => {
-      const cockpitRoot = document.querySelector('#cockpit-financier-root')
+      const cockpitRoot = document.querySelector('#jarvis-root')
       return document.body.classList.contains('mode-simple')
-        && !document.querySelector('.jarvis-cockpit')
-        && cockpitRoot?.querySelector('.nx-hero-card')
+        && document.querySelector('#jarvis-root .north-star-jarvis')
+        && document.querySelector('#jarvis-root .north-star-jarvis').offsetParent === null
+        && document.querySelector('#hero-root .nx-hero-card')
     })
 
     // Jarvis should not exist in Simple mode
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
-    await expect(jarvisCockpit).toHaveCount(0)
+    const jarvisCockpit = page.locator('#jarvis-root .north-star-jarvis')
+    await expect(jarvisCockpit).toBeHidden()
 
     // Legacy hero should exist
-    const legacyHero = page.locator('#cockpit-financier-root .nx-hero-card')
+    const legacyHero = page.locator('#hero-root .nx-hero-card')
     await expect(legacyHero).toHaveCount(1)
   })
 })
@@ -489,7 +489,7 @@ test.describe('Jarvis Cockpit - Refresh Persistence', () => {
     await page.waitForURL('**/#section-dashboard', { timeout: 30000 })
 
     // Wait for dashboard V2 modular to be visible
-    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000, state: 'visible' })
+    await page.waitForSelector('.dashboard-v2-cockpit', { timeout: 30000, state: 'visible' })
 
     // Verify setNexoraUxMode exists in runtime
     const hasSetNexoraUxMode = await page.evaluate(() => typeof window.setNexoraUxMode === 'function')
@@ -507,7 +507,7 @@ test.describe('Jarvis Cockpit - Refresh Persistence', () => {
     await page.waitForTimeout(1000)
 
     // Verify Jarvis is present before refresh
-    const jarvisCockpit = page.locator('#cockpit-financier-root .jarvis-cockpit')
+    const jarvisCockpit = page.locator('#jarvis-root .north-star-jarvis')
     await expect(jarvisCockpit).toHaveCount(1)
     
     // Refresh the page
@@ -515,7 +515,7 @@ test.describe('Jarvis Cockpit - Refresh Persistence', () => {
     await page.waitForLoadState('networkidle')
 
     // Wait for dashboard to load
-    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000 })
+    await page.waitForSelector('.dashboard-v2-cockpit', { timeout: 30000 })
     
     // Verify Jarvis is still present after refresh
     await expect(jarvisCockpit).toHaveCount(1)
@@ -524,8 +524,8 @@ test.describe('Jarvis Cockpit - Refresh Persistence', () => {
     await expect(page.locator('body')).toHaveClass(/mode-complete/)
     
     // Verify Hero legacy is NOT in the cockpit
-    const legacyHero = page.locator('#cockpit-financier-root .nx-hero-card')
-    await expect(legacyHero).toHaveCount(0)
+    const legacyHero = page.locator('#hero-root .nx-hero-card')
+    await expect(legacyHero).toBeVisible()
   })
 
   test('18. Simplified mode refresh persistence', async ({ page }) => {
@@ -537,31 +537,32 @@ test.describe('Jarvis Cockpit - Refresh Persistence', () => {
     })
     
     await page.waitForFunction(() => {
-      const cockpitRoot = document.querySelector('#cockpit-financier-root')
+      const cockpitRoot = document.querySelector('#jarvis-root')
       return document.body.classList.contains('mode-simple')
-        && !document.querySelector('.jarvis-cockpit')
-        && cockpitRoot?.querySelector('.nx-hero-card')
+        && document.querySelector('#jarvis-root .north-star-jarvis')
+        && document.querySelector('#jarvis-root .north-star-jarvis').offsetParent === null
+        && document.querySelector('#hero-root .nx-hero-card')
     })
 
     // Verify Jarvis is not present before refresh
-    const jarvisCockpit = page.locator('.jarvis-cockpit')
-    await expect(jarvisCockpit).toHaveCount(0)
+    const jarvisCockpit = page.locator('#jarvis-root .north-star-jarvis')
+    await expect(jarvisCockpit).toBeHidden()
     
     // Refresh the page
     await page.reload()
     await page.waitForLoadState('networkidle')
 
     // Wait for dashboard to load
-    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000 })
+    await page.waitForSelector('.dashboard-v2-cockpit', { timeout: 30000 })
     
     // Verify Jarvis is still not present after refresh
-    await expect(jarvisCockpit).toHaveCount(0)
+    await expect(jarvisCockpit).toBeHidden()
     
     // Verify mode is still Simple
     await expect(page.locator('body')).toHaveClass(/mode-simple/)
     
     // Verify Hero legacy is present
-    const legacyHero = page.locator('#cockpit-financier-root .nx-hero-card')
+    const legacyHero = page.locator('#hero-root .nx-hero-card')
     await expect(legacyHero).toHaveCount(1)
   })
 })
@@ -581,7 +582,7 @@ test.describe('Jarvis Cockpit - MutationObserver Lifecycle', () => {
     await page.waitForURL('**/#section-dashboard', { timeout: 30000 })
 
     // Wait for dashboard V2 modular to be visible
-    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000, state: 'visible' })
+    await page.waitForSelector('.dashboard-v2-cockpit', { timeout: 30000, state: 'visible' })
 
     // Verify setNexoraUxMode exists in runtime
     const hasSetNexoraUxMode = await page.evaluate(() => typeof window.setNexoraUxMode === 'function')
@@ -607,7 +608,7 @@ test.describe('Jarvis Cockpit - MutationObserver Lifecycle', () => {
     }
 
     // Check for duplicate roots
-    const jarvisCount = await page.locator('.jarvis-cockpit').count()
+    const jarvisCount = await page.locator('#jarvis-root .north-star-jarvis').count()
     expect(jarvisCount).toBeLessThanOrEqual(1)
   })
 })

@@ -19,7 +19,7 @@ test.describe('Plan Actionability J2 Desktop', () => {
     await page.waitForURL('**/#section-dashboard', { timeout: 30000 })
 
     // Wait for dashboard V2 modular to be visible
-    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000, state: 'visible' })
+    await page.waitForSelector('.dashboard-v2-cockpit', { timeout: 30000, state: 'visible' })
 
     // Navigate to Plan using window.location.hash (existing pattern)
     await page.evaluate(() => {
@@ -84,7 +84,7 @@ test.describe('Plan Actionability J2 Mobile', () => {
 
     // Wait for navigation to dashboard
     await page.waitForURL('**/#section-dashboard', { timeout: 30000 })
-    await page.waitForSelector('.dashboard-v2-modular', { timeout: 30000, state: 'visible' })
+    await page.waitForSelector('.dashboard-v2-cockpit', { timeout: 30000, state: 'visible' })
 
     // Navigate to Plan
     await page.evaluate(() => {

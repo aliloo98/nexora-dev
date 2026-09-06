@@ -7,7 +7,7 @@ const openDashboard = async (page) => {
   await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 })
   await page.click('#loginDemoBtn')
   await page.waitForURL('**/#section-dashboard', { timeout: 20000 })
-  await page.waitForSelector('.dashboard-v2-modular', {
+  await page.waitForSelector('.dashboard-v2-cockpit', {
     state: 'visible',
     timeout: 20000
   })
@@ -75,7 +75,7 @@ test.describe('Dashboard Contract Tests', () => {
     await page.waitForFunction(() => document.body.classList.contains('mode-simple'))
 
     // Get savings rate from Hero card in Simplified mode
-    const simplifiedRate = await page.locator('.nx-hero-card').evaluate(el => {
+    const simplifiedRate = await page.locator('#hero-root .nx-hero-card').evaluate(el => {
       const subMetrics = el.querySelectorAll('.nx-hero-card__sub-metric')
       for (const metric of subMetrics) {
         if (metric.textContent.includes('Taux d\'épargne') || metric.textContent.includes('Taux')) {
@@ -103,7 +103,7 @@ test.describe('Dashboard Contract Tests', () => {
     await page.waitForFunction(() => document.body.classList.contains('mode-complete'))
 
     // Verify Complete mode elements are present
-    const dashboardPresent = await page.locator('.dashboard-v2-modular').count()
+    const dashboardPresent = await page.locator('.dashboard-v2-cockpit').count()
     expect(dashboardPresent).toBeGreaterThan(0)
   })
 
@@ -117,7 +117,7 @@ test.describe('Dashboard Contract Tests', () => {
     await page.waitForFunction(() => document.body.classList.contains('mode-simple'))
 
     // Verify Hero card is present and uses canonical metrics
-    const heroPresent = await page.locator('.nx-hero-card').count()
+    const heroPresent = await page.locator('#hero-root .nx-hero-card').count()
     expect(heroPresent).toBeGreaterThan(0)
 
     // Switch to Complete mode
@@ -129,7 +129,7 @@ test.describe('Dashboard Contract Tests', () => {
     await page.waitForFunction(() => document.body.classList.contains('mode-complete'))
 
     // Verify Complete mode elements are present
-    const dashboardPresent = await page.locator('.dashboard-v2-modular').count()
+    const dashboardPresent = await page.locator('.dashboard-v2-cockpit').count()
     expect(dashboardPresent).toBeGreaterThan(0)
   })
 })

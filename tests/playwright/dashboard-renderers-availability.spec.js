@@ -8,7 +8,7 @@ test.describe('Dashboard V2 Renderers Bridge Fix', () => {
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 });
     await page.click('#loginDemoBtn');
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 });
-    await page.waitForSelector('.dashboard-v2-modular', { state: 'visible', timeout: 10000 });
+    await page.waitForSelector('.dashboard-v2-cockpit', { state: 'visible', timeout: 10000 });
   });
 
   test('all 4 dashboard V2 renderers are exposed on window', async ({ page }) => {
@@ -25,10 +25,9 @@ test.describe('Dashboard V2 Renderers Bridge Fix', () => {
   });
 
   test('Goal card is not an empty container', async ({ page }) => {
-    const goalModule = page.locator('.dashboard-module--goal');
-    await expect(goalModule).toBeVisible();
-    
-    const goalText = await goalModule.locator('#goal-progress-root').innerText();
+    await expect(page.locator('.cockpit-engagements-section')).toBeVisible();
+
+    const goalText = await page.locator('#goal-progress-root').innerText();
     expect(goalText.trim().length).toBeGreaterThan(0);
   });
 });

@@ -6,7 +6,7 @@ test.describe('Dashboard Hero Card Premium', () => {
     await page.waitForSelector('#loginDemoBtn', { state: 'visible', timeout: 15000 });
     await page.click('#loginDemoBtn');
     await page.waitForURL('**/#section-dashboard', { timeout: 20000 });
-    await page.waitForSelector('.dashboard-v2-modular', { state: 'visible', timeout: 10000 });
+    await page.waitForSelector('.dashboard-v2-cockpit', { state: 'visible', timeout: 10000 });
     // Wait for dashboard to fully load
     await page.waitForTimeout(5000);
     // Manually render Hero Card in Cockpit Financier module
@@ -18,7 +18,7 @@ test.describe('Dashboard Hero Card Premium', () => {
         variablesPct: 20
       };
       if (typeof window.renderDashboardHero === 'function') {
-        window.renderDashboardHero('cockpit-financier-root', metrics, {
+        window.renderDashboardHero('hero-root', metrics, {
           documentRef: document,
           windowRef: window,
           onAction: (section) => {
@@ -43,8 +43,8 @@ test.describe('Dashboard Hero Card Premium', () => {
       await page.waitForLoadState('domcontentloaded');
 
       const heroMetrics = await page.evaluate(() => {
-        const heroRoot = document.querySelector('#cockpit-financier-root');
-        const heroModule = document.querySelector('.dashboard-module--cockpit');
+        const heroRoot = document.querySelector('#hero-root');
+        const heroModule = document.querySelector('.cockpit-situation-section');
         const heroCard = heroRoot?.querySelector('.nx-hero-card');
 
         const amount = heroCard?.querySelector('.nx-hero-card__amount');
@@ -82,7 +82,7 @@ test.describe('Dashboard Hero Card Premium', () => {
       expect(heroMetrics.amountVisible).toBe(true);
       expect(heroMetrics.amountFontSize).toBeGreaterThan(0);
       expect(heroMetrics.buttonCount).toBeLessThanOrEqual(1);
-      expect(heroMetrics.labelText).toContain('Argent restant');
+      expect(heroMetrics.labelText).toContain('Solde actuel');
       expect(heroMetrics.overflowX).toBe(false);
     }
   });
@@ -91,7 +91,7 @@ test.describe('Dashboard Hero Card Premium', () => {
     await page.setViewportSize({ width: 390, height: 844 });
 
     const heroMetrics = await page.evaluate(() => {
-      const heroRoot = document.querySelector('#cockpit-financier-root');
+      const heroRoot = document.querySelector('#hero-root');
       const heroCard = heroRoot?.querySelector('.nx-hero-card');
       const amount = heroCard?.querySelector('.nx-hero-card__amount');
       const amountBox = amount?.getBoundingClientRect();
@@ -117,7 +117,7 @@ test.describe('Dashboard Hero Card Premium', () => {
     await page.setViewportSize({ width: 1024, height: 900 });
 
     const ctaMetrics = await page.evaluate(() => {
-      const heroRoot = document.querySelector('#cockpit-financier-root');
+      const heroRoot = document.querySelector('#hero-root');
       const heroCard = heroRoot?.querySelector('.nx-hero-card');
       const buttons = heroCard?.querySelectorAll('button');
 
@@ -143,7 +143,7 @@ test.describe('Dashboard Hero Card Premium', () => {
     await page.setViewportSize({ width: 768, height: 1024 });
 
     const motionCheck = await page.evaluate(() => {
-      const heroRoot = document.querySelector('#cockpit-financier-root');
+      const heroRoot = document.querySelector('#hero-root');
       const heroCard = heroRoot?.querySelector('.nx-hero-card');
 
       return {
@@ -158,8 +158,8 @@ test.describe('Dashboard Hero Card Premium', () => {
 
   test('shows only one Hero, no duplicate rendering', async ({ page }) => {
     const duplicateCheck = await page.evaluate(() => {
-      const heroRoots = document.querySelectorAll('#cockpit-financier-root');
-      const heroModules = document.querySelectorAll('.dashboard-module--cockpit');
+      const heroRoots = document.querySelectorAll('#hero-root');
+      const heroModules = document.querySelectorAll('.cockpit-situation-section');
       const heroCards = document.querySelectorAll('.nx-hero-card');
 
       return {
@@ -180,24 +180,24 @@ test.describe('Dashboard Hero Card Premium', () => {
     await page.setViewportSize({ width: 1024, height: 900 });
 
     const preserved = await page.evaluate(() => {
-      const heroRoot = document.querySelector('#cockpit-financier-root');
+      const heroRoot = document.querySelector('#hero-root');
       const heroCard = heroRoot?.querySelector('.nx-hero-card');
       const amount = heroCard?.querySelector('.nx-hero-card__amount');
       const context = heroCard?.querySelector('.nx-hero-card__context');
-      const container = document.querySelector('.dashboard-module--cockpit');
+      const container = document.querySelector('.cockpit-situation-section');
 
       return {
         heroCardExists: heroCard !== null,
         amountText: amount?.textContent || '',
         contextText: context?.textContent || '',
-        dataState: container?.dataset.state || null,
-        hasDataState: container?.hasAttribute('data-state')
+        situationVisible: container?.offsetParent !== null,
+        dashboardVisible: document.querySelector('.dashboard-v2-cockpit')?.offsetParent !== null
       };
     });
 
     expect(preserved.heroCardExists).toBe(true);
     expect(preserved.amountText).toBeTruthy();
-    expect(preserved.hasDataState).toBe(true);
-    expect(preserved.dataState).toBeTruthy();
+    expect(preserved.situationVisible).toBe(true);
+    expect(preserved.dashboardVisible).toBe(true);
   });
 });
