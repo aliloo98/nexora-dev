@@ -86,7 +86,7 @@ function buildTrajectoryEvents(metrics = {}) {
     }
   }
 
-  // 4. End of cycle projection
+  // 4. End of cycle projection (if date available)
   if (metrics.cycleEndDate) {
     const cycleEndDate = new Date(metrics.cycleEndDate)
     if (!isNaN(cycleEndDate.getTime()) && cycleEndDate > today) {
@@ -100,6 +100,17 @@ function buildTrajectoryEvents(metrics = {}) {
         isRisk: projectedBalance < 0
       })
     }
+  } else if (Number.isFinite(projectedBalance) && projectedBalance !== 0) {
+    // 4b. Projection without explicit date - still show the conclusion
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+    events.push({
+      type: 'cycle_end',
+      date: endOfMonth,
+      label: 'Fin de cycle',
+      amount: projectedBalance,
+      context: 'Projection estimée',
+      isRisk: projectedBalance < 0
+    })
   }
 
   // Sort events by date

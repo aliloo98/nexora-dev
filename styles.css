@@ -623,6 +623,13 @@ body {
   margin-top: 8px;
 }
 
+@media (max-width: 480px) {
+  .north-star-panel__metrics {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
 .north-star-metric {
   display: flex;
   flex-direction: column;
