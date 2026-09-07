@@ -57,11 +57,11 @@ export async function renderNorthStarGoals(rootId, metrics = {}, options = {}) {
     const goalItem = documentRef.createElement('div')
     goalItem.className = 'north-star-goals__item'
     goalItem.innerHTML = `
-      <div class="north-star-goals__name">${goal.icon || '🎯'} ${goal.name || 'Objectif'}</div>
-      <div class="north-star-goals__progress-line">
-        <span class="north-star-goals__amount">${formatEuro(goalMetrics.current)} / ${formatEuro(goalMetrics.target)}</span>
+      <div class="north-star-goals__header">
+        <span class="north-star-goals__name">${goal.icon || '🎯'} ${goal.name || 'Objectif'}</span>
         <span class="north-star-goals__pct">${formatPercent(goalMetrics.progress)}</span>
       </div>
+      <div class="north-star-goals__amount">${formatEuro(goalMetrics.current)} / ${formatEuro(goalMetrics.target)}</div>
       <div class="north-star-goals__bar">
         <div class="north-star-goals__fill" style="width: ${progressWidth}%"></div>
       </div>

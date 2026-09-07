@@ -159,15 +159,19 @@ export function renderNorthStarTrajectory(rootId, metrics = {}, options = {}) {
 
     return `
       <div class="north-star-trajectory__item ${event.isCurrent ? 'is-current' : ''} ${isRisk ? 'is-risk' : ''}">
-        <div class="north-star-trajectory__date">
-          <strong>${formatDate(event.date)}</strong>
-          <span>${event.context}</span>
-        </div>
         <div class="north-star-trajectory__marker"></div>
-        <div class="north-star-trajectory__event">
-          <strong>${event.label}</strong>
-          <span class="${amountClass}">${amountSign}${formatEuro(event.amount)}</span>
-          ${isRisk ? '<em class="risk-indicator">⚠ Point de tension</em>' : ''}
+        <div class="north-star-trajectory__content">
+          <div class="north-star-trajectory__row north-star-trajectory__row--top">
+            <strong class="north-star-trajectory__date">${formatDate(event.date)}</strong>
+            <div class="north-star-trajectory__line"></div>
+          </div>
+          <div class="north-star-trajectory__row north-star-trajectory__row--bottom">
+            <div class="north-star-trajectory__labels">
+              <strong class="north-star-trajectory__label-text">${event.label}</strong>
+              <span class="north-star-trajectory__context-text">${event.context}</span>
+            </div>
+            <strong class="north-star-trajectory__amount ${amountClass}">${amountSign}${formatEuro(event.amount)}</strong>
+          </div>
         </div>
       </div>
     `
