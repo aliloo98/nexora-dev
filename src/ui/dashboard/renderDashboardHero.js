@@ -3,6 +3,8 @@ import { bindNorthStarJarvis } from './renderNorthStarJarvis.js'
 import { renderNorthStarTrajectory } from './renderNorthStarTrajectory.js'
 import { renderNorthStarGoals } from './renderNorthStarGoals.js'
 import { renderNorthStarDebts } from './renderNorthStarDebts.js'
+import { buildSnapshotFromDashboardMetrics } from '../../jarvis/dashboardMetricsAdapter.js'
+import { publishJarvisDecisionContext } from '../../jarvis/jarvisDecisionContext.js'
 
 const toFiniteNumber = (value, fallback = 0) => {
   const number = Number(value)
@@ -335,6 +337,21 @@ export function renderDashboardHero(rootId, metrics = {}, options = {}) {
   root.replaceChildren(heroSection)
 
   const decision = buildNorthStarDecision(metrics)
+
+  // Build V2.1 snapshot from Dashboard metrics and publish to Jarvis
+  // This ensures North Star and Jarvis use the EXACT SAME financial data
+  const snapshot = buildSnapshotFromDashboardMetrics(metrics, {
+    monthKey: metrics.monthKey || null,
+    goals: metrics.goals || [],
+    debts: metrics.debts || [],
+    history: metrics.history || [],
+    trajectory: metrics.trajectory || null
+  })
+  publishJarvisDecisionContext(snapshot, {
+    version: Date.now(),
+    publishedAt: Date.now()
+  })
+
   renderNorthStarPriority('priority-root', metrics, documentRef, windowRef)
   bindNorthStarJarvis('jarvis-root', decision, documentRef, windowRef, metrics)
   renderNorthStarTrajectory('trajectory-root', metrics, { documentRef, windowRef })
