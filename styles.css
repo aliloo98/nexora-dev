@@ -814,9 +814,11 @@ body {
 }
 
 .north-star-trajectory__date span {
-  font-size: 9px;
-  opacity: 0.6;
-  color: var(--text2);
+  font-size: 12px;
+  color: var(--gold2);
+  background: rgba(7, 7, 10, 0.8);
+  padding: 2px 4px;
+  border-radius: 3px;
 }
 
 .north-star-trajectory__item.is-current .north-star-trajectory__date strong {
@@ -3186,8 +3188,11 @@ body.mode-simple .dashboard-secondary-kpis {
 }
 
 .north-star-trajectory__date span {
-  font-size: 11px;
-  color: var(--text2);
+  font-size: 12px;
+  color: var(--gold2);
+  background: rgba(7, 7, 10, 0.8);
+  padding: 2px 4px;
+  border-radius: 3px;
 }
 
 .north-star-trajectory__marker {
@@ -3607,8 +3612,10 @@ body.mode-simple .dashboard-secondary-kpis {
 
 .north-star-trajectory__date span {
   font-size: 12px;
-  color: var(--text2);
-  opacity: 0.6;
+  color: var(--gold2);
+  background: rgba(7, 7, 10, 0.8);
+  padding: 2px 4px;
+  border-radius: 3px;
 }
 
 .north-star-trajectory__event {
