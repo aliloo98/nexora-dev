@@ -493,10 +493,10 @@ body {
 }
 
 .north-star-jarvis__action {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
+  align-items: center;
 }
 
 .north-star-jarvis__recommendation {
@@ -508,16 +508,30 @@ body {
   background: rgba(255,255,255,0.08);
   color: var(--text);
   font: inherit;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   line-height: 1.25;
   text-align: left;
   cursor: pointer;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+  white-space: normal;
 }
 
 .north-star-jarvis__recommendation:disabled {
   cursor: default;
   opacity: 0.7;
+}
+
+@media (min-width: 768px) {
+  .north-star-jarvis__recommendation {
+    font-size: 11px;
+    padding: 6px 8px;
+    min-height: 36px;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
 }
 
 @media (max-width: 430px) {
@@ -557,8 +571,8 @@ body {
   }
 
   .north-star-jarvis__action {
-    align-items: flex-start;
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 
   .north-star-jarvis__recommendation {
@@ -625,8 +639,23 @@ body {
 
 @media (max-width: 480px) {
   .north-star-panel__metrics {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
+  }
+  
+  .north-star-panel__metrics .north-star-metric:last-child {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 375px) {
+  .north-star-panel__metrics {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  
+  .north-star-panel__metrics .north-star-metric:last-child {
+    grid-column: span 1;
   }
 }
 
@@ -658,6 +687,7 @@ body {
   font-size: 18px;
   font-weight: 600;
   color: var(--text);
+  white-space: nowrap;
 }
 
 .north-star-panel__action {
@@ -697,8 +727,12 @@ body {
   }
 
   .north-star-panel__metrics {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
+  }
+  
+  .north-star-panel__metrics .north-star-metric:last-child {
+    grid-column: span 2;
   }
 
   .north-star-metric {
@@ -706,12 +740,23 @@ body {
   }
 
   .north-star-metric__value {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .north-star-panel__action {
     min-height: 44px;
     font-size: 15px;
+  }
+}
+
+@media (max-width: 375px) {
+  .north-star-panel__metrics {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  
+  .north-star-panel__metrics .north-star-metric:last-child {
+    grid-column: span 1;
   }
 }
 
@@ -814,11 +859,11 @@ body {
 }
 
 .north-star-trajectory__date span {
-  font-size: 12px;
+  font-size: 10px;
   color: var(--gold2);
   background: rgba(7, 7, 10, 0.8);
-  padding: 2px 4px;
-  border-radius: 3px;
+  padding: 1px 3px;
+  border-radius: 2px;
 }
 
 .north-star-trajectory__item.is-current .north-star-trajectory__date strong {
@@ -879,8 +924,8 @@ body {
 
 @media (max-width: 430px) {
   .north-star-trajectory {
-    padding: 24px 0;
-    gap: 16px;
+    padding: 12px 0;
+    gap: 12px;
   }
 
   .north-star-trajectory__timeline::before {
@@ -915,11 +960,11 @@ body {
   }
 
   .north-star-trajectory__timeline {
-    gap: 10px;
+    gap: 8px;
   }
 
   .north-star-trajectory__item {
-    gap: 8px;
+    gap: 6px;
   }
 
   .north-star-trajectory__date {
@@ -927,7 +972,7 @@ body {
   }
 
   .north-star-trajectory__date strong {
-    font-size: 11px;
+    font-size: 10px;
   }
 
   .north-star-trajectory__event strong {
@@ -942,9 +987,9 @@ body {
 /* North Star Debts Component */
 .north-star-debts {
   display: grid;
-  gap: 10px;
-  margin-bottom: 16px;
-  padding: 14px;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 12px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-left: 2px solid var(--orange);
@@ -1010,8 +1055,8 @@ body {
 .north-star-debt-stat {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 8px;
+  gap: 1px;
+  padding: 6px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.015);
   border: 1px solid rgba(255, 255, 255, 0.04);
@@ -1066,7 +1111,8 @@ body {
 
 @media (max-width: 430px) {
   .north-star-debts {
-    padding: 12px;
+    padding: 10px;
+    margin-bottom: 12px;
   }
 
   .north-star-debts__grid {
@@ -1087,9 +1133,9 @@ body {
 /* North Star Goals Component */
 .north-star-goals {
   display: grid;
-  gap: 10px;
-  margin-bottom: 16px;
-  padding: 14px;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 12px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-left: 2px solid var(--green);
@@ -1151,7 +1197,7 @@ body {
 .north-star-goals__content {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .north-star-goals__title {
@@ -1197,14 +1243,14 @@ body {
 .north-star-goals__metrics {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 6px;
 }
 
 .north-star-goal-metric {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 8px;
+  gap: 1px;
+  padding: 6px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.015);
   border: 1px solid rgba(255, 255, 255, 0.04);
@@ -1260,7 +1306,8 @@ body {
 
 @media (max-width: 430px) {
   .north-star-goals {
-    padding: 12px;
+    padding: 10px;
+    margin-bottom: 12px;
   }
 
   .north-star-goals__metrics {
@@ -3188,11 +3235,11 @@ body.mode-simple .dashboard-secondary-kpis {
 }
 
 .north-star-trajectory__date span {
-  font-size: 12px;
+  font-size: 10px;
   color: var(--gold2);
   background: rgba(7, 7, 10, 0.8);
-  padding: 2px 4px;
-  border-radius: 3px;
+  padding: 1px 3px;
+  border-radius: 2px;
 }
 
 .north-star-trajectory__marker {
@@ -3297,8 +3344,8 @@ body.mode-simple .dashboard-secondary-kpis {
   }
 
   .north-star-trajectory {
-    padding: 24px 0;
-    gap: 16px;
+    padding: 12px 0;
+    gap: 12px;
   }
 
   .north-star-trajectory__timeline::before {
@@ -3611,11 +3658,11 @@ body.mode-simple .dashboard-secondary-kpis {
 }
 
 .north-star-trajectory__date span {
-  font-size: 12px;
+  font-size: 10px;
   color: var(--gold2);
   background: rgba(7, 7, 10, 0.8);
-  padding: 2px 4px;
-  border-radius: 3px;
+  padding: 1px 3px;
+  border-radius: 2px;
 }
 
 .north-star-trajectory__event {

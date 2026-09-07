@@ -231,6 +231,7 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   font-size: 18px !important;
   font-weight: 600 !important;
   color: var(--text) !important;
+  white-space: nowrap !important;
 }
 
 /* DECISION SECTION - Priority */
@@ -301,6 +302,7 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   line-height: 1 !important;
   letter-spacing: -0.02em !important;
   color: var(--text) !important;
+  white-space: nowrap !important;
 }
 
 .cockpit-hero__amount--positive {
@@ -349,6 +351,7 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   font-size: 18px !important;
   font-weight: 600 !important;
   color: var(--text) !important;
+  white-space: nowrap !important;
 }
 
 /* North Star Priority - Narrative Decision (V2) */
@@ -999,6 +1002,10 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   .dashboard-v2-cockpit .north-star-jarvis__insight {
     font-size: 15px !important;
     line-height: 1.45 !important;
+  }
+
+  .north-star-jarvis .jarvis-copilot-prompts {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
   .cockpit-engagements-row {

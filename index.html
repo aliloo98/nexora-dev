@@ -1511,6 +1511,9 @@ function saveNexoraAiSettingsFromUI() {
 }
 
 function readDebts() {
+  if (isNexoraDemoMode()) {
+    return [{ id: 'demo_debt', name: 'Crédit voiture', initial: 2400, remaining: 1800, monthly: 180 }];
+  }
   try {
     const parsed = JSON.parse(SafeStorage.getItem(syncedSettingStorageKey(DEBTS_STORAGE_KEY)) || '[]');
     return filterTechnicalRecords(Array.isArray(parsed) ? parsed : [], (debt) => debt?.name);
@@ -4290,7 +4293,8 @@ function updateAll(){
         annualProjection,
         safetyMargin,
         goalProgressPct,
-        goalTarget
+        goalTarget,
+        debtSummary: getDebtSummary()
       };
 
       window.renderDashboardHero('hero-root', dashboardMetrics, {

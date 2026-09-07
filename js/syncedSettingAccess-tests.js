@@ -53,6 +53,7 @@ const filterTechnicalRecords = (items) => items
 const DEBTS_STORAGE_KEY = 'nexora_debts_v1'
 const getCurrentStorageOwnerId = eval(`(${extractFunction(html, 'getCurrentStorageOwnerId')})`)
 const syncedSettingStorageKey = eval(`(${extractFunction(html, 'syncedSettingStorageKey')})`)
+const isNexoraDemoMode = () => false;
 const readDebts = eval(`(${extractFunction(html, 'readDebts')})`)
 const saveDebts = eval(`(${extractFunction(html, 'saveDebts')})`)
 
