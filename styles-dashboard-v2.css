@@ -884,9 +884,13 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   }
 
   .cockpit-situation__kpis {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 0 !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
     padding: 12px 14px !important;
+  }
+
+  .cockpit-situation__kpi:last-child {
+    grid-column: span 2 !important;
   }
 
   .cockpit-situation__kpi-label,
@@ -916,10 +920,14 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   .cockpit-hero__metrics {
     grid-column: 1 !important;
     grid-row: auto !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 8px !important;
-    padding-top: 10px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px 8px !important;
+    padding-top: 12px !important;
     border-top: 1px solid rgba(112, 133, 159, 0.18) !important;
+  }
+
+  .cockpit-hero__metric:last-child {
+    grid-column: span 2 !important;
   }
 
   .cockpit-hero__metric-value {
@@ -1038,5 +1046,39 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
 
   .cockpit-decision-section .north-star-priority__why {
     font-size: 17px !important;
+  }
+}
+
+/* Mobile Situation Layout Override up to 600px */
+@media (max-width: 600px) {
+  .dashboard-v2-cockpit .cockpit-situation-section .cockpit-hero {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    padding: 18px 16px 14px !important;
+  }
+  
+  .dashboard-v2-cockpit .cockpit-situation-section .cockpit-hero__header {
+    grid-column: 1 !important;
+  }
+  
+  .dashboard-v2-cockpit .cockpit-situation-section .cockpit-hero__metrics {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px 8px !important;
+    padding-top: 12px !important;
+  }
+  
+  .dashboard-v2-cockpit .cockpit-situation-section .cockpit-hero__metric:last-child {
+    grid-column: span 2 !important;
+  }
+  
+  .dashboard-v2-cockpit .cockpit-situation__kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+  
+  .dashboard-v2-cockpit .cockpit-situation__kpi:last-child {
+    grid-column: span 2 !important;
   }
 }
