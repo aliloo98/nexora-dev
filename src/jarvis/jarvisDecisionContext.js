@@ -19,7 +19,12 @@ export function createJarvisDecisionContext(snapshot = {}, metadata = {}) {
   const risks = Array.isArray(snapshot.risks) ? snapshot.risks : []
   const dataQuality = snapshot.dataQuality || {}
   const trajectory = snapshot.trajectory || {}
-  const priority = snapshot.priority || null
+  
+  // Handle both legacy priority and new priorities array from Intelligence Engine
+  const legacyPriority = snapshot.priority || null
+  const prioritiesArray = Array.isArray(snapshot.priorities) ? snapshot.priorities : []
+  const primaryPriority = legacyPriority || (prioritiesArray.length > 0 ? prioritiesArray[0] : null)
+  
   const priorityCta = snapshot.priorityCta || null
 
   return {
@@ -28,11 +33,11 @@ export function createJarvisDecisionContext(snapshot = {}, metadata = {}) {
     publishedAt: Number.isFinite(Number(metadata.publishedAt)) ? Number(metadata.publishedAt) : null,
     
     // Legacy properties for North Star dashboard and UI routing
-    insight: priority?.explanation || (typeof snapshot.headline === 'string' ? snapshot.headline : null),
-    priority: priority ? {
-      id: priority.type || null,
-      label: priority.title || null,
-      severity: priority.severity || null
+    insight: primaryPriority?.explanation || primaryPriority?.action || (typeof snapshot.headline === 'string' ? snapshot.headline : null),
+    priority: primaryPriority ? {
+      id: primaryPriority.id || primaryPriority.type || null,
+      label: primaryPriority.label || primaryPriority.title || primaryPriority.action || null,
+      severity: primaryPriority.severity || null
     } : null,
     risks: risks.slice(0, 3).map((risk) => ({
       id: risk?.id || null,
@@ -43,11 +48,11 @@ export function createJarvisDecisionContext(snapshot = {}, metadata = {}) {
     })),
     dataQuality: {
       isComplete: dataQuality.isComplete === true,
-      hasIncome: dataQuality.hasIncome === true,
-      hasExpenses: dataQuality.hasExpenses === true,
-      hasGoal: dataQuality.hasGoal === true,
-      hasDebt: dataQuality.hasDebt === true,
-      confidence: dataQuality.confidence || null,
+      hasIncome: dataQuality.hasIncome === true || !dataQuality.issues?.some(i => i.code === 'NO_INCOME'),
+      hasExpenses: dataQuality.hasExpenses === true || !dataQuality.issues?.some(i => i.code === 'NO_EXPENSES'),
+      hasGoal: dataQuality.hasGoal === true || !dataQuality.issues?.some(i => i.code === 'NO_GOAL_DATA'),
+      hasDebt: dataQuality.hasDebt === true || !dataQuality.issues?.some(i => i.code === 'NO_DEBT_DATA'),
+      confidence: dataQuality.confidence || dataQuality.level || null,
       issues: Array.isArray(dataQuality.issues) ? dataQuality.issues.slice(0, 3).map((issue) => ({
         code: issue?.code || 'unknown',
         severity: issue?.severity || null
@@ -60,15 +65,47 @@ export function createJarvisDecisionContext(snapshot = {}, metadata = {}) {
       overdraftRisk: trajectory.overdraftRisk || null,
       trendsAvailable: trajectory.trendsAvailable === true
     },
-    recommendation: priority?.action ? {
-      label: priority.action.label || null,
-      target: priority.action.target || null
-    } : (priorityCta ? {
-      label: priorityCta.label || null,
-      target: priorityCta.target || null
-    } : null),
-    supportingFacts: Array.isArray(priority?.supportingFacts) 
-      ? priority.supportingFacts.slice(0, 3).map(fact => ({ label: fact.label, value: finiteOrNull(fact.value) }))
+    recommendation: (() => {
+      // For Intelligence Engine priorities with string action
+      if (primaryPriority?.action && typeof primaryPriority.action === 'string') {
+        return {
+          label: primaryPriority.action,
+          target: 'saisie'
+        }
+      }
+      // For Intelligence Engine priorities with object action
+      if (primaryPriority?.action && typeof primaryPriority.action === 'object') {
+        return {
+          label: primaryPriority.action.label || null,
+          target: primaryPriority.action.target || null
+        }
+      }
+      // Fallback to legacy priority
+      if (legacyPriority?.action) {
+        if (typeof legacyPriority.action === 'object') {
+          return {
+            label: legacyPriority.action.label || null,
+            target: legacyPriority.action.target || null
+          }
+        }
+        if (typeof legacyPriority.action === 'string') {
+          return {
+            label: legacyPriority.action,
+            target: 'saisie'
+          }
+        }
+      }
+      // Fallback to priorityCta
+      if (priorityCta) {
+        return {
+          label: priorityCta.label || null,
+          target: priorityCta.target || null
+        }
+      }
+      return null
+    })(),
+    supportingFacts: Array.isArray(primaryPriority?.supportingFacts) 
+      ? primaryPriority.supportingFacts.slice(0, 3).map(fact => ({ label: fact.label, value: finiteOrNull(fact.value) }))
       : [
           ['Solde projeté', trajectory.finalBalance !== undefined ? trajectory.finalBalance : snapshot.projectedBalance],
           ['Point le plus bas', trajectory.lowestBalance],

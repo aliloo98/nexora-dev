@@ -19,7 +19,8 @@ const snapshot = Object.freeze({
     paidExpenses: 1400,
     projected: 850,
     current: 1800,
-    remaining: 950
+    remaining: 950,
+    available: 850
   },
   budget: {
     fixed: 1400,
@@ -81,7 +82,7 @@ const noDataSnapshot = Object.freeze({
     ]
   },
   health: { status: 'no_income', label: 'Revenus manquants' },
-  cashflow: { income: 0, expenses: 0, paidExpenses: 0, projected: 0, current: 0, remaining: 0 },
+  cashflow: { income: 0, expenses: 0, paidExpenses: 0, projected: 0, current: 0, remaining: 0, available: 0 },
   budget: { fixed: 0, variable: 0, total: 0, categories: [] },
   savings: { amount: 0, rate: 0 },
   forecast: { finalBalance: 0, lowestBalance: 0, overdraftRisk: 'NONE' },

@@ -285,7 +285,7 @@ export async function renderJarvisCockpit(container, options = {}) {
     // 3. Create Jarvis view model
     const viewModel = createJarvisViewModel(snapshot)
     if (!isRenderCurrent()) return
-    publishJarvisDecisionContext(viewModel, { version: renderVersion })
+    publishJarvisDecisionContext(snapshot, { version: renderVersion })
 
     // 4. Check if core data is sufficient (Blocker 1 fix)
     // Separate core data availability from trend/history availability
