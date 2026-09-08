@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 test.describe('V2.1 Jarvis Integration - Dashboard Metrics to Snapshot', () => {
   test('Dashboard metrics adapter produces correct snapshot', async ({ page }) => {
-    await page.goto('http://localhost:5174/')
+    await page.goto('/')
 
     // Inject and test the adapter directly
     const adapterResult = await page.evaluate(() => {
@@ -92,7 +92,7 @@ test.describe('V2.1 Jarvis Integration - Dashboard Metrics to Snapshot', () => {
   })
 
   test('Adapter handles edge cases correctly', async ({ page }) => {
-    await page.goto('http://localhost:5174/')
+    await page.goto('/')
 
     const edgeCases = await page.evaluate(() => {
       const toFiniteNumber = (value, fallback = 0) => {

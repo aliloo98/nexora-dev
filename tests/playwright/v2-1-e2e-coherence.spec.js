@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 test.describe('V2.1 E2E Coherence - Dashboard Integration', () => {
   test('Dashboard renders without errors after adapter integration', async ({ page }) => {
-    await page.goto('http://localhost:5174/')
+    await page.goto('/')
 
     // Check for console errors
     const errors = []
@@ -24,7 +24,7 @@ test.describe('V2.1 E2E Coherence - Dashboard Integration', () => {
     })
 
     // Navigate to dashboard
-    await page.goto('http://localhost:5174/#section-dashboard')
+    await page.goto('/#section-dashboard')
     await page.waitForTimeout(1000)
 
     // Verify no console errors related to the adapter
@@ -35,7 +35,7 @@ test.describe('V2.1 E2E Coherence - Dashboard Integration', () => {
   })
 
   test('Jarvis Decision Context module loads correctly', async ({ page }) => {
-    await page.goto('http://localhost:5174/')
+    await page.goto('/')
 
     const moduleLoaded = await page.evaluate(async () => {
       try {
