@@ -340,10 +340,11 @@ export function renderDashboardHero(rootId, metrics = {}, options = {}) {
 
   // Build V2.1 snapshot from Dashboard metrics and publish to Jarvis
   // This ensures North Star and Jarvis use the EXACT SAME financial data
+  const realDebts = typeof windowRef?.readDebts === 'function' ? windowRef.readDebts() : metrics.debts || []
   const snapshot = buildSnapshotFromDashboardMetrics(metrics, {
-    monthKey: metrics.monthKey || null,
+    monthKey: metrics.monthKey || (windowRef?.getMonth ? windowRef.getMonth() : null),
     goals: metrics.goals || [],
-    debts: metrics.debts || [],
+    debts: realDebts,
     history: metrics.history || [],
     trajectory: metrics.trajectory || null
   })

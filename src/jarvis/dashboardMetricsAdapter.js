@@ -89,27 +89,39 @@ export function buildSnapshotFromDashboardMetrics(metrics = {}, extraData = {}) 
   const varReel = toFiniteNumber(metrics.varReel)
   const totalDepRestant = toFiniteNumber(metrics.totalDepRestant ?? metrics.remainingToSpend)
   const totalDepPayee = toFiniteNumber(metrics.totalDepPayee)
+  const totalDepReel = toFiniteNumber(metrics.totalDepReel ?? (fixReel + varReel))
   const tauxCh = toFiniteNumber(metrics.tauxCh)
   const variablesPct = toFiniteNumber(metrics.variablesPct)
   const lowestBalance = toFiniteNumber(metrics.lowestBalance)
 
+  // Use real metrics from updateAll() - these are now included in the dashboardMetrics object
+  const income = revReel
+  const fixedCharges = fixReel
+  const variableCharges = varReel
+  const expenses = totalDepReel
+  const paidExpenses = totalDepPayee
+  const currentBalance = soldeEstime
+  const projectedBalance = solde
+  const remainingExpenses = totalDepRestant
+  const available = safetyMargin
+
   const situation = determineSituation(metrics)
 
-  // Build cashflow object
+  // Build cashflow object with real detailed metrics
   const cashflow = {
-    income: revReel,
-    expenses: fixReel + varReel,
-    fixed: fixReel,
-    variable: varReel,
-    paid: totalDepPayee,
-    projected: solde,
-    remaining: totalDepRestant,
-    available: safetyMargin
+    income,
+    expenses,
+    fixed: fixedCharges,
+    variable: variableCharges,
+    paid: paidExpenses,
+    projected: projectedBalance,
+    remaining: remainingExpenses,
+    available
   }
 
-  // Build data quality assessment
-  const hasIncome = revReel > 0
-  const hasExpenses = fixReel > 0 || varReel > 0
+  // Build data quality assessment with real values
+  const hasIncome = income > 0
+  const hasExpenses = expenses > 0
   const hasBudgetData = hasIncome || hasExpenses
 
   const dataQuality = {
@@ -129,18 +141,18 @@ export function buildSnapshotFromDashboardMetrics(metrics = {}, extraData = {}) 
     dataQuality.issues.push({ code: 'NO_EXPENSES', severity: 'medium' })
   }
 
-  // Build minimal snapshot
+  // Build snapshot with real detailed metrics
   const snapshot = {
     // Core financial metrics
-    income: revReel,
-    balance: soldeEstime,
-    projectedBalance: solde,
-    available: safetyMargin,
-    remainingExpenses: totalDepRestant,
-    fixedCharges: fixReel,
-    variableCharges: varReel,
-    expenses: fixReel + varReel,
-    paidExpenses: totalDepPayee,
+    income,
+    balance: currentBalance,
+    projectedBalance,
+    available,
+    remainingExpenses,
+    fixedCharges,
+    variableCharges,
+    expenses,
+    paidExpenses,
 
     // Cashflow structure
     cashflow,
@@ -150,7 +162,7 @@ export function buildSnapshotFromDashboardMetrics(metrics = {}, extraData = {}) 
     health: {
       status: situation,
       pressure: tauxCh,
-      savingsRate: revReel > 0 ? ((solde / revReel) * 100) : 0
+      savingsRate: metrics.savingsRate ?? (income > 0 ? ((projectedBalance / income) * 100) : 0)
     },
 
     // Data quality
@@ -161,10 +173,10 @@ export function buildSnapshotFromDashboardMetrics(metrics = {}, extraData = {}) 
     debts,
     history,
     trajectory: trajectory || {
-      finalBalance: solde,
+      finalBalance: projectedBalance,
       lowestBalance: lowestBalance,
       lowestBalanceDay: null,
-      overdraftRisk: solde < 0 ? 'HIGH' : 'NONE',
+      overdraftRisk: projectedBalance < 0 ? 'HIGH' : 'NONE',
       trendsAvailable: false
     },
 

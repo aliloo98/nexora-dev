@@ -4288,13 +4288,19 @@ function updateAll(){
         tauxCh,
         variablesPct,
         totalDepRestant,
+        totalDepPayee,
+        fixReel,
+        varReel,
+        totalDepReel,
         savingsRate,
         hydrationComplete,
         annualProjection,
         safetyMargin,
         goalProgressPct,
         goalTarget,
-        debtSummary: getDebtSummary()
+        debtSummary: getDebtSummary(),
+        monthKey: getMonth(),
+        lowestBalance: cycleBalances.lowestBalance
       };
 
       window.renderDashboardHero('hero-root', dashboardMetrics, {
