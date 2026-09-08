@@ -177,6 +177,7 @@
 .dashboard-v2-cockpit .cockpit-insight__jarvis,
 .dashboard-v2-cockpit .cockpit-engagement {
   min-width: 0 !important;
+  min-height: auto !important;
   padding: 20px !important;
   border: 1px solid rgba(112, 133, 159, 0.24) !important;
   border-radius: 12px !important;

@@ -682,22 +682,24 @@ body.mode-simple .jarvis-copilot {
 
   .jarvis-copilot-prompts {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: stretch;
     overflow: visible;
   }
 
   .jarvis-copilot-prompt {
     min-width: 0;
-    min-height: 76px;
+    min-height: 110px;
     display: flex;
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    padding: var(--nx-space-xs) var(--nx-space-2xs);
+    padding: var(--nx-space-sm) var(--nx-space-xs);
     text-align: center;
-    line-height: var(--nx-line-height-label);
+    line-height: 1.2;
     white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    font-size: 13px;
   }
 }

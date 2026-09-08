@@ -38,7 +38,7 @@ function getJarvisQuickPrompts(snapshot = {}) {
   const margin = Number(snapshot?.cashflow?.projected || 0)
 
   if (risks.length > 0) {
-    prompts.push(createQuickPrompt('Quel est mon risque principal ?', INTENTS.TOP_RISK))
+    prompts.push(createQuickPrompt('Mon risque principal', INTENTS.TOP_RISK))
   }
 
   if (hasGoal) {
@@ -50,11 +50,11 @@ function getJarvisQuickPrompts(snapshot = {}) {
   }
 
   if (margin > 0) {
-    prompts.push(createQuickPrompt('Combien puis-je encore dépenser ?', INTENTS.REMAINING_SPEND))
+    prompts.push(createQuickPrompt('Combien dépenser ?', INTENTS.REMAINING_SPEND))
   }
 
-  prompts.push(createQuickPrompt('Que dois-je faire en priorité ?', INTENTS.PRIORITY))
-  prompts.push(createQuickPrompt('Comment va finir le mois ?', INTENTS.FORECAST))
+  prompts.push(createQuickPrompt('Que faire en priorité ?', INTENTS.PRIORITY))
+  prompts.push(createQuickPrompt('Fin du mois ?', INTENTS.FORECAST))
 
   const unique = []
   const seen = new Set()
