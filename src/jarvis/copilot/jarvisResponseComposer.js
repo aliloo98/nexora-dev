@@ -342,6 +342,7 @@ function composeScenarioResponse(intent, snapshot, parsed) {
     ],
     impact: [
       money('Impact marge', scenario.diff.margin, 'scenario.diff.margin'),
+      money('Fin de mois avant', scenario.before.forecastFinalBalance, 'scenario.before.forecastFinalBalance'),
       money('Fin de mois après', scenario.after.forecastFinalBalance, 'scenario.after.forecastFinalBalance')
     ],
     actions: [

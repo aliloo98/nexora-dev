@@ -167,7 +167,7 @@ function scrollThreadToEnd(thread) {
 }
 
 function renderFactList(facts = []) {
-  const visibleFacts = facts.filter(fact => fact && fact.value !== null && fact.value !== undefined).slice(0, 5)
+  const visibleFacts = facts.filter(fact => fact && fact.value !== null && fact.value !== undefined).slice(0, 6)
   if (visibleFacts.length === 0) return ''
 
   return `
@@ -239,7 +239,7 @@ function appendJarvisResponse(thread, response) {
     </div>
     <p>${escapeHtml(response.summary)}</p>
     ${renderScenario(response)}
-    ${renderFactList(response.evidence)}
+    ${renderFactList([...(response.evidence || []), ...(response.impact || [])])}
     ${renderActions(response)}
   `
   thread.appendChild(item)
@@ -292,22 +292,8 @@ export function attachJarvisCopilot(container, options = {}) {
     if (!thread || !inputValue) return
     const snapshot = await getSnapshot()
     const { response } = engine.ask(snapshot, inputValue)
-    appendJarvisResponse(thread, response)
-    const responseNode = thread.lastElementChild
-    scrollThreadToEnd(thread)
-
-    responseNode?.querySelectorAll('[data-jarvis-action-index]').forEach((button) => {
-      const action = response.actions?.[Number(button.dataset.jarvisActionIndex)]
-      button.addEventListener('click', () => {
-        if (action?.target && typeof windowRef.showSection === 'function') {
-          windowRef.showSection(action.target)
-          return
-        }
-        if (action?.intent) {
-          renderPromptAction(action)
-        }
-      })
-    })
+    const responseNode = appendJarvisResponse(thread, response)
+    bindResponseActions(responseNode, response)
   }
 
   let pendingSignalTimeoutId = null
@@ -379,8 +365,25 @@ export function attachJarvisCopilot(container, options = {}) {
     appendUserMessage(thread, label)
     const snapshot = await getSnapshot()
     const { response } = engine.ask(snapshot, prompt)
-    appendJarvisResponse(thread, response)
-    scrollThreadToEnd(thread)
+    const responseNode = appendJarvisResponse(thread, response)
+    bindResponseActions(responseNode, response)
+
+    if (prompt.intent === INTENTS.PRIORITY) {
+      documentRef.getElementById('priority-root')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
+  const bindResponseActions = (responseNode, response) => {
+    responseNode?.querySelectorAll('[data-jarvis-action-index]').forEach((button) => {
+      const action = response.actions?.[Number(button.dataset.jarvisActionIndex)]
+      button.addEventListener('click', () => {
+        if (action?.target && typeof windowRef.showSection === 'function') {
+          windowRef.showSection(action.target)
+          return
+        }
+        if (action?.intent) renderPromptAction(action)
+      })
+    })
   }
 
   openButton?.addEventListener('click', () => openPanel(true, openButton))
