@@ -17,14 +17,26 @@ const formatFactValue = (fact) => {
 
 const buildCopilotSnapshot = (decision, context = {}, metrics = {}) => {
   const safeContext = context || {}
+  const available = Number(safeContext.available ?? safeContext.cashflow?.available ?? metrics.safetyMargin ?? 0)
+  const projected = Number(safeContext.projectedBalance ?? safeContext.cashflow?.projected ?? metrics.solde ?? 0)
+  const remaining = Number(safeContext.remainingExpenses ?? safeContext.cashflow?.remaining ?? metrics.totalDepRestant ?? 0)
+
   return {
-  ...safeContext,
-  health: safeContext.health || { label: decision?.label || 'Analyse disponible' },
-  cashflow: safeContext.cashflow || { projected: Number(metrics.safetyMargin ?? metrics.solde ?? 0) },
-  forecast: safeContext.forecast || { finalBalance: Number(metrics.solde ?? metrics.soldeEstime ?? 0) },
-  priorities: Array.isArray(safeContext.priorities) && safeContext.priorities.length > 0
-    ? safeContext.priorities
-    : [{ action: decision?.action?.label || 'Surveiller la trajectoire' }]
+    ...safeContext,
+    available,
+    projectedBalance: projected,
+    remainingExpenses: remaining,
+    health: safeContext.health || { label: decision?.label || 'Analyse disponible' },
+    cashflow: {
+      ...(safeContext.cashflow || {}),
+      available,
+      projected,
+      remaining
+    },
+    forecast: safeContext.forecast || { finalBalance: projected },
+    priorities: Array.isArray(safeContext.priorities) && safeContext.priorities.length > 0
+      ? safeContext.priorities
+      : [{ action: decision?.action?.label || 'Surveiller la trajectoire' }]
   }
 }
 

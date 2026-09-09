@@ -35,7 +35,7 @@ function getJarvisQuickPrompts(snapshot = {}) {
   const risks = Array.isArray(snapshot.risks) ? snapshot.risks : []
   const hasGoal = Boolean(snapshot.goal)
   const hasDebt = Boolean(snapshot.debt)
-  const margin = Number(snapshot?.cashflow?.projected || 0)
+  const margin = Number(snapshot?.cashflow?.available ?? snapshot?.available ?? 0)
 
   if (risks.length > 0) {
     prompts.push(createQuickPrompt('Mon risque principal', INTENTS.TOP_RISK))

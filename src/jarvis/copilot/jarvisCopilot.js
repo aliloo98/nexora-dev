@@ -42,8 +42,8 @@ function renderQuickPrompts(snapshot) {
 
 function renderContextRail(snapshot) {
   const health = snapshot?.health?.label || snapshot?.health?.status || 'Analyse'
-  const margin = snapshot?.cashflow?.projected ?? 0
-  const forecast = snapshot?.forecast?.finalBalance ?? margin
+  const margin = snapshot?.cashflow?.available ?? snapshot?.available ?? 0
+  const forecast = snapshot?.cashflow?.projected ?? snapshot?.projectedBalance ?? snapshot?.forecast?.finalBalance ?? 0
   const priority = Array.isArray(snapshot?.priorities) && snapshot.priorities[0]
     ? snapshot.priorities[0].action
     : 'Aucune priorité critique'

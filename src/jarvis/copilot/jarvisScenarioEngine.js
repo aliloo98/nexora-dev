@@ -11,12 +11,16 @@ function cloneScenarioBase(snapshot = {}) {
   const forecast = snapshot.forecast || {}
   const debt = snapshot.debt || null
 
+  const availableMargin = toFiniteNumber(cashflow.available ?? snapshot.available ?? snapshot.safetyMargin)
+  const projectedBalance = toFiniteNumber(cashflow.projected ?? snapshot.projectedBalance ?? forecast.finalBalance)
+  const remainingExpenses = toFiniteNumber(cashflow.remaining ?? snapshot.remainingExpenses)
+
   return {
-    margin: toFiniteNumber(cashflow.available),
-    remainingSpend: toFiniteNumber(cashflow.remaining),
+    margin: availableMargin,
+    remainingSpend: remainingExpenses,
     savingsAmount: toFiniteNumber(savings.amount),
-    forecastFinalBalance: toFiniteNumber(forecast.finalBalance, toFiniteNumber(cashflow.projected)),
-    lowestBalance: toFiniteNumber(forecast.lowestBalance, toFiniteNumber(cashflow.projected)),
+    forecastFinalBalance: projectedBalance,
+    lowestBalance: toFiniteNumber(forecast.lowestBalance, projectedBalance),
     debtTotal: debt ? toFiniteNumber(debt.total) : null,
     debtMonthlyTotal: debt ? toFiniteNumber(debt.monthlyTotal) : null
   }
