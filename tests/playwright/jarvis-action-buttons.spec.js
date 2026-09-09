@@ -10,7 +10,7 @@ test.describe('Jarvis dashboard action buttons', () => {
     })
     page.on('pageerror', (error) => consoleErrors.push(error.message))
 
-    await page.goto('http://localhost:4175/', { waitUntil: 'domcontentloaded' })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
     await page.locator('#loginDemoBtn').click()
     await page.waitForURL('**/#section-dashboard')
     await page.waitForFunction(() => typeof window.setNexoraUxMode === 'function')
