@@ -321,7 +321,7 @@ export function renderDashboardHero(rootId, metrics = {}, options = {}) {
   const metricsRail = documentRef.createElement('div')
   metricsRail.className = 'cockpit-hero__metrics nx-hero-card__sub-metrics'
   ;[
-    { label: 'Solde projeté', value: revReel > 0 || hasBudgetData ? fmt(solde) : '—', helper: 'Fin de cycle' },
+    { label: 'Solde projeté fin de mois', value: revReel > 0 || hasBudgetData ? fmt(solde) : '—', helper: 'Fin de cycle' },
     { label: 'Disponible', value: revReel > 0 || hasBudgetData ? fmt(Math.max(0, safetyMargin)) : '—', helper: 'Marge utile' },
     { label: 'À payer', value: revReel > 0 || hasBudgetData ? fmt(totalDepRestant) : '—', helper: 'Dépenses restantes' }
   ].forEach((metric) => {

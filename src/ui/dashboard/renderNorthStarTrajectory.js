@@ -16,6 +16,13 @@ const formatDate = (date) => {
   return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
 }
 
+const formatMonth = (date) => {
+  if (!date) return '—'
+  const value = date instanceof Date ? date : new Date(date)
+  if (isNaN(value.getTime())) return '—'
+  return value.toLocaleDateString('fr-FR', { month: 'long' })
+}
+
 const getDaysUntil = (date) => {
   if (!date) return null
   const d = date instanceof Date ? date : new Date(date)
@@ -31,28 +38,38 @@ const getDaysUntil = (date) => {
  * Build trajectory events from available financial data
  * Only uses real data that exists - never fabricates events
  */
-function buildTrajectoryEvents(metrics = {}) {
+export function buildTrajectoryEvents(metrics = {}) {
   const events = []
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  const currentBalance = toFiniteNumber(metrics.soldeEstime || metrics.currentBalance)
-  const projectedBalance = toFiniteNumber(metrics.solde || metrics.projectedBalance)
-  const remainingExpenses = toFiniteNumber(metrics.totalDepRestant || metrics.remainingExpenses)
-  const income = toFiniteNumber(metrics.revReel || metrics.income)
+  const hasValue = (keys) => keys.some((key) => metrics[key] !== undefined && metrics[key] !== null && Number.isFinite(Number(metrics[key])))
+  const hasCurrentBalance = hasValue(['soldeEstime', 'currentBalance'])
+  const hasProjectedBalance = hasValue(['solde', 'projectedBalance', 'projectedEndOfCycle'])
+  const hasRemainingExpenses = hasValue(['totalDepRestant', 'remainingExpenses', 'remainingToSpend'])
+  const hasIncome = hasValue(['revReel', 'income', 'totalRevenue'])
+  const currentBalance = toFiniteNumber(metrics.soldeEstime ?? metrics.currentBalance)
+  const projectedBalance = toFiniteNumber(metrics.solde ?? metrics.projectedBalance ?? metrics.projectedEndOfCycle)
+  const remainingExpenses = toFiniteNumber(metrics.totalDepRestant ?? metrics.remainingExpenses ?? metrics.remainingToSpend)
+  const income = toFiniteNumber(metrics.revReel ?? metrics.income ?? metrics.totalRevenue)
+
+  if (!hasCurrentBalance && !hasProjectedBalance && !hasRemainingExpenses && !hasIncome) return events
 
   // 1. Today's position
-  events.push({
-    type: 'today',
-    date: today,
-    label: "Aujourd'hui",
-    amount: currentBalance,
-    context: 'Solde actuel',
-    isCurrent: true
-  })
+  if (hasCurrentBalance) {
+    events.push({
+      type: 'today',
+      date: today,
+      label: "Aujourd'hui",
+      amount: currentBalance,
+      context: currentBalance < 0 ? 'Situation à surveiller.' : 'Situation maîtrisée.',
+      isCurrent: true,
+      displaySign: true
+    })
+  }
 
   // 2. Next significant expense (if data available)
-  if (remainingExpenses > 0 && metrics.nextExpenseDate) {
+  if (hasRemainingExpenses && remainingExpenses > 0 && metrics.nextExpenseDate) {
     const nextExpenseDate = new Date(metrics.nextExpenseDate)
     if (!isNaN(nextExpenseDate.getTime()) && nextExpenseDate > today) {
       const daysUntil = getDaysUntil(nextExpenseDate)
@@ -62,15 +79,17 @@ function buildTrajectoryEvents(metrics = {}) {
           date: nextExpenseDate,
           label: 'Prochaine dépense',
           amount: -Math.min(remainingExpenses, toFiniteNumber(metrics.nextExpenseAmount || remainingExpenses)),
-          context: daysUntil === 1 ? 'Demain' : daysUntil === 0 ? "Aujourd'hui" : `Dans ${daysUntil} jours`,
-          isRisk: currentBalance - remainingExpenses < 0
+          context: daysUntil === 1 ? 'Demain' : `Dans ${daysUntil} jours`,
+          explanation: 'Charge identifiée à venir.',
+          isRisk: currentBalance - remainingExpenses < 0,
+          displaySign: true
         })
       }
     }
   }
 
   // 3. Next income (if data available)
-  if (metrics.nextIncomeDate && income > 0) {
+  if (metrics.nextIncomeDate && hasIncome && income > 0) {
     const nextIncomeDate = new Date(metrics.nextIncomeDate)
     if (!isNaN(nextIncomeDate.getTime()) && nextIncomeDate > today) {
       const daysUntil = getDaysUntil(nextIncomeDate)
@@ -80,14 +99,30 @@ function buildTrajectoryEvents(metrics = {}) {
           date: nextIncomeDate,
           label: 'Prochaine rentrée',
           amount: toFiniteNumber(metrics.nextIncomeAmount || income),
-          context: daysUntil === 1 ? 'Demain' : daysUntil === 0 ? "Aujourd'hui" : `Dans ${daysUntil} jours`
+          context: daysUntil === 1 ? 'Demain' : `Dans ${daysUntil} jours`,
+          explanation: 'Revenu planifié.',
+          displaySign: true
         })
       }
     }
   }
 
+  if (hasRemainingExpenses && remainingExpenses > 0 && !events.some((event) => event.type === 'expense')) {
+    events.push({
+      type: 'upcoming',
+      date: new Date(today),
+      label: 'À venir',
+      amount: remainingExpenses,
+      secondaryAmount: hasIncome && income > 0 ? income : null,
+      secondaryLabel: hasIncome && income > 0 ? 'Revenus du cycle' : null,
+      context: 'Charges restantes',
+      explanation: `${formatEuro(remainingExpenses)} restent à couvrir avant la fin du cycle.`,
+      isRisk: hasCurrentBalance && currentBalance - remainingExpenses < 0
+    })
+  }
+
   // 4. End of cycle projection (if date available)
-  if (metrics.cycleEndDate) {
+  if (hasProjectedBalance && metrics.cycleEndDate) {
     const cycleEndDate = new Date(metrics.cycleEndDate)
     if (!isNaN(cycleEndDate.getTime()) && cycleEndDate > today) {
       const daysUntil = getDaysUntil(cycleEndDate)
@@ -96,11 +131,12 @@ function buildTrajectoryEvents(metrics = {}) {
         date: cycleEndDate,
         label: 'Fin de cycle',
         amount: projectedBalance,
-        context: daysUntil === 1 ? 'Demain' : daysUntil === 0 ? "Aujourd'hui" : `Dans ${daysUntil} jours`,
-        isRisk: projectedBalance < 0
+        context: projectedBalance < 0 ? 'Risque de découvert.' : 'Mois terminé dans le positif.',
+        isRisk: projectedBalance < 0,
+        displaySign: true
       })
     }
-  } else if (Number.isFinite(projectedBalance) && projectedBalance !== 0) {
+  } else if (hasProjectedBalance) {
     // 4b. Projection without explicit date - still show the conclusion
     const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
     events.push({
@@ -108,16 +144,14 @@ function buildTrajectoryEvents(metrics = {}) {
       date: endOfMonth,
       label: 'Fin de cycle',
       amount: projectedBalance,
-      context: 'Projection estimée',
-      isRisk: projectedBalance < 0
+      context: projectedBalance < 0 ? 'Risque de découvert.' : 'Mois terminé dans le positif.',
+      explanation: 'Projection estimée à partir des données du cycle.',
+      isRisk: projectedBalance < 0,
+      displaySign: true
     })
   }
 
-  // Sort events by date
-  events.sort((a, b) => a.date - b.date)
-
-  // Limit to 4-6 events max
-  return events.slice(0, 6)
+  return events
 }
 
 /**
@@ -131,7 +165,7 @@ export function renderNorthStarTrajectory(rootId, metrics = {}, options = {}) {
   if (!root) return
 
   const events = buildTrajectoryEvents(metrics)
-  const hasData = events.length > 1
+  const hasData = events.length > 0 && events.some((event) => event.type === 'cycle_end' || event.type === 'upcoming')
 
   // Remove existing trajectory
   const existing = root.querySelector('.north-star-trajectory')
@@ -144,7 +178,8 @@ export function renderNorthStarTrajectory(rootId, metrics = {}, options = {}) {
     limitedState.innerHTML = `
       <div class="north-star-trajectory__compact">
         <span class="north-star-trajectory__label">COMMENT VA FINIR MON MOIS ?</span>
-        <span class="north-star-trajectory__status">Données limitées — Complète ton budget</span>
+        <strong class="north-star-trajectory__limited-title">Analyse partielle</strong>
+        <span class="north-star-trajectory__status">Complète ton budget pour obtenir une projection fiable.</span>
       </div>
     `
     root.appendChild(limitedState)
@@ -161,17 +196,19 @@ export function renderNorthStarTrajectory(rootId, metrics = {}, options = {}) {
       <div class="north-star-trajectory__item ${event.isCurrent ? 'is-current' : ''} ${isRisk ? 'is-risk' : ''}">
         <div class="north-star-trajectory__marker"></div>
         <div class="north-star-trajectory__content">
-          <div class="north-star-trajectory__row north-star-trajectory__row--top">
-            <strong class="north-star-trajectory__date">${formatDate(event.date)}</strong>
+          <div class="north-star-trajectory__meta">
+            <span class="north-star-trajectory__label-text">${event.label}</span>
+            <strong class="north-star-trajectory__date">${event.type === 'upcoming' ? formatMonth(event.date) : formatDate(event.date)}</strong>
             <div class="north-star-trajectory__line"></div>
           </div>
-          <div class="north-star-trajectory__row north-star-trajectory__row--bottom">
+          <div class="north-star-trajectory__summary">
             <div class="north-star-trajectory__labels">
-              <strong class="north-star-trajectory__label-text">${event.label}</strong>
-              <span class="north-star-trajectory__context-text">${event.context}</span>
+              <strong class="north-star-trajectory__event-title">${event.type === 'today' ? 'Solde actuel' : event.type === 'upcoming' ? event.context : 'Projection'}</strong>
+              <span class="north-star-trajectory__context-text">${event.explanation || event.context}</span>
             </div>
-            <strong class="north-star-trajectory__amount ${amountClass}">${amountSign}${formatEuro(event.amount)}</strong>
+            <strong class="north-star-trajectory__amount ${amountClass}">${event.displaySign && event.amount >= 0 ? '+' : ''}${formatEuro(event.amount)}</strong>
           </div>
+          ${event.secondaryAmount !== null && event.secondaryAmount !== undefined ? `<span class="north-star-trajectory__secondary">${formatEuro(event.secondaryAmount)} ${event.secondaryLabel}</span>` : ''}
         </div>
       </div>
     `
@@ -182,6 +219,7 @@ export function renderNorthStarTrajectory(rootId, metrics = {}, options = {}) {
   trajectory.innerHTML = `
     <div class="north-star-trajectory__header">
       <span class="north-star-trajectory__title">COMMENT VA FINIR MON MOIS ?</span>
+      <span class="north-star-trajectory__status">${events.some((event) => event.isRisk) ? 'À surveiller' : 'Projection positive'}</span>
     </div>
     <div class="north-star-trajectory__timeline">
       ${timelineEvents}

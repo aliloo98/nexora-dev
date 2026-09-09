@@ -1331,3 +1331,145 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   white-space: nowrap !important;
 }
 
+/* V2.1 Financial Timeline */
+.dashboard-v2-cockpit .north-star-trajectory {
+  gap: 18px !important;
+  padding: 18px 20px !important;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)) !important;
+  border: 1px solid rgba(229, 192, 96, 0.14) !important;
+  border-radius: 14px !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__header {
+  align-items: baseline !important;
+  margin-bottom: 2px !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__title,
+.dashboard-v2-cockpit .north-star-trajectory__label {
+  color: var(--text) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__status {
+  color: var(--gold) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__timeline {
+  gap: 0 !important;
+  padding-left: 19px !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__timeline::before {
+  left: 4px !important;
+  top: 8px !important;
+  bottom: 8px !important;
+  width: 1px !important;
+  background: linear-gradient(var(--gold), rgba(143, 177, 255, 0.35), var(--green)) !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__item {
+  min-width: 0 !important;
+  padding: 0 0 22px 0 !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__item:last-child {
+  padding-bottom: 0 !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__marker {
+  left: -19px !important;
+  top: 5px !important;
+  width: 10px !important;
+  height: 10px !important;
+  background: var(--bg) !important;
+  border: 2px solid var(--gold) !important;
+  box-shadow: 0 0 0 3px rgba(229, 192, 96, 0.08) !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__item.is-current .north-star-trajectory__marker {
+  background: var(--gold) !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__item.is-risk .north-star-trajectory__marker {
+  border-color: var(--red) !important;
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1) !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__content {
+  gap: 6px !important;
+  min-width: 0 !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__meta {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__meta .north-star-trajectory__label-text {
+  color: var(--text2) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__date {
+  color: var(--text) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__line {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__summary {
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__event-title {
+  color: var(--text) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__context-text {
+  color: var(--text2) !important;
+  font-size: 11px !important;
+  line-height: 1.45 !important;
+  opacity: 1 !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__amount {
+  color: var(--green) !important;
+  font-size: 21px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__amount.negative,
+.dashboard-v2-cockpit .north-star-trajectory__item.is-risk .north-star-trajectory__amount {
+  color: var(--red) !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__secondary {
+  color: var(--gold) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory__limited-title {
+  color: var(--text) !important;
+  font-size: 16px !important;
+}
+.dashboard-v2-cockpit .north-star-trajectory--limited {
+  padding: 18px 20px !important;
+}
+
+@media (max-width: 430px) {
+  .dashboard-v2-cockpit .north-star-trajectory {
+    padding: 16px !important;
+  }
+  .dashboard-v2-cockpit .north-star-trajectory__header {
+    display: block !important;
+  }
+  .dashboard-v2-cockpit .north-star-trajectory__status {
+    display: block !important;
+    margin-top: 5px !important;
+  }
+  .dashboard-v2-cockpit .north-star-trajectory__summary {
+    align-items: flex-start !important;
+  }
+  .dashboard-v2-cockpit .north-star-trajectory__amount {
+    font-size: 19px !important;
+  }
+}
+

@@ -7,7 +7,10 @@ import { STORAGE_KEYS } from '../constants/storageKeys.js'
 import { readSyncedArray, writeSyncedArray } from '../../js/syncedSettingAccess.js'
 import { parseAmount } from './planFormatters.js'
 
-export const readDebts = async () => filterUserFacingRecords(await readSyncedArray(STORAGE_KEYS.debts, []))
+export const readDebts = async () => {
+  if (isDemoMode()) return demoPlanData().debts
+  return filterUserFacingRecords(await readSyncedArray(STORAGE_KEYS.debts, []))
+}
 
 export const saveDebts = async (debts) => writeSyncedArray(STORAGE_KEYS.debts, debts)
 
