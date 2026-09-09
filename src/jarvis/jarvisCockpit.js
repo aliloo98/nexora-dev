@@ -558,7 +558,10 @@ function renderTrajectoryPanel(viewModel) {
   const { trajectory } = viewModel
 
   const finalBalance = trajectory.finalBalance || 0
-  const lowestBalance = trajectory.lowestBalance || 0
+  const hasLowestBalance = trajectory.lowestBalance !== null
+    && trajectory.lowestBalance !== undefined
+    && Number.isFinite(Number(trajectory.lowestBalance))
+  const lowestBalance = hasLowestBalance ? Number(trajectory.lowestBalance) : null
   const isPositive = trajectory.cashflowPositive
 
   // If trends are unavailable, show message instead of hiding entire panel
@@ -585,7 +588,7 @@ function renderTrajectoryPanel(viewModel) {
       </div>
       <div class="jarvis-metric-card">
         <span class="jarvis-metric-label">Point le plus bas</span>
-        <span class="jarvis-metric-value" data-positive="${lowestBalance >= 0}">${formatCurrency(lowestBalance)}</span>
+        <span class="jarvis-metric-value" data-positive="${hasLowestBalance ? lowestBalance >= 0 : false}">${hasLowestBalance ? formatCurrency(lowestBalance) : '—'}</span>
       </div>
       ${trendsMarkup}
     </div>

@@ -272,12 +272,19 @@ function mapPriorityAndCta(priority) {
  */
 function mapTrajectory(forecast, trends, cashflow) {
   const isPositive = (cashflow?.projected || 0) >= 0
+  const hasLowestBalanceDay = forecast?.lowestBalanceDay !== null
+    && forecast?.lowestBalanceDay !== undefined
+    && Number.isFinite(Number(forecast.lowestBalanceDay))
+  const hasLowestBalance = hasLowestBalanceDay
+    && forecast?.lowestBalance !== null
+    && forecast?.lowestBalance !== undefined
+    && Number.isFinite(Number(forecast.lowestBalance))
 
   return {
     available: !!forecast && forecast.finalBalance !== undefined,
     finalBalance: forecast?.finalBalance || 0,
-    lowestBalance: forecast?.lowestBalance || 0,
-    lowestBalanceDay: forecast?.lowestBalanceDay || null,
+    lowestBalance: hasLowestBalance ? Number(forecast.lowestBalance) : null,
+    lowestBalanceDay: hasLowestBalanceDay ? Number(forecast.lowestBalanceDay) : null,
     overdraftRisk: forecast?.overdraftRisk || 'NONE',
     cashflowPositive: isPositive,
     trendsAvailable: trends?.available === true,

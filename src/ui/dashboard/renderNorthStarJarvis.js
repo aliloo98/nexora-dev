@@ -10,9 +10,23 @@ const escapeHtml = (value) => String(value ?? '')
   .replace(/'/g, '&#39;')
 
 const formatFactValue = (fact) => {
+  if (fact?.value === null || fact?.value === undefined || fact?.value === '') return '—'
   const number = Number(fact?.value)
   if (!Number.isFinite(number)) return escapeHtml(fact?.value || '')
   return /jour/i.test(String(fact?.label || '')) ? String(number) : formatEuro(number)
+}
+
+const withTrajectoryFacts = (facts, context = {}) => {
+  const result = Array.isArray(facts) ? [...facts] : []
+  const labels = new Set(result.map((fact) => fact?.label))
+  const trajectory = context?.trajectory || {}
+  if (!labels.has('Point le plus bas')) {
+    result.push({ label: 'Point le plus bas', value: trajectory.lowestBalance ?? null })
+  }
+  if (!labels.has('Jour du point le plus bas')) {
+    result.push({ label: 'Jour du point le plus bas', value: trajectory.lowestBalanceDay ?? null })
+  }
+  return result
 }
 
 const buildCopilotSnapshot = (decision, context = {}, metrics = {}) => {
@@ -111,7 +125,9 @@ export function renderNorthStarJarvis(rootIdOrElement, decision, context, docume
     return panel
   }
 
-  const facts = enrichment.facts.map((fact) => `<li>${escapeHtml(fact.label)} : <strong>${formatFactValue(fact)}</strong></li>`).join('')
+  const facts = withTrajectoryFacts(enrichment.facts, context)
+    .map((fact) => `<li>${escapeHtml(fact.label)} : <strong>${formatFactValue(fact)}</strong></li>`)
+    .join('')
   const recommendation = enrichment.recommendation
   const recommendationMarkup = recommendation
     ? `<button type="button" class="north-star-jarvis__action"${recommendation.target ? ` data-target-section="${escapeHtml(recommendation.target)}"` : ''}>→ ${escapeHtml(recommendation.label)}</button>`

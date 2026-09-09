@@ -35,6 +35,8 @@ function testHealthyState() {
   assert.strictEqual(vm.capabilities.core, true, 'Core should be available')
   assert.strictEqual(vm.priority, null, 'No priority when healthy')
   assert.strictEqual(vm.trajectory.available, true, 'Trajectory should be available')
+  assert.strictEqual(vm.trajectory.lowestBalance, 200, 'Real lowest balance should be preserved')
+  assert.strictEqual(vm.trajectory.lowestBalanceDay, 15, 'Real lowest balance day should be preserved')
   assert.strictEqual(vm.cashflow?.income, 3000, 'Cashflow income should match')
   assert.strictEqual(vm.cashflow?.projected, 1000, 'Cashflow projected should match')
   assert.strictEqual(vm.savings?.rate, 33, 'Savings rate should match')
@@ -94,6 +96,8 @@ function testNoIncome() {
   assert.strictEqual(vm.visualState, 'no_income', 'Visual state should be no_income')
   assert.strictEqual(vm.headline, 'J\'ai besoin de revenus pour établir une analyse.', 'Headline should match no_income')
   assert.strictEqual(vm.priority.id, 'secure_income', 'Priority should be secure_income')
+  assert.strictEqual(vm.trajectory.lowestBalance, null, 'Missing lowest balance should stay absent')
+  assert.strictEqual(vm.trajectory.lowestBalanceDay, null, 'Missing lowest balance day should stay absent')
   assert.strictEqual(vm.dataQuality.isComplete, false, 'Data quality should be incomplete')
 }
 

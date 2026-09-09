@@ -12,6 +12,12 @@ const toFiniteNumber = (value, fallback = 0) => {
   return Number.isFinite(number) ? number : fallback
 }
 
+const toOptionalFiniteNumber = (value) => {
+  if (value === null || value === undefined || value === '') return null
+  const number = Number(value)
+  return Number.isFinite(number) ? number : null
+}
+
 /**
  * Determines the financial situation from Dashboard metrics
  * Mirrors the logic from buildSituationCopy in renderDashboardHero.js
@@ -92,7 +98,7 @@ export function buildSnapshotFromDashboardMetrics(metrics = {}, extraData = {}) 
   const totalDepReel = toFiniteNumber(metrics.totalDepReel ?? (fixReel + varReel))
   const tauxCh = toFiniteNumber(metrics.tauxCh)
   const variablesPct = toFiniteNumber(metrics.variablesPct)
-  const lowestBalance = toFiniteNumber(metrics.lowestBalance)
+  const lowestBalance = toOptionalFiniteNumber(metrics.lowestBalance)
 
   // Use real metrics from updateAll() - these are now included in the dashboardMetrics object
   const income = revReel

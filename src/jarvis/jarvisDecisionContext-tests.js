@@ -67,6 +67,8 @@ const incomplete = createJarvisDecisionContext({ dataQuality: { isComplete: fals
 assert.equal(incomplete.priority, null, 'Incomplete ViewModels should remain safe')
 assert.deepEqual(incomplete.risks, [], 'Missing risks should become an empty list')
 assert.equal(incomplete.trajectory.finalBalance, null, 'Missing trajectory values should remain null')
+assert.equal(incomplete.trajectory.lowestBalance, null, 'Missing lowest balance should remain null')
+assert.equal(incomplete.trajectory.lowestBalanceDay, null, 'Missing lowest balance day should remain null')
 
 clearJarvisDecisionContext()
 assert.equal(notificationCount, 2, 'Clearing the context should notify consumers with null')
