@@ -286,11 +286,32 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   padding: 16px 0 !important;
 }
 
-/* INSIGHT SECTION - Trajectory + Jarvis integrated */
-.cockpit-insight-section {
+.cockpit-command-section {
   display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr) !important;
   gap: 24px !important;
+  align-items: stretch !important;
+  padding: 0 !important;
+}
+
+.cockpit-command-section > * {
+  min-width: 0 !important;
+}
+
+.cockpit-trajectory-section {
+  display: flex !important;
+  align-items: stretch !important;
+  min-width: 0 !important;
+  padding: 16px 0 !important;
+}
+
+.cockpit-trajectory-section > * {
+  width: 100% !important;
+}
+
+/* INSIGHT SECTION - Jarvis full-width interpreter */
+.cockpit-insight-section {
+  display: block !important;
   padding: 16px 0 !important;
 }
 
@@ -1044,6 +1065,11 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
     text-align: left !important;
   }
 
+  .cockpit-command-section {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
   .cockpit-insight-section {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
@@ -1051,7 +1077,7 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   }
 
   .dashboard-v2-cockpit .cockpit-insight__jarvis {
-    order: -1 !important;
+    order: 0 !important;
     border-color: rgba(35, 206, 215, 0.68) !important;
     background: radial-gradient(circle at 90% 0%, rgba(35, 206, 215, 0.16), transparent 45%), #071923 !important;
     box-shadow: 0 0 24px rgba(35, 206, 215, 0.08), inset 0 1px rgba(255, 255, 255, 0.06) !important;
@@ -1756,18 +1782,18 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-analytics-section {
 @media (min-width: 960px) {
   .dashboard-v2-cockpit {
     display: grid !important;
-    grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.8fr) !important;
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr) !important;
     grid-template-areas:
       'situation situation'
-      'decision decision'
-      'insight insight'
+      'command command'
+      'jarvis jarvis'
       'analytics engagements' !important;
     align-items: start !important;
   }
 
   .dashboard-v2-cockpit .cockpit-situation-section { grid-area: situation !important; }
-  .dashboard-v2-cockpit .cockpit-decision-section { grid-area: decision !important; }
-  .dashboard-v2-cockpit .cockpit-insight-section { grid-area: insight !important; }
+  .dashboard-v2-cockpit .cockpit-command-section { grid-area: command !important; }
+  .dashboard-v2-cockpit .cockpit-insight-section { grid-area: jarvis !important; }
   .dashboard-v2-cockpit .cockpit-analytics-section { grid-area: analytics !important; }
   .dashboard-v2-cockpit .cockpit-engagements-section { grid-area: engagements !important; }
 

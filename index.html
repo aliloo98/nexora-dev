@@ -166,16 +166,18 @@ body.auth-locked > #nexora-status-bar {
           </div>
         </div>
 
-        <!-- PRIORITÉ - La décision -->
-        <div class="cockpit-decision-section">
-          <div id="priority-root"></div>
-        </div>
-
-        <!-- TRAJECTOIRE + JARVIS INTEGRÉ - L'histoire et l'explication -->
-        <div class="cockpit-insight-section" data-dashboard-mode="complete">
-          <div class="cockpit-insight__trajectory">
+        <!-- COMMAND CENTER - PRIORITÉ + TRAJECTOIRE -->
+        <div class="cockpit-command-section">
+          <div class="cockpit-decision-section">
+            <div id="priority-root"></div>
+          </div>
+          <div class="cockpit-trajectory-section">
             <div id="trajectory-root"></div>
           </div>
+        </div>
+
+        <!-- JARVIS - INTERPRÈTE DU COCKPIT -->
+        <div class="cockpit-insight-section" data-dashboard-mode="complete">
           <div class="cockpit-insight__jarvis">
             <div id="jarvis-root"></div>
           </div>
