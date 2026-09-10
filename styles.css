@@ -2808,32 +2808,43 @@ body.mode-simple .dashboard-secondary-kpis {
 .dashboard-v2-cockpit {
   display: flex !important;
   flex-direction: column !important;
-  gap: 40px !important;
+  gap: 30px !important;
   max-width: 1400px !important;
   margin: 0 auto !important;
-  padding: 0 32px !important;
+  padding: 0 24px !important;
 }
 
 /* SITUATION SECTION - Hero + KPIs integrated */
 .cockpit-situation-section {
   display: flex !important;
   flex-direction: column !important;
-  gap: 24px !important;
-  padding: 40px 0 !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  gap: 18px !important;
+  padding: 28px 0 22px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0)) !important;
+  animation: fadeInUp 0.18s ease-out both;
 }
 
 .cockpit-situation__kpis {
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  gap: 24px !important;
-  padding-top: 24px !important;
+  gap: 16px !important;
+  padding-top: 18px !important;
 }
 
 .cockpit-situation__kpi {
   display: flex !important;
   flex-direction: column !important;
   gap: 4px !important;
+  padding: 14px 14px 12px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  background: rgba(255, 255, 255, 0.015) !important;
+  transition: transform 100ms ease, border-color 100ms ease, box-shadow 100ms ease;
+}
+
+.cockpit-situation__kpi:hover {
+  transform: translateY(-0.15px);
 }
 
 .cockpit-situation__kpi-label {
@@ -2852,20 +2863,22 @@ body.mode-simple .dashboard-secondary-kpis {
 
 /* DECISION SECTION - Priority */
 .cockpit-decision-section {
-  padding: 32px 0 !important;
+  padding: 0 !important;
+  animation: fadeInUp 0.2s ease-out 0.02s both;
 }
 
 /* INSIGHT SECTION - Trajectory + Jarvis integrated */
 .cockpit-insight-section {
   display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 32px !important;
-  padding: 32px 0 !important;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr) !important;
+  gap: 24px !important;
+  padding: 0 !important;
+  animation: fadeInUp 0.2s ease-out 0.03s both;
 }
 
 /* ENGAGEMENTS SECTION - Compact row */
 .cockpit-engagements-section {
-  padding: 32px 0 !important;
+  padding: 18px 0 0 !important;
   border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 
@@ -2879,6 +2892,15 @@ body.mode-simple .dashboard-secondary-kpis {
   display: flex !important;
   flex-direction: column !important;
   gap: 12px !important;
+  padding: 16px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  background: rgba(255, 255, 255, 0.012) !important;
+  transition: transform 100ms ease, border-color 100ms ease, box-shadow 100ms ease;
+}
+
+.cockpit-engagement:hover {
+  transform: translateY(-0.15px);
 }
 
 .cockpit-engagement__label {
@@ -2897,12 +2919,19 @@ body.mode-simple .dashboard-secondary-kpis {
 }
 
 .cockpit-hero__context {
+  display: inline-flex !important;
+  align-self: flex-start !important;
+  align-items: center !important;
   font-size: 11px !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   letter-spacing: 0.15em !important;
   text-transform: uppercase !important;
-  color: var(--text2) !important;
-  opacity: 0.7 !important;
+  color: var(--gold2) !important;
+  opacity: 1 !important;
+  padding: 6px 10px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(228, 192, 96, 0.28) !important;
+  background: rgba(228, 192, 96, 0.08) !important;
 }
 
 .cockpit-hero__amount {
@@ -2936,8 +2965,8 @@ body.mode-simple .dashboard-secondary-kpis {
 .cockpit-hero__metrics {
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  gap: 20px !important;
-  padding-top: 20px !important;
+  gap: 12px !important;
+  padding-top: 16px !important;
   border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 
@@ -2945,6 +2974,15 @@ body.mode-simple .dashboard-secondary-kpis {
   display: flex !important;
   flex-direction: column !important;
   gap: 4px !important;
+  padding: 12px 12px 10px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  background: rgba(255, 255, 255, 0.01) !important;
+  transition: transform 100ms ease, border-color 100ms ease, box-shadow 100ms ease;
+}
+
+.cockpit-hero__metric:hover {
+  transform: translateY(-0.15px);
 }
 
 .cockpit-hero__metric-label {
@@ -2962,32 +3000,47 @@ body.mode-simple .dashboard-secondary-kpis {
 }
 
 /* Mobile */
+@media (prefers-reduced-motion: reduce) {
+  .cockpit-situation-section,
+  .cockpit-decision-section,
+  .cockpit-insight-section,
+  .dashboard-analytics,
+  .cockpit-situation__kpi,
+  .cockpit-hero__metric,
+  .cockpit-engagement,
+  .dashboard-analytics__legend-row {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 @media (max-width: 430px) {
   .dashboard-v2-cockpit {
-    gap: 32px;
-    padding: 0 16px;
+    gap: 20px;
+    padding: 0 12px;
   }
 
   .cockpit-situation-section {
-    padding: 32px 0;
-    gap: 20px;
+    padding: 18px 0 12px;
+    gap: 12px;
   }
 
   .cockpit-situation__kpis {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    padding-top: 12px;
   }
 
   .cockpit-situation__kpi-value {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .cockpit-hero {
-    gap: 16px;
+    gap: 14px;
   }
 
   .cockpit-hero__amount {
-    font-size: 48px;
+    font-size: 46px;
   }
 
   .cockpit-hero__message {
@@ -2995,23 +3048,24 @@ body.mode-simple .dashboard-secondary-kpis {
   }
 
   .cockpit-hero__metrics {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    padding-top: 12px;
   }
 
   .cockpit-decision-section {
-    padding: 24px 0;
+    padding: 0;
   }
 
   .cockpit-insight-section {
     grid-template-columns: 1fr;
-    gap: 24px;
-    padding: 24px 0;
+    gap: 20px;
+    padding: 0;
   }
 
   .cockpit-engagements-row {
     grid-template-columns: 1fr;
-    gap: 24px;
+    gap: 20px;
   }
 }
 
@@ -3033,6 +3087,210 @@ body.mode-simple .dashboard-secondary-kpis {
 /* PRIORITÉ - The decision */
 .cockpit-priority-section {
   padding: 0 4px;
+}
+
+.dashboard-analytics {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 18px 0 0;
+  animation: fadeInUp 0.18s ease-out 0.03s both;
+}
+
+.dashboard-analytics__header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dashboard-analytics__eyebrow {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold2);
+}
+
+.dashboard-analytics__title {
+  margin: 4px 0 0;
+  font-size: clamp(20px, 1.8vw, 28px);
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.dashboard-analytics__caption {
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.dashboard-analytics__body {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 20px;
+  align-items: center;
+}
+
+.dashboard-analytics__donut-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.dashboard-analytics__donut {
+  --fixed-pct: 60%;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--gold) 0 var(--fixed-pct),
+    rgba(255, 255, 255, 0.18) var(--fixed-pct) 100%
+  );
+  position: relative;
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.dashboard-analytics__donut::before {
+  content: '';
+  position: absolute;
+  inset: 18px;
+  border-radius: 50%;
+  background: rgba(7, 7, 10, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dashboard-analytics__donut-hole {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.dashboard-analytics__donut-hole strong {
+  font-size: 26px;
+  line-height: 1;
+  color: var(--text);
+}
+
+.dashboard-analytics__donut-hole span {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text2);
+}
+
+.dashboard-analytics__legend {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dashboard-analytics__legend-row {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  color: var(--text2);
+  font-size: 13px;
+  transition: transform 100ms ease, opacity 100ms ease;
+}
+
+.dashboard-analytics__legend-row:hover {
+  transform: translateX(0.15px);
+}
+
+.dashboard-analytics__swatch {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dashboard-analytics__swatch--fixed {
+  background: var(--gold);
+}
+
+.dashboard-analytics__swatch--variable {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.dashboard-analytics__legend-row strong {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.dashboard-analytics__legend-row small {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold2);
+}
+
+.dashboard-analytics__flow {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dashboard-analytics__flow-header,
+.dashboard-analytics__flow-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text2);
+  font-size: 13px;
+}
+
+.dashboard-analytics__flow-header strong,
+.dashboard-analytics__flow-summary strong {
+  color: var(--text);
+  font-size: 16px;
+}
+
+.dashboard-analytics__flow-track {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.dashboard-analytics__flow-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--cyan), rgba(93, 235, 255, 0.8));
+}
+
+.dashboard-analytics__flow-track--expense span {
+  background: linear-gradient(90deg, var(--gold), rgba(229, 192, 96, 0.8));
+}
+
+.dashboard-analytics__flow-summary {
+  padding-top: 4px;
+}
+
+.dashboard-analytics__empty {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px 0;
+  color: var(--text2);
+}
+
+.dashboard-analytics__empty strong {
+  color: var(--text);
 }
 
 /* TRAJECTOIRE NARRATIVE - The story */
