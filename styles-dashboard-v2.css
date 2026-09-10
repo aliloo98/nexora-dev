@@ -1237,7 +1237,12 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   aspect-ratio: 1 !important;
   place-items: center !important;
   border-radius: 50% !important;
+  background: transparent !important;
   box-shadow: 0 0 28px rgba(43, 200, 208, 0.11) !important;
+}
+
+.dashboard-analytics__donut::before {
+  display: none !important;
 }
 
 .dashboard-analytics__donut-svg {
