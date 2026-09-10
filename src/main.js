@@ -65,6 +65,7 @@ import { initJarvisDashboardIntegration } from './jarvis/jarvisCockpit.js'
 import { renderNorthStarTrajectory } from './ui/dashboard/renderNorthStarTrajectory.js'
 import { renderNorthStarDebts } from './ui/dashboard/renderNorthStarDebts.js'
 import { renderNorthStarGoals } from './ui/dashboard/renderNorthStarGoals.js'
+import { renderDashboardAnalytics } from './ui/dashboard/renderDashboardAnalytics.js'
 
 
 import { renderBudgetCoach, buildBudgetCoachState } from './ui/budgetCoach.js'
@@ -119,6 +120,7 @@ installLegacyBridge({
   renderDashboardGoalCard,
   renderDashboardKpiStrip,
   renderDashboardQuickView,
+  renderDashboardAnalytics,
 
   renderDashboardAlerts,
   renderAssistantInsights,

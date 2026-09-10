@@ -181,6 +181,10 @@ body.auth-locked > #nexora-status-bar {
           </div>
         </div>
 
+        <div class="cockpit-analytics-section" data-dashboard-mode="complete">
+          <div id="dashboard-analytics-root"></div>
+        </div>
+
         <!-- ENGAGEMENTS - Objectifs et Dettes compact -->
         <div class="cockpit-engagements-section" data-dashboard-mode="complete">
           <div class="cockpit-engagements-row">
@@ -4292,6 +4296,12 @@ function updateAll(){
         fixReel,
         varReel,
         totalDepReel,
+        fixedExpenses: fixReel,
+        variableExpenses: varReel,
+        expenses: totalDepReel,
+        income: revReel,
+        projectedBalance: solde,
+        available: safetyMargin,
         savingsRate,
         hydrationComplete,
         annualProjection,
@@ -4309,6 +4319,10 @@ function updateAll(){
         onAction: (section) => {
           if (typeof showSection === 'function') showSection(section);
         }
+      });
+      window.renderDashboardAnalytics?.('dashboard-analytics-root', dashboardMetrics, {
+        documentRef: document,
+        windowRef: window
       });
     } catch (err) {
       console.error('[DASHBOARD] renderDashboardHero error:', err);

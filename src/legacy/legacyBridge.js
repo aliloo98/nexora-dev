@@ -44,6 +44,7 @@ export function installLegacyBridge(dependencies) {
     renderDashboardGoalCard,
     renderDashboardKpiStrip,
     renderDashboardQuickView,
+    renderDashboardAnalytics,
     renderDashboardAlerts,
     renderAssistantInsights,
     renderDashboardCoach,
@@ -102,6 +103,7 @@ export function installLegacyBridge(dependencies) {
   window.renderDashboardGoalCard = renderDashboardGoalCard
   window.renderDashboardKpiStrip = renderDashboardKpiStrip
   window.renderDashboardQuickView = renderDashboardQuickView
+  window.renderDashboardAnalytics = renderDashboardAnalytics
   window.renderDashboardAlerts = renderDashboardAlerts
   window.renderAssistantInsights = renderAssistantInsights
   window.renderDashboardCoach = renderDashboardCoach
