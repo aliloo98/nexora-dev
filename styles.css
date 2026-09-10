@@ -333,6 +333,36 @@ body {
   min-height: 100vh;
   overflow-x: clip;
   overflow-y: visible;
+  position: relative;
+}
+
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: auto;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(90px);
+  opacity: 0.9;
+}
+
+body::before {
+  top: -140px;
+  right: -120px;
+  width: 440px;
+  height: 440px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(229, 192, 96, 0.28) 0%, rgba(229, 192, 96, 0.08) 28%, transparent 68%);
+}
+
+body::after {
+  left: -140px;
+  bottom: -80px;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0.08) 28%, transparent 68%);
 }
 
 .budget-entry-guide-root {
@@ -2218,6 +2248,8 @@ body,
 
 /* MAIN */
 .main {
+  position: relative;
+  z-index: 1;
   margin-left: 168px;
   flex: 1;
   padding: 40px 48px var(--save-bar-clearance);
@@ -2225,6 +2257,12 @@ body,
   width: calc(100% - 168px);
   min-height: 100vh;
   overflow: visible;
+  background: rgba(9, 10, 17, 0.38);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 30px;
+  box-shadow: 0 24px 90px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 /* HEADER */
@@ -2813,7 +2851,11 @@ body.mode-simple .dashboard-secondary-kpis {
   gap: 30px !important;
   max-width: 1400px !important;
   margin: 0 auto !important;
-  padding: 0 24px !important;
+  padding: 26px 24px 18px !important;
+  border-radius: 28px !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 24px 60px rgba(0, 0, 0, 0.18) !important;
 }
 
 /* SITUATION SECTION - Hero + KPIs integrated */
@@ -2821,9 +2863,12 @@ body.mode-simple .dashboard-secondary-kpis {
   display: flex !important;
   flex-direction: column !important;
   gap: 18px !important;
-  padding: 28px 0 22px !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09) !important;
-  background: linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0)) !important;
+  padding: 28px 20px 22px !important;
+  border-radius: 22px !important;
+  border: 1px solid rgba(229, 192, 96, 0.14) !important;
+  border-bottom-color: rgba(229, 192, 96, 0.2) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0.01)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04) !important;
   animation: fadeInUp 0.18s ease-out both;
 }
 
@@ -2897,7 +2942,8 @@ body.mode-simple .dashboard-secondary-kpis {
   padding: 16px !important;
   border-radius: 14px !important;
   border: 1px solid rgba(255, 255, 255, 0.06) !important;
-  background: rgba(255, 255, 255, 0.012) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0.006)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03) !important;
   transition: transform 100ms ease, border-color 100ms ease, box-shadow 100ms ease;
 }
 
@@ -2942,6 +2988,7 @@ body.mode-simple .dashboard-secondary-kpis {
   line-height: 1 !important;
   letter-spacing: -0.02em !important;
   color: var(--text) !important;
+  text-shadow: 0 12px 32px rgba(0, 0, 0, 0.3) !important;
 }
 
 .cockpit-hero__amount--positive {
@@ -3095,7 +3142,11 @@ body.mode-simple .dashboard-secondary-kpis {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  padding: 18px 0 0;
+  padding: 18px 18px 0;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0.005));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
   animation: fadeInUp 0.18s ease-out 0.03s both;
 }
 
