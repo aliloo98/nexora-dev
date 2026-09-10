@@ -15,8 +15,73 @@ const escapeHtml = (value) => String(value ?? '')
   .replace(/"/g, '&quot;')
   .replace(/'/g, '&#039;')
 
+const getReducedMotion = (windowRef) => {
+  if (typeof windowRef?.matchMedia !== 'function') return false
+  return windowRef.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+const scheduleFrame = (windowRef, callback) => {
+  if (typeof windowRef?.requestAnimationFrame === 'function') {
+    windowRef.requestAnimationFrame(callback)
+    return
+  }
+
+  setTimeout(callback, 16)
+}
+
+const animateNumericText = ({ element, target, format, duration = 650, windowRef }) => {
+  if (!element) return
+
+  const targetValue = Number.isFinite(Number(target)) ? Number(target) : 0
+  const startValue = 0
+  const startTime = performance.now()
+
+  const update = (now) => {
+    const elapsed = now - startTime
+    const progress = Math.min(1, elapsed / duration)
+    const eased = 1 - Math.pow(1 - progress, 3)
+    const currentValue = startValue + (targetValue - startValue) * eased
+    element.textContent = format(currentValue)
+
+    if (progress < 1) {
+      scheduleFrame(windowRef, update)
+    }
+  }
+
+  if (targetValue === 0) {
+    element.textContent = format(0)
+    return
+  }
+
+  scheduleFrame(windowRef, update)
+}
+
+const revealDonut = ({ analytics, fixedPct, variablePct, isReducedMotion, windowRef }) => {
+  const fixedSegment = analytics.querySelector('.dashboard-analytics__donut-segment--fixed')
+  const variableSegment = analytics.querySelector('.dashboard-analytics__donut-segment--variable')
+  if (!fixedSegment || !variableSegment) return
+
+  if (isReducedMotion) {
+    fixedSegment.setAttribute('stroke-dasharray', `${fixedPct} ${100 - fixedPct}`)
+    variableSegment.setAttribute('stroke-dasharray', `${variablePct} ${100 - variablePct}`)
+    variableSegment.setAttribute('stroke-dashoffset', String(-fixedPct))
+    return
+  }
+
+  fixedSegment.setAttribute('stroke-dasharray', `0 ${100 - fixedPct}`)
+  variableSegment.setAttribute('stroke-dasharray', `0 ${100 - variablePct}`)
+  variableSegment.setAttribute('stroke-dashoffset', '0')
+
+  scheduleFrame(windowRef, () => {
+    fixedSegment.setAttribute('stroke-dasharray', `${fixedPct} ${100 - fixedPct}`)
+    variableSegment.setAttribute('stroke-dasharray', `${variablePct} ${100 - variablePct}`)
+    variableSegment.setAttribute('stroke-dashoffset', String(-fixedPct))
+  })
+}
+
 export function renderDashboardAnalytics(rootId, metrics = {}, options = {}) {
   const documentRef = options.documentRef || document
+  const windowRef = options.windowRef || documentRef.defaultView || window
   const root = documentRef.getElementById(rootId)
   if (!root) return
 
@@ -31,6 +96,7 @@ export function renderDashboardAnalytics(rootId, metrics = {}, options = {}) {
   const variablePct = total > 0 ? Math.max(0, 100 - fixedPct) : 0
   const incomePct = income > 0 ? Math.min(100, Math.round((expenses / income) * 100)) : 0
   const hasData = income > 0 || total > 0
+  const isReducedMotion = getReducedMotion(windowRef)
 
   const analytics = documentRef.createElement('section')
   analytics.className = 'dashboard-analytics'
@@ -46,9 +112,14 @@ export function renderDashboardAnalytics(rootId, metrics = {}, options = {}) {
     ${hasData ? `
       <div class="dashboard-analytics__body">
         <div class="dashboard-analytics__donut-wrap">
-          <div class="dashboard-analytics__donut" style="--fixed-pct: ${fixedPct}%;" aria-label="${fixedPct}% de charges fixes et ${variablePct}% de dépenses variables">
+          <div class="dashboard-analytics__donut" aria-label="${fixedPct}% de charges fixes et ${variablePct}% de dépenses variables">
+            <svg class="dashboard-analytics__donut-svg" viewBox="0 0 120 120" role="img" aria-hidden="true">
+              <circle cx="60" cy="60" r="42" class="dashboard-analytics__donut-track"></circle>
+              <circle cx="60" cy="60" r="42" class="dashboard-analytics__donut-segment dashboard-analytics__donut-segment--fixed" pathLength="100" stroke-dasharray="0 100" stroke-dashoffset="0"></circle>
+              <circle cx="60" cy="60" r="42" class="dashboard-analytics__donut-segment dashboard-analytics__donut-segment--variable" pathLength="100" stroke-dasharray="0 100" stroke-dashoffset="0"></circle>
+            </svg>
             <div class="dashboard-analytics__donut-hole">
-              <strong>${formatEuro(total)}</strong>
+              <strong class="dashboard-analytics__donut-value">${formatEuro(0)}</strong>
               <span>Dépenses</span>
             </div>
           </div>
@@ -72,6 +143,32 @@ export function renderDashboardAnalytics(rootId, metrics = {}, options = {}) {
   `
 
   root.replaceChildren(analytics)
+
+  if (hasData) {
+    revealDonut({
+      analytics,
+      fixedPct,
+      variablePct,
+      isReducedMotion,
+      windowRef
+    })
+
+    const donutValue = analytics.querySelector('.dashboard-analytics__donut-value')
+    if (donutValue) {
+      if (isReducedMotion) {
+        donutValue.textContent = formatEuro(total)
+      } else {
+        animateNumericText({
+          element: donutValue,
+          target: total,
+          format: formatEuro,
+          duration: 650,
+          windowRef
+        })
+      }
+    }
+  }
+
   return analytics
 }
 
