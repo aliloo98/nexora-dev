@@ -2238,9 +2238,11 @@ body,
 }
 
 .header h1 {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 30px;
+  font-weight: 800;
   letter-spacing: -0.5px;
+  padding: 6px 0;
+  text-shadow: 0 0 18px rgba(229, 192, 96, 0.18);
 }
 
 .header h1 span {
@@ -11928,17 +11930,25 @@ body.mode-simple .home-goal-summary {
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.1;
-  margin: 4px 0 0;
+  margin: 8px 0 0;
+  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
 }
 
 #section-dashboard .dashboard-eyebrow,
 #section-dashboard .dashboard-card__eyebrow {
   color: var(--gold2);
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(229, 192, 96, 0.28);
+  background: rgba(229, 192, 96, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
 #section-dashboard .dashboard-panel {
