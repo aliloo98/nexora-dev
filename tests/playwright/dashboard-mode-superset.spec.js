@@ -39,7 +39,7 @@ async function expectNorthStar(page, { complete = false } = {}) {
     await expect(page.locator('#goal-progress-root')).toBeVisible()
     await expect(page.locator('#debts-summary-root')).toBeVisible()
   } else {
-    await expect(page.locator('#trajectory-root')).toBeHidden()
+    await expect(page.locator('#trajectory-root')).toBeVisible()
     await expect(page.locator('#jarvis-root .jarvis-copilot')).toBeHidden()
   }
 

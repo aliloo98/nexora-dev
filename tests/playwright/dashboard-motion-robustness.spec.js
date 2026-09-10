@@ -200,8 +200,9 @@ test.describe('Dashboard Motion V1 robustness', () => {
     // Wait for the canonical Simple-mode state
     await expect(page.locator('body')).toHaveClass(/mode-simple/)
 
-    // Verify the real Complete-only surfaces are hidden in Simple mode
-    await expect(page.locator('#trajectory-root')).toBeHidden()
+    // Verify the real Complete-only surfaces are hidden in Simple mode,
+    // while the V2 trajectory surface remains visible in the Simple cockpit.
+    await expect(page.locator('#trajectory-root')).toBeVisible()
     await expect(page.locator('#jarvis-root .north-star-jarvis')).toBeHidden()
 
     const after = await page.evaluate(() => {
