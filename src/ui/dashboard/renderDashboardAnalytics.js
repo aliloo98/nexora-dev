@@ -117,8 +117,15 @@ export function renderDashboardAnalytics(rootId, metrics = {}, options = {}) {
               <circle cx="60" cy="60" r="42" class="dashboard-analytics__donut-track"></circle>
               <circle cx="60" cy="60" r="42" class="dashboard-analytics__donut-segment dashboard-analytics__donut-segment--fixed" pathLength="100" stroke-dasharray="0 100" stroke-dashoffset="0"></circle>
               <circle cx="60" cy="60" r="42" class="dashboard-analytics__donut-segment dashboard-analytics__donut-segment--variable" pathLength="100" stroke-dasharray="0 100" stroke-dashoffset="0"></circle>
-              <g class="dashboard-analytics__donut-particle" aria-hidden="true">
-                <circle cx="60" cy="21" r="2.5"></circle>
+              <defs>
+                <linearGradient id="dashboard-donut-pulse" x1="48" y1="21" x2="72" y2="21" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#53e3e7" stop-opacity="0"></stop>
+                  <stop offset="0.5" stop-color="#b8ffff" stop-opacity="1"></stop>
+                  <stop offset="1" stop-color="#53e3e7" stop-opacity="0"></stop>
+                </linearGradient>
+              </defs>
+              <g class="dashboard-analytics__donut-pulse" aria-hidden="true">
+                <path d="M48 21H72" pathLength="24"></path>
               </g>
             </svg>
             <div class="dashboard-analytics__donut-hole">

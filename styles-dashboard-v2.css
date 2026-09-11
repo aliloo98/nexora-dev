@@ -133,16 +133,16 @@
   }
 }
 
-@keyframes donutParticleOrbit {
+@keyframes donutPulseOrbit {
   0%, 8% {
     opacity: 0;
     transform: rotate(0deg);
   }
   16% {
-    opacity: 0.9;
+    opacity: 0.95;
   }
   68% {
-    opacity: 0.9;
+    opacity: 0.95;
     transform: rotate(360deg);
   }
   76%, 100% {
@@ -151,21 +151,21 @@
   }
 }
 
-@keyframes projectionSignalTravel {
+@keyframes timelineSignalTravel {
   0%, 10% {
     opacity: 0;
-    transform: translateX(-22px);
+    top: 8px;
   }
   18% {
     opacity: 0.75;
   }
   72% {
     opacity: 0.75;
-    transform: translateX(calc(100% + 22px));
+    top: calc(100% - 56px);
   }
   80%, 100% {
     opacity: 0;
-    transform: translateX(calc(100% + 22px));
+    top: calc(100% - 56px);
   }
 }
 
@@ -1465,16 +1465,19 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   animation-delay: -1.5s !important;
 }
 
-.dashboard-analytics__donut-particle {
+.dashboard-analytics__donut-pulse {
   transform-box: view-box !important;
   transform-origin: 60px 60px !important;
-  animation: donutParticleOrbit 8s ease-in-out infinite !important;
+  animation: donutPulseOrbit 8s ease-in-out infinite !important;
   animation-iteration-count: infinite !important;
   animation-play-state: running !important;
 }
 
-.dashboard-analytics__donut-particle circle {
-  fill: #53e3e7 !important;
+.dashboard-analytics__donut-pulse path {
+  fill: none !important;
+  stroke: url('#dashboard-donut-pulse') !important;
+  stroke-width: 3.2 !important;
+  stroke-linecap: round !important;
   filter: drop-shadow(0 0 4px rgba(83, 227, 231, 0.65)) !important;
 }
 
@@ -1580,10 +1583,10 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   top: 0 !important;
   bottom: 0 !important;
   left: 0 !important;
-  width: 18% !important;
+  width: clamp(40px, 24%, 80px) !important;
   border-radius: inherit !important;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.48), transparent) !important;
-  filter: blur(1px) !important;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.42) 28%, rgba(255, 255, 255, 0.92) 50%, rgba(255, 255, 255, 0.42) 72%, transparent 100%) !important;
+  filter: blur(0.6px) drop-shadow(0 0 5px rgba(83, 227, 231, 0.48)) !important;
   animation: financialBarSweep 7s ease-in-out infinite !important;
   animation-iteration-count: infinite !important;
   animation-play-state: running !important;
@@ -1960,6 +1963,23 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-analytics-section {
   animation-iteration-count: infinite !important;
   animation-play-state: running !important;
 }
+
+.dashboard-v2-cockpit .north-star-trajectory__timeline::after {
+  content: '' !important;
+  position: absolute !important;
+  left: -1px !important;
+  top: 8px !important;
+  height: 48px !important;
+  width: 12px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(180deg, transparent, #b8ffff 45%, #53e3e7 55%, transparent) !important;
+  box-shadow: 0 0 7px rgba(83, 227, 231, 0.7) !important;
+  filter: blur(0.4px) !important;
+  pointer-events: none !important;
+  animation: timelineSignalTravel 5s ease-in-out infinite !important;
+  animation-iteration-count: infinite !important;
+  animation-play-state: running !important;
+}
 .dashboard-v2-cockpit .north-star-trajectory__item {
   min-width: 0 !important;
   padding: 0 0 22px 0 !important;
@@ -2012,22 +2032,11 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-analytics-section {
 }
 
 .dashboard-v2-cockpit .north-star-trajectory__line::after {
-  content: '' !important;
-  position: absolute !important;
-  top: 0 !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  width: 14px !important;
-  border-radius: 999px !important;
-  background: #53e3e7 !important;
-  box-shadow: 0 0 5px rgba(83, 227, 231, 0.7) !important;
   animation: none !important;
 }
 
 .dashboard-v2-cockpit .north-star-trajectory__item:last-child .north-star-trajectory__line::after {
-  animation: projectionSignalTravel 6s ease-in-out infinite !important;
-  animation-iteration-count: infinite !important;
-  animation-play-state: running !important;
+  display: none !important;
 }
 .dashboard-v2-cockpit .north-star-trajectory__summary {
   display: flex !important;
@@ -2188,11 +2197,11 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-analytics-section {
   .dashboard-v2-cockpit::after,
   .dashboard-analytics__donut::after,
   .dashboard-analytics__donut-segment,
-  .dashboard-analytics__donut-particle,
+  .dashboard-analytics__donut-pulse,
   .cockpit-hero__context,
   .dashboard-v2-cockpit .north-star-priority__eyebrow,
   .dashboard-v2-cockpit .north-star-trajectory__timeline::before,
-  .dashboard-v2-cockpit .north-star-trajectory__line::after,
+  .dashboard-v2-cockpit .north-star-trajectory__timeline::after,
   .dashboard-v2-cockpit .north-star-trajectory__marker,
   .dashboard-analytics__flow-track span,
   .dashboard-analytics__flow-track span::after,
