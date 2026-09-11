@@ -40,6 +40,97 @@
   background: rgba(75, 181, 252, 0.10) !important;
 }
 
+@keyframes cockpitAmbientDrift {
+  0% {
+    transform: scale(1) translate3d(0, 0, 0);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(1.08) translate3d(10px, -8px, 0);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1) translate3d(-10px, 10px, 0);
+    opacity: 0.55;
+  }
+}
+
+@keyframes donutBreath {
+  0%, 100% {
+    box-shadow: 0 0 18px rgba(83, 227, 231, 0.10), inset 0 0 14px rgba(242, 196, 94, 0.06);
+    opacity: 0.6;
+  }
+  50% {
+    box-shadow: 0 0 26px rgba(83, 227, 231, 0.18), inset 0 0 20px rgba(242, 196, 94, 0.10);
+    opacity: 1;
+  }
+}
+
+@keyframes segmentGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 0 rgba(83, 227, 231, 0));
+    opacity: 0.95;
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(83, 227, 231, 0.28));
+    opacity: 1;
+  }
+}
+
+@keyframes kpiSoftGlow {
+  0%, 100% {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 0 0 rgba(242, 196, 94, 0);
+    opacity: 0.9;
+  }
+  50% {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 0 18px rgba(242, 196, 94, 0.12);
+    opacity: 1;
+  }
+}
+
+@keyframes markerPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(75, 181, 252, 0), 0 0 0 rgba(75, 181, 252, 0);
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(75, 181, 252, 0.18), 0 0 20px rgba(75, 181, 252, 0.12);
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes timelineGlow {
+  0%, 100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes barShimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.dashboard-v2-cockpit::before,
+.dashboard-v2-cockpit::after {
+  animation: cockpitAmbientDrift 13s ease-in-out infinite alternate;
+}
+
+.dashboard-v2-cockpit::after {
+  animation-delay: -4s;
+}
+
 .cockpit-decision-section {
   order: 1 !important;
   padding: 0 !important;
@@ -264,6 +355,19 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   border: 0 !important;
   border-left: 1px solid rgba(255,255,255,0.04) !important;
   box-shadow: none !important;
+  animation: kpiSoftGlow 8s ease-in-out infinite alternate !important;
+}
+
+.cockpit-situation__kpi:nth-child(1) {
+  animation-delay: 0s !important;
+}
+
+.cockpit-situation__kpi:nth-child(2) {
+  animation-delay: 1.2s !important;
+}
+
+.cockpit-situation__kpi:nth-child(3) {
+  animation-delay: 2.4s !important;
 }
 
 .cockpit-situation__kpi-label {
@@ -336,6 +440,7 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   border-radius: 0 !important;
   box-shadow: none !important;
   transition: opacity 150ms ease !important;
+  animation: kpiSoftGlow 9s ease-in-out infinite alternate !important;
 }
 
 .dashboard-v2-cockpit .cockpit-engagement:hover {
@@ -380,6 +485,7 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   text-transform: uppercase !important;
   color: var(--gold2) !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.05) !important;
+  animation: kpiSoftGlow 6.5s ease-in-out infinite !important;
 }
 
 .cockpit-hero__amount {
@@ -508,6 +614,7 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   cursor: pointer !important;
   transition: opacity 0.2s !important;
   align-self: flex-start !important;
+  animation: kpiSoftGlow 7.5s ease-in-out infinite !important;
 }
 
 .cockpit-decision-section .north-star-priority__action-button:hover {
@@ -654,6 +761,7 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   bottom: 0 !important;
   width: 2px !important;
   background: rgba(255, 255, 255, 0.1) !important;
+  animation: timelineGlow 5s ease-in-out infinite !important;
 }
 
 .north-star-trajectory__event {
@@ -669,6 +777,19 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   border-radius: 50% !important;
   background: var(--primary) !important;
   border: 2px solid var(--bg) !important;
+  animation: markerPulse 4.5s ease-in-out infinite !important;
+}
+
+.north-star-trajectory__event:nth-child(1) .north-star-trajectory__marker {
+  animation-delay: 0s !important;
+}
+
+.north-star-trajectory__event:nth-child(2) .north-star-trajectory__marker {
+  animation-delay: 0.8s !important;
+}
+
+.north-star-trajectory__event:nth-child(3) .north-star-trajectory__marker {
+  animation-delay: 1.6s !important;
 }
 
 .north-star-trajectory__date {
@@ -1245,6 +1366,17 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   display: none !important;
 }
 
+.dashboard-analytics__donut::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: -8px !important;
+  border-radius: 50% !important;
+  border: 1px solid rgba(83, 227, 231, 0.18) !important;
+  box-shadow: 0 0 18px rgba(83, 227, 231, 0.10), inset 0 0 14px rgba(242, 196, 94, 0.06) !important;
+  pointer-events: none !important;
+  animation: donutBreath 4.5s ease-in-out infinite !important;
+}
+
 .dashboard-analytics__donut-svg {
   position: absolute !important;
   inset: 0 !important;
@@ -1270,10 +1402,13 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
 
 .dashboard-analytics__donut-segment--fixed {
   stroke: #f2c45e !important;
+  animation: segmentGlow 4.8s ease-in-out infinite alternate !important;
 }
 
 .dashboard-analytics__donut-segment--variable {
   stroke: #53e3e7 !important;
+  animation: segmentGlow 5.4s ease-in-out infinite alternate !important;
+  animation-delay: -1.5s !important;
 }
 
 .dashboard-analytics__donut-hole {
@@ -1418,6 +1553,21 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-analytics-section {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .dashboard-v2-cockpit::before,
+  .dashboard-v2-cockpit::after,
+  .dashboard-analytics__donut::after,
+  .dashboard-analytics__donut-segment,
+  .dashboard-analytics__donut-value,
+  .cockpit-hero__context,
+  .cockpit-situation__kpi,
+  .cockpit-decision-section .north-star-priority__action-button,
+  .north-star-trajectory__timeline::before,
+  .north-star-trajectory__marker,
+  .north-star-goals__fill,
+  .cockpit-engagement {
+    animation: none !important;
+  }
+
   .dashboard-analytics__donut-segment,
   .dashboard-analytics__donut-value {
     transition: none !important;
@@ -1473,8 +1623,10 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-analytics-section {
 }
 .dashboard-v2-cockpit .north-star-goals__fill {
   height: 100% !important;
-  background: var(--gold) !important;
+  background: linear-gradient(90deg, #f2c45e 0%, #f8da8c 50%, #f2c45e 100%) !important;
+  background-size: 200% 100% !important;
   border-radius: 2px !important;
+  animation: barShimmer 8s ease-in-out infinite !important;
 }
 
 /* V2 Dashboard Compact Debts Override */
