@@ -187,6 +187,24 @@
   }
 }
 
+@keyframes heroDataFlowScan {
+  0%, 12% {
+    opacity: 0;
+    transform: translateX(-140%);
+  }
+  22% {
+    opacity: 0.48;
+  }
+  58% {
+    opacity: 0.48;
+    transform: translateX(520%);
+  }
+  68%, 100% {
+    opacity: 0;
+    transform: translateX(520%);
+  }
+}
+
 .dashboard-v2-cockpit::before,
 .dashboard-v2-cockpit::after {
   animation: cockpitAmbientDrift 13s ease-in-out infinite alternate;
@@ -309,10 +327,30 @@
 }
 
 .dashboard-v2-cockpit .cockpit-situation-section .cockpit-hero {
+  position: relative !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(112, 133, 159, 0.12) !important;
+  border-radius: 16px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025) !important;
   display: grid !important;
   grid-template-columns: 1.1fr 1fr !important;
   gap: 18px 20px !important;
   padding: 16px 0 10px !important;
+}
+
+.dashboard-v2-cockpit .cockpit-situation-section .cockpit-hero::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 18% !important;
+  height: 1px !important;
+  background: linear-gradient(90deg, transparent, rgba(83, 227, 231, 0.9), transparent) !important;
+  filter: blur(0.35px) drop-shadow(0 0 5px rgba(83, 227, 231, 0.42)) !important;
+  pointer-events: none !important;
+  animation: heroDataFlowScan 8s ease-in-out infinite !important;
+  animation-iteration-count: infinite !important;
+  animation-play-state: running !important;
 }
 
 .dashboard-v2-cockpit .cockpit-situation-section .cockpit-hero__header {
