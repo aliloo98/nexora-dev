@@ -1642,6 +1642,75 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-analytics-section {
   }
 
   .dashboard-analytics__donut-hole strong { font-size: 17px !important; }
+
+  .dashboard-v2-cockpit .dashboard-analytics__donut-pulse path {
+    stroke-width: 4 !important;
+    filter: drop-shadow(0 0 6px rgba(83, 227, 231, 0.82)) !important;
+  }
+
+  .dashboard-v2-cockpit .north-star-trajectory__timeline::after {
+    width: 10px !important;
+    box-shadow: 0 0 10px rgba(83, 227, 231, 0.84) !important;
+  }
+
+  .dashboard-analytics__flow-track span::after {
+    width: clamp(52px, 28%, 84px) !important;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.52) 24%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 0.52) 76%, transparent 100%) !important;
+    filter: blur(0.5px) drop-shadow(0 0 7px rgba(83, 227, 231, 0.64)) !important;
+  }
+
+  .dashboard-v2-cockpit .north-star-jarvis--response-reveal .north-star-jarvis__brief,
+  .dashboard-v2-cockpit .north-star-jarvis--response-reveal .north-star-jarvis__copilot {
+    filter: drop-shadow(0 0 8px rgba(83, 227, 231, 0.12)) !important;
+  }
+}
+
+/* Desktop analytics grid: protect the donut legend and financial flow from compression. */
+@media (min-width: 1200px) {
+  .dashboard-v2-cockpit {
+    grid-template-columns: minmax(680px, 1.7fr) minmax(320px, 0.9fr) !important;
+    column-gap: 40px !important;
+  }
+
+  .dashboard-v2-cockpit .dashboard-analytics__body {
+    grid-template-columns: minmax(320px, 0.95fr) minmax(340px, 1.05fr) !important;
+    gap: 40px !important;
+  }
+
+  .dashboard-v2-cockpit .dashboard-analytics__donut-wrap {
+    grid-template-columns: 184px minmax(120px, 1fr) !important;
+    gap: 24px !important;
+  }
+}
+
+@media (min-width: 960px) and (max-width: 1199px) {
+  .dashboard-v2-cockpit {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas:
+      'situation'
+      'command'
+      'jarvis'
+      'analytics'
+      'engagements' !important;
+  }
+
+  .dashboard-v2-cockpit .dashboard-analytics__body {
+    grid-template-columns: minmax(280px, 0.9fr) minmax(300px, 1.1fr) !important;
+    gap: 32px !important;
+  }
+
+  .dashboard-v2-cockpit .dashboard-analytics__donut-wrap {
+    grid-template-columns: 150px minmax(120px, 1fr) !important;
+    gap: 22px !important;
+  }
+
+  .dashboard-v2-cockpit .dashboard-analytics__donut {
+    width: 150px !important;
+  }
+
+  .dashboard-v2-cockpit .cockpit-engagements-section {
+    min-width: 0 !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1663,6 +1732,71 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-analytics-section {
   .dashboard-analytics__donut-segment,
   .dashboard-analytics__donut-value {
     transition: none !important;
+  }
+}
+
+/* Final desktop cascade: analytics owns a readable grid before commitments. */
+@media (min-width: 1400px) {
+  .dashboard-v2-cockpit {
+    grid-template-columns: minmax(680px, 1.7fr) minmax(320px, 0.9fr) !important;
+    grid-template-areas:
+      'situation situation'
+      'command command'
+      'jarvis jarvis'
+      'analytics engagements' !important;
+    column-gap: 40px !important;
+  }
+
+  .dashboard-v2-cockpit .dashboard-analytics__body {
+    grid-template-columns: 320px minmax(340px, 1fr) !important;
+    gap: 40px !important;
+  }
+
+  .dashboard-v2-cockpit .dashboard-analytics__donut-wrap {
+    grid-template-columns: 184px 120px !important;
+    gap: 24px !important;
+  }
+}
+
+@media (min-width: 960px) and (max-width: 1399px) {
+  .dashboard-v2-cockpit {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas:
+      'situation'
+      'command'
+      'jarvis'
+      'analytics'
+      'engagements' !important;
+    column-gap: 0 !important;
+  }
+
+  .dashboard-v2-cockpit .dashboard-analytics__body {
+    grid-template-columns: minmax(280px, 320px) minmax(300px, 1fr) !important;
+    gap: 32px !important;
+  }
+
+  .dashboard-v2-cockpit .dashboard-analytics__donut-wrap {
+    grid-template-columns: 184px minmax(120px, 1fr) !important;
+    gap: 24px !important;
+  }
+
+  .dashboard-v2-cockpit .cockpit-engagements-section {
+    min-width: 0 !important;
+  }
+}
+
+@media (min-width: 960px) and (max-width: 1199px) {
+  .dashboard-v2-cockpit .dashboard-analytics__body {
+    grid-template-columns: minmax(260px, 280px) minmax(300px, 1fr) !important;
+  }
+
+  .dashboard-v2-cockpit .dashboard-analytics__donut-wrap {
+    grid-template-columns: 150px minmax(120px, 1fr) !important;
+    gap: 22px !important;
+  }
+
+  .dashboard-v2-cockpit .dashboard-analytics__donut {
+    width: 150px !important;
   }
 }
 
@@ -2223,6 +2357,67 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-analytics-section {
 /* Remove the repeated projected-balance rail; the Hero already owns that value. */
 .dashboard-v2-cockpit .cockpit-situation__kpi:first-child {
   display: none !important;
+}
+
+/* Final desktop analytics composition. */
+@media (min-width: 1400px) {
+  .dashboard-v2-cockpit {
+    grid-template-columns: minmax(680px, 1.7fr) minmax(320px, 0.9fr) !important;
+    grid-template-areas:
+      'situation situation'
+      'command command'
+      'jarvis jarvis'
+      'analytics engagements' !important;
+    column-gap: 40px !important;
+  }
+
+  .dashboard-v2-cockpit .dashboard-analytics__body {
+    grid-template-columns: 320px minmax(340px, 1fr) !important;
+    gap: 40px !important;
+  }
+
+  .dashboard-v2-cockpit .dashboard-analytics__donut-wrap {
+    grid-template-columns: 184px 120px !important;
+    gap: 24px !important;
+  }
+}
+
+@media (min-width: 960px) and (max-width: 1399px) {
+  .dashboard-v2-cockpit {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas:
+      'situation'
+      'command'
+      'jarvis'
+      'analytics'
+      'engagements' !important;
+    column-gap: 0 !important;
+  }
+
+  .dashboard-v2-cockpit .dashboard-analytics__body {
+    grid-template-columns: minmax(280px, 320px) minmax(300px, 1fr) !important;
+    gap: 32px !important;
+  }
+
+  .dashboard-v2-cockpit .dashboard-analytics__donut-wrap {
+    grid-template-columns: 184px minmax(120px, 1fr) !important;
+    gap: 24px !important;
+  }
+}
+
+@media (min-width: 960px) and (max-width: 1199px) {
+  .dashboard-v2-cockpit .dashboard-analytics__body {
+    grid-template-columns: minmax(260px, 280px) minmax(300px, 1fr) !important;
+  }
+
+  .dashboard-v2-cockpit .dashboard-analytics__donut-wrap {
+    grid-template-columns: 150px minmax(120px, 1fr) !important;
+    gap: 22px !important;
+  }
+
+  .dashboard-v2-cockpit .dashboard-analytics__donut {
+    width: 150px !important;
+  }
 }
 
 .dashboard-v2-cockpit .cockpit-situation__kpis {
