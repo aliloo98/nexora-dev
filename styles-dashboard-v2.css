@@ -110,6 +110,17 @@
   }
 }
 
+@keyframes priorityBreath {
+  0%, 100% {
+    opacity: 0.7;
+    text-shadow: 0 0 0 rgba(242, 196, 94, 0);
+  }
+  50% {
+    opacity: 0.9;
+    text-shadow: 0 0 12px rgba(242, 196, 94, 0.16);
+  }
+}
+
 @keyframes barShimmer {
   0% {
     background-position: 0% 50%;
@@ -178,6 +189,9 @@
   color: #f2c45e !important;
   font-size: 10px !important;
   letter-spacing: 0.12em !important;
+  animation: priorityBreath 6s ease-in-out infinite !important;
+  animation-iteration-count: infinite !important;
+  animation-play-state: running !important;
 }
 
 .dashboard-v2-cockpit .north-star-priority__label {
@@ -355,19 +369,6 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   border: 0 !important;
   border-left: 1px solid rgba(255,255,255,0.04) !important;
   box-shadow: none !important;
-  animation: kpiSoftGlow 8s ease-in-out infinite alternate !important;
-}
-
-.cockpit-situation__kpi:nth-child(1) {
-  animation-delay: 0s !important;
-}
-
-.cockpit-situation__kpi:nth-child(2) {
-  animation-delay: 1.2s !important;
-}
-
-.cockpit-situation__kpi:nth-child(3) {
-  animation-delay: 2.4s !important;
 }
 
 .cockpit-situation__kpi-label {
@@ -440,7 +441,6 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   border-radius: 0 !important;
   box-shadow: none !important;
   transition: opacity 150ms ease !important;
-  animation: kpiSoftGlow 9s ease-in-out infinite alternate !important;
 }
 
 .dashboard-v2-cockpit .cockpit-engagement:hover {
@@ -1498,11 +1498,15 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-insight-section[data-dashboard-m
   display: block !important;
   height: 100% !important;
   border-radius: inherit !important;
-  background: linear-gradient(90deg, #2bc8d0, #70f1d4) !important;
+  background: linear-gradient(90deg, #2bc8d0 0%, #70f1d4 50%, #2bc8d0 100%) !important;
+  background-size: 200% 100% !important;
+  animation: barShimmer 7s ease-in-out infinite !important;
+  animation-iteration-count: infinite !important;
+  animation-play-state: running !important;
 }
 
 .dashboard-analytics__flow-track--expense span {
-  background: linear-gradient(90deg, var(--gold), #f2a852) !important;
+  background: linear-gradient(90deg, var(--gold) 0%, #f2a852 50%, var(--gold) 100%) !important;
 }
 
 .dashboard-analytics__flow-summary {
@@ -1867,6 +1871,9 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-analytics-section {
   bottom: 8px !important;
   width: 1px !important;
   background: linear-gradient(var(--gold), rgba(143, 177, 255, 0.35), var(--green)) !important;
+  animation: timelineGlow 6s ease-in-out infinite !important;
+  animation-iteration-count: infinite !important;
+  animation-play-state: running !important;
 }
 .dashboard-v2-cockpit .north-star-trajectory__item {
   min-width: 0 !important;
@@ -2067,6 +2074,21 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-analytics-section {
 
   .dashboard-v2-cockpit .north-star-trajectory__amount {
     font-size: 18px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-v2-cockpit::before,
+  .dashboard-v2-cockpit::after,
+  .dashboard-analytics__donut::after,
+  .dashboard-analytics__donut-segment,
+  .cockpit-hero__context,
+  .dashboard-v2-cockpit .north-star-priority__eyebrow,
+  .dashboard-v2-cockpit .north-star-trajectory__timeline::before,
+  .dashboard-v2-cockpit .north-star-trajectory__marker,
+  .dashboard-analytics__flow-track span,
+  .dashboard-v2-cockpit .north-star-goals__fill {
+    animation: none !important;
   }
 }
 
