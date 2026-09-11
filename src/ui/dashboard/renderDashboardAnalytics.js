@@ -117,6 +117,9 @@ export function renderDashboardAnalytics(rootId, metrics = {}, options = {}) {
               <circle cx="60" cy="60" r="42" class="dashboard-analytics__donut-track"></circle>
               <circle cx="60" cy="60" r="42" class="dashboard-analytics__donut-segment dashboard-analytics__donut-segment--fixed" pathLength="100" stroke-dasharray="0 100" stroke-dashoffset="0"></circle>
               <circle cx="60" cy="60" r="42" class="dashboard-analytics__donut-segment dashboard-analytics__donut-segment--variable" pathLength="100" stroke-dasharray="0 100" stroke-dashoffset="0"></circle>
+              <g class="dashboard-analytics__donut-particle" aria-hidden="true">
+                <circle cx="60" cy="21" r="2.5"></circle>
+              </g>
             </svg>
             <div class="dashboard-analytics__donut-hole">
               <strong class="dashboard-analytics__donut-value">${formatEuro(0)}</strong>

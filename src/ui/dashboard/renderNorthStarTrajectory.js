@@ -199,7 +199,7 @@ export function renderNorthStarTrajectory(rootId, metrics = {}, options = {}) {
           <div class="north-star-trajectory__meta">
             <span class="north-star-trajectory__label-text">${event.label}</span>
             <strong class="north-star-trajectory__date">${event.type === 'upcoming' ? formatMonth(event.date) : formatDate(event.date)}</strong>
-            <div class="north-star-trajectory__line"></div>
+            <div class="north-star-trajectory__line" aria-hidden="true"></div>
           </div>
           <div class="north-star-trajectory__summary">
             <div class="north-star-trajectory__labels">
