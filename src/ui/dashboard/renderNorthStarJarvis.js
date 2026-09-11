@@ -69,6 +69,7 @@ export function renderNorthStarJarvis(rootIdOrElement, decision, context, docume
   const enrichment = buildNorthStarJarvisEnrichment(decision, context)
 
   const renderCopilotPanel = (panel, insight, snapshot) => {
+    panel.classList.add('north-star-jarvis--response-reveal')
     panel.innerHTML = `
       <div class="north-star-jarvis__brief">
         <span class="north-star-jarvis__brief-label">Analyse actualisée</span>

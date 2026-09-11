@@ -212,9 +212,23 @@ function renderNorthStarPriority(rootId, metrics = {}, documentRef, windowRef) {
   const root = documentRef.getElementById(rootId)
   if (!root) return null
   const decision = buildNorthStarDecision(metrics)
+  const motionSignature = [
+    decision.tone,
+    decision.label,
+    decision.title,
+    decision.action?.label || ''
+  ].join('|')
+  const previousSignature = root.dataset.motionSignature
+  const previousPanel = root.querySelector('.north-star-priority')
+  const isMotionEvent = Boolean(
+    (previousSignature && previousSignature !== motionSignature)
+    || previousPanel?.classList.contains('north-star-priority--motion-event')
+  )
+  root.dataset.motionSignature = motionSignature
 
   const panel = documentRef.createElement('section')
-  panel.className = `north-star-priority north-star-priority--${decision.tone}`
+  panel.className = `north-star-priority north-star-priority--${decision.tone}${isMotionEvent ? ' north-star-priority--motion-event' : ''}`
+  panel.dataset.motionSignature = motionSignature
   panel.setAttribute('aria-label', 'Priorité financière')
 
   const header = documentRef.createElement('div')

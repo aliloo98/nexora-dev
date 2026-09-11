@@ -1666,6 +1666,70 @@ body.mode-simple .dashboard-v2-cockpit .cockpit-analytics-section {
   }
 }
 
+/* Financial Data Flow motion language: signals move, structure stays still. */
+@keyframes priorityEventFocus {
+  0% {
+    opacity: 0.7;
+    text-shadow: 0 0 0 rgba(242, 196, 94, 0);
+  }
+  45% {
+    opacity: 1;
+    text-shadow: 0 0 14px rgba(242, 196, 94, 0.24);
+  }
+  100% {
+    opacity: 0.7;
+    text-shadow: 0 0 0 rgba(242, 196, 94, 0);
+  }
+}
+
+@keyframes jarvisResponseReveal {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dashboard-v2-cockpit .cockpit-hero__context,
+.dashboard-v2-cockpit .cockpit-decision-section .north-star-priority__action-button,
+.dashboard-v2-cockpit .north-star-goals__fill,
+.dashboard-v2-cockpit .north-star-priority__eyebrow {
+  animation: none !important;
+}
+
+.dashboard-v2-cockpit .north-star-priority--motion-event .north-star-priority__eyebrow {
+  animation: priorityEventFocus 500ms ease-out both !important;
+}
+
+.dashboard-v2-cockpit .north-star-jarvis--response-reveal .north-star-jarvis__brief {
+  animation: jarvisResponseReveal 220ms ease-out both !important;
+}
+
+.dashboard-v2-cockpit .north-star-jarvis--response-reveal .north-star-jarvis__copilot {
+  animation: jarvisResponseReveal 260ms ease-out 70ms both !important;
+}
+
+.dashboard-v2-cockpit .north-star-jarvis--response-reveal .north-star-jarvis__reasons {
+  animation: jarvisResponseReveal 220ms ease-out 140ms both !important;
+}
+
+.dashboard-v2-cockpit .north-star-jarvis--response-reveal .north-star-jarvis__action-container {
+  animation: jarvisResponseReveal 220ms ease-out 200ms both !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-v2-cockpit .north-star-priority--motion-event .north-star-priority__eyebrow,
+  .dashboard-v2-cockpit .north-star-jarvis--response-reveal .north-star-jarvis__brief,
+  .dashboard-v2-cockpit .north-star-jarvis--response-reveal .north-star-jarvis__copilot,
+  .dashboard-v2-cockpit .north-star-jarvis--response-reveal .north-star-jarvis__reasons,
+  .dashboard-v2-cockpit .north-star-jarvis--response-reveal .north-star-jarvis__action-container {
+    animation: none !important;
+  }
+}
+
 /* V2 Dashboard Compact Goals Override */
 .dashboard-v2-cockpit .north-star-goals {
   display: flex !important;
